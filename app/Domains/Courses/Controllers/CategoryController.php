@@ -10,21 +10,39 @@ class CategoryController extends Controller
 {
     public function index()
     {
-        $categories = Category::orderBy('name')->get();
+        $categories = Category::query()
+            ->withCount('courses')
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
 
-        return ApiResponse::success($categories, 'Categories retrieved successfully');
+        return ApiResponse::success(
+            $categories,
+            'Categories retrieved successfully'
+        );
     }
 
     public function show(string $slug)
     {
-        $category = Category::where('slug', $slug)
-            ->with('courses')
+        $category = Category::query()
+            ->where('slug', $slug)
+            ->with([
+                'courses' => fn ($query) => $query
+                    ->published()
+                    ->latest(),
+            ])
+            ->withCount('courses')
             ->first();
 
         if (! $category) {
-            return ApiResponse::error('Category not found', 404);
+            return ApiResponse::error(
+                'Category not found',
+                404
+            );
         }
-
-        return ApiResponse::success($category, 'Category retrieved successfully');
+        return ApiResponse::success(
+            $category,
+            'Category retrieved successfully'
+        );
     }
 }

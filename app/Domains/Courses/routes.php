@@ -3,9 +3,18 @@
 use Illuminate\Support\Facades\Route;
 
 use App\Domains\Courses\Controllers\CourseController;
+use App\Domains\Courses\Controllers\CategoryController;
 use App\Domains\Courses\Controllers\InstructorCourseController;
 use App\Domains\Courses\Controllers\InstructorSectionController;
 use App\Domains\Courses\Controllers\InstructorLessonController;
+
+// Public Categories
+Route::middleware('throttle:courses')
+    ->prefix('categories')
+    ->group(function () {
+        Route::get('/', [CategoryController::class, 'index']);
+        Route::get('/{slug}', [CategoryController::class, 'show']);
+    });
 
 //Public Courses
 Route::middleware('throttle:courses')

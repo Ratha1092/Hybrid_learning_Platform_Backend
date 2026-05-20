@@ -137,23 +137,85 @@ class DatabaseSeeder extends Seeder
         }
 
         $categories = collect();
-        $categoryNames = [
-            'Business',
-            'Development',
-            'Design',
-            'Marketing',
-            'Finance',
-            'Health & Wellness',
-            'Photography',
-            'Personal Growth',
+        $categoryData = [
+            [
+                'name' => 'Business',
+                'slug' => Str::slug('Business'),
+                'description' => 'Courses to help you build, scale, and manage modern businesses.',
+                'icon' => 'briefcase',
+                'image' => null,
+                'is_featured' => true,
+                'sort_order' => 1,
+            ],
+            [
+                'name' => 'Development',
+                'slug' => Str::slug('Development'),
+                'description' => 'Technical and programming courses for web, mobile, and software development.',
+                'icon' => 'code',
+                'image' => null,
+                'is_featured' => true,
+                'sort_order' => 2,
+            ],
+            [
+                'name' => 'Design',
+                'slug' => Str::slug('Design'),
+                'description' => 'Design courses covering UX, UI, graphics, and creative workflows.',
+                'icon' => 'palette',
+                'image' => null,
+                'is_featured' => false,
+                'sort_order' => 3,
+            ],
+            [
+                'name' => 'Marketing',
+                'slug' => Str::slug('Marketing'),
+                'description' => 'Marketing and growth courses for digital campaigns, branding, and strategy.',
+                'icon' => 'chart-line',
+                'image' => null,
+                'is_featured' => false,
+                'sort_order' => 4,
+            ],
+            [
+                'name' => 'Finance',
+                'slug' => Str::slug('Finance'),
+                'description' => 'Finance and investing courses for business owners and personal planning.',
+                'icon' => 'wallet',
+                'image' => null,
+                'is_featured' => false,
+                'sort_order' => 5,
+            ],
+            [
+                'name' => 'Health & Wellness',
+                'slug' => Str::slug('Health & Wellness'),
+                'description' => 'Courses focused on health, wellness, productivity, and personal wellbeing.',
+                'icon' => 'heart',
+                'image' => null,
+                'is_featured' => true,
+                'sort_order' => 6,
+            ],
+            [
+                'name' => 'Photography',
+                'slug' => Str::slug('Photography'),
+                'description' => 'Photography and visual storytelling courses for all skill levels.',
+                'icon' => 'camera',
+                'image' => null,
+                'is_featured' => false,
+                'sort_order' => 7,
+            ],
+            [
+                'name' => 'Personal Growth',
+                'slug' => Str::slug('Personal Growth'),
+                'description' => 'Self-improvement courses for skills, habits, and career development.',
+                'icon' => 'sparkles',
+                'image' => null,
+                'is_featured' => false,
+                'sort_order' => 8,
+            ],
         ];
 
-        foreach ($categoryNames as $name) {
-            $categories->push(Category::firstOrCreate([
-                'slug' => Str::slug($name),
-            ], [
-                'name' => $name,
-            ]));
+        foreach ($categoryData as $data) {
+            $categories->push(Category::updateOrCreate([
+                'slug' => $data['slug'],
+            ], $data));
         }
 
         $tags = collect();

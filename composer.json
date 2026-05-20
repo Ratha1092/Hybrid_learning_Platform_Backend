@@ -5,6 +5,11 @@
     "description": "The skeleton application for the Laravel framework.",
     "keywords": ["laravel", "framework"],
     "license": "MIT",
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/bakongkhqr/khqr-php"
+        }],
     "require": {
         "php": "^8.2",
         "endroid/qr-code": "^6.0",
@@ -96,6 +101,6 @@
             "php-http/discovery": true
         }
     },
-    "minimum-stability": "stable",
+    "minimum-stability": "dev",
     "prefer-stable": true
 }

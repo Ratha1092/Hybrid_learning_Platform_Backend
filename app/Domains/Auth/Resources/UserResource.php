@@ -13,6 +13,7 @@ class UserResource extends JsonResource
             'name' => $this->name,
             'email' => $this->email,
             'role' => $this->role ?? 'student',
+            'instructor_status' => $this->instructor_status,
 
             'email_verified_at' => $this->email_verified_at
                 ? $this->email_verified_at->toIso8601String()

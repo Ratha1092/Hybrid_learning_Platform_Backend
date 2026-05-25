@@ -4,6 +4,10 @@ namespace App\Filament\Resources\InstructorVerifications;
 
 use App\Domains\Users\Models\InstructorProfile;
 use App\Domains\Users\Models\InstructorVerification;
+use App\Domains\Users\Mail\InstructorApprovedMail;
+use App\Domains\Users\Mail\InstructorRejectedMail;
+use App\Notifications\InstructorApprovedNotification;
+use App\Notifications\InstructorRejectedNotification;
 use Filament\Forms;
 use Filament\Resources\Resource;
 use Filament\Tables\Columns\TextColumn;
@@ -19,6 +23,7 @@ use Filament\Actions;
 use BackedEnum;
 use UnitEnum;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Mail;
 
 class InstructorVerificationResource extends Resource
 {
@@ -142,7 +147,17 @@ class InstructorVerificationResource extends Resource
                             'reviewed_at' => now(),
                         ]);
 
-                        $record->user->update(['instructor_status' => 'verified']);
+                        $record->user->update([
+                            'role' => 'instructor',
+                            'instructor_status' => 'verified',
+                        ]);
+
+                        $record->user->syncRoles(['instructor']);
+
+                        $record->user->notify(new InstructorApprovedNotification());
+
+                        Mail::to($record->user->email)
+                            ->send(new InstructorApprovedMail($record->user));
 
                         InstructorProfile::firstOrCreate([
                             'user_id' => $record->user_id,
@@ -174,6 +189,11 @@ class InstructorVerificationResource extends Resource
                         ]);
 
                         $record->user->update(['instructor_status' => 'rejected']);
+
+                        $record->user->notify(new InstructorRejectedNotification($data['rejection_reason']));
+
+                        Mail::to($record->user->email)
+                            ->send(new InstructorRejectedMail($record->user, $data['rejection_reason']));
 
                         Notification::make()
                             ->title('Application Rejected')

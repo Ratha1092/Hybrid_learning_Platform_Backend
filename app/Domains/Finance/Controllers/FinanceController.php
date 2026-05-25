@@ -7,72 +7,113 @@ use App\Domains\Finance\Models\InstructorWallet;
 use App\Domains\Finance\Models\WalletTransaction;
 use App\Domains\Finance\Models\PayoutRequest;
 use App\Support\ApiResponse;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class FinanceController extends Controller
 {
-    public function wallet()
+    public function wallet(Request $request): JsonResponse
     {
-        $user = auth()->user();
-        $wallet = InstructorWallet::where('instructor_id', $user->id)->first();
-
-        if (!$wallet) {
-            return ApiResponse::error('Wallet not found', 404);
-        }
+        $wallet = InstructorWallet::firstOrCreate(
+            ['instructor_id' => $request->user()->id],
+            ['balance' => 0, 'pending_balance' => 0, 'currency' => 'USD']
+        );
 
         return ApiResponse::success($wallet, 'Wallet retrieved successfully');
     }
 
-    public function earnings()
+    public function earnings(Request $request): JsonResponse
     {
-        $user = auth()->user();
-        $transactions = WalletTransaction::where('instructor_id', $user->id)
-            ->where('type', 'credit')
-            ->latest()
-            ->paginate(15);
+        $instructorId = $request->user()->id;
 
-        return ApiResponse::success($transactions, 'Earnings retrieved successfully');
+        $total = (float) DB::table('order_items')
+            ->where('instructor_id', $instructorId)
+            ->sum('instructor_amount');
+
+        $thisMonth = (float) DB::table('order_items')
+            ->where('instructor_id', $instructorId)
+            ->where('created_at', '>=', now()->startOfMonth())
+            ->sum('instructor_amount');
+
+        $trend = DB::table('order_items')
+            ->where('instructor_id', $instructorId)
+            ->where('created_at', '>=', now()->subMonths(6)->startOfMonth())
+            ->selectRaw("TO_CHAR(created_at, 'YYYY-MM') as month, SUM(instructor_amount) as total")
+            ->groupBy('month')
+            ->orderBy('month')
+            ->get();
+
+        return ApiResponse::success([
+            'total_earned'  => $total,
+            'this_month'    => $thisMonth,
+            'monthly_trend' => $trend,
+        ], 'Earnings retrieved successfully');
     }
 
-    public function transactions()
+    public function transactions(Request $request): JsonResponse
     {
-        $user = auth()->user();
-        $transactions = WalletTransaction::where('instructor_id', $user->id)
+        $transactions = WalletTransaction::where(
+            'instructor_id',
+            $request->user()->id
+        )
             ->latest()
-            ->paginate(15);
+            ->paginate(20);
 
         return ApiResponse::success($transactions, 'Transactions retrieved successfully');
     }
 
-    public function requestPayout(Request $request)
+    public function requestPayout(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'amount' => ['required', 'numeric', 'min:1'],
-            'payment_method' => ['required', 'string', 'in:bank_transfer,momo,acleda,wing'],
-            'details' => ['required', 'array'],
+            'amount' => ['required', 'numeric', 'min:10', 'decimal:0,2'],
+            'payment_method' => [
+                'required',
+                'string',
+                'in:bank_transfer,momo,acleda,wing',
+            ],
+            'details' => ['nullable', 'array', 'max:20'],
         ]);
 
-        $user = auth()->user();
-        $wallet = InstructorWallet::where('instructor_id', $user->id)->first();
+        $payout = DB::transaction(function () use ($request, $validated) {
+            $wallet = InstructorWallet::where(
+                'instructor_id',
+                $request->user()->id
+            )
+                ->lockForUpdate()
+                ->first();
 
-        if (!$wallet) {
-            return ApiResponse::error('Wallet not found', 404);
+            if (!$wallet || $wallet->balance < $validated['amount']) {
+                return null;
+            }
+
+            $wallet->decrement('balance', $validated['amount']);
+
+            $payout = PayoutRequest::create([
+                'instructor_id' => $request->user()->id,
+                'amount' => $validated['amount'],
+                'currency' => $wallet->currency,
+                'payment_method' => $validated['payment_method'],
+                'details' => $validated['details'] ?? null,
+                'status' => 'pending',
+            ]);
+
+            WalletTransaction::create([
+                'instructor_id' => $request->user()->id,
+                'amount' => $validated['amount'],
+                'type' => 'debit',
+                'status' => 'pending',
+                'payout_request_id' => $payout->id,
+                'description' => 'Payout request',
+            ]);
+
+            return $payout;
+        });
+
+        if (!$payout) {
+            return ApiResponse::error('Insufficient balance', 422);
         }
 
-        if ($validated['amount'] > $wallet->balance) {
-            return ApiResponse::error('Insufficient balance for payout', 400);
-        }
-
-        $payout = PayoutRequest::create([
-            'instructor_id' => $user->id,
-            'amount' => $validated['amount'],
-            'currency' => $wallet->currency,
-            'payment_method' => $validated['payment_method'],
-            'details' => $validated['details'],
-            'status' => 'pending',
-            'requested_at' => now(),
-        ]);
-
-        return ApiResponse::success($payout, 'Payout request created successfully', 201);
+        return ApiResponse::success($payout, 'Payout request submitted successfully', 201);
     }
 }

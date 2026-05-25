@@ -9,7 +9,7 @@ class IsInstructor
 {
     public function handle(Request $request, Closure $next)
     {
-        if (!auth()->check()) {
+        if (! $request->user()) {
             if ($request->is('api/*')) {
                 return response()->json(['message' => 'Unauthenticated'], 401);
             }
@@ -17,12 +17,17 @@ class IsInstructor
             return redirect('/login')->with('error', 'Please login first');
         }
 
-        if (auth()->user()->role !== 'instructor') {
+        if (! $request->user()->isVerifiedInstructor()) {
             if ($request->is('api/*')) {
-                return response()->json(['message' => 'Instructor access only'], 403);
+                return response()->json([
+                    'message' => 'Verified instructor access only',
+                ], 403);
             }
 
-            return redirect('/dashboard')->with('error', 'Unauthorized access. Only instructors can access this resource');
+            return redirect('/dashboard')->with(
+                'error',
+                'Unauthorized access. Only verified instructors can access this resource'
+            );
         }
 
         return $next($request);

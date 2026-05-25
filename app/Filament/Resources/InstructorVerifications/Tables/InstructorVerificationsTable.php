@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\InstructorVerifications\Tables;
 
+use App\Domains\Users\Models\InstructorProfile;
 use App\Domains\Users\Models\InstructorVerification;
 use Filament\Actions;
 use Filament\Forms;
@@ -87,6 +88,10 @@ class InstructorVerificationsTable
                         ]);
 
                         $user = $record->user;
+
+                        InstructorProfile::firstOrCreate([
+                            'user_id' => $record->user_id,
+                        ]);
 
                         $user->update([
                             'instructor_status' => 'verified',

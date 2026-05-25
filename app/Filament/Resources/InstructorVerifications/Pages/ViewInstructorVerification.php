@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\InstructorVerifications\Pages;
 
-use App\Filament\Resources\InstructorVerificationResource;
+use App\Filament\Resources\InstructorVerifications\InstructorVerificationResource;
 use Filament\Resources\Pages\ViewRecord;
 
 class ViewInstructorVerification extends ViewRecord

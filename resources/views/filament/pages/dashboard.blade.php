@@ -48,53 +48,7 @@
     $userName = auth()->user()->name ?? 'Admin';
 @endphp
 
-{{-- SIDEBAR OVERRIDES (Filament 3 classes) --}}
-<style>
-.fi-sidebar { background: #0d1526 !important; border-right: 1px solid rgba(255,255,255,.07) !important; }
-.fi-sidebar-inner { background: #0d1526 !important; }
-.fi-sidebar-header {
-    background: #0d1526 !important;
-    border-bottom: 1px solid rgba(255,255,255,.07) !important;
-    padding: 14px 16px !important;
-}
-.fi-logo { color: #ffffff !important; font-weight: 700 !important; }
-.fi-sidebar-group-label {
-    font-size: 9.5px !important; font-weight: 700 !important; letter-spacing: .13em !important;
-    text-transform: uppercase !important; color: #2e4a68 !important; padding: 8px 14px 4px !important;
-}
-.fi-sidebar-item-button {
-    color: #5a7a9a !important; border-radius: 8px !important; margin: 1px 6px !important;
-    padding: 8px 10px !important; font-size: 13px !important; font-weight: 500 !important;
-    transition: background .18s, color .18s !important;
-}
-.fi-sidebar-item-button:hover { background: rgba(47,140,255,.1) !important; color: #a8c8e8 !important; }
-.fi-sidebar-item-button.fi-active,
-.fi-sidebar-item-button[aria-current="page"],
-.fi-sidebar-item-button[data-active="true"] {
-    background: rgba(47,140,255,.16) !important; color: #4fa8ff !important; font-weight: 600 !important;
-}
-.fi-sidebar-item-button svg { color: inherit !important; opacity: .9; }
-.fi-sidebar-group-items .fi-sidebar-item-button { color: #4a6a8a !important; padding-left: 20px !important; font-size: 12.5px !important; }
-.fi-sidebar-group-items .fi-sidebar-item-button:hover { color: #a8c8e8 !important; }
-.fi-topbar { background: #0d1526 !important; border-bottom: 1px solid rgba(255,255,255,.07) !important; }
-.fi-topbar-nav { background: #0d1526 !important; }
-.fi-main, .fi-simple-main, .fi-body, .fi-main-ctn { background: #111d32 !important; }
-
-/* Hide the old Filament page header / filter bar */
-.fi-page > .fi-page-header { display: none !important; }
-
-html:not(.dark) .fi-sidebar,
-html:not(.dark) .fi-sidebar-inner,
-html:not(.dark) .fi-sidebar-header { background: #1a2540 !important; }
-html:not(.dark) .fi-sidebar-item-button { color: #8aaccc !important; }
-html:not(.dark) .fi-sidebar-item-button:hover { background:rgba(47,140,255,.12) !important; color:#c0daee !important; }
-html:not(.dark) .fi-sidebar-item-button.fi-active { background:rgba(47,140,255,.18) !important; color:#5bb8ff !important; }
-html:not(.dark) .fi-sidebar-group-label { color: #3a5878 !important; }
-html:not(.dark) .fi-topbar,
-html:not(.dark) .fi-topbar-nav { background: #1a2540 !important; }
-html:not(.dark) .fi-main,
-html:not(.dark) .fi-main-ctn { background: #edf1f8 !important; }
-</style>
+{{-- Sidebar styling is handled in the Filament theme CSS --}}
 
 {{-- DASHBOARD CSS --}}
 <style>

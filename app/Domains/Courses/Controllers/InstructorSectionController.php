@@ -15,18 +15,14 @@ class InstructorSectionController extends Controller
         $course = Course::where('id', $courseId)
             ->where('instructor_id', auth()->id())
             ->first();
-
         if (!$course) {
             return ApiResponse::error('Course not found', 404);
         }
-
         $sections = Section::where('course_id', $courseId)
             ->orderBy('order')
             ->get();
-
         return ApiResponse::success($sections, 'Sections retrieved successfully');
     }
-
     public function store(Request $request, $courseId)
     {
         $course = Course::where('id', $courseId)

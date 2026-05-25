@@ -113,6 +113,11 @@ class Dashboard extends BaseDashboard
             ->whereYear('created_at', now()->year)
             ->count();
 
+        $newStudentsLastMonth = User::where('role', 'student')
+            ->whereMonth('created_at', now()->subMonth()->month)
+            ->whereYear('created_at', now()->subMonth()->year)
+            ->count();
+
         $totalInstructors     = User::where('role', 'instructor')->count();
         $pendingVerifications = User::where('role', 'instructor')->where('is_verified', false)->count();
 

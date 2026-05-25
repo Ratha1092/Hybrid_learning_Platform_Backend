@@ -5,7 +5,9 @@ namespace App\Domains\Users\Controllers;
 use App\Http\Controllers\Controller;
 use App\Domains\Users\Requests\ApplyInstructorRequest;
 use App\Domains\Users\Services\InstructorVerificationService;
+use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class InstructorVerificationController extends Controller
 {
@@ -37,5 +39,16 @@ class InstructorVerificationController extends Controller
                 'message' => $e->getMessage(),
             ], 422);
         }
+    }
+
+    public function status(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $verification = $this->service->latestForUser($user);
+
+        return ApiResponse::success([
+            'instructor_status' => $user->instructor_status,
+            'application' => $verification,
+        ], 'Instructor application status retrieved successfully');
     }
 }

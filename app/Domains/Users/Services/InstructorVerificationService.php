@@ -2,8 +2,11 @@
 
 namespace App\Domains\Users\Services;
 
+use App\Domains\Notifications\Enums\NotificationType;
 use App\Domains\Users\Models\InstructorVerification;
 use App\Domains\Users\Models\User;
+use Filament\Actions\Action;
+use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\DB;
 
 class InstructorVerificationService
@@ -11,17 +14,28 @@ class InstructorVerificationService
     public function apply(User $user, array $data): InstructorVerification
     {
         // Prevent duplicate applications
-        $existingApplication = InstructorVerification::where('user_id', $user->id)
-            ->whereIn('status', ['pending', 'approved'])
-            ->first();
-
-        if ($existingApplication) {
+        if (
+            InstructorVerification::where('user_id', $user->id)
+                ->where('status', 'pending')
+                ->exists()
+        ) {
             throw new \Exception(
-                'You already have an active instructor application.'
+                'You already have a pending application.'
             );
         }
 
-        return DB::transaction(function () use ($user, $data) {
+        if (
+            $user->instructor_status === User::INSTRUCTOR_VERIFIED ||
+            InstructorVerification::where('user_id', $user->id)
+                ->where('status', 'approved')
+                ->exists()
+        ) {
+            throw new \Exception(
+                'You are already an approved instructor.'
+            );
+        }
+
+        $verification = DB::transaction(function () use ($user, $data) {
 
             // Upload certificate
             $certificatePath = $data['certificate_file']
@@ -32,7 +46,7 @@ class InstructorVerificationService
                 ->store('verifications/identities', 'public');
 
             // Create instructor verification
-            return InstructorVerification::create([
+            $verification = InstructorVerification::create([
                 'user_id' => $user->id,
 
                 'bio' => $data['bio'],
@@ -47,6 +61,56 @@ class InstructorVerificationService
 
                 'status' => 'pending',
             ]);
+
+            $user->update([
+                'instructor_status' => User::INSTRUCTOR_PENDING,
+            ]);
+
+            return $verification;
         });
+
+        $this->notifyAdmins($verification, $user);
+
+        return $verification;
+    }
+
+    public function latestForUser(User $user): ?InstructorVerification
+    {
+        return InstructorVerification::where('user_id', $user->id)
+            ->latest()
+            ->first();
+    }
+
+    private function notifyAdmins(
+        InstructorVerification $verification,
+        User $user
+    ): void {
+        $admins = User::admins()->get();
+
+        if ($admins->isEmpty()) {
+            return;
+        }
+
+        $message = "{$user->name} submitted an instructor verification application.";
+        $actionUrl = "/admin/instructor-verifications/{$verification->id}";
+
+        Notification::make()
+            ->title('New instructor application')
+            ->body($message)
+            ->icon('heroicon-o-document-check')
+            ->warning()
+            ->viewData([
+                'message' => $message,
+                'type' => NotificationType::INSTRUCTOR_VERIFICATION->value,
+                'resource_id' => $verification->id,
+                'resource_type' => 'instructor_verification',
+                'action_url' => $actionUrl,
+            ])
+            ->actions([
+                Action::make('review')
+                    ->label('Review')
+                    ->url($actionUrl),
+            ])
+            ->sendToDatabase($admins, isEventDispatched: true);
     }
 }

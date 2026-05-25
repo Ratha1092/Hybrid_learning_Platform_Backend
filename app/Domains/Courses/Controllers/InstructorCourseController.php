@@ -3,12 +3,9 @@
 namespace App\Domains\Courses\Controllers;
 
 use App\Http\Controllers\Controller;
-
 use App\Domains\Courses\Models\Course;
 use App\Domains\Courses\Services\CourseService;
-
 use App\Support\ApiResponse;
-
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 

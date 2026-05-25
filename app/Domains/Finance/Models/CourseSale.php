@@ -14,10 +14,6 @@ class CourseSale extends Model
         'instructor_revenue',
         'platform_revenue',
     ];
-
-    /**
-     * CourseSale belongs to Course
-     */
     public function course()
     {
         return $this->belongsTo(Course::class);

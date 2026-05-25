@@ -137,456 +137,265 @@ body, .fi-body {
     min-width: 0 !important;
 }
 
-/* Search */
-.fi-global-search-field .fi-input-wrp {
-    background-color: var(--lh-bg-2) !important;
-    border: 1px solid var(--lh-border) !important;
-    border-radius: 14px !important;
-    transition: border .2s, box-shadow .2s, background .2s !important;
-}
-.fi-global-search-field .fi-input-wrp:focus-within {
-    border-color: var(--lh-gold) !important;
-    box-shadow: 0 0 0 3px var(--lh-gold-soft) !important;
-    background-color: var(--lh-card) !important;
-}
-.fi-global-search-field input {
-    background-color: transparent !important;
-    border: none !important;
-    color: var(--lh-text) !important;
-    font-family: var(--lh-body) !important;
-    font-size: 14px !important;
-    box-shadow: none !important;
-}
-.fi-global-search-field input::placeholder {
-    color: var(--lh-text-muted) !important;
-}
-.fi-global-search-field svg {
-    color: var(--lh-text-muted) !important;
-}
-
-/* User avatar */
-.fi-user-avatar, .fi-avatar {
-    background: linear-gradient(135deg, var(--lh-gold-lt), var(--lh-gold)) !important;
-    color: #1c1917 !important;
-    font-weight: 700 !important;
-    border: 2px solid var(--lh-gold-border) !important;
-}
-
-/* ================================================================
-   HAMBURGER ONLY — HIDE SIDEBAR ARROW, KEEP HAMBURGER
-   ================================================================ */
-
-/* SAFETY: never hide the topbar hamburger */
-.fi-topbar .fi-topbar-open-sidebar-btn,
-.fi-topbar-open-sidebar-btn {
-    display: flex !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    pointer-events: auto !important;
-}
-
-/* Hide ONLY sidebar-internal collapse/expand buttons */
-.fi-sidebar .fi-sidebar-collapse-btn,
-.fi-sidebar .fi-sidebar-collapse-button,
-.fi-sidebar button[aria-label*="collapse" i],
-.fi-sidebar button[aria-label*="expand" i],
-.fi-sidebar button[title*="Collapse" i],
-.fi-sidebar button[title*="Expand" i],
-.fi-sidebar-header button[class*="collapse"],
-.fi-sidebar-header button[class*="expand"] {
-    display: none !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
-    pointer-events: none !important;
-    width: 0 !important;
-    height: 0 !important;
-    overflow: hidden !important;
-}
-
-/* Hide any floating tooltip/portal from the hidden button */
-.fi-sidebar [data-floating-ui-portal],
-.fi-sidebar [role="tooltip"] {
-    display: none !important;
-}
-
-/* ================================================================
-   HAMBURGER BUTTON STYLING
-   ================================================================ */
-.fi-topbar-open-sidebar-btn {
-    align-items: center !important;
-    justify-content: center !important;
-    width: 42px !important;
-    height: 42px !important;
-    min-width: 42px !important;
-    border-radius: 12px !important;
-    background: transparent !important;
-    border: 1px solid var(--lh-border) !important;
-    position: relative !important;
-    z-index: 50 !important;
-    cursor: pointer !important;
-    transition: background-color .2s ease, border-color .2s ease, transform .12s ease !important;
-}
-
-.fi-topbar-open-sidebar-btn svg {
-    display: block !important;
-    width: 20px !important;
-    height: 20px !important;
-    color: var(--lh-text) !important;
-}
-.fi-topbar-open-sidebar-btn::before,
-.fi-topbar-open-sidebar-btn::after {
-    content: none !important;
-    display: none !important;
-}
-
-.fi-topbar-open-sidebar-btn:hover {
-    background: var(--lh-gold-soft) !important;
-    border-color: var(--lh-gold-border) !important;
-}
-.fi-topbar-open-sidebar-btn:active {
-    transform: scale(0.96) !important;
-}
-
-html:not(.dark) .fi-topbar-open-sidebar-btn {
-    background: rgba(0,0,0,0.03) !important;
-    border-color: rgba(0,0,0,0.08) !important;
-}
-html:not(.dark) .fi-topbar-open-sidebar-btn:hover {
-    background: rgba(184,134,11,0.08) !important;
-    border-color: rgba(184,134,11,0.2) !important;
-}
-
-@media (max-width: 1023px) {
-    .fi-topbar-open-sidebar-btn {
-        margin-left: 0.25rem !important;
+    .fi-main-sidebar.fi-sidebar,
+    .fi-sidebar {
+        background:
+            radial-gradient(circle at 18% 6%, rgba(94, 144, 255, 0.16), transparent 30%),
+            linear-gradient(180deg, #0b1322 0%, #08101c 55%, #09121f 100%) !important;
+        border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+        box-shadow: 20px 0 60px rgba(0, 0, 0, 0.32) !important;
+        color: #eef5ff !important;
     }
-}
 
-/* ================================================================
-   SIDEBAR
-   ================================================================ */
-.fi-sidebar {
-    background:
-        radial-gradient(circle at 15% 0%, rgba(47,140,255,.12), transparent 28%),
-        linear-gradient(180deg, #1f2731 0%, #222b35 54%, #1f2731 100%) !important;
-    border-right: 1px solid rgba(148,163,184,.12) !important;
-    box-shadow: 18px 0 55px rgba(0,0,0,.18) !important;
-}
+    .fi-main-sidebar .fi-sidebar-inner,
+    .fi-sidebar-inner {
+        background: transparent !important;
+    }
 
-.fi-sidebar-header {
-    min-height: 92px !important;
-    padding: 22px 18px !important;
-    border-bottom: 1px solid rgba(148,163,184,.12) !important;
-    background: transparent !important;
-}
+    .fi-main-sidebar .fi-sidebar-header,
+    .fi-sidebar-header {
+        background: rgba(255, 255, 255, 0.03) !important;
+        backdrop-filter: blur(16px) !important;
+        padding: 24px 18px 18px !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    }
 
-.fi-sidebar-footer {
-    margin: 10px !important;
-    padding: 10px !important;
-    border: 1px solid rgba(148,163,184,.1) !important;
-    border-radius: 12px !important;
-    background: rgba(255,255,255,.025) !important;
-}
+    .fi-sidebar-header-logo-ctn,
+    .fi-main-sidebar .fi-sidebar-header-logo-ctn {
+        display: flex !important;
+        align-items: center !important;
+        gap: 12px !important;
+        min-width: 0 !important;
+    }
 
-/* ================================================================
-   NAV GROUP LABELS
-   ================================================================ */
-.fi-sidebar-nav {
-    padding: 18px 8px 18px !important;
-}
+    .fi-main-sidebar .fi-logo,
+    .fi-logo {
+        color: #f8fbff !important;
+        font-weight: 800 !important;
+        font-size: 1rem !important;
+        letter-spacing: -0.02em !important;
+    }
 
-.fi-sidebar-nav-groups {
-    gap: 16px !important;
-}
+    .fi-sidebar-header-logo-ctn::after {
+        content: 'Marketplace' !important;
+        display: block !important;
+        font-size: 0.72rem !important;
+        color: rgba(255, 255, 255, 0.56) !important;
+        letter-spacing: 0.08em !important;
+        margin-top: 2px !important;
+        text-transform: uppercase !important;
+    }
 
-.fi-sidebar-group[data-group-label="General"] > .fi-sidebar-group-btn {
-    display: none !important;
-}
+    .fi-main-sidebar .fi-sidebar-nav,
+    .fi-sidebar-nav {
+        padding: 18px 14px 18px !important;
+    }
 
-.fi-sidebar-group-btn {
-    min-height: 32px !important;
-    padding: 10px 6px 8px !important;
-    color: #c0afba !important;
-    cursor: pointer !important;
-}
+    .fi-main-sidebar .fi-sidebar-nav-groups,
+    .fi-sidebar-nav-groups {
+        gap: 18px !important;
+    }
 
-.fi-sidebar-group-label {
-    color: #c0afba !important;
-    font-family: var(--lh-body) !important;
-    font-size: 19px !important;
-    font-weight: 500 !important;
-    letter-spacing: 0 !important;
-    line-height: 1.2 !important;
-    text-transform: none !important;
-}
+    .fi-main-sidebar .fi-sidebar-group-label,
+    .fi-sidebar-group-label {
+        font-size: 0.68rem !important;
+        font-weight: 700 !important;
+        letter-spacing: 0.22em !important;
+        text-transform: uppercase !important;
+        color: rgba(255, 255, 255, 0.42) !important;
+        padding: 0 12px 10px !important;
+        margin-top: 18px !important;
+    }
 
-.fi-sidebar-group-collapse-btn {
-    margin-left: auto !important;
-    width: 28px !important;
-    height: 28px !important;
-    border-radius: 8px !important;
-    color: #8291a3 !important;
-    transition: background-color .18s ease, color .18s ease, transform .2s ease !important;
-}
+    .fi-main-sidebar .fi-sidebar-group-btn,
+    .fi-sidebar-group-btn {
+        min-height: 38px !important;
+        padding: 10px 14px !important;
+        color: rgba(255, 255, 255, 0.62) !important;
+        border-radius: 14px !important;
+        transition: background 0.18s, color 0.18s, transform 0.18s !important;
+    }
 
-.fi-sidebar-group-collapse-btn:hover {
-    background: rgba(255,255,255,.045) !important;
-    color: #d8e3ef !important;
-}
+    .fi-main-sidebar .fi-sidebar-group-btn:hover,
+    .fi-sidebar-group-btn:hover {
+        background: rgba(255, 255, 255, 0.06) !important;
+        color: #f8fbff !important;
+    }
 
-.fi-sidebar-group-collapse-btn svg {
-    width: 16px !important;
-    height: 16px !important;
-}
+    .fi-main-sidebar .fi-sidebar-item,
+    .fi-main-sidebar .fi-sidebar-item-button,
+    .fi-main-sidebar .fi-sidebar-item-btn,
+    .fi-sidebar-item,
+    .fi-sidebar-item-button,
+    .fi-sidebar-item-btn {
+        margin: 0 !important;
+    }
 
-.fi-sidebar-group.fi-collapsed .fi-sidebar-group-collapse-btn {
-    transform: rotate(180deg) !important;
-}
+    .fi-main-sidebar .fi-sidebar-item-btn,
+    .fi-main-sidebar .fi-sidebar-item-button,
+    .fi-sidebar-item-btn,
+    .fi-sidebar-item-button {
+        display: flex !important;
+        align-items: center !important;
+        gap: 12px !important;
+        min-height: 48px !important;
+        padding: 12px 16px !important;
+        border-radius: 16px !important;
+        color: rgba(255, 255, 255, 0.72) !important;
+        background: rgba(255, 255, 255, 0.015) !important;
+        border: 1px solid rgba(255, 255, 255, 0.06) !important;
+        transition: background 0.18s, border-color 0.18s, color 0.18s, transform 0.18s !important;
+        font-size: 0.95rem !important;
+        font-weight: 600 !important;
+    }
 
-.fi-sidebar-group-items {
-    gap: 6px !important;
-}
+    .fi-main-sidebar .fi-sidebar-group-items .fi-sidebar-item-btn,
+    .fi-main-sidebar .fi-sidebar-group-items .fi-sidebar-item-button,
+    .fi-sidebar-group-items .fi-sidebar-item-btn,
+    .fi-sidebar-group-items .fi-sidebar-item-button {
+        padding-left: 34px !important;
+        font-size: 0.9rem !important;
+        color: rgba(255, 255, 255, 0.62) !important;
+    }
 
-.fi-nav-group-label {
-    padding: 18px 9px 8px !important;
-    font-size: 10px !important;
-    font-weight: 800 !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0 !important;
-    color: rgba(157,176,194,.48) !important;
-    font-family: var(--lh-body) !important;
-}
+    .fi-main-sidebar .fi-sidebar-item-btn::before,
+    .fi-main-sidebar .fi-sidebar-item-button::before,
+    .fi-sidebar-item-btn::before,
+    .fi-sidebar-item-button::before {
+        content: none !important;
+    }
 
-.fi-nav-group-collapse-btn {
-    padding: 18px 8px 8px !important;
-}
-.fi-nav-group-collapse-btn svg {
-    color: rgba(157,176,194,.55) !important;
-    width: 13px !important;
-    height: 13px !important;
-    transition: transform .2s ease, color .18s ease !important;
-}
+    .fi-main-sidebar .fi-sidebar-item-btn svg,
+    .fi-main-sidebar .fi-sidebar-item-button svg,
+    .fi-sidebar-item-btn svg,
+    .fi-sidebar-item-button svg {
+        width: 18px !important;
+        height: 18px !important;
+        color: rgba(255, 255, 255, 0.58) !important;
+        transition: color 0.18s ease !important;
+    }
 
-.fi-nav-group-items {
-    gap: 3px !important;
-    padding-bottom: 2px !important;
-}
+    .fi-main-sidebar .fi-sidebar-item-btn:hover,
+    .fi-main-sidebar .fi-sidebar-item-button:hover,
+    .fi-sidebar-item-btn:hover,
+    .fi-sidebar-item-button:hover {
+        background: rgba(255, 255, 255, 0.08) !important;
+        color: #f8fbff !important;
+        transform: translateX(1px) !important;
+    }
 
-/* ================================================================
-   NAV ITEMS
-   ================================================================ */
-.fi-nav-item a,
-.fi-nav-item button {
-    min-height: 38px !important;
-    padding: 9px 10px !important;
-    border: 1px solid transparent !important;
-    border-radius: 7px !important;
-    color: #8291a3 !important;
-    font-family: var(--lh-body) !important;
-    font-size: 13px !important;
-    font-weight: 650 !important;
-    line-height: 1.2 !important;
-    transition: background-color .18s ease, border-color .18s ease, color .18s ease, box-shadow .18s ease !important;
-    position: relative !important;
-}
+    .fi-main-sidebar .fi-sidebar-item-btn:hover svg,
+    .fi-main-sidebar .fi-sidebar-item-button:hover svg,
+    .fi-sidebar-item-btn:hover svg,
+    .fi-sidebar-item-button:hover svg {
+        color: #d4e6ff !important;
+    }
 
-.fi-nav-item a svg,
-.fi-nav-item button svg {
-    width: 16px !important;
-    height: 16px !important;
-    color: #718196 !important;
-    flex-shrink: 0 !important;
-    transition: color .18s !important;
-}
+    .fi-main-sidebar .fi-sidebar-item.fi-active > .fi-sidebar-item-btn,
+    .fi-main-sidebar .fi-sidebar-item.fi-active > .fi-sidebar-item-button,
+    .fi-main-sidebar .fi-sidebar-item-btn.fi-active,
+    .fi-main-sidebar .fi-sidebar-item-button.fi-active,
+    .fi-main-sidebar .fi-sidebar-item-btn[aria-current="page"],
+    .fi-main-sidebar .fi-sidebar-item-button[aria-current="page"],
+    .fi-main-sidebar .fi-sidebar-item-btn[data-active="true"],
+    .fi-main-sidebar .fi-sidebar-item-button[data-active="true"],
+    .fi-sidebar-item.fi-active > .fi-sidebar-item-btn,
+    .fi-sidebar-item.fi-active > .fi-sidebar-item-button,
+    .fi-sidebar-item-btn.fi-active,
+    .fi-sidebar-item-button.fi-active,
+    .fi-sidebar-item-btn[aria-current="page"],
+    .fi-sidebar-item-button[aria-current="page"],
+    .fi-sidebar-item-btn[data-active="true"],
+    .fi-sidebar-item-button[data-active="true"] {
+        background: linear-gradient(95deg, rgba(92, 144, 255, 0.22), rgba(36, 61, 96, 0.52)) !important;
+        color: #f8fbff !important;
+        border-color: rgba(92, 144, 255, 0.24) !important;
+        box-shadow: inset 4px 0 0 #5f8dff, 0 16px 34px rgba(0, 0, 0, 0.18) !important;
+    }
 
-.fi-nav-item a:hover,
-.fi-nav-item button:hover {
-    background-color: rgba(255,255,255,.045) !important;
-    border-color: rgba(148,163,184,.1) !important;
-    color: #d8e3ef !important;
-}
-.fi-nav-item a:hover svg,
-.fi-nav-item button:hover svg {
-    color: #9db0c2 !important;
-}
+    .fi-main-sidebar .fi-sidebar-item.fi-active > .fi-sidebar-item-btn svg,
+    .fi-main-sidebar .fi-sidebar-item.fi-active > .fi-sidebar-item-button svg,
+    .fi-sidebar-item.fi-active > .fi-sidebar-item-btn svg,
+    .fi-sidebar-item.fi-active > .fi-sidebar-item-button svg {
+        color: #a9d3ff !important;
+    }
 
-.fi-nav-item-active a,
-.fi-nav-item.fi-active a,
-.fi-nav-item a[aria-current="page"] {
-    background: linear-gradient(90deg, rgba(47,140,255,.16), rgba(255,255,255,.045)) !important;
-    border: 1px solid rgba(47,140,255,.2) !important;
-    color: #f3f7fb !important;
-    box-shadow: inset 2px 0 0 #2f8cff, 0 10px 24px rgba(0,0,0,.12) !important;
-    font-weight: 750 !important;
-}
-.fi-nav-item-active a svg,
-.fi-nav-item.fi-active a svg,
-.fi-nav-item a[aria-current="page"] svg {
-    color: #5aa4ff !important;
-}
+    .fi-main-sidebar .fi-sidebar-group-collapse-btn,
+    .fi-sidebar-group-collapse-btn {
+        width: 32px !important;
+        height: 32px !important;
+        border-radius: 9999px !important;
+        background: rgba(255, 255, 255, 0.04) !important;
+        color: rgba(255, 255, 255, 0.66) !important;
+        transition: background 0.18s, color 0.18s, transform 0.18s !important;
+    }
 
-/* ================================================================
-   FILAMENT SIDEBAR DROPDOWN - USERS
-   ================================================================ */
-.fi-sidebar {
-    background:
-        radial-gradient(circle at 18% 0%, rgba(47,140,255,.13), transparent 30%),
-        linear-gradient(180deg, #1f2731 0%, #222b35 54%, #1f2731 100%) !important;
-}
+    .fi-main-sidebar .fi-sidebar-group-collapse-btn:hover,
+    .fi-sidebar-group-collapse-btn:hover {
+        background: rgba(255, 255, 255, 0.1) !important;
+        color: #f8fbff !important;
+    }
 
-.fi-sidebar-item {
-    margin: 1px 0 !important;
-}
+    .fi-main-sidebar .fi-sidebar-sub-group-items,
+    .fi-sidebar-sub-group-items {
+        background: rgba(255, 255, 255, 0.02) !important;
+        border: 1px solid rgba(255, 255, 255, 0.06) !important;
+        border-radius: 18px !important;
+        padding: 12px !important;
+    }
 
-.fi-sidebar-item-btn {
-    min-height: 48px !important;
-    padding: 12px 14px !important;
-    border: 1px solid transparent !important;
-    border-radius: 9px !important;
-    color: #f3f7fb !important;
-    font-family: var(--lh-body) !important;
-    font-size: 18px !important;
-    font-weight: 760 !important;
-    line-height: 1.2 !important;
-    transition:
-        background-color .18s ease,
-        border-color .18s ease,
-        box-shadow .18s ease,
-        color .18s ease,
-        transform .18s ease !important;
-}
+    .fi-main-sidebar .fi-sidebar-sub-group-items .fi-sidebar-item-btn,
+    .fi-main-sidebar .fi-sidebar-sub-group-items .fi-sidebar-item-button,
+    .fi-sidebar-sub-group-items .fi-sidebar-item-btn,
+    .fi-sidebar-sub-group-items .fi-sidebar-item-button {
+        padding-left: 36px !important;
+        border-radius: 12px !important;
+    }
 
-.fi-sidebar-item-btn:hover {
-    background-color: rgba(255,255,255,.04) !important;
-    border-color: rgba(148,163,184,.12) !important;
-    color: #d8e3ef !important;
-}
+    html:not(.dark) .fi-main-sidebar .fi-sidebar,
+    html:not(.dark) .fi-sidebar {
+        background: linear-gradient(180deg, #f8fafc 0%, #edf2f7 100%) !important;
+    }
 
-.fi-sidebar-item-icon {
-    width: 18px !important;
-    height: 18px !important;
-    color: #8291a3 !important;
-    transition: color .18s ease !important;
-}
+    html:not(.dark) .fi-main-sidebar .fi-sidebar-header,
+    html:not(.dark) .fi-sidebar-header {
+        border-bottom-color: rgba(15, 23, 42, 0.08) !important;
+    }
 
-.fi-sidebar-item-btn:hover .fi-sidebar-item-icon {
-    color: #9db0c2 !important;
-}
+    html:not(.dark) .fi-main-sidebar .fi-sidebar-group-label,
+    html:not(.dark) .fi-sidebar-group-label {
+        color: rgba(15, 23, 42, 0.55) !important;
+    }
 
-.fi-sidebar-item.fi-active > .fi-sidebar-item-btn,
-.fi-sidebar-item-has-active-child-items > .fi-sidebar-item-btn {
-    background: rgba(47,140,255,.08) !important;
-    border-color: rgba(47,140,255,.65) !important;
-    color: #f3f7fb !important;
-    box-shadow: inset 3px 0 0 #2f8cff, 0 14px 30px rgba(47,140,255,.08) !important;
-}
+    html:not(.dark) .fi-main-sidebar .fi-sidebar-item-btn,
+    html:not(.dark) .fi-main-sidebar .fi-sidebar-item-button,
+    html:not(.dark) .fi-sidebar-item-btn,
+    html:not(.dark) .fi-sidebar-item-button {
+        color: #475569 !important;
+        background: transparent !important;
+    }
 
-.fi-sidebar-item.fi-active > .fi-sidebar-item-btn .fi-sidebar-item-icon,
-.fi-sidebar-item-has-active-child-items > .fi-sidebar-item-btn .fi-sidebar-item-icon {
-    color: #5aa4ff !important;
-}
+    html:not(.dark) .fi-main-sidebar .fi-sidebar-item-btn:hover,
+    html:not(.dark) .fi-main-sidebar .fi-sidebar-item-button:hover,
+    html:not(.dark) .fi-sidebar-item-btn:hover,
+    html:not(.dark) .fi-sidebar-item-button:hover {
+        background: rgba(15, 23, 42, 0.05) !important;
+        color: #0f172a !important;
+    }
 
-.lh-users-root.fi-active:not(.fi-sidebar-item-has-active-child-items) > .fi-sidebar-item-btn {
-    background: transparent !important;
-    border-color: transparent !important;
-    box-shadow: none !important;
-    color: #ffbd00 !important;
-}
+    html:not(.dark) .fi-main-sidebar .fi-sidebar-item.fi-active > .fi-sidebar-item-btn,
+    html:not(.dark) .fi-main-sidebar .fi-sidebar-item.fi-active > .fi-sidebar-item-button,
+    html:not(.dark) .fi-sidebar-item.fi-active > .fi-sidebar-item-btn,
+    html:not(.dark) .fi-sidebar-item.fi-active > .fi-sidebar-item-button {
+        background: rgba(59, 130, 246, 0.12) !important;
+        border-color: rgba(59, 130, 246, 0.2) !important;
+        color: #0f172a !important;
+    }
 
-.lh-users-root.fi-sidebar-item-has-active-child-items > .fi-sidebar-item-btn,
-.lh-users-root.fi-active > .fi-sidebar-item-btn {
-    background: transparent !important;
-    border-color: transparent !important;
-    box-shadow: none !important;
-    color: #ffbd00 !important;
-}
-
-.lh-users-root.fi-active:not(.fi-sidebar-item-has-active-child-items) > .fi-sidebar-item-btn .fi-sidebar-item-icon {
-    color: #ffbd00 !important;
-}
-
-.lh-users-root.fi-sidebar-item-has-active-child-items > .fi-sidebar-item-btn .fi-sidebar-item-icon,
-.lh-users-root.fi-active > .fi-sidebar-item-btn .fi-sidebar-item-icon {
-    color: #ffbd00 !important;
-}
-
-.lh-users-root > .fi-sidebar-item-btn {
-    color: #ffbd00 !important;
-}
-
-.lh-users-root > .fi-sidebar-item-btn .fi-sidebar-item-icon {
-    color: #ffbd00 !important;
-}
-
-.fi-sidebar-item:has(> .fi-sidebar-sub-group-items) > .fi-sidebar-item-btn::after {
-    content: "" !important;
-    width: 7px !important;
-    height: 7px !important;
-    margin-left: auto !important;
-    border-right: 1.5px solid currentColor !important;
-    border-bottom: 1.5px solid currentColor !important;
-    opacity: .7 !important;
-    transform: rotate(45deg) !important;
-    transition: transform .2s ease, opacity .18s ease !important;
-}
-
-.fi-sidebar-item:has(> .fi-sidebar-sub-group-items).lh-users-menu-collapsed > .fi-sidebar-item-btn::after {
-    transform: rotate(-45deg) !important;
-}
-
-.fi-sidebar-sub-group-items {
-    max-height: 220px !important;
-    margin: 8px 0 14px 0 !important;
-    padding: 10px !important;
-    overflow: hidden !important;
-    border: 1px solid rgba(148,163,184,.11) !important;
-    border-radius: 12px !important;
-    background: rgba(255,255,255,.035) !important;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,.035), 0 14px 26px rgba(0,0,0,.08) !important;
-    transition:
-        max-height .24s ease,
-        opacity .18s ease,
-        transform .2s ease,
-        margin .2s ease,
-        padding .2s ease !important;
-}
-
-.lh-users-menu-collapsed > .fi-sidebar-sub-group-items {
-    max-height: 0 !important;
-    margin-top: 0 !important;
-    margin-bottom: 0 !important;
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
-    opacity: 0 !important;
-    transform: translateY(-4px) !important;
-    pointer-events: none !important;
-}
-
-.fi-sidebar-sub-group-items .fi-sidebar-item {
-    margin: 0 !important;
-}
-
-.fi-sidebar-sub-group-items .fi-sidebar-item-btn {
-    min-height: 48px !important;
-    padding: 12px 16px 12px 36px !important;
-    border-radius: 9px !important;
-    font-size: 18px !important;
-    color: #f3f7fb !important;
-    font-weight: 760 !important;
-    box-shadow: none !important;
-}
-
-.fi-sidebar-sub-group-items .fi-sidebar-item-btn:hover {
-    background-color: rgba(255,255,255,.045) !important;
-    color: #d8e3ef !important;
-}
-
-.fi-sidebar-sub-group-items .fi-sidebar-item.fi-active > .fi-sidebar-item-btn {
-    background: rgba(47,140,255,.14) !important;
-    border-color: rgba(47,140,255,.16) !important;
-    color: #f3f7fb !important;
-    box-shadow: none !important;
-}
+    html:not(.dark) .fi-sidebar-item.fi-active > .fi-sidebar-item-btn svg,
+    html:not(.dark) .fi-sidebar-item.fi-active > .fi-sidebar-item-button svg {
+        color: #2563eb !important;
+    }
 
 .fi-sidebar-item-grouped-border {
     display: none !important;
@@ -653,6 +462,187 @@ html:not(.dark) .fi-sidebar-sub-group-items .fi-sidebar-item.fi-active > .fi-sid
     .fi-sidebar-item:has(> .fi-sidebar-sub-group-items) > .fi-sidebar-item-btn::after {
         transition: none !important;
     }
+}
+
+/* ================================================================
+   CUSTOM FILAMENT SIDEBAR REDESIGN
+   ================================================================ */
+.fi-sidebar {
+    background: radial-gradient(circle at 22% 8%, rgba(94, 147, 255, 0.16), transparent 34%),
+                linear-gradient(180deg, #0a1324 0%, #080f1b 100%) !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 18px 0 60px rgba(0, 0, 0, 0.34) !important;
+}
+.fi-sidebar-inner {
+    background: transparent !important;
+}
+.fi-sidebar-header {
+    background: rgba(255, 255, 255, 0.03) !important;
+    backdrop-filter: blur(16px) !important;
+    padding: 24px 20px 18px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+.fi-sidebar-header-logo-ctn {
+    gap: 12px !important;
+    align-items: center !important;
+}
+.fi-logo {
+    color: #f8fbff !important;
+    font-weight: 800 !important;
+    font-size: 1rem !important;
+}
+.fi-sidebar-header-logo-ctn::after {
+    content: 'Analytics' !important;
+    display: block !important;
+    font-size: 0.72rem !important;
+    color: rgba(255, 255, 255, 0.58) !important;
+    letter-spacing: 0.08em !important;
+    margin-top: 2px !important;
+    text-transform: uppercase !important;
+}
+.fi-sidebar-nav {
+    padding: 18px 12px 20px !important;
+}
+.fi-sidebar-nav-groups {
+    gap: 18px !important;
+}
+.fi-sidebar-group-label {
+    font-size: 0.68rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.24em !important;
+    text-transform: uppercase !important;
+    color: rgba(255, 255, 255, 0.42) !important;
+    padding: 0 12px 10px !important;
+    margin-top: 14px !important;
+}
+.fi-sidebar-group-btn {
+    min-height: 38px !important;
+    padding: 10px 14px !important;
+    color: rgba(255, 255, 255, 0.62) !important;
+    border-radius: 14px !important;
+    transition: background 0.18s, color 0.18s, transform 0.18s !important;
+}
+.fi-sidebar-group-btn:hover {
+    background: rgba(255, 255, 255, 0.06) !important;
+    color: #f8fbff !important;
+}
+.fi-sidebar-item,
+.fi-sidebar-item-button,
+.fi-sidebar-item-btn {
+    margin: 0 !important;
+}
+.fi-sidebar-item-btn,
+.fi-sidebar-item-button {
+    min-height: 46px !important;
+    padding: 12px 16px !important;
+    border-radius: 16px !important;
+    color: rgba(255, 255, 255, 0.74) !important;
+    background: rgba(255, 255, 255, 0.02) !important;
+    border: 1px solid rgba(255, 255, 255, 0.06) !important;
+    transition: background 0.18s, border-color 0.18s, color 0.18s, transform 0.18s !important;
+    font-size: 0.95rem !important;
+    font-weight: 600 !important;
+}
+.fi-sidebar-item-btn::before,
+.fi-sidebar-item-button::before {
+    content: none !important;
+}
+.fi-sidebar-group-items .fi-sidebar-item-btn,
+.fi-sidebar-group-items .fi-sidebar-item-button {
+    padding-left: 34px !important;
+    font-size: 0.9rem !important;
+    color: rgba(255, 255, 255, 0.64) !important;
+}
+.fi-sidebar-item-btn svg,
+.fi-sidebar-item-button svg {
+    width: 18px !important;
+    height: 18px !important;
+    margin-right: 12px !important;
+    color: rgba(255, 255, 255, 0.58) !important;
+    transition: color 0.18s ease !important;
+}
+.fi-sidebar-item-btn:hover,
+.fi-sidebar-item-button:hover {
+    background: rgba(255, 255, 255, 0.08) !important;
+    color: #f8fbff !important;
+    transform: translateX(1px) !important;
+}
+.fi-sidebar-item-btn:hover svg,
+.fi-sidebar-item-button:hover svg {
+    color: #e3efff !important;
+}
+.fi-sidebar-item.fi-active > .fi-sidebar-item-btn,
+.fi-sidebar-item.fi-active > .fi-sidebar-item-button,
+.fi-sidebar-item-btn.fi-active,
+.fi-sidebar-item-button.fi-active,
+.fi-sidebar-item-btn[aria-current="page"],
+.fi-sidebar-item-button[aria-current="page"],
+.fi-sidebar-item-btn[data-active="true"],
+.fi-sidebar-item-button[data-active="true"] {
+    background: linear-gradient(90deg, rgba(93, 141, 255, 0.18), rgba(37, 68, 113, 0.38)) !important;
+    color: #f8fbff !important;
+    border-color: rgba(93, 141, 255, 0.24) !important;
+    box-shadow: inset 4px 0 0 #5d8dff, 0 16px 32px rgba(0, 0, 0, 0.16) !important;
+}
+.fi-sidebar-item.fi-active > .fi-sidebar-item-btn svg,
+.fi-sidebar-item.fi-active > .fi-sidebar-item-button svg {
+    color: #a4d8ff !important;
+}
+.fi-sidebar-item.fi-active > .fi-sidebar-item-btn,
+.fi-sidebar-item.fi-active > .fi-sidebar-item-button {
+    transform: translateX(0) !important;
+}
+.fi-sidebar-group-collapse-btn {
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 9999px !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+    color: rgba(255, 255, 255, 0.66) !important;
+    transition: background 0.18s, color 0.18s, transform 0.18s !important;
+}
+.fi-sidebar-group-collapse-btn:hover {
+    background: rgba(255, 255, 255, 0.09) !important;
+    color: #f8fbff !important;
+}
+.fi-sidebar-sub-group-items {
+    background: rgba(255, 255, 255, 0.02) !important;
+    border: 1px solid rgba(255, 255, 255, 0.06) !important;
+    border-radius: 18px !important;
+    padding: 12px !important;
+}
+.fi-sidebar-sub-group-items .fi-sidebar-item-btn,
+.fi-sidebar-sub-group-items .fi-sidebar-item-button {
+    padding-left: 36px !important;
+    border-radius: 12px !important;
+}
+html:not(.dark) .fi-sidebar {
+    background: linear-gradient(180deg, #f8fafc 0%, #edf2f7 100%) !important;
+}
+html:not(.dark) .fi-sidebar-header {
+    border-bottom-color: rgba(15, 23, 42, 0.08) !important;
+}
+html:not(.dark) .fi-sidebar-group-label {
+    color: rgba(15, 23, 42, 0.55) !important;
+}
+html:not(.dark) .fi-sidebar-item-btn,
+html:not(.dark) .fi-sidebar-item-button {
+    color: #475569 !important;
+    background: transparent !important;
+}
+html:not(.dark) .fi-sidebar-item-btn:hover,
+html:not(.dark) .fi-sidebar-item-button:hover {
+    background: rgba(15, 23, 42, 0.05) !important;
+    color: #0f172a !important;
+}
+html:not(.dark) .fi-sidebar-item.fi-active > .fi-sidebar-item-btn,
+html:not(.dark) .fi-sidebar-item.fi-active > .fi-sidebar-item-button {
+    background: rgba(59, 130, 246, 0.12) !important;
+    border-color: rgba(59, 130, 246, 0.2) !important;
+    color: #0f172a !important;
+}
+html:not(.dark) .fi-sidebar-item.fi-active > .fi-sidebar-item-btn svg,
+html:not(.dark) .fi-sidebar-item.fi-active > .fi-sidebar-item-button svg {
+    color: #2563eb !important;
 }
 
 /* ================================================================

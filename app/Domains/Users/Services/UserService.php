@@ -6,6 +6,23 @@ use App\Domains\Users\Models\User;
 
 class UserService
 {
+    private const USER_FIELDS = ['name','phone',];
+    private const STUDENT_PROFILE_FIELDS = [
+        'bio',
+        'learning_goals',
+        'interests',
+        'github',
+        'linkedin',
+    ];
+
+    private const INSTRUCTOR_PROFILE_FIELDS = [
+        'bio',
+        'website',
+        'twitter',
+        'linkedin',
+        'youtube',
+    ];
+
     public function getProfile(User $user): User
     {
         return $user->load([
@@ -16,27 +33,47 @@ class UserService
 
     public function updateProfile(User $user, array $data): User
     {
-        $user->update([
-            'name' => $data['name'] ?? $user->name,
-        ]);
+        $userData = $this->onlyPresent($data, self::USER_FIELDS);
+
+        if ($userData !== []) {
+            $user->update($userData);
+        }
 
         // Update student profile
-        if ($user->role === 'student') {
-            $user->studentProfile()->updateOrCreate([], [
-                'bio' => $data['bio'] ?? null,
-                'phone' => $data['phone'] ?? null,
-                'country' => $data['country'] ?? null,
-            ]);
+        if ($user->isStudent()) {
+            $studentProfileData = $this->onlyPresent(
+                $data,
+                self::STUDENT_PROFILE_FIELDS
+            );
+
+            if ($studentProfileData !== []) {
+                $user->studentProfile()->updateOrCreate(
+                    ['user_id' => $user->id],
+                    $studentProfileData
+                );
+            }
         }
 
         // Update instructor profile
-        if ($user->role === 'instructor') {
-            $user->instructorProfile()->updateOrCreate([], [
-                'bio' => $data['bio'] ?? null,
-                'expertise' => $data['expertise'] ?? null,
-            ]);
+        if ($user->isInstructor()) {
+            $instructorProfileData = $this->onlyPresent(
+                $data,
+                self::INSTRUCTOR_PROFILE_FIELDS
+            );
+
+            if ($instructorProfileData !== []) {
+                $user->instructorProfile()->updateOrCreate(
+                    ['user_id' => $user->id],
+                    $instructorProfileData
+                );
+            }
         }
 
         return $this->getProfile($user);
+    }
+
+    private function onlyPresent(array $data, array $keys): array
+    {
+        return array_intersect_key($data, array_flip($keys));
     }
 }

@@ -47,11 +47,7 @@ class InstructorDashboardController extends Controller
                 [$startOfMonth]
             )
             ->first();
-
-        // Wallet balance
         $wallet = InstructorWallet::where('instructor_id', $instructorId)->first();
-
-        // Per-course breakdown
         $perCourse = Course::where('instructor_id', $instructorId)
             ->withCount(['enrollments as student_count' => fn($q) => $q->where('status', 'active')])
             ->get()
@@ -63,8 +59,6 @@ class InstructorDashboardController extends Controller
                 'student_count' => $c->student_count,
                 'thumbnail_url' => $c->thumbnail_url,
             ]);
-
-        // Recent enrollments (5 latest)
         $recentEnrollments = Enrollment::whereIn('course_id', $courseIds)
             ->with(['user:id,name,email', 'course:id,title'])
             ->where('status', 'active')

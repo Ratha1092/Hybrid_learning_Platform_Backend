@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Users\Tables;
 
+use App\Domains\Users\Models\InstructorProfile;
 use Filament\Actions;
 use Filament\Notifications\Notification;
 use Filament\Tables;
@@ -107,6 +108,11 @@ class UsersTable
 
                             'instructor_status' => 'verified',
                         ]);
+
+                        InstructorProfile::firstOrCreate([
+                            'user_id' => $record->id,
+                        ]);
+
                         Notification::make()
                             ->title('Instructor Approved')
                             ->success()

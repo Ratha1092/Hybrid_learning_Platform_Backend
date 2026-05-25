@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Filament\Resources;
+namespace App\Filament\Resources\InstructorVerifications;
 
+use App\Domains\Users\Models\InstructorProfile;
 use App\Domains\Users\Models\InstructorVerification;
 use App\Domains\Users\Mail\InstructorApprovedMail;
 use App\Domains\Users\Mail\InstructorRejectedMail;
@@ -158,6 +159,10 @@ class InstructorVerificationResource extends Resource
                         Mail::to($record->user->email)
                             ->send(new InstructorApprovedMail($record->user));
 
+                        InstructorProfile::firstOrCreate([
+                            'user_id' => $record->user_id,
+                        ]);
+
                         Notification::make()
                             ->title('Instructor Approved')
                             ->body("{$record->user->name} has been approved as an instructor.")
@@ -173,7 +178,7 @@ class InstructorVerificationResource extends Resource
                         Forms\Components\Textarea::make('rejection_reason')
                             ->label('Rejection Reason')
                             ->required()
-                            ->placeholder('Explain why this application is being rejected...'),
+                            ->placeholder(' Explain why this application is being rejected...'),
                     ])
                     ->action(function (InstructorVerification $record, array $data) {
                         $record->update([

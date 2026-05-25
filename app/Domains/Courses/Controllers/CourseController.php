@@ -11,7 +11,6 @@ class CourseController extends Controller
     public function index()
     {
         $courses = Course::where('is_published', true)->latest()->get();
-
         return ApiResponse::success($courses, 'Courses retrieved successfully');
     }
 

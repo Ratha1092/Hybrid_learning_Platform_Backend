@@ -11,21 +11,29 @@ class UpdateProfileRequest extends FormRequest
         return true;
     }
 
-    protected function prepareForValidation()
+    protected function prepareForValidation(): void
     {
-        $this->merge([
-            'name' => trim($this->name),
-        ]);
+        if ($this->has('name') && is_string($this->name)) {
+            $this->merge([
+                'name' => trim($this->name),
+            ]);
+        }
     }
 
     public function rules(): array
     {
         return [
             'name' => ['required', 'string', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:50'],
             'bio' => ['nullable', 'string'],
-            'phone' => ['nullable', 'string'],
-            'country' => ['nullable', 'string'],
-            'expertise' => ['nullable', 'string'],
+            'learning_goals' => ['nullable', 'string'],
+            'interests' => ['nullable', 'array'],
+            'interests.*' => ['string', 'max:100'],
+            'github' => ['nullable', 'string', 'max:255'],
+            'linkedin' => ['nullable', 'string', 'max:255'],
+            'website' => ['nullable', 'url', 'max:255'],
+            'twitter' => ['nullable', 'string', 'max:255'],
+            'youtube' => ['nullable', 'string', 'max:255'],
         ];
     }
 }

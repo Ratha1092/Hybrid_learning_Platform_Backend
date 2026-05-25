@@ -364,6 +364,7 @@ html:not(.dark) .rb-select option { background: #fff; color: #0e1e34; }
                         'this_week'    => 'This Week',
                         'last_week'    => 'Last Week',
                         'last_30'      => 'Last 30d',
+                        'last_6m'      => 'Last 6M',
                         'this_month'   => 'This Month',
                         'last_month'   => 'Last Month',
                         'this_quarter' => 'Quarter',
@@ -448,7 +449,7 @@ html:not(.dark) .rb-select option { background: #fff; color: #0e1e34; }
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l8-4 6 4v14"/><path d="M9 9h1"/><path d="M14 9h1"/><path d="M9 13h1"/><path d="M14 13h1"/></svg>
                 </div>
             </div>
-            <div class="rb-tag neu">{{ number_format($ordersThisMonth) }} orders this month</div>
+            <div class="rb-tag neu">{{ number_format($ordersThisMonth) }} orders{{ ($activePreset ?? 'this_month') === 'this_month' ? ' this month' : ' in period' }}</div>
         </div>
 
         <div class="rb-kpi a d5" style="--ic:var(--green)">
@@ -461,7 +462,7 @@ html:not(.dark) .rb-select option { background: #fff; color: #0e1e34; }
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                 </div>
             </div>
-            <div class="rb-tag">↑ {{ number_format($newStudentsThisMonth) }} new this month</div>
+            <div class="rb-tag">↑ {{ number_format($newStudentsThisMonth) }} new{{ ($activePreset ?? 'this_month') === 'this_month' ? ' this month' : ' in period' }}</div>
         </div>
 
         <div class="rb-kpi a d6" style="--ic:var(--amber)">
@@ -474,8 +475,8 @@ html:not(.dark) .rb-select option { background: #fff; color: #0e1e34; }
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
                 </div>
             </div>
-            <div class="rb-tag {{ $pendingVerifications > 0 ? 'warn' : '' }}">
-                {{ $pendingVerifications > 0 ? '⚠ '.$pendingVerifications.' pending reviews' : '✓ All reviewed' }}
+            <div class="rb-tag {{ $pendingCourseReviews > 0 ? 'warn' : '' }}">
+                {{ $pendingCourseReviews > 0 ? '⚠ '.$pendingCourseReviews.' pending reviews' : '✓ All reviewed' }}
             </div>
         </div>
 
@@ -487,9 +488,12 @@ html:not(.dark) .rb-select option { background: #fff; color: #0e1e34; }
         <div class="rb-panel">
             <div class="rb-ph">
                 <div class="rb-ph-title">Revenue</div>
+                @php $ap = $activePreset ?? 'this_month'; @endphp
                 <div class="rb-tabs">
-                    <span class="rb-tab">ALL</span><span class="rb-tab">1M</span>
-                    <span class="rb-tab">6M</span><span class="rb-tab on">1Y</span>
+                    <span class="rb-tab {{ $ap === 'all_time' ? 'on' : '' }}" onclick="rbSetPreset('all_time')" style="cursor:pointer;">ALL</span>
+                    <span class="rb-tab {{ $ap === 'this_month' ? 'on' : '' }}" onclick="rbSetPreset('this_month')" style="cursor:pointer;">1M</span>
+                    <span class="rb-tab {{ $ap === 'last_6m' ? 'on' : '' }}" onclick="rbSetPreset('last_6m')" style="cursor:pointer;">6M</span>
+                    <span class="rb-tab {{ $ap === 'this_year' ? 'on' : '' }}" onclick="rbSetPreset('this_year')" style="cursor:pointer;">1Y</span>
                 </div>
             </div>
             <div class="rb-chart-wrap">
@@ -536,8 +540,10 @@ html:not(.dark) .rb-select option { background: #fff; color: #0e1e34; }
             <div class="rb-ph">
                 <div class="rb-ph-title">Activity</div>
                 <div class="rb-tabs">
-                    <span class="rb-tab">ALL</span><span class="rb-tab">1M</span>
-                    <span class="rb-tab">6M</span><span class="rb-tab on">1Y</span>
+                    <span class="rb-tab {{ $ap === 'all_time' ? 'on' : '' }}" onclick="rbSetPreset('all_time')" style="cursor:pointer;">ALL</span>
+                    <span class="rb-tab {{ $ap === 'this_month' ? 'on' : '' }}" onclick="rbSetPreset('this_month')" style="cursor:pointer;">1M</span>
+                    <span class="rb-tab {{ $ap === 'last_6m' ? 'on' : '' }}" onclick="rbSetPreset('last_6m')" style="cursor:pointer;">6M</span>
+                    <span class="rb-tab {{ $ap === 'this_year' ? 'on' : '' }}" onclick="rbSetPreset('this_year')" style="cursor:pointer;">1Y</span>
                 </div>
             </div>
             <div class="rb-bars-wrap">
@@ -781,5 +787,10 @@ function rbApplyFilters() {
     p.set('status',        document.getElementById('rbf-status').value);
     p.set('course_status', document.getElementById('rbf-course').value);
     window.location.search = p.toString();
+}
+
+function rbSetPreset(val) {
+    document.getElementById('rbf-preset').value = val;
+    rbApplyFilters();
 }
 </script>

@@ -29,7 +29,7 @@ class LessonResource extends Resource
     protected static ?string $navigationLabel = 'Lessons';
     protected static ?string $modelLabel = 'Lesson';
     protected static ?string $pluralModelLabel = 'Lessons';
-    protected static string|\UnitEnum|null $navigationGroup ='Course Management';
+    protected static string|\UnitEnum|null $navigationGroup = 'Learning';
     protected static ?int $navigationSort = 3;
     protected static ?string $recordTitleAttribute ='title';
     public static function form(Schema $schema): Schema

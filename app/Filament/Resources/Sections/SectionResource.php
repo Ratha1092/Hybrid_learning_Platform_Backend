@@ -26,7 +26,7 @@ class SectionResource extends Resource
     protected static ?string $navigationLabel = 'Sections';
     protected static ?string $modelLabel = 'Section';
     protected static ?string $pluralModelLabel = 'Sections';
-    protected static string|\UnitEnum|null $navigationGroup = 'Course Management';
+    protected static string|\UnitEnum|null $navigationGroup = 'Learning';
     protected static ?int $navigationSort = 2;
     protected static ?string $recordTitleAttribute ='title';
     public static function form(Schema $schema): Schema

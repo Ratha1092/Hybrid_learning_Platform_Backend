@@ -2,28 +2,54 @@
 
 namespace App\Filament\Resources\Users\Pages;
 
+use App\Domains\Users\Models\User;
 use App\Filament\Resources\Users\UserResource;
 use Filament\Actions\CreateAction;
+use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Resources\Pages\ListRecords;
-use Illuminate\Database\Eloquent\Builder;
-use Livewire\Attributes\Url;
 
 class ListUsers extends ListRecords
 {
     protected static string $resource = UserResource::class;
 
-    #[Url(as: 'role')]
-    public ?string $role = null;
-
-    protected function getTableQuery(): Builder
+    public function getTabs(): array
     {
-        $query = parent::getTableQuery();
+        return [
+            'all' => Tab::make('All Users')
+                ->badge(User::count()),
+            'students' => Tab::make('Students')
+                ->badge(
+                    User::where('role', 'student')->count()
+                )
+                ->modifyQueryUsing(fn ($query) =>
+                    $query->where('role', 'student')
+                ),
 
-        if (in_array($this->role, ['student', 'instructor'], true)) {
-            $query->where('role', $this->role);
-        }
+            'instructors' => Tab::make('Instructors')
+                ->badge(
+                    User::where('role', 'instructor')->count()
+                )
+                ->modifyQueryUsing(fn ($query) =>
+                    $query->where('role', 'instructor')
+                ),
 
-        return $query;
+            'admins' => Tab::make('Admins')
+                ->badge(
+                    User::where('role', 'admin')->count()
+                )
+                ->modifyQueryUsing(fn ($query) =>
+                    $query->where('role', 'admin')
+                ),
+
+            'suspended' => Tab::make('Suspended')
+                ->badge(
+                    User::where('status', 'suspended')->count()
+                )
+                ->modifyQueryUsing(fn ($query) =>
+                    $query->where('status', 'suspended')
+                ),
+
+        ];
     }
 
     protected function getHeaderActions(): array

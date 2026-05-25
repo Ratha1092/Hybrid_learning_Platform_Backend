@@ -53,6 +53,7 @@ class Course extends Model
         'preview_video_url',
         'visibility',
         'certificate_enabled',
+        'rejection_reason',
     ];
     protected $casts = [
         'price' => 'decimal:2',
@@ -93,11 +94,12 @@ class Course extends Model
         ]);
     }
 
-    public function reject(): void
+    public function reject(?string $reason = null): void
     {
         $this->update([
-            'status' => self::STATUS_REJECTED,
-            'is_published' => false,
+            'status'           => self::STATUS_REJECTED,
+            'is_published'     => false,
+            'rejection_reason' => $reason,
         ]);
     }
 

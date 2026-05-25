@@ -29,8 +29,8 @@ class InstructorVerificationResource extends Resource
 {
     protected static ?string $model = InstructorVerification::class;
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-document-check';
-    protected static ?string $navigationLabel = 'Instructor Verifications';
-    protected static string|\UnitEnum|null $navigationGroup = 'User Management';
+    protected static ?string $navigationLabel = 'Verification';
+    protected static string|\UnitEnum|null $navigationGroup = 'Users';
     protected static ?int $navigationSort = 3;
     public static function form(Schema $schema): Schema
     {

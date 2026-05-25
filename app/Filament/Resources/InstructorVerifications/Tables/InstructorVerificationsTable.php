@@ -94,12 +94,11 @@ class InstructorVerificationsTable
                         ]);
 
                         $user->update([
+                            'role' => 'instructor',
                             'instructor_status' => 'verified',
                         ]);
 
-                        if (!$user->hasRole('instructor')) {
-                            $user->assignRole('instructor');
-                        }
+                        $user->syncRoles(['instructor']);
 
                         Notification::make()
                             ->title('Instructor Approved')

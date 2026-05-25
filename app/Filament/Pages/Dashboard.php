@@ -20,6 +20,7 @@ class Dashboard extends BaseDashboard
     protected string $view = 'filament.pages.dashboard';
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-home';
     protected static ?string $navigationLabel = 'Dashboard';
+    protected static string|\UnitEnum|null $navigationGroup = 'Overview';
     protected static ?int $navigationSort = -2;
 
     public function getHeading(): string|\Illuminate\Contracts\Support\Htmlable
@@ -49,6 +50,7 @@ class Dashboard extends BaseDashboard
                 'this_week'    => [now()->startOfWeek(), now()->endOfWeek()],
                 'last_week'    => [now()->subWeek()->startOfWeek(), now()->subWeek()->endOfWeek()],
                 'last_30'      => [now()->subDays(29)->startOfDay(), now()->endOfDay()],
+                'last_6m'      => [now()->subMonths(6)->startOfDay(), now()->endOfDay()],
                 'this_month'   => [now()->startOfMonth(), now()->endOfMonth()],
                 'last_month'   => [now()->subMonth()->startOfMonth(), now()->subMonth()->endOfMonth()],
                 'this_quarter' => [now()->startOfQuarter(), now()->endOfQuarter()],
@@ -108,18 +110,12 @@ class Dashboard extends BaseDashboard
         $this->applyDateRange($studentQ, 'created_at', $from, $to);
         $totalStudents = $studentQ->count();
 
-        $newStudentsThisMonth = User::where('role', 'student')
-            ->whereMonth('created_at', now()->month)
-            ->whereYear('created_at', now()->year)
-            ->count();
-
-        $newStudentsLastMonth = User::where('role', 'student')
-            ->whereMonth('created_at', now()->subMonth()->month)
-            ->whereYear('created_at', now()->subMonth()->year)
-            ->count();
+        // Use the already date-filtered student count so this sub-stat responds to the period filter.
+        $newStudentsThisMonth = $totalStudents;
 
         $totalInstructors     = User::where('role', 'instructor')->count();
         $pendingVerifications = User::where('role', 'instructor')->where('is_verified', false)->count();
+        $pendingCourseReviews = Course::where('status', Course::STATUS_PENDING)->count();
 
         $pendingInstructors = User::where('role', 'instructor')
             ->where('is_verified', false)
@@ -155,16 +151,10 @@ class Dashboard extends BaseDashboard
         $this->applyDateRange($orderQ, 'created_at', $from, $to);
         $totalOrders = $orderQ->count();
 
-        $ordersThisMonth = Order::whereMonth('created_at', now()->month)
-            ->whereYear('created_at', now()->year)
-            ->count();
+        $ordersThisMonth = $totalOrders;
 
         // ── Finance ──────────────────────────────────────────────────────
-        $totalRevenue     = $paidBase()->sum('amount');
-        $revenueThisMonth = $paidBase()
-            ->whereMonth('paid_at', now()->month)
-            ->whereYear('paid_at', now()->year)
-            ->sum('amount');
+        $totalRevenue = $paidBase()->sum('amount');
 
         $completedPayments = $paidBase()->count();
         $pendingPayments   = $payBase()->where('status', PaymentStatus::Pending->value)->count();
@@ -263,6 +253,7 @@ class Dashboard extends BaseDashboard
             'totalStudents'           => $totalStudents,
             'totalInstructors'        => $totalInstructors,
             'pendingVerifications'    => $pendingVerifications,
+            'pendingCourseReviews'    => $pendingCourseReviews,
             'newStudentsThisMonth'    => $newStudentsThisMonth,
             'recentUsers'             => $recentUsers,
             'pendingInstructors'      => $pendingInstructors,
@@ -282,7 +273,7 @@ class Dashboard extends BaseDashboard
             'pendingPayments'         => $pendingPayments,
             'failedPayments'          => $failedPayments,
             'ordersThisMonth'         => $ordersThisMonth,
-            'revenueThisMonth'        => $revenueThisMonth,
+            'revenueThisMonth'        => $totalRevenue,
             'recentOrders'            => $recentOrders,
             'recentPayments'          => $recentPayments,
             'totalInstructorBalance'  => $totalInstructorBalance,

@@ -11,7 +11,10 @@ class CategoryController extends Controller
     public function index()
     {
         $categories = Category::query()
-            ->withCount('courses')
+            ->withCount([
+                'courses as courses_count' => fn ($query) => $query
+                    ->published()
+            ])
             ->orderBy('sort_order')
             ->orderBy('name')
             ->get();

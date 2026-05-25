@@ -283,36 +283,8 @@
                     <p style="font-size:12.5px;color:rgba(255,255,255,0.28);margin-top:6px;">Sign in to your admin account</p>
                 </div>
 
-                <form wire:submit.prevent="authenticate">
-                    @csrf
-
-                    <div class="lh-field">
-                        <label class="lh-label" for="lh-email">Email address</label>
-                        <input class="lh-input" type="email" id="lh-email"
-                            wire:model="data.email"
-                            name="email" placeholder="Only Admin Only"
-                            autocomplete="email" required />
-                    </div>
-
-                    <div class="lh-field" style="margin-bottom:20px;">
-                        <label class="lh-label" for="lh-password">Password</label>
-                        <input class="lh-input" type="password" id="lh-password"
-                            wire:model="data.password"
-                            name="password" placeholder="••••••••••••"
-                            autocomplete="current-password" required />
-                    </div>
-
-                    <div style="margin-bottom:22px;">
-                        <label style="display:flex;align-items:center;gap:9px;cursor:pointer;">
-                            <input type="checkbox" class="lh-check"
-                                wire:model="data.remember" name="remember" />
-                            <span style="font-size:12px;color:rgba(255,255,255,0.36);">Remember me</span>
-                        </label>
-                    </div>
-
-                    <button type="submit" class="lh-btn">
-                        Sign in to Dashboard
-                    </button>
+                {{-- Filament v5 uses $this->content to render the full schema form --}}
+                {{ $this->content }}
 
                     <div class="lh-divider">
                         <div class="lh-div-line"></div>

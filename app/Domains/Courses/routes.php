@@ -7,6 +7,8 @@ use App\Domains\Courses\Controllers\CategoryController;
 use App\Domains\Courses\Controllers\InstructorCourseController;
 use App\Domains\Courses\Controllers\InstructorSectionController;
 use App\Domains\Courses\Controllers\InstructorLessonController;
+use App\Domains\Courses\Controllers\InstructorDashboardController;
+use App\Domains\Courses\Controllers\InstructorLessonResourceController;
 
 // Public Categories
 Route::middleware('throttle:courses')
@@ -25,6 +27,13 @@ Route::middleware('throttle:courses')
         //Course Details
         Route::get('/{slug}',[CourseController::class, 'show']);
     });
+//Instructor Dashboard
+Route::middleware(['auth:sanctum','verified_instructor','throttle:courses',])
+    ->prefix('instructor')
+    ->group(function () {
+        Route::get('/dashboard', [InstructorDashboardController::class, 'index']);
+    });
+
 //Instructor Course Management
 Route::middleware(['auth:sanctum','verified_instructor','throttle:courses',])
     ->prefix('instructor/courses')
@@ -50,6 +59,13 @@ Route::middleware(['auth:sanctum','verified_instructor','throttle:courses',])
                         Route::post('/',[InstructorLessonController::class, 'store']);
                         Route::put('/{lessonId}',[InstructorLessonController::class, 'update']);
                         Route::delete('/{lessonId}',[InstructorLessonController::class, 'destroy']);
+
+                        // Upload Resources
+                        Route::prefix('{lessonId}/resources')->group(function () {
+                            Route::get('/', [InstructorLessonResourceController::class, 'index']);
+                            Route::post('/', [InstructorLessonResourceController::class, 'store']);
+                            Route::delete('/{resourceId}', [InstructorLessonResourceController::class, 'destroy']);
+                        });
                     });
             });
     });

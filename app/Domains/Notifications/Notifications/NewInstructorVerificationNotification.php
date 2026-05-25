@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Notifications;
+namespace App\Domains\Notifications\Notifications;
 
 use App\Domains\Notifications\Enums\NotificationType;
 use App\Domains\Users\Models\InstructorVerification;

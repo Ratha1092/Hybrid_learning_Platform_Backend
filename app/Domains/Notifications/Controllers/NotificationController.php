@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Domains\Users\Controllers;
+namespace App\Domains\Notifications\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Support\ApiResponse;

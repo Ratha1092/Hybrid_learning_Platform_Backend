@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Domains\Finance\Controllers\FinanceController;
 
 Route::middleware(['auth:sanctum','is_instructor','throttle:finance',])->prefix('finance')->group(function () {
         Route::get('/wallet',[FinanceController::class, 'wallet']);

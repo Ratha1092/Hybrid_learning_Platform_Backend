@@ -210,6 +210,15 @@ class DatabaseSeeder extends Seeder
                 'is_featured' => false,
                 'sort_order' => 8,
             ],
+             [
+                'name' => 'Spot',
+                'slug' => Str::slug('Spot'),
+                'description' => 'Self-improvement courses for skills, habits, and career development.',
+                'icon' => 'sparkles',
+                'image' => null,
+                'is_featured' => false,
+                'sort_order' => 8,
+            ],
         ];
 
         foreach ($categoryData as $data) {

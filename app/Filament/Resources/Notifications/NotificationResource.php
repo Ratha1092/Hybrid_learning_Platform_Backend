@@ -17,7 +17,7 @@ class NotificationResource extends Resource
 {
     protected static ?string $model = DatabaseNotification::class;
     protected static string|BackedEnum|null $navigationIcon ='heroicon-o-bell-alert';
-    protected static ?string $navigationLabel ='Notification Logs';
+    protected static ?string $navigationLabel ='Notifications';
     protected static string|\UnitEnum|null $navigationGroup ='System';
     protected static ?int $navigationSort = 1;
     public static function table(

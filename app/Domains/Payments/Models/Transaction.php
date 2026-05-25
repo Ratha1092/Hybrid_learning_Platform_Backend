@@ -18,13 +18,6 @@ class Transaction extends Model
     protected $casts = [
         'payload' => 'array',
     ];
-
-    /*
-    |--------------------------------------------------------------------------
-    | RELATIONSHIP
-    |--------------------------------------------------------------------------
-    */
-
     public function payment(): BelongsTo
     {
         return $this->belongsTo(Payment::class);

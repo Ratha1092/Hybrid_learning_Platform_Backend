@@ -96,6 +96,11 @@ class CourseInfolist
                         TextEntry::make('approved_at')
                             ->dateTime()
                             ->placeholder('Not approved'),
+                        TextEntry::make('rejection_reason')
+                            ->label('Rejection Reason')
+                            ->placeholder('—')
+                            ->columnSpanFull()
+                            ->visible(fn ($record) => $record->isRejected()),
                     ])
                     ->columns(2),
                 Section::make('Statistics')

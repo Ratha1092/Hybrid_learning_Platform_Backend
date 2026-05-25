@@ -4,7 +4,7 @@ namespace App\Filament\Resources\Users\Tables;
 
 use App\Domains\Users\Models\InstructorProfile;
 use Filament\Actions;
-use Filament\Notifications\Notification;
+// use Filament\Notifications\Notification;
 use Filament\Tables;
 use Filament\Tables\Table;
 
@@ -112,6 +112,8 @@ class UsersTable
                         InstructorProfile::firstOrCreate([
                             'user_id' => $record->id,
                         ]);
+
+                        $record->syncRoles(['instructor']);
 
                         Notification::make()
                             ->title('Instructor Approved')

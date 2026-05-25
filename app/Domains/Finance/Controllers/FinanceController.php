@@ -113,7 +113,6 @@ class FinanceController extends Controller
         if (!$payout) {
             return ApiResponse::error('Insufficient balance', 422);
         }
-
         return ApiResponse::success($payout, 'Payout request submitted successfully', 201);
     }
 }

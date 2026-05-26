@@ -42,7 +42,7 @@ class AdminPanelProvider extends PanelProvider
             ->navigationGroups([
                 NavigationGroup::make('Overview')
                     // ->icon('heroicon-o-squares-2x2')
-                    ->collapsible(false),
+                    ->collapsible(),
                 NavigationGroup::make('Learning')
                     // ->icon('heroicon-o-academic-cap')
                     ->collapsible(),

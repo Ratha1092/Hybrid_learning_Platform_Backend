@@ -154,6 +154,16 @@ body,
     text-transform: uppercase !important;
 }
 
+.fi-sidebar-nav-groups {
+    row-gap: 0.5rem !important;
+}
+
+.fi-sidebar-nav {
+    padding-top: 1rem !important;
+    padding-bottom: 1rem !important;
+}
+
+
 /* =========================================
    SIDEBAR ITEMS
 ========================================= */

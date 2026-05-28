@@ -17,7 +17,7 @@ class IsInstructor
             return redirect('/login')->with('error', 'Please login first');
         }
 
-        if (! $request->user()->isVerifiedInstructor()) {
+        if (! $request->user()->isAdmin() && ! $request->user()->isVerifiedInstructor()) {
             if ($request->is('api/*')) {
                 return response()->json([
                     'message' => 'Verified instructor access only',

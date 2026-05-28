@@ -5,11 +5,7 @@
     "description": "The skeleton application for the Laravel framework.",
     "keywords": ["laravel", "framework"],
     "license": "MIT",
-    "repositories": [
-        {
-            "type": "vcs",
-            "url": "https://github.com/bakongkhqr/khqr-php"
-        }],
+    "repositories": [],
     "require": {
         "php": "^8.2",
         "endroid/qr-code": "^6.0",
@@ -17,6 +13,7 @@
         "filament/spatie-laravel-media-library-plugin": "^5.3",
         "filament/spatie-laravel-settings-plugin": "^5.3",
         "filament/spatie-laravel-tags-plugin": "^5.3",
+        "khqr-gateway/bakong-khqr-php": "^1.0",
         "laravel/framework": "^12.0",
         "laravel/horizon": "^5.45",
         "laravel/sanctum": "^4.3",

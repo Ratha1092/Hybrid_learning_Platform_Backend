@@ -7,9 +7,6 @@ use Illuminate\Http\Request;
 
 class VerifiedInstructor
 {
-    /**
-     * Handle an incoming request.
-     */
     public function handle(Request $request, Closure $next)
     {
         $user = auth()->user();
@@ -18,11 +15,10 @@ class VerifiedInstructor
             if ($request->is('api/*')) {
                 return response()->json(['message' => 'Unauthenticated'], 401);
             }
-
             return redirect()->route('login');
         }
 
-        if (!$user->isVerifiedInstructor()) {
+        if (!$user->isAdmin() && !$user->isVerifiedInstructor()) {
             if ($request->is('api/*')) {
                 return response()->json(['message' => 'Verified instructor access only'], 403);
             }

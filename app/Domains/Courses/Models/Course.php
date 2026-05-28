@@ -68,7 +68,13 @@ class Course extends Model
         static::creating(function ($course) {
 
             if (empty($course->slug)) {
-                $course->slug = Str::slug($course->title);
+                $base = Str::slug($course->title);
+                $slug = $base;
+                $i = 2;
+                while (static::where('slug', $slug)->exists()) {
+                    $slug = $base . '-' . $i++;
+                }
+                $course->slug = $slug;
             }
 
             if (empty($course->status)) {

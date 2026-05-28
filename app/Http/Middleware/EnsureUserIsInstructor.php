@@ -22,6 +22,10 @@ class EnsureUserIsInstructor
             ], 401);
         }
 
+        if ($user->isAdmin()) {
+            return $next($request);
+        }
+
         if (!($user->role === 'instructor' || $user->hasRole('instructor'))) {
             return response()->json([
                 'success' => false,

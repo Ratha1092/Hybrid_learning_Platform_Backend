@@ -11,12 +11,26 @@ use App\Domains\Courses\Models\Course;
 use App\Domains\Courses\Models\Lesson;
 use App\Policies\CoursePolicy;
 use App\Policies\LessonPolicy;
+use App\Domains\Payments\Services\BakongConfig;
 
 class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        //
+        $this->app->singleton(BakongConfig::class, fn () => new BakongConfig(
+            merchantName: config('services.bakong.merchant_name'),
+            merchantCity: config('services.bakong.merchant_city'),
+            merchantAccountId: config('services.bakong.merchant_account_id'),
+            merchantCategoryCode: config('services.bakong.merchant_category_code'),
+            countryCode: config('services.bakong.country_code'),
+            currency: config('services.bakong.currency'),
+            qrTtlMinutes: config('services.bakong.qr_ttl_minutes'),
+            verifyUrl: config('services.bakong.verify_url'),
+            apiToken: config('services.bakong.api_token'),
+            timeout: config('services.bakong.timeout'),
+            acquiringBank: config('services.bakong.acquiring_bank'),
+            merchantId: config('services.bakong.merchant_id'),
+        ));
     }
 
     public function boot(): void

@@ -30,7 +30,7 @@ class InstructorCourseController extends Controller
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'price' => ['required', 'numeric', 'min:0'],
+            'price' => ['nullable', 'numeric', 'min:0'],
             'level' => ['nullable', 'string'],
             'language' => ['nullable', 'string'],
             'category_id' => ['required', 'exists:categories,id'],

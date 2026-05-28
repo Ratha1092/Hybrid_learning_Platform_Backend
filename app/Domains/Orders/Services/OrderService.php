@@ -8,6 +8,7 @@ use App\Domains\Orders\Models\Order;
 use App\Domains\Orders\Models\OrderItem;
 use App\Domains\Learning\Models\Enrollment;
 use App\Domains\Payments\Services\BakongKhqrService;
+use App\Domains\Learning\Services\EnrollmentService;
 use App\Domains\Courses\Models\Course;
 use App\Domains\Users\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -34,13 +35,10 @@ class OrderService
             if (Enrollment::where('user_id', $user->id)->where('course_id', $course->id)->exists()) {
                 throw new \RuntimeException('You are already enrolled in this course');
             }
-
-            // 🔥 Generate order number
             $orderNumber = 'ORD-' . now()->format('YmdHis') . '-' . uniqid();
 
-            // Create Order
             $order = Order::create([
-                'order_number' => $orderNumber, // ✅ FIX
+                'order_number' => $orderNumber,
                 'user_id' => $user->id,
                 'total_amount' => $course->price,
                 'discount_amount' => 0,
@@ -68,6 +66,15 @@ class OrderService
                 'instructor_amount' => $instructorAmount,
                 'platform_amount' => $platformAmount,
             ]);
+            if ((float) $course->price === 0.0) {
+                $order->update([
+                    'status' => OrderStatus::Completed,
+                    'payment_status' => OrderPaymentStatus::Paid,
+                    'paid_at' => now(),
+                ]);
+                app(EnrollmentService::class)->enrollFromOrder($order);
+                return $order;
+            }
 
             $this->bakongKhqrService->createPaymentForOrder($order);
 

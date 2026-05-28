@@ -15,14 +15,11 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->string('icon')->nullable();
             $table->string('image')->nullable();
-            $table->boolean('is_featured')
-                ->default(false);
-            $table->integer('sort_order')
-                ->default(0);
+            $table->boolean('is_featured')->default(false);
+            $table->integer('sort_order')->default(0);
             $table->timestamps();
         });
     }
-
     public function down(): void
     {
         Schema::dropIfExists('categories');

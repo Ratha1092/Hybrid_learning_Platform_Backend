@@ -7,6 +7,7 @@ use App\Domains\Orders\Enums\OrderStatus;
 use App\Domains\Orders\Models\Order;
 use App\Domains\Orders\Models\OrderItem;
 use App\Domains\Learning\Models\Enrollment;
+use App\Domains\Payments\Services\BakongConfig;
 use App\Domains\Payments\Services\BakongKhqrService;
 use App\Domains\Courses\Models\Course;
 use App\Domains\Users\Models\User;
@@ -15,9 +16,10 @@ use Illuminate\Support\Facades\DB;
 class OrderService
 {
     public function __construct(
-        private readonly BakongKhqrService $bakongKhqrService
-    ) {
-    }
+        private readonly BakongKhqrService $bakongKhqrService,
+        private readonly BakongConfig $bakongConfig,
+    ) {}
+
 
     public function createOrder(User $user, int $courseId): Order
     {
@@ -45,7 +47,7 @@ class OrderService
                 'total_amount' => $course->price,
                 'discount_amount' => 0,
                 'final_amount' => $course->price,
-                'currency' => config('payments.bakong.currency', 'USD'),
+                'currency' => $this->bakongConfig->currency,
                 'status' => OrderStatus::Pending,
                 'payment_status' => OrderPaymentStatus::Pending,
                 'customer_name' => $user->name ?? 'Guest',

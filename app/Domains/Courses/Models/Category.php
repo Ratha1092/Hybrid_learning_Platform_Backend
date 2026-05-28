@@ -4,6 +4,7 @@ namespace App\Domains\Courses\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 class Category extends Model
 {
@@ -20,6 +21,22 @@ class Category extends Model
     protected $casts = [
         'is_featured' => 'boolean',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function ($category) {
+            if (empty($category->slug)) {
+                $base = Str::slug($category->name);
+                $slug = $base;
+                $i = 2;
+                while (static::where('slug', $slug)->exists()) {
+                    $slug = $base . '-' . $i++;
+                }
+                $category->slug = $slug;
+            }
+        });
+    }
+
     public function courses(): HasMany
     {
         return $this->hasMany(Course::class);

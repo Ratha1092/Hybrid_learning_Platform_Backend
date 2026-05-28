@@ -7,6 +7,15 @@ use App\Domains\Users\Models\User;
 
 class CoursePolicy
 {
+    public function before(User $user): ?bool
+    {
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        return null;
+    }
+
     public function update(User $user, Course $course): bool
     {
         return $user->id === $course->instructor_id;

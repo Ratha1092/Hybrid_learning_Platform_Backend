@@ -2,6 +2,7 @@
 
 namespace App\Domains\Payments\Services;
 
+use App\Domains\Learning\Services\EnrollmentService;
 use App\Domains\Orders\Enums\OrderPaymentStatus;
 use App\Domains\Orders\Enums\OrderStatus;
 use App\Domains\Orders\Models\Order;
@@ -15,22 +16,26 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use RuntimeException;
-use App\Domains\Learning\Services\EnrollmentService;
 
 class BakongKhqrService
 {
+    public function __construct(
+        private readonly BakongConfig $config
+    ) {}
+
     public function createPaymentForOrder(Order $order): Payment
     {
         return DB::transaction(function () use ($order) {
+
             $payment = Payment::query()->create([
                 'order_id' => $order->id,
                 'payment_gateway' => PaymentGateway::Bakong,
                 'external_reference' => $this->referenceFor($order),
-                'idempotency_key' => 'bakong:'.$order->order_number,
-                'amount' => $order->final_amount,
-                'currency' => $order->currency,
+                'idempotency_key' => 'bakong:' . $order->order_number,
+                'amount' => (float) $order->final_amount,
+                'currency' => strtoupper($order->currency),
                 'status' => PaymentStatus::Pending,
-                'expires_at' => now()->addMinutes(config('payments.bakong.qr_ttl_minutes', 15)),
+                'expires_at' => now()->addMinutes($this->config->qrTtlMinutes),
                 'meta' => [
                     'order_number' => $order->order_number,
                 ],
@@ -43,8 +48,8 @@ class BakongKhqrService
             $order->update([
                 'payment_status' => OrderPaymentStatus::Pending,
                 'payment_method' => PaymentGateway::Bakong->value,
-                
             ]);
+
             return $payment->refresh();
         });
     }
@@ -52,49 +57,156 @@ class BakongKhqrService
     public function generateKhqrPayload(Payment $payment): string
     {
         $order = $payment->order;
-        $merchantAccountId = (string) config('payments.bakong.merchant_account_id', '');
 
-        if ($merchantAccountId === '') {
-            $merchantAccountId = 'sandbox@bakong';
+        $accountId = trim((string) $this->config->merchantAccountId);
+
+        if (empty($accountId)) {
+            throw new RuntimeException('Bakong merchant account ID is missing.');
         }
 
-        $merchantAccount = $this->tlv('00', 'kh.gov.nbc.bakong')
-            .$this->tlv('01', $merchantAccountId);
+        $currency = strtoupper((string) $payment->currency);
+        $isKhr = $currency === 'KHR';
+        $merchantAccount =
+            $this->tlv('00', 'kh.gov.nbc.bakong') .
+            $this->tlv('01', $accountId);
 
-        $payload = $this->tlv('00', '01')
-            .$this->tlv('01', '12')
-            .$this->tlv('29', $merchantAccount)
-            .$this->tlv('52', (string) config('payments.bakong.merchant_category_code', '8299'))
-            .$this->tlv('53', $this->numericCurrencyCode((string) $payment->currency))
-            .$this->tlv('54', $this->formatAmount($payment->amount))
-            .$this->tlv('58', strtoupper((string) config('payments.bakong.country_code', 'KH')))
-            .$this->tlv('59', $this->limit((string) config('payments.bakong.merchant_name'), 25))
-            .$this->tlv('60', $this->limit((string) config('payments.bakong.merchant_city'), 15))
-            .$this->tlv('62', $this->tlv('01', $this->limit($order->order_number, 25))
-                .$this->tlv('05', $this->limit((string) $payment->external_reference, 25)));
+        if (
+            !empty($this->config->merchantId) &&
+            !empty($this->config->acquiringBank)
+        ) {
+            $merchantAccount .=
+                $this->tlv('02', $this->config->merchantId) .
+                $this->tlv('03', $this->config->acquiringBank);
+        }
+        $currencyCode = $isKhr ? '116' : '840';
+        $rawAmount = (float) $payment->amount;
 
-        $payloadForCrc = $payload.'6304';
+        if ($rawAmount <= 0) {
+            throw new RuntimeException('Amount must be greater than zero.');
+        }
 
-        return $payloadForCrc.$this->crc16($payloadForCrc);
+        $amount = $isKhr
+            ? (string) intval(round($rawAmount))
+            : rtrim(
+                rtrim(
+                    number_format($rawAmount, 2, '.', ''),
+                    '0'
+                ),
+                '.'
+            );
+        $billNumber = mb_substr(
+            (string) $order->order_number,0,25
+        );
+
+        $isMerchant = !empty($this->config->merchantId) && !empty($this->config->acquiringBank);
+
+        if ($isMerchant) {
+            // Dynamic QR (preset amount) — requires NBC merchant registration
+            $payload =
+                $this->tlv('00', '01') .
+                $this->tlv('01', '12') .
+                $this->tlv('29', $merchantAccount) .
+                $this->tlv('52', (string) $this->config->merchantCategoryCode) .
+                $this->tlv('53', $currencyCode) .
+                $this->tlv('54', $amount) .
+                $this->tlv('58', strtoupper($this->config->countryCode)) .
+                $this->tlv('59', mb_substr((string) $this->config->merchantName, 0, 25)) .
+                $this->tlv('60', mb_substr((string) $this->config->merchantCity, 0, 15)) .
+                $this->tlv('62', $this->tlv('01', $billNumber));
+        } else {
+            // Static QR — works for individual @bkrt / @aba accounts without merchant registration.
+            // Payer must enter the amount manually. Use only for development/testing.
+            $payload =
+                $this->tlv('00', '01') .
+                $this->tlv('01', '11') .
+                $this->tlv('29', $merchantAccount) .
+                $this->tlv('52', (string) $this->config->merchantCategoryCode) .
+                $this->tlv('53', $currencyCode) .
+                $this->tlv('58', strtoupper($this->config->countryCode)) .
+                $this->tlv('59', mb_substr((string) $this->config->merchantName, 0, 25)) .
+                $this->tlv('60', mb_substr((string) $this->config->merchantCity, 0, 15)) .
+                $this->tlv('62', $this->tlv('01', $billNumber));
+        }
+
+        $payloadForCrc = $payload . '6304';
+
+        return $payloadForCrc . $this->crc16($payloadForCrc);
     }
+
+    private function tlv(string $tag, string $value): string
+    {
+        return $tag .
+            str_pad(
+                (string) strlen($value),
+                2,
+                '0',
+                STR_PAD_LEFT
+            ) .
+            $value;
+    }
+
+    private function crc16(string $payload): string
+    {
+        $crc = 0xFFFF;
+
+        for ($i = 0; $i < strlen($payload); $i++) {
+
+            $crc ^= ord($payload[$i]) << 8;
+
+            for ($j = 0; $j < 8; $j++) {
+
+                if (($crc & 0x8000) !== 0) {
+                    $crc = ($crc << 1) ^ 0x1021;
+                } else {
+                    $crc = $crc << 1;
+                }
+
+                $crc &= 0xFFFF;
+            }
+        }
+
+        return strtoupper(
+            str_pad(
+                dechex($crc),
+                4,
+                '0',
+                STR_PAD_LEFT
+            )
+        );
+    }
+
     public function verifyPayment(Payment $payment): Payment
     {
         if ($payment->isPaid()) {
             return $payment->refresh();
         }
+
         if ($payment->isFailed() || $payment->isExpired()) {
             return $payment->refresh();
         }
-        if ($payment->expires_at !== null && $payment->expires_at->isPast()) {
+
+        if (
+            $payment->expires_at !== null &&
+            $payment->expires_at->isPast()
+        ) {
             return $this->expirePayment($payment);
         }
 
         $payment = $this->markVerificationStarted($payment);
 
         try {
+
             $gatewayResponse = $this->requestBakongVerification($payment);
-        } catch (ConnectionException|RequestException $exception) {
-            return $this->markVerificationTemporarilyUnavailable($payment, $exception);
+
+        } catch (
+            ConnectionException |
+            RequestException $exception
+        ) {
+
+            return $this->markVerificationTemporarilyUnavailable(
+                $payment,
+                $exception
+            );
         }
 
         $status = $this->extractVerificationStatus($gatewayResponse);
@@ -119,6 +231,7 @@ class BakongKhqrService
             'failure_reason' => null,
             'gateway_response' => $gatewayResponse,
         ]);
+
         return $payment->refresh();
     }
 
@@ -140,21 +253,35 @@ class BakongKhqrService
         return $payment->refresh();
     }
 
-    public function markAsPaid(Payment $payment, array $gatewayResponse): Payment
-    {
-        return DB::transaction(function () use ($payment, $gatewayResponse) {
-            $payment = Payment::query()->lockForUpdate()->with('order.items')->findOrFail($payment->id);
+    public function markAsPaid(
+        Payment $payment,
+        array $gatewayResponse
+    ): Payment {
+
+        return DB::transaction(function () use (
+            $payment,
+            $gatewayResponse
+        ) {
+
+            $payment = Payment::query()
+                ->lockForUpdate()
+                ->with('order.items')
+                ->findOrFail($payment->id);
 
             if ($payment->isPaid()) {
                 return $payment->refresh();
             }
 
-            $this->assertGatewayAmountMatches($payment, $gatewayResponse);
+            $this->assertGatewayAmountMatches(
+                $payment,
+                $gatewayResponse
+            );
 
             $payment->update([
                 'status' => PaymentStatus::Paid,
                 'transaction_id' => $this->extractTransactionId($gatewayResponse),
-                'payer_account' => Arr::get($gatewayResponse, 'payer_account')
+                'payer_account' =>
+                    Arr::get($gatewayResponse, 'payer_account')
                     ?? Arr::get($gatewayResponse, 'data.payer_account'),
                 'gateway_response' => $gatewayResponse,
                 'paid_at' => now(),
@@ -174,17 +301,28 @@ class BakongKhqrService
                 'payment_method' => PaymentGateway::Bakong->value,
                 'paid_at' => now(),
             ]);
-            app(EnrollmentService::class)->enrollFromOrder($payment->order);
+
+            app(EnrollmentService::class)
+                ->enrollFromOrder($payment->order);
+
             PaymentSuccessEvent::dispatch($payment->order);
+
             return $payment->refresh();
         });
     }
 
-    private function markAsFailed(Payment $payment, array $gatewayResponse): Payment
-    {
+    private function markAsFailed(
+        Payment $payment,
+        array $gatewayResponse
+    ): Payment {
+
         $payment->update([
             'status' => PaymentStatus::Failed,
-            'failure_reason' => Arr::get($gatewayResponse, 'message', 'Bakong verification failed.'),
+            'failure_reason' => Arr::get(
+                $gatewayResponse,
+                'message',
+                'Bakong verification failed.'
+            ),
             'gateway_response' => $gatewayResponse,
         ]);
 
@@ -202,11 +340,14 @@ class BakongKhqrService
         return $payment->refresh();
     }
 
-    private function markVerificationStarted(Payment $payment): Payment
-    {
+    private function markVerificationStarted(
+        Payment $payment
+    ): Payment {
+
         $payment->forceFill([
             'status' => PaymentStatus::Processing,
-            'verification_attempts' => ((int) $payment->verification_attempts) + 1,
+            'verification_attempts' =>
+                ((int) $payment->verification_attempts) + 1,
             'last_verified_at' => now(),
             'failure_reason' => null,
         ])->save();
@@ -218,19 +359,24 @@ class BakongKhqrService
         Payment $payment,
         ConnectionException|RequestException $exception
     ): Payment {
+
         $payload = [
             'error' => class_basename($exception),
             'message' => $exception->getMessage(),
         ];
 
-        if ($exception instanceof RequestException && $exception->response !== null) {
+        if (
+            $exception instanceof RequestException &&
+            $exception->response !== null
+        ) {
             $payload['status'] = $exception->response->status();
             $payload['body'] = $exception->response->json();
         }
 
         $payment->update([
             'status' => PaymentStatus::Processing,
-            'failure_reason' => 'Temporary Bakong gateway issue. Please retry verification shortly.',
+            'failure_reason' =>
+                'Temporary Bakong gateway issue. Please retry verification shortly.',
             'gateway_response' => $payload,
         ]);
 
@@ -244,31 +390,40 @@ class BakongKhqrService
         return $payment->refresh();
     }
 
-    private function requestBakongVerification(Payment $payment): array
-    {
-        $verifyUrl = config('payments.bakong.verify_url');
+    private function requestBakongVerification(
+        Payment $payment
+    ): array {
 
-        if (! $verifyUrl) {
-            throw new RuntimeException('BAKONG_VERIFY_URL is not configured.');
+        if (!$this->config->verifyUrl) {
+            throw new RuntimeException(
+                'BAKONG_VERIFY_URL is not configured.'
+            );
         }
 
-        $request = Http::timeout((int) config('payments.bakong.timeout', 10))
+        $request = Http::timeout($this->config->timeout)
             ->acceptJson();
 
-        if ($token = config('payments.bakong.api_token')) {
-            $request = $request->withToken($token);
+        if ($this->config->apiToken) {
+            $request = $request->withToken(
+                $this->config->apiToken
+            );
         }
 
-        return $request->post($verifyUrl, [
-            'external_reference' => $payment->external_reference,
-            'transaction_id' => $payment->transaction_id,
-            'amount' => $this->formatAmount($payment->amount),
-            'currency' => $payment->currency,
-        ])->throw()->json();
+        return $request->post(
+            $this->config->verifyUrl,
+            [
+                'external_reference' => $payment->external_reference,
+                'transaction_id' => $payment->transaction_id,
+                'amount' => $this->formatAmount($payment->amount),
+                'currency' => $payment->currency,
+            ]
+        )->throw()->json();
     }
 
-    private function extractVerificationStatus(array $response): PaymentStatus
-    {
+    private function extractVerificationStatus(
+        array $response
+    ): PaymentStatus {
+
         $rawStatus = strtolower((string) (
             Arr::get($response, 'status')
             ?? Arr::get($response, 'data.status')
@@ -276,37 +431,80 @@ class BakongKhqrService
             ?? ''
         ));
 
-        $success = Arr::get($response, 'success') ?? Arr::get($response, 'data.success');
-        $paid = Arr::get($response, 'paid') ?? Arr::get($response, 'data.paid');
+        $success =
+            Arr::get($response, 'success')
+            ?? Arr::get($response, 'data.success');
 
-        if (in_array($rawStatus, ['paid', 'success', 'successful', 'completed'], true) || $success === true || $paid === true) {
+        $paid =
+            Arr::get($response, 'paid')
+            ?? Arr::get($response, 'data.paid');
+
+        if (
+            in_array(
+                $rawStatus,
+                ['paid', 'success', 'successful', 'completed'],
+                true
+            )
+            || $success === true
+            || $paid === true
+        ) {
             return PaymentStatus::Paid;
         }
 
-        if (in_array($rawStatus, ['failed', 'failure', 'declined', 'cancelled', 'canceled'], true) || $success === false) {
+        if (
+            in_array(
+                $rawStatus,
+                ['failed', 'failure', 'declined', 'cancelled', 'canceled'],
+                true
+            )
+            || $success === false
+        ) {
             return PaymentStatus::Failed;
         }
 
         return PaymentStatus::Processing;
     }
 
-    private function assertGatewayAmountMatches(Payment $payment, array $response): void
-    {
-        $amount = Arr::get($response, 'amount') ?? Arr::get($response, 'data.amount');
-        $currency = Arr::get($response, 'currency') ?? Arr::get($response, 'data.currency');
+    private function assertGatewayAmountMatches(
+        Payment $payment,
+        array $response
+    ): void {
 
-        if ($amount !== null && $this->formatAmount($amount) !== $this->formatAmount($payment->amount)) {
-            throw new RuntimeException('Verified payment amount does not match the order amount.');
+        $amount =
+            Arr::get($response, 'amount')
+            ?? Arr::get($response, 'data.amount');
+
+        $currency =
+            Arr::get($response, 'currency')
+            ?? Arr::get($response, 'data.currency');
+
+        if (
+            $amount !== null &&
+            $this->formatAmount($amount)
+            !== $this->formatAmount($payment->amount)
+        ) {
+            throw new RuntimeException(
+                'Verified payment amount does not match the order amount.'
+            );
         }
 
-        if ($currency !== null && strtoupper((string) $currency) !== strtoupper((string) $payment->currency)) {
-            throw new RuntimeException('Verified payment currency does not match the order currency.');
+        if (
+            $currency !== null &&
+            strtoupper((string) $currency)
+            !== strtoupper((string) $payment->currency)
+        ) {
+            throw new RuntimeException(
+                'Verified payment currency does not match the order currency.'
+            );
         }
     }
 
-    private function extractTransactionId(array $response): ?string
-    {
-        return Arr::get($response, 'transaction_id')
+    private function extractTransactionId(
+        array $response
+    ): ?string {
+
+        return
+            Arr::get($response, 'transaction_id')
             ?? Arr::get($response, 'data.transaction_id')
             ?? Arr::get($response, 'hash')
             ?? Arr::get($response, 'data.hash');
@@ -314,46 +512,16 @@ class BakongKhqrService
 
     private function referenceFor(Order $order): string
     {
-        return 'KHQR-'.$order->order_number;
+        return 'KHQR-' . $order->order_number;
     }
 
-    private function tlv(string $id, string $value): string
+    private function formatAmount($amount): string
     {
-        return $id.str_pad((string) strlen($value), 2, '0', STR_PAD_LEFT).$value;
-    }
-
-    private function numericCurrencyCode(string $currency): string
-    {
-        return match (strtoupper($currency)) {
-            'KHR' => '116',
-            'USD' => '840',
-            default => '840',
-        };
-    }
-
-    private function formatAmount(int|float|string $amount): string
-    {
-        return number_format((float) $amount, 2, '.', '');
-    }
-
-    private function limit(string $value, int $limit): string
-    {
-        return mb_substr($value, 0, $limit);
-    }
-
-    private function crc16(string $payload): string
-    {
-        $crc = 0xFFFF;
-        for ($i = 0, $length = strlen($payload); $i < $length; $i++) {
-            $crc ^= ord($payload[$i]) << 8;
-
-            for ($bit = 0; $bit < 8; $bit++) {
-                $crc = ($crc & 0x8000) !== 0
-                    ? (($crc << 1) ^ 0x1021)
-                    : ($crc << 1);
-                $crc &= 0xFFFF;
-            }
-        }
-        return strtoupper(str_pad(dechex($crc), 4, '0', STR_PAD_LEFT));
+        return number_format(
+            (float) $amount,
+            2,
+            '.',
+            ''
+        );
     }
 }

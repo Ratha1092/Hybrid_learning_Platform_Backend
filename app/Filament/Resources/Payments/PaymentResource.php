@@ -14,15 +14,19 @@ class PaymentResource extends Resource
     protected static string|\UnitEnum|null $navigationGroup = 'Marketplace';
     protected static ?int $navigationSort = 2;
 
+    protected static bool $shouldRegisterNavigation = false;
+
+    public static function getIndexUrl(array $parameters = [], bool $isAbsolute = true, ?string $panel = null, ?\Illuminate\Database\Eloquent\Model $tenant = null, bool $shouldGuessMissingParameters = false): string
+    {
+        return route('filament.admin.pages.payments');
+    }
+
     public static function getPages(): array
     {
         return [
-
-            'index' => Pages\ListPayments::route('/'),
             'create' => Pages\CreatePayment::route('/create'),
             'view' => Pages\ViewPayment::route('/{record}'),
             'edit' => Pages\EditPayment::route('/{record}/edit'),
-
         ];
     }
 }

@@ -3,13 +3,13 @@
 namespace App\Filament\Resources\Orders\Schemas;
 
 use Filament\Schemas\Schema;
-use Filament\Infolists\Components\Section;
+use Filament\Schemas\Components\Section;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Components\RepeatableEntry;
 
 class OrderInfolist
 {
-    public static function configure(Infolist $infolist): Infolist
+    public static function configure(Schema $infolist): Schema
     {
         return $infolist
             ->schema([

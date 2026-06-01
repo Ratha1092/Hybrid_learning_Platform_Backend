@@ -15,6 +15,9 @@ use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use KHQR\BakongKHQR;
+use KHQR\Models\IndividualInfo;
+use KHQR\Models\MerchantInfo;
 use RuntimeException;
 
 class BakongKhqrService
@@ -66,19 +69,7 @@ class BakongKhqrService
 
         $currency = strtoupper((string) $payment->currency);
         $isKhr = $currency === 'KHR';
-        $merchantAccount =
-            $this->tlv('00', 'kh.gov.nbc.bakong') .
-            $this->tlv('01', $accountId);
-
-        if (
-            !empty($this->config->merchantId) &&
-            !empty($this->config->acquiringBank)
-        ) {
-            $merchantAccount .=
-                $this->tlv('02', $this->config->merchantId) .
-                $this->tlv('03', $this->config->acquiringBank);
-        }
-        $currencyCode = $isKhr ? '116' : '840';
+        $currencyCode = $isKhr ? 116 : 840;
         $rawAmount = (float) $payment->amount;
 
         if ($rawAmount <= 0) {
@@ -86,93 +77,37 @@ class BakongKhqrService
         }
 
         $amount = $isKhr
-            ? (string) intval(round($rawAmount))
-            : rtrim(
-                rtrim(
-                    number_format($rawAmount, 2, '.', ''),
-                    '0'
-                ),
-                '.'
-            );
+            ? (float) intval(round($rawAmount))
+            : (float) number_format($rawAmount, 2, '.', '');
         $billNumber = mb_substr(
-            (string) $order->order_number,0,25
+            (string) $order->order_number, 0, 25
         );
 
-        $isMerchant = !empty($this->config->merchantId) && !empty($this->config->acquiringBank);
+        $isMerchant = ! empty($this->config->merchantId) && ! empty($this->config->acquiringBank);
 
         if ($isMerchant) {
-            // Dynamic QR (preset amount) — requires NBC merchant registration
-            $payload =
-                $this->tlv('00', '01') .
-                $this->tlv('01', '12') .
-                $this->tlv('29', $merchantAccount) .
-                $this->tlv('52', (string) $this->config->merchantCategoryCode) .
-                $this->tlv('53', $currencyCode) .
-                $this->tlv('54', $amount) .
-                $this->tlv('58', strtoupper($this->config->countryCode)) .
-                $this->tlv('59', mb_substr((string) $this->config->merchantName, 0, 25)) .
-                $this->tlv('60', mb_substr((string) $this->config->merchantCity, 0, 15)) .
-                $this->tlv('62', $this->tlv('01', $billNumber));
+            $response = BakongKHQR::generateMerchant(new MerchantInfo(
+                bakongAccountID: $accountId,
+                merchantName: mb_substr((string) $this->config->merchantName, 0, 25),
+                merchantCity: mb_substr((string) $this->config->merchantCity, 0, 15),
+                merchantID: (string) $this->config->merchantId,
+                acquiringBank: (string) $this->config->acquiringBank,
+                currency: $currencyCode,
+                amount: $amount,
+                billNumber: $billNumber,
+            ));
         } else {
-            // Static QR — works for individual @bkrt / @aba accounts without merchant registration.
-            // Payer must enter the amount manually. Use only for development/testing.
-            $payload =
-                $this->tlv('00', '01') .
-                $this->tlv('01', '11') .
-                $this->tlv('29', $merchantAccount) .
-                $this->tlv('52', (string) $this->config->merchantCategoryCode) .
-                $this->tlv('53', $currencyCode) .
-                $this->tlv('58', strtoupper($this->config->countryCode)) .
-                $this->tlv('59', mb_substr((string) $this->config->merchantName, 0, 25)) .
-                $this->tlv('60', mb_substr((string) $this->config->merchantCity, 0, 15)) .
-                $this->tlv('62', $this->tlv('01', $billNumber));
+            $response = BakongKHQR::generateIndividual(new IndividualInfo(
+                bakongAccountID: $accountId,
+                merchantName: mb_substr((string) $this->config->merchantName, 0, 25),
+                merchantCity: mb_substr((string) $this->config->merchantCity, 0, 15),
+                currency: $currencyCode,
+                amount: $amount,
+                billNumber: $billNumber,
+            ));
         }
 
-        $payloadForCrc = $payload . '6304';
-
-        return $payloadForCrc . $this->crc16($payloadForCrc);
-    }
-
-    private function tlv(string $tag, string $value): string
-    {
-        return $tag .
-            str_pad(
-                (string) strlen($value),
-                2,
-                '0',
-                STR_PAD_LEFT
-            ) .
-            $value;
-    }
-
-    private function crc16(string $payload): string
-    {
-        $crc = 0xFFFF;
-
-        for ($i = 0; $i < strlen($payload); $i++) {
-
-            $crc ^= ord($payload[$i]) << 8;
-
-            for ($j = 0; $j < 8; $j++) {
-
-                if (($crc & 0x8000) !== 0) {
-                    $crc = ($crc << 1) ^ 0x1021;
-                } else {
-                    $crc = $crc << 1;
-                }
-
-                $crc &= 0xFFFF;
-            }
-        }
-
-        return strtoupper(
-            str_pad(
-                dechex($crc),
-                4,
-                '0',
-                STR_PAD_LEFT
-            )
-        );
+        return $response->data['qr'];
     }
 
     public function verifyPayment(Payment $payment): Payment

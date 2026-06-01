@@ -504,11 +504,17 @@ html:not(.dark) .rb-select option { background: #fff; color: #0e1e34; }
                             <stop offset="100%" stop-color="#8b5cf6" stop-opacity="0"/>
                         </linearGradient>
                     </defs>
-                    @for($i=0;$i<5;$i++)
-                    @php $gy = 18 + $i*30; @endphp
+                    @foreach([1, 0.75, 0.5, 0.25] as $frac)
+                    @php
+                        $gy     = round(148 - $frac * 130);
+                        $revVal = $maxRev * $frac;
+                        $lbl    = $revVal >= 1000000
+                            ? number_format($revVal / 1000000, 1) . 'M'
+                            : ($revVal >= 1000 ? number_format($revVal / 1000, 1) . 'k' : number_format($revVal, 0));
+                    @endphp
                     <line x1="30" y1="{{ $gy }}" x2="640" y2="{{ $gy }}" stroke="rgba(148,163,184,.09)" stroke-dasharray="3 7"/>
-                    <text x="0" y="{{ $gy+4 }}" fill="#2e4a68" font-size="9">{{ 80-$i*20 }}k</text>
-                    @endfor
+                    <text x="0" y="{{ $gy+4 }}" fill="#2e4a68" font-size="9">{{ $lbl }}</text>
+                    @endforeach
                     @foreach($pts->values() as $i => $p)
                     @php
                         $x1o = $ptCount===1 ? 32 : 32+($i/($ptCount-1))*606;
@@ -721,7 +727,7 @@ html:not(.dark) .rb-select option { background: #fff; color: #0e1e34; }
         <div class="rb-panel">
             <div class="rb-ph">
                 <div class="rb-ph-title">Recent Courses</div>
-                <a href="{{ route('filament.admin.resources.courses.index') }}" class="rb-ph-link">View all</a>
+                <a href="{{ route('filament.admin.pages.courses') }}" class="rb-ph-link">View all</a>
             </div>
             <div class="rb-tscroll">
                 <table class="rb-table">
@@ -756,7 +762,7 @@ html:not(.dark) .rb-select option { background: #fff; color: #0e1e34; }
         <div class="rb-panel">
             <div class="rb-ph">
                 <div class="rb-ph-title">Pending Verifications</div>
-                <a href="{{ route('filament.admin.resources.instructor-verifications.index') }}" class="rb-ph-link">Review</a>
+                <a href="{{ route('filament.admin.pages.instructor-verifications') }}" class="rb-ph-link">Review</a>
             </div>
             @forelse($pendingInstructors as $inst)
             <div class="rb-vrow">

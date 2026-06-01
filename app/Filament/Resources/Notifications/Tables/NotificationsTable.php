@@ -14,7 +14,6 @@ class NotificationsTable
     ): Table {
         return $table
             ->columns([
-
                 Tables\Columns\TextColumn::make('data.title')
                     ->label('Title')
                     ->searchable()
@@ -101,12 +100,9 @@ class NotificationsTable
                             ? $query->whereNotNull('read_at')
                             : $query->whereNull('read_at');
                     }),
-
             ])
             ->recordActions([
-
                 Actions\ViewAction::make(),
-
                 Actions\Action::make('open')
                     ->label('Open')
                     ->icon('heroicon-o-arrow-top-right-on-square')
@@ -114,7 +110,6 @@ class NotificationsTable
                         DatabaseNotification $record
                     ) => $record->data['action_url'] ?? null)
                     ->openUrlInNewTab(),
-
                 Actions\Action::make('markAsRead')
                     ->label('Mark as read')
                     ->icon('heroicon-o-check-circle')
@@ -125,21 +120,16 @@ class NotificationsTable
                     ->action(fn (
                         DatabaseNotification $record
                     ) => $record->markAsRead()),
-
             ])
             ->bulkActions([
-
                 Actions\BulkActionGroup::make([
-
                     Actions\BulkAction::make('markAsRead')
                         ->label('Mark selected as read')
                         ->icon('heroicon-o-check-circle')
                         ->action(fn ($records) =>
                             $records->each->markAsRead()
                         ),
-
                     Actions\DeleteBulkAction::make(),
-
                 ]),
 
             ])

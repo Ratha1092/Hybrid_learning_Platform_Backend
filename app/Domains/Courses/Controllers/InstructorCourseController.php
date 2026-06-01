@@ -53,7 +53,6 @@ class InstructorCourseController extends Controller
         if (!$course) {
             return ApiResponse::error('Course not found',404);
         }
-
         return ApiResponse::success($course,'Course retrieved successfully');
     }
     public function update(

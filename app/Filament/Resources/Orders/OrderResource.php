@@ -4,7 +4,10 @@ namespace App\Filament\Resources\Orders;
 
 use App\Domains\Orders\Models\Order;
 use App\Filament\Resources\Orders\Pages;
+use App\Filament\Resources\Orders\Schemas\OrderForm;
+use App\Filament\Resources\Orders\Schemas\OrderInfolist;
 use Filament\Resources\Resource;
+use Filament\Schemas\Schema;
 
 class OrderResource extends Resource
 {
@@ -14,11 +17,27 @@ class OrderResource extends Resource
     protected static string|\UnitEnum|null $navigationGroup = 'Marketplace';
     protected static ?int $navigationSort = 1;
 
+    protected static bool $shouldRegisterNavigation = false;
+    protected static ?string $recordTitleAttribute = 'order_number';
+
+    public static function form(Schema $schema): Schema
+    {
+        return OrderForm::configure($schema);
+    }
+
+    public static function infolist(Schema $schema): Schema
+    {
+        return OrderInfolist::configure($schema);
+    }
+
+    public static function getIndexUrl(array $parameters = [], bool $isAbsolute = true, ?string $panel = null, ?\Illuminate\Database\Eloquent\Model $tenant = null, bool $shouldGuessMissingParameters = false): string
+    {
+        return route('filament.admin.pages.orders');
+    }
+
     public static function getPages(): array
     {
         return [
-
-            'index' => Pages\ListOrders::route('/'),
             'create' => Pages\CreateOrder::route('/create'),
             'view' => Pages\ViewOrder::route('/{record}'),
             'edit' => Pages\EditOrder::route('/{record}/edit'),

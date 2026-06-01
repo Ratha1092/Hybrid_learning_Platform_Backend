@@ -6,7 +6,6 @@ use App\Domains\Courses\Models\Lesson;
 
 use App\Filament\Resources\Lessons\Pages\CreateLesson;
 use App\Filament\Resources\Lessons\Pages\EditLesson;
-use App\Filament\Resources\Lessons\Pages\ListLessons;
 use App\Filament\Resources\Lessons\Pages\ViewLesson;
 
 use App\Filament\Resources\Lessons\Schemas\LessonForm;
@@ -30,8 +29,9 @@ class LessonResource extends Resource
     protected static ?string $modelLabel = 'Lesson';
     protected static ?string $pluralModelLabel = 'Lessons';
     protected static string|\UnitEnum|null $navigationGroup = 'Learning';
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 5;
     protected static ?string $recordTitleAttribute ='title';
+    protected static bool $shouldRegisterNavigation = false;
     public static function form(Schema $schema): Schema
     {
         return LessonForm::configure($schema);
@@ -54,11 +54,15 @@ class LessonResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => ListLessons::route('/'),
             'create' => CreateLesson::route('/create'),
-            'view' => ViewLesson::route('/{record}'),
-            'edit' => EditLesson::route('/{record}/edit'),
+            'view'   => ViewLesson::route('/{record}'),
+            'edit'   => EditLesson::route('/{record}/edit'),
         ];
+    }
+
+    public static function getIndexUrl(array $parameters = [], bool $isAbsolute = true, ?string $panel = null, ?\Illuminate\Database\Eloquent\Model $tenant = null, bool $shouldGuessMissingParameters = false): string
+    {
+        return route('filament.admin.pages.lessons');
     }
 
     public static function getEloquentQuery(): Builder

@@ -29,21 +29,22 @@ class NotificationResource extends Resource
     {
         return [];
     }
+    protected static bool $shouldRegisterNavigation = false;
+
+    public static function getIndexUrl(array $parameters = [], bool $isAbsolute = true, ?string $panel = null, ?\Illuminate\Database\Eloquent\Model $tenant = null, bool $shouldGuessMissingParameters = false): string
+    {
+        return route('filament.admin.pages.notifications');
+    }
+
     public static function getPages(): array
     {
         return [
-            'index' => ListNotifications::route('/'),
-
             'view' => ViewNotification::route('/{record}'),
         ];
     }
     public static function canGloballySearch(): bool
     {
         return false;
-    }
-    public static function shouldRegisterNavigation(): bool
-    {
-        return auth()->check();
     }
     public static function form(Schema $schema): Schema
     {

@@ -253,10 +253,17 @@ class InstructorVerificationResource extends Resource
         return [];
     }
 
+    protected static bool $shouldRegisterNavigation = false;
+
+    public static function getIndexUrl(array $parameters = [], bool $isAbsolute = true, ?string $panel = null, ?\Illuminate\Database\Eloquent\Model $tenant = null, bool $shouldGuessMissingParameters = false): string
+    {
+        return route('filament.admin.pages.instructor-verifications');
+    }
+
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListInstructorVerifications::route('/'),
+            'create' => Pages\CreateInstructorVerification::route('/create'),
             'view' => Pages\ViewInstructorVerification::route('/{record}'),
             'edit' => Pages\EditInstructorVerification::route('/{record}/edit'),
         ];

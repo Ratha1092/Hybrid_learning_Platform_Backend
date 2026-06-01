@@ -11,7 +11,6 @@ class CourseService
     public function create(array $data, int $userId): Course
     {
         return DB::transaction(function () use ($data, $userId) {
-
             $slug = $this->generateUniqueSlug($data['title']);
 
             return Course::create([

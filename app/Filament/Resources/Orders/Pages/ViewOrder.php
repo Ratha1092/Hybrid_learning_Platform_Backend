@@ -3,16 +3,25 @@
 namespace App\Filament\Resources\Orders\Pages;
 
 use App\Filament\Resources\Orders\OrderResource;
-use App\Filament\Resources\Orders\Schemas\OrderInfolist;
+use Filament\Actions\Action;
+use Filament\Actions\EditAction;
 use Filament\Resources\Pages\ViewRecord;
-use Filament\Schemas\Schema;
 
 class ViewOrder extends ViewRecord
 {
     protected static string $resource = OrderResource::class;
 
-    public function infolist(Schema $schema): Schema
+    protected function getHeaderActions(): array
     {
-        return OrderInfolist::configure($schema);
+        return [
+            Action::make('back')
+                ->label('Back to Orders')
+                ->icon('heroicon-o-arrow-left')
+                ->color('gray')
+                ->url(OrderResource::getIndexUrl()),
+
+            EditAction::make()
+                ->icon('heroicon-o-pencil-square'),
+        ];
     }
 }

@@ -45,10 +45,16 @@ class UserResource extends Resource
         return [];
     }
 
+    protected static bool $shouldRegisterNavigation = false;
+
+    public static function getIndexUrl(array $parameters = [], bool $isAbsolute = true, ?string $panel = null, ?\Illuminate\Database\Eloquent\Model $tenant = null, bool $shouldGuessMissingParameters = false): string
+    {
+        return route('filament.admin.pages.users');
+    }
+
     public static function getPages(): array
     {
         return [
-            'index' => ListUsers::route('/'),
             'create' => CreateUser::route('/create'),
             'view' => ViewUser::route('/{record}'),
             'edit' => EditUser::route('/{record}/edit'),

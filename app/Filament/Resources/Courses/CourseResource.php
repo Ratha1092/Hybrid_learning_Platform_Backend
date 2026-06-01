@@ -28,6 +28,7 @@ class CourseResource extends Resource
     protected static ?string $pluralModelLabel = 'Courses';
     protected static string|\UnitEnum|null $navigationGroup = 'Learning';
     protected static ?int $navigationSort = 1;
+    protected static bool $shouldRegisterNavigation = false;
     protected static ?string $recordTitleAttribute ='title';
     public static function form(Schema $schema): Schema
     {
@@ -52,11 +53,15 @@ class CourseResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => ListCourses::route('/'),
             'create' => CreateCourse::route('/create'),
-            'view' => ViewCourse::route('/{record}'),
-            'edit' => EditCourse::route('/{record}/edit'),
+            'view'   => ViewCourse::route('/{record}'),
+            'edit'   => EditCourse::route('/{record}/edit'),
         ];
+    }
+
+    public static function getIndexUrl(array $parameters = [], bool $isAbsolute = true, ?string $panel = null, ?\Illuminate\Database\Eloquent\Model $tenant = null, bool $shouldGuessMissingParameters = false): string
+    {
+        return route('filament.admin.pages.courses');
     }
 
     public static function getEloquentQuery(): Builder

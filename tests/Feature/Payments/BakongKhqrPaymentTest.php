@@ -10,12 +10,24 @@ use App\Domains\Users\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
+use KHQR\BakongKHQR;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class BakongKhqrPaymentTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        config([
+            'services.bakong.merchant_account_id' => 'studentstore@nbcq',
+            'services.bakong.merchant_name' => 'Hybrid Learning',
+            'services.bakong.merchant_city' => 'PHNOM PENH',
+        ]);
+    }
 
     public function test_checkout_creates_bakong_payment_with_khqr_payload(): void
     {
@@ -34,13 +46,27 @@ class BakongKhqrPaymentTest extends TestCase
             ->assertJsonPath('data.payment.payment_gateway', 'bakong')
             ->assertJsonPath('data.payment.status', 'pending');
 
-        $this->assertNotEmpty($response->json('data.payment.khqr_payload'));
+        $khqrPayload = $response->json('data.payment.khqr_payload');
+        $decodedKhqr = BakongKHQR::decode($khqrPayload)->data;
+
+        $this->assertNotEmpty($khqrPayload);
+        $this->assertTrue(
+            BakongKHQR::verify($khqrPayload)->isValid
+        );
+        $this->assertSame(
+            'studentstore@nbcq',
+            $decodedKhqr['bakongAccountID']
+        );
+        $this->assertSame(
+            '30.00',
+            number_format((float) $decodedKhqr['transactionAmount'], 2, '.', '')
+        );
         $this->assertStringContainsString('KHQR-', $response->json('data.payment.external_reference'));
     }
 
     public function test_verify_marks_payment_paid_from_backend_bakong_response(): void
     {
-        config(['payments.bakong.verify_url' => 'https://bakong.test/verify']);
+        config(['services.bakong.verify_url' => 'https://bakong.test/verify']);
 
         $student = User::factory()->create();
         $course = $this->createPublishedCourse(price: 30);
@@ -96,7 +122,7 @@ class BakongKhqrPaymentTest extends TestCase
 
     public function test_verify_keeps_payment_processing_when_bakong_is_temporarily_unavailable(): void
     {
-        config(['payments.bakong.verify_url' => 'https://bakong.test/verify']);
+        config(['services.bakong.verify_url' => 'https://bakong.test/verify']);
 
         $student = User::factory()->create();
         $course = $this->createPublishedCourse(price: 30);

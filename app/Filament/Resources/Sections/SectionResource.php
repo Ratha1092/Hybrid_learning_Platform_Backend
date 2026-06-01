@@ -6,7 +6,6 @@ use App\Domains\Courses\Models\Section;
 
 use App\Filament\Resources\Sections\Pages\CreateSection;
 use App\Filament\Resources\Sections\Pages\EditSection;
-use App\Filament\Resources\Sections\Pages\ListSections;
 use App\Filament\Resources\Sections\Pages\ViewSection;
 use App\Filament\Resources\Sections\Schemas\SectionForm;
 use App\Filament\Resources\Sections\Schemas\SectionInfolist;
@@ -27,8 +26,9 @@ class SectionResource extends Resource
     protected static ?string $modelLabel = 'Section';
     protected static ?string $pluralModelLabel = 'Sections';
     protected static string|\UnitEnum|null $navigationGroup = 'Learning';
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 4;
     protected static ?string $recordTitleAttribute ='title';
+    protected static bool $shouldRegisterNavigation = false;
     public static function form(Schema $schema): Schema
     {
         return SectionForm::configure($schema);
@@ -52,11 +52,15 @@ class SectionResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => ListSections::route('/'),
             'create' => CreateSection::route('/create'),
-            'view' => ViewSection::route('/{record}'),
-            'edit' => EditSection::route('/{record}/edit'),
+            'view'   => ViewSection::route('/{record}'),
+            'edit'   => EditSection::route('/{record}/edit'),
         ];
+    }
+
+    public static function getIndexUrl(array $parameters = [], bool $isAbsolute = true, ?string $panel = null, ?\Illuminate\Database\Eloquent\Model $tenant = null, bool $shouldGuessMissingParameters = false): string
+    {
+        return route('filament.admin.pages.sections');
     }
 
     public static function getEloquentQuery(): Builder

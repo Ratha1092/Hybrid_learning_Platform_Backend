@@ -22,9 +22,7 @@ Route::middleware('throttle:courses')
 Route::middleware('throttle:courses')
     ->prefix('courses')
     ->group(function () {
-        //Course Listing
         Route::get('/',[CourseController::class, 'index']);
-        //Course Details
         Route::get('/{slug}',[CourseController::class, 'show']);
     });
 //Instructor Dashboard

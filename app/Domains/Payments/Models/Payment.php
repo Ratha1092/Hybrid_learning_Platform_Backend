@@ -76,11 +76,11 @@ class Payment extends Model
     }
     public function isKhqr(): bool
     {
-        return $this->payment_gateway === PaymentGateway::KHQR;
+        return $this->payment_gateway === PaymentGateway::Khqr;
     }
     public function isBakong(): bool
     {
-        return $this->payment_gateway === PaymentGateway::BAKONG;
+        return $this->payment_gateway === PaymentGateway::Bakong;
     }
     public function hasExpired(): bool
     {

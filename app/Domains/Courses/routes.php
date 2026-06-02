@@ -32,6 +32,7 @@ Route::middleware(['auth:sanctum','verified_instructor','throttle:courses',])
     ->prefix('instructor')
     ->group(function () {
         Route::get('/dashboard', [InstructorDashboardController::class, 'index']);
+        Route::get('/students', [InstructorDashboardController::class, 'students']);
     });
 
 //Instructor Course Management
@@ -43,6 +44,7 @@ Route::middleware(['auth:sanctum','verified_instructor','throttle:courses',])
         Route::post('/',[InstructorCourseController::class, 'store']);
         Route::get('/{id}',[InstructorCourseController::class, 'show']);
         Route::put('/{id}',[InstructorCourseController::class, 'update']);
+        Route::post('/{id}',[InstructorCourseController::class, 'update']);
         Route::delete('/{id}',[InstructorCourseController::class, 'destroy']);
 
         //Submit For Review

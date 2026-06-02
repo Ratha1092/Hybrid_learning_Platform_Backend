@@ -40,10 +40,12 @@ class InstructorDashboardController extends Controller
         // Revenue stats from order_items
         $startOfMonth = now()->startOfMonth()->toDateTimeString();
         $revenueStats = DB::table('order_items')
-            ->where('instructor_id', $instructorId)
+            ->join('orders', 'orders.id', '=', 'order_items.order_id')
+            ->where('order_items.instructor_id', $instructorId)
+            ->where('orders.payment_status', 'paid')
             ->selectRaw(
-                'COALESCE(SUM(instructor_amount), 0) as total_earned,
-                 COALESCE(SUM(CASE WHEN created_at >= ?::timestamptz THEN instructor_amount ELSE 0 END), 0) as this_month',
+                'COALESCE(SUM(order_items.instructor_amount), 0) as total_earned,
+                 COALESCE(SUM(CASE WHEN order_items.created_at >= ?::timestamptz THEN order_items.instructor_amount ELSE 0 END), 0) as this_month',
                 [$startOfMonth]
             )
             ->first();
@@ -87,5 +89,34 @@ class InstructorDashboardController extends Controller
             'per_course'         => $perCourse,
             'recent_enrollments' => $recentEnrollments,
         ], 'Dashboard data retrieved successfully');
+    }
+
+    public function students(): JsonResponse
+    {
+        $instructorId = auth()->id();
+
+        $courseIds = Course::where('instructor_id', $instructorId)->pluck('id');
+
+        $students = Enrollment::whereIn('course_id', $courseIds)
+            ->where('status', 'active')
+            ->with(['user:id,name,email', 'course:id,title,slug,thumbnail'])
+            ->latest('enrolled_at')
+            ->get()
+            ->map(fn($e) => [
+                'student_id'          => $e->user?->id,
+                'student_name'        => $e->user?->name ?? 'Unknown',
+                'student_email'       => $e->user?->email ?? '',
+                'course_id'           => $e->course_id,
+                'course_title'        => $e->course?->title ?? '',
+                'course_slug'         => $e->course?->slug ?? '',
+                'progress_percentage' => (float) $e->progress_percentage,
+                'enrolled_at'         => $e->enrolled_at,
+                'completed_at'        => $e->completed_at,
+            ]);
+
+        return ApiResponse::success([
+            'total'    => $students->count(),
+            'students' => $students,
+        ], 'Students retrieved successfully');
     }
 }

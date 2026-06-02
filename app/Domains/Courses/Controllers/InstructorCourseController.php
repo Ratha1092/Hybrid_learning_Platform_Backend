@@ -72,16 +72,20 @@ class InstructorCourseController extends Controller
         }
 
         $validated = $request->validate([
-            'title' => ['sometimes', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
-            'price' => ['sometimes', 'numeric', 'min:0'],
-            'level' => ['nullable', 'string'],
-            'language' => ['nullable', 'string'],
-            'category_id' => ['sometimes', 'exists:categories,id'],
+            'title'               => ['sometimes', 'string', 'max:255'],
+            'description'         => ['nullable', 'string'],
+            'short_description'   => ['nullable', 'string', 'max:500'],
+            'price'               => ['sometimes', 'numeric', 'min:0'],
+            'level'               => ['nullable', 'string'],
+            'language'            => ['nullable', 'string'],
+            'category_id'         => ['sometimes', 'exists:categories,id'],
+            'preview_video_url'   => ['nullable', 'url'],
+            'requirements'        => ['nullable', 'string'],
+            'what_you_will_learn' => ['nullable', 'string'],
+            'thumbnail'           => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ]);
 
-        $updatedCourse = $this->courseService->update($course,$validated
-        );
+        $updatedCourse = $this->courseService->update($course, $validated, $request->file('thumbnail'));
         return ApiResponse::success(
             $updatedCourse,
             'Course updated successfully'

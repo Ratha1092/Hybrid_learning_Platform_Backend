@@ -90,6 +90,7 @@ class InstructorLessonController extends Controller
             'content' => 'nullable|string',
             'duration' => 'nullable|integer|min:0',
             'is_preview' => 'nullable|boolean',
+           
         ]);
 
         $lesson->update($validated);

@@ -25,9 +25,9 @@ class QrCodeService
             validateResult: false,
             data: $payload,
             encoding: new Encoding('UTF-8'),
-            errorCorrectionLevel: ErrorCorrectionLevel::Low,
+            errorCorrectionLevel: ErrorCorrectionLevel::High,
             size: $size,
-            margin: 10,
+            margin: 16,
             roundBlockSizeMode: RoundBlockSizeMode::Margin,
         );
 
@@ -52,9 +52,9 @@ class QrCodeService
             validateResult: false,
             data: $payload,
             encoding: new Encoding('UTF-8'),
-            errorCorrectionLevel: ErrorCorrectionLevel::Low,
+            errorCorrectionLevel: ErrorCorrectionLevel::High,
             size: $size,
-            margin: 10,
+            margin: 16,
             roundBlockSizeMode: RoundBlockSizeMode::Margin,
         );
 

@@ -100,10 +100,24 @@ class PaymentsTable
                     )
                     ->requiresConfirmation()
                     ->action(function ($record) {
-
-                        app(
-                            BakongKhqrService::class
-                        )->verifyPayment($record);
+                        app(BakongKhqrService::class)->verifyPayment($record);
+                    }),
+                Action::make('force_verify')
+                    ->label('Force Verify')
+                    ->icon('heroicon-o-arrow-path')
+                    ->color('warning')
+                    ->visible(
+                        fn ($record) => in_array($record->status, [
+                            PaymentStatus::Pending,
+                            PaymentStatus::Processing,
+                            PaymentStatus::Expired,
+                        ])
+                    )
+                    ->requiresConfirmation()
+                    ->modalHeading('Force Verify Payment')
+                    ->modalDescription('This will ask Bakong directly, bypassing the expiry check. Use to recover payments where the user paid but the system never verified.')
+                    ->action(function ($record) {
+                        app(BakongKhqrService::class)->forceVerifyPayment($record);
                     }),
                 Action::make('expire')
                     ->label('Expire')

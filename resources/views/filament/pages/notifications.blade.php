@@ -130,7 +130,7 @@ html:not(.dark) .lp {
             <tbody>
                 @forelse ($notifications as $notification)
                 @php
-                    $data    = json_decode($notification->data, true) ?? [];
+                    $data    = is_array($notification->data) ? $notification->data : (json_decode($notification->data, true) ?? []);
                     $msg     = $data['title'] ?? $data['message'] ?? $data['body'] ?? 'Notification';
                     $msg     = \Illuminate\Support\Str::limit($msg, 60);
                     $typeName = $shortType($notification->type);

@@ -28,6 +28,10 @@ class PaymentController extends Controller
             $payment = $this->bakongKhqrService->expirePayment($payment);
         }
 
+        if ($payment->isPending() && $payment->isBakong()) {
+            $payment = $this->bakongKhqrService->refreshKhqrPayload($payment);
+        }
+
         return ApiResponse::success($this->paymentStatusPayload($payment), 'Payment status retrieved successfully');
     }
 

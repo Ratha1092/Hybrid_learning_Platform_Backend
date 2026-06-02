@@ -28,18 +28,24 @@ class FinanceController extends Controller
         $instructorId = $request->user()->id;
 
         $total = (float) DB::table('order_items')
-            ->where('instructor_id', $instructorId)
-            ->sum('instructor_amount');
+            ->join('orders', 'orders.id', '=', 'order_items.order_id')
+            ->where('order_items.instructor_id', $instructorId)
+            ->where('orders.payment_status', 'paid')
+            ->sum('order_items.instructor_amount');
 
         $thisMonth = (float) DB::table('order_items')
-            ->where('instructor_id', $instructorId)
-            ->where('created_at', '>=', now()->startOfMonth())
-            ->sum('instructor_amount');
+            ->join('orders', 'orders.id', '=', 'order_items.order_id')
+            ->where('order_items.instructor_id', $instructorId)
+            ->where('orders.payment_status', 'paid')
+            ->where('order_items.created_at', '>=', now()->startOfMonth())
+            ->sum('order_items.instructor_amount');
 
         $trend = DB::table('order_items')
-            ->where('instructor_id', $instructorId)
-            ->where('created_at', '>=', now()->subMonths(6)->startOfMonth())
-            ->selectRaw("TO_CHAR(created_at, 'YYYY-MM') as month, SUM(instructor_amount) as total")
+            ->join('orders', 'orders.id', '=', 'order_items.order_id')
+            ->where('order_items.instructor_id', $instructorId)
+            ->where('orders.payment_status', 'paid')
+            ->where('order_items.created_at', '>=', now()->subMonths(6)->startOfMonth())
+            ->selectRaw("TO_CHAR(order_items.created_at, 'YYYY-MM') as month, SUM(order_items.instructor_amount) as total")
             ->groupBy('month')
             ->orderBy('month')
             ->get();

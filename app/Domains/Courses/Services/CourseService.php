@@ -3,6 +3,8 @@
 namespace App\Domains\Courses\Services;
 
 use App\Domains\Courses\Models\Course;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 
@@ -25,17 +27,26 @@ class CourseService
         });
     }
 
-    public function update(Course $course, array $data): Course
+    public function update(Course $course, array $data, ?UploadedFile $thumbnail = null): Course
     {
-        return DB::transaction(function () use ($course, $data) {
+        return DB::transaction(function () use ($course, $data, $thumbnail) {
 
             if (isset($data['title'])) {
                 $data['slug'] = $this->generateUniqueSlug($data['title'], $course->id);
             }
 
+            if ($thumbnail) {
+                if ($course->thumbnail) {
+                    Storage::disk('public')->delete($course->thumbnail);
+                }
+                $data['thumbnail'] = $thumbnail->store('courses/thumbnails', 'public');
+            }
+
+            unset($data['thumbnail_file']);
+
             $course->update($data);
 
-            return $course;
+            return $course->fresh();
         });
     }
 

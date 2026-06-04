@@ -28,9 +28,8 @@ class PaymentController extends Controller
             $payment = $this->bakongKhqrService->expirePayment($payment);
         }
 
-        if ($payment->isPending() && $payment->isBakong()) {
-            $payment = $this->bakongKhqrService->refreshKhqrPayload($payment);
-        }
+        // Do NOT refresh the payload here — regenerating changes the MD5, which
+        // breaks Bakong transaction lookup since the user already scanned the original QR.
 
         return ApiResponse::success($this->paymentStatusPayload($payment), 'Payment status retrieved successfully');
     }
@@ -65,7 +64,7 @@ class PaymentController extends Controller
         $payment->loadMissing('order');
 
         $qrCodeImage = null;
-        if ($payment->khqr_payload && $payment->isPending()) {
+        if ($payment->khqr_payload && ($payment->isPending() || $payment->isProcessing())) {
             try {
                 $qrCodeImage = $this->qrCodeService->generateQrCodeFromPayload($payment->khqr_payload);
             } catch (\Exception) {
@@ -83,6 +82,7 @@ class PaymentController extends Controller
             'amount' => $payment->amount,
             'currency' => $payment->currency,
             'khqr_payload' => $payment->khqr_payload,
+            'md5' => $payment->khqr_payload ? md5((string) $payment->khqr_payload) : null,
             'qr_code_image' => $qrCodeImage,
             'external_reference' => $payment->external_reference,
             'transaction_id' => $payment->transaction_id,

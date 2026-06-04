@@ -216,7 +216,7 @@ html:not(.dark) .lp {
                     <td>
                         <div class="lp-name-cell">
                             @if($cat->image)
-                                <img src="{{ asset('storage/' . $cat->image) }}" class="lp-avatar-img" alt="">
+                                <img src="{{ $cat->image_url }}" class="lp-avatar-img" alt="">
                             @else
                                 <div class="lp-avatar-init" style="background:{{ $bgColor }}">{{ $initials }}</div>
                             @endif

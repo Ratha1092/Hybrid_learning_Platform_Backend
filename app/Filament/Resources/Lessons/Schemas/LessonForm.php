@@ -26,8 +26,10 @@ class LessonForm
                 Forms\Components\Textarea::make('description'),
                 Forms\Components\RichEditor::make('content')
                     ->columnSpanFull(),
-                Forms\Components\FileUpload::make('video')
-                    ->directory('lessons/videos'),
+                Forms\Components\FileUpload::make('video_path')
+                    ->label('Video File')
+                    ->directory('lessons/videos')
+                    ->acceptedFileTypes(['video/*']),
                 Forms\Components\FileUpload::make('attachment')
                     ->directory('lessons/attachments'),
                 Forms\Components\TextInput::make('duration')

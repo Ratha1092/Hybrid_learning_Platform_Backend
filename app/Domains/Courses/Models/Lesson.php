@@ -96,8 +96,15 @@ class Lesson extends Model
     }
     public function getVideoSourceAttribute(): ?string
     {
-        return $this->video_url
-            ?: $this->video_path;
+        if ($this->video_url) {
+            return $this->video_url;
+        }
+
+        if ($this->video_path) {
+            return \Storage::disk(config('filament.default_filesystem_disk'))->url($this->video_path);
+        }
+
+        return null;
     }
 
     public function getAttachmentUrlAttribute(): ?string
@@ -106,7 +113,7 @@ class Lesson extends Model
             return null;
         }
 
-        return asset('storage/' . $this->attachment);
+        return \Storage::disk(config('filament.default_filesystem_disk'))->url($this->attachment);
     }
     public function scopePublished(Builder $query): Builder
     {

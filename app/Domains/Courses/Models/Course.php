@@ -220,7 +220,7 @@ class Course extends Model
             return null;
         }
 
-        return asset('storage/' . $this->thumbnail);
+        return \Storage::disk(config('filament.default_filesystem_disk'))->url($this->thumbnail);
     }
     public function scopePublished($query)
     {

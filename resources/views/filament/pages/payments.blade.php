@@ -123,6 +123,17 @@ html:not(.dark) .lp {
 <div>
 <div class="lp" id="lp-payments" style="--accent:{{ $accent }}">
 
+    @if(session('force_verify_success'))
+    <div style="background:rgba(52,211,153,.12);border:1px solid rgba(52,211,153,.35);color:#34d399;padding:12px 16px;border-radius:10px;font-size:13px;font-weight:600;">
+        ✓ {{ session('force_verify_success') }}
+    </div>
+    @endif
+    @if(session('force_verify_info'))
+    <div style="background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.35);color:#fbbf24;padding:12px 16px;border-radius:10px;font-size:13px;font-weight:600;">
+        ⚠ {{ session('force_verify_info') }}
+    </div>
+    @endif
+
     {{-- Header --}}
     <div class="lp-header lpa lp1">
         <div class="lp-header-text">
@@ -144,24 +155,33 @@ html:not(.dark) .lp {
                     $tabStyle   = $isActive ? "background:{$tabColor}1a;color:{$tabColor};border-color:{$tabColor}55;font-weight:700;" : '';
                     $badgeStyle = "background:{$tabColor}20;color:{$tabColor};";
                 @endphp
-                <a href="{{ $url(['tab' => $t['key'], 'page' => 1]) }}" class="lp-tab" style="{{ $tabStyle }}">
+                <a href="{{ $url(['tab' => $t['key'], 'page' => 1]) }}"
+                    class="lp-tab"
+                    style="{{ $tabStyle }}"
+                >
                     {{ $t['label'] }}
                     <span class="lp-tab-badge" style="{{ $badgeStyle }}">{{ $t['count'] }}</span>
                 </a>
                 @endforeach
             </div>
 
-            <form method="GET" action="{{ url()->current() }}" style="display:flex;align-items:center;gap:0">
-                @foreach(request()->except(['search', 'page']) as $k => $v)
-                    <input type="hidden" name="{{ $k }}" value="{{ $v }}">
-                @endforeach
-                <div class="lp-search-box">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607z"/>
-                    </svg>
-                    <input type="text" name="search" value="{{ $search }}" placeholder="Search order number...">
-                </div>
+            <form id="lp-search-form" method="GET" action="{{ url()->current() }}" style="display:none">
+                <input type="hidden" name="tab" value="{{ $tab }}">
+                <input type="hidden" name="per_page" value="{{ $perPage }}">
             </form>
+            <div class="lp-search-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607z"/>
+                </svg>
+                <input
+                    type="text"
+                    name="search"
+                    form="lp-search-form"
+                    value="{{ $search }}"
+                    placeholder="Search order number..."
+                    onchange="document.getElementById('lp-search-form').submit()"
+                >
+            </div>
         </div>
 
         {{-- Table --}}
@@ -222,6 +242,17 @@ html:not(.dark) .lp {
 
                     <td>
                         <div class="lp-actions">
+                            @php $statusVal = $payment->status?->value ?? $payment->status; @endphp
+                            @if(in_array($statusVal, ['pending', 'processing', 'expired']))
+                            <form method="POST" action="{{ route('admin.payments.force-verify', $payment) }}" style="display:inline" onsubmit="this.querySelector('button').disabled=true">
+                                @csrf
+                                <button type="submit" class="lp-act-btn" title="Force Verify with Bakong" style="color:#fbbf24">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/>
+                                    </svg>
+                                </button>
+                            </form>
+                            @endif
                             <a href="{{ $viewUrl($payment) }}" class="lp-act-btn" title="View">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><circle cx="12" cy="12" r="3"/>
@@ -258,7 +289,7 @@ html:not(.dark) .lp {
             <div style="display:flex;align-items:center;gap:16px">
                 <div class="lp-per-page">
                     Per page
-                    <select onchange="window.location.href='{{ $url([]) }}&per_page=' + this.value + '&page=1'">
+                    <select onchange="window.location.href='{{ $url([]) }}&per_page='+this.value+'&page=1'">
                         @foreach([10, 25, 50] as $n)
                             <option value="{{ $n }}" {{ $perPage == $n ? 'selected' : '' }}>{{ $n }}</option>
                         @endforeach

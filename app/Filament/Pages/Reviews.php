@@ -22,10 +22,11 @@ class Reviews extends Page
 
     protected function getViewData(): array
     {
-        $tab     = request('tab', 'all');
-        $search  = request('search', '');
-        $page    = max(1, (int) request('page', 1));
-        $perPage = (int) request('per_page', 10);
+        $tab      = request('tab', 'all');
+        $search   = request('search', '');
+        $courseId = request('course_id');
+        $page     = max(1, (int) request('page', 1));
+        $perPage  = (int) request('per_page', 10);
 
         if (!in_array($perPage, [10, 25, 50])) $perPage = 10;
 
@@ -39,6 +40,10 @@ class Reviews extends Page
         ];
 
         $query = Review::with(['course:id,title', 'user:id,name']);
+
+        if ($courseId) {
+            $query->where('course_id', $courseId);
+        }
 
         if ($tab !== 'all' && in_array($tab, ['1', '2', '3', '4', '5'])) {
             $query->where('rating', (int) $tab);
@@ -59,6 +64,6 @@ class Reviews extends Page
         $curPage    = min($page, $totalPages);
         $reviews    = $query->skip(($curPage - 1) * $perPage)->take($perPage)->get();
 
-        return compact('tabs', 'tab', 'search', 'reviews', 'total', 'totalPages', 'curPage', 'perPage');
+        return compact('tabs', 'tab', 'search', 'courseId', 'reviews', 'total', 'totalPages', 'curPage', 'perPage');
     }
 }

@@ -22,13 +22,18 @@ class Sections extends Page
 
     protected function getViewData(): array
     {
-        $search  = request('search', '');
-        $page    = max(1, (int) request('page', 1));
-        $perPage = (int) request('per_page', 10);
+        $search   = request('search', '');
+        $courseId = request('course_id');
+        $page     = max(1, (int) request('page', 1));
+        $perPage  = (int) request('per_page', 10);
 
         if (!in_array($perPage, [10, 25, 50])) $perPage = 10;
 
         $query = Section::with('course:id,title')->withCount('lessons');
+
+        if ($courseId) {
+            $query->where('course_id', $courseId);
+        }
 
         if ($search) {
             $query->where(function ($q) use ($search) {
@@ -44,6 +49,6 @@ class Sections extends Page
         $curPage    = min($page, $totalPages);
         $sections   = $query->skip(($curPage - 1) * $perPage)->take($perPage)->get();
 
-        return compact('search', 'sections', 'total', 'totalPages', 'curPage', 'perPage');
+        return compact('search', 'courseId', 'sections', 'total', 'totalPages', 'curPage', 'perPage');
     }
 }

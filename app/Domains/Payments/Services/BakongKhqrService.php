@@ -3,23 +3,23 @@
 namespace App\Domains\Payments\Services;
 
 use App\Domains\Learning\Services\EnrollmentService;
-    use App\Domains\Orders\Enums\OrderPaymentStatus;
-    use App\Domains\Orders\Enums\OrderStatus;
-    use App\Domains\Orders\Models\Order;
-    use App\Domains\Payments\Enums\PaymentGateway;
-    use App\Domains\Payments\Enums\PaymentStatus;
-    use App\Domains\Payments\Events\PaymentSuccessEvent;
-    use App\Domains\Payments\Models\Payment;
-    use Illuminate\Http\Client\ConnectionException;
-    use Illuminate\Http\Client\RequestException;
-    use Illuminate\Support\Arr;
-    use Illuminate\Support\Facades\DB;
-    use Illuminate\Support\Facades\Http;
-    use KHQR\BakongKHQR;
-    use KHQR\Helpers\Utils;
-    use KHQR\Models\IndividualInfo;
-    use KHQR\Models\MerchantInfo;
-    use RuntimeException;
+use App\Domains\Orders\Enums\OrderPaymentStatus;
+use App\Domains\Orders\Enums\OrderStatus;
+use App\Domains\Orders\Models\Order;
+use App\Domains\Payments\Enums\PaymentGateway;
+use App\Domains\Payments\Enums\PaymentStatus;
+use App\Domains\Payments\Events\PaymentSuccessEvent;
+use App\Domains\Payments\Models\Payment;
+use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\RequestException;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
+use KHQR\BakongKHQR;
+use KHQR\Helpers\Utils;
+use KHQR\Models\IndividualInfo;
+use KHQR\Models\MerchantInfo;
+use RuntimeException;
 
     class BakongKhqrService
     {
@@ -308,7 +308,9 @@ use App\Domains\Learning\Services\EnrollmentService;
                     'transaction_id' => $this->extractTransactionId($gatewayResponse),
                     'payer_account' =>
                         Arr::get($gatewayResponse, 'payer_account')
-                        ?? Arr::get($gatewayResponse, 'data.payer_account'),
+                        ?? Arr::get($gatewayResponse, 'data.payer_account')
+                        ?? Arr::get($gatewayResponse, 'data.fromAccountId')
+                        ?? Arr::get($gatewayResponse, 'fromAccountId'),
                     'gateway_response' => $gatewayResponse,
                     'paid_at' => now(),
                     'failure_reason' => null,

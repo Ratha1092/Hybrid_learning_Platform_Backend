@@ -264,12 +264,12 @@ html:not(.dark) .cp {
             <p>Review, publish, and manage all your courses in one place.</p>
         </div>
         <div class="cp-header-btns">
-            <button class="cp-btn cp-btn-gray" wire:click="exportCsv('{{ $tab }}', '{{ addslashes($search) }}')" wire:loading.attr="disabled">
+            <a href="{{ route('admin.export.courses', ['tab' => $tab, 'search' => $search]) }}" class="cp-btn cp-btn-gray">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/>
                 </svg>
                 Export
-            </button>
+            </a>
             <a href="{{ $createUrl }}" class="cp-btn cp-btn-primary">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:13px;height:13px">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
@@ -298,32 +298,29 @@ html:not(.dark) .cp {
                    class="cp-tab"
                    style="{{ $tabStyle }}">
                     {{ $t['label'] }}
-                    <span class="cp-tab-badge" style="{{ $badgeStyle }}">
-                        {{ $t['count'] }}
-                    </span>
+                    <span class="cp-tab-badge" style="{{ $badgeStyle }}">{{ $t['count'] }}</span>
                 </a>
                 @endforeach
             </div>
 
-            <form method="GET" action="{{ url()->current() }}" style="display:flex;align-items:center;gap:0">
-                @foreach(request()->except(['search', 'page']) as $k => $v)
-                    <input type="hidden" name="{{ $k }}" value="{{ $v }}">
-                @endforeach
-                <div class="cp-search-box">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607z"/>
-                    </svg>
-                    <input type="text" name="search" value="{{ $search }}" placeholder="Filter courses...">
-                </div>
-            </form>
+            <div class="cp-search-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607z"/>
+                </svg>
+                <input type="text" name="search" form="cp-search-form" value="{{ $search }}" placeholder="Filter courses..." onchange="document.getElementById('cp-search-form').submit()">
+            </div>
         </div>
+
+        <form id="cp-search-form" method="GET" action="{{ url()->current() }}" style="display:none">
+            <input type="hidden" name="tab" value="{{ $tab }}">
+            <input type="hidden" name="per_page" value="{{ $perPage }}">
+        </form>
 
         {{-- Table --}}
         <div style="overflow-x:auto">
         <table class="cp-table">
             <thead>
                 <tr>
-                    <th style="width:36px"><input type="checkbox" style="accent-color:#6d28d9"></th>
                     <th>ID</th>
                     <th>Course</th>
                     <th>Instructor</th>
@@ -344,14 +341,13 @@ html:not(.dark) .cp {
                     $avUrl = 'https://ui-avatars.com/api/?name=' . urlencode($course->instructor?->name ?? '?') . '&background=' . $bgHex . '&color=fff&bold=true&size=64';
                 @endphp
                 <tr>
-                    <td><input type="checkbox" style="accent-color:#6d28d9"></td>
 
                     <td><span class="cp-id">{{ $course->id }}</span></td>
 
                     <td>
                         <div class="cp-course-cell">
                             @if($course->thumbnail)
-                                <img src="{{ asset('storage/' . $course->thumbnail) }}" class="cp-thumb" alt="">
+                                <img src="{{ $course->thumbnail_url }}" class="cp-thumb" alt="">
                             @else
                                 <div class="cp-thumb" style="background:{{ $cs['bg'] }};display:grid;place-items:center">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="{{ $cs['color'] }}" stroke-width="1.5" style="width:18px;height:18px">
@@ -395,12 +391,12 @@ html:not(.dark) .cp {
                     </td>
 
                     <td class="cp-students">
-                        <span class="cp-students-val">
+                        <a href="{{ url('/admin/courses/' . $course->id . '/students') }}" class="cp-students-val" title="View enrolled students" style="text-decoration:none;cursor:pointer;transition:color .15s" onmouseover="this.style.color='#7c3aed'" onmouseout="this.style.color=''">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"/>
                             </svg>
                             {{ number_format($course->enrollments_count) }}
-                        </span>
+                        </a>
                     </td>
 
                     <td><span class="cp-date">{{ $course->created_at?->format('M d, Y') }}</span></td>
@@ -417,6 +413,7 @@ html:not(.dark) .cp {
                                     <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487z"/>
                                 </svg>
                             </a>
+                            @if($course->isPendingReview() || $course->isPublished() || !$course->isDraft())
                             <div class="cp-act-more" tabindex="0">
                                 <button class="cp-act-btn" title="More">
                                     <svg viewBox="0 0 24 24" fill="currentColor" style="width:14px;height:14px">
@@ -425,36 +422,40 @@ html:not(.dark) .cp {
                                 </button>
                                 <div class="cp-act-menu">
                                     @if($course->isPendingReview())
-                                        <button class="cp-act-menu-item"
-                                                wire:click="approveCourse({{ $course->id }})"
-                                                wire:confirm="Approve &quot;{{ $course->title }}&quot;?">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg>
-                                            Approve
-                                        </button>
-                                        <button class="cp-act-menu-item danger"
+                                        <form method="POST" action="{{ route('admin.courses.approve', $course) }}">
+                                            @csrf
+                                            <button type="submit" class="cp-act-menu-item">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg>
+                                                Approve
+                                            </button>
+                                        </form>
+                                        <button type="button" class="cp-act-menu-item danger"
                                                 onclick="openReject({{ $course->id }}, @js($course->title))">
                                             <svg viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg>
                                             Reject
                                         </button>
                                     @endif
                                     @if($course->isPublished())
-                                        <button class="cp-act-menu-item"
-                                                wire:click="archiveCourse({{ $course->id }})"
-                                                wire:confirm="Archive this course?">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5M10 11.25h4"/></svg>
-                                            Archive
-                                        </button>
+                                        <form method="POST" action="{{ route('admin.courses.archive', $course) }}">
+                                            @csrf
+                                            <button type="submit" class="cp-act-menu-item">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5M10 11.25h4"/></svg>
+                                                Archive
+                                            </button>
+                                        </form>
                                     @endif
                                     @if(!$course->isDraft())
-                                        <button class="cp-act-menu-item"
-                                                wire:click="returnToDraft({{ $course->id }})"
-                                                wire:confirm="Return to draft?">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"/></svg>
-                                            Return to Draft
-                                        </button>
+                                        <form method="POST" action="{{ route('admin.courses.return-to-draft', $course) }}">
+                                            @csrf
+                                            <button type="submit" class="cp-act-menu-item">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"/></svg>
+                                                Return to Draft
+                                            </button>
+                                        </form>
                                     @endif
                                 </div>
                             </div>
+                            @endif
                         </div>
                     </td>
                 </tr>
@@ -486,7 +487,7 @@ html:not(.dark) .cp {
             <div style="display:flex;align-items:center;gap:16px">
                 <div class="cp-per-page">
                     Per page
-                    <select onchange="window.location.href='{{ $url([]) }}&per_page=' + this.value + '&page=1'">
+                    <select onchange="window.location.href='{{ $url([]) }}&per_page='+this.value+'&page=1'">
                         @foreach([10, 25, 50] as $n)
                             <option value="{{ $n }}" {{ $perPage == $n ? 'selected' : '' }}>{{ $n }}</option>
                         @endforeach
@@ -500,9 +501,7 @@ html:not(.dark) .cp {
                     </a>
                     @for($p = max(1, $curPage - 2); $p <= min($totalPages, $curPage + 2); $p++)
                         <a href="{{ $url(['page' => $p]) }}"
-                           class="cp-page-btn {{ $curPage === $p ? 'active' : '' }}">
-                            {{ $p }}
-                        </a>
+                           class="cp-page-btn {{ $curPage === $p ? 'active' : '' }}">{{ $p }}</a>
                     @endfor
                     <a href="{{ $url(['page' => min($totalPages, $curPage + 1)]) }}"
                        class="cp-page-btn {{ $curPage === $totalPages ? 'disabled' : '' }}">
@@ -544,8 +543,14 @@ html:not(.dark) .cp {
     function submitReject() {
         const reason = document.getElementById('cpRejectReason').value.trim();
         if (!reason) { alert('Please provide a rejection reason.'); return; }
-        @this.call('rejectCourse', rejectCourseId, reason);
-        closeReject();
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/admin/courses/' + rejectCourseId + '/reject';
+        form.innerHTML = '<input type="hidden" name="_token" value="{{ csrf_token() }}">'
+                       + '<input type="hidden" name="reason" value="">';
+        form.querySelector('[name="reason"]').value = reason;
+        document.body.appendChild(form);
+        form.submit();
     }
     document.getElementById('cpRejectModal').addEventListener('click', function(e) {
         if (e.target === this) closeReject();

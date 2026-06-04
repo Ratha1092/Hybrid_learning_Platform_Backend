@@ -236,4 +236,17 @@ class User extends Authenticatable implements FilamentUser
                 ->where('status', 'active')
                 ->exists();
     }
+
+    public function getAvatarUrlAttribute(): ?string
+    {
+        if (!$this->avatar) {
+            return null;
+        }
+
+        if (str_starts_with($this->avatar, 'http')) {
+            return $this->avatar;
+        }
+
+        return \Storage::disk(config('filament.default_filesystem_disk'))->url($this->avatar);
+    }
 }

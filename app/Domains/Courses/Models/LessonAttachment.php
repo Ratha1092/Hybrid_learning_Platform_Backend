@@ -25,6 +25,6 @@ class LessonAttachment extends Model
 
     public function getFileUrlAttribute(): string
     {
-        return asset('storage/' . $this->file_path);
+        return \Storage::disk(config('filament.default_filesystem_disk'))->url($this->file_path);
     }
 }

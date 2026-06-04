@@ -8,7 +8,6 @@ use App\Domains\Notifications\Notifications\CourseRejectedNotification;
 use BackedEnum;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
-
 class Courses extends Page
 {
     protected string $view = 'filament.pages.courses';
@@ -18,12 +17,43 @@ class Courses extends Page
     protected static ?int $navigationSort = 1;
     protected static ?string $slug = 'courses';
 
+    public string $activeTab   = 'all';
+    public string $search      = '';
+    public int    $currentPage = 1;
+    public int    $perPage     = 10;
+
+    public function mount(): void
+    {
+        $this->activeTab   = request('tab', 'all');
+        $this->search      = request('search', '');
+        $this->currentPage = max(1, (int) request('page', 1));
+        $this->perPage     = in_array((int) request('per_page', 10), [10, 25, 50])
+            ? (int) request('per_page', 10) : 10;
+    }
+
     public function getHeading(): string|\Illuminate\Contracts\Support\Htmlable
     {
         return '';
     }
 
-    // ── Row actions (Livewire mutations) ──────────────────────────────────
+    // ── Row actions ───────────────────────────────────────────────────────
+
+    public function setTab(string $tab): void
+    {
+        $this->activeTab   = $tab;
+        $this->currentPage = 1;
+    }
+
+    public function setPage(int $page): void
+    {
+        $this->currentPage = $page;
+    }
+
+    public function setPerPage(int $perPage): void
+    {
+        $this->perPage     = $perPage;
+        $this->currentPage = 1;
+    }
 
     public function approveCourse(int $id): void
     {
@@ -73,9 +103,8 @@ class Courses extends Page
         Notification::make()->title('Returned to Draft')->success()->send();
     }
 
-    public function exportCsv(string $tab = 'all', string $search = ''): void
+    public function exportCsv(): void
     {
-
         $statusMap = [
             'pending'   => Course::STATUS_PENDING,
             'published' => Course::STATUS_PUBLISHED,
@@ -87,6 +116,9 @@ class Courses extends Page
         $query = Course::withoutGlobalScopes()
             ->with(['instructor:id,name', 'category:id,name'])
             ->withCount('enrollments');
+
+        $tab    = $this->activeTab;
+        $search = $this->search;
 
         if ($tab !== 'all' && isset($statusMap[$tab])) {
             $query->where('status', $statusMap[$tab]);
@@ -103,7 +135,7 @@ class Courses extends Page
 
         $rows = [['ID', 'Title', 'Instructor', 'Category', 'Price', 'Status', 'Students', 'Created']];
 
-        foreach ($query->orderBy('id')->get() as $course) {
+        foreach ($query->orderBy('id', 'desc')->get() as $course) {
             $rows[] = [
                 $course->id,
                 $course->title,
@@ -127,16 +159,14 @@ class Courses extends Page
         );
     }
 
-    // ── View data (URL-param driven) ──────────────────────────────────────
+    // ── View data ─────────────────────────────────────────────────────────
 
     protected function getViewData(): array
     {
-        $tab     = request('tab', 'all');
-        $search  = request('search', '');
-        $page    = max(1, (int) request('page', 1));
-        $perPage = (int) request('per_page', 10);
-
-        if (!in_array($perPage, [10, 25, 50])) $perPage = 10;
+        $tab     = $this->activeTab;
+        $search  = $this->search;
+        $page    = max(1, $this->currentPage);
+        $perPage = in_array($this->perPage, [10, 25, 50]) ? $this->perPage : 10;
 
         $statusMap = [
             'pending'   => Course::STATUS_PENDING,
@@ -172,7 +202,7 @@ class Courses extends Page
             });
         }
 
-        $query->orderBy('id', 'asc');
+        $query->orderBy('id', 'desc');
 
         $total      = $query->count();
         $totalPages = max(1, (int) ceil($total / $perPage));

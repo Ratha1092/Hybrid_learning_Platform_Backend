@@ -222,6 +222,7 @@ html:not(.dark) .rb-select option { background: #fff; color: #0e1e34; }
     --ic: var(--blue);
 }
 .rb-kpi:hover { transform: translateY(-2px); border-color: var(--bd2); }
+a.rb-kpi:hover { border-color: color-mix(in srgb, var(--ic) 40%, transparent); box-shadow: var(--sh), 0 0 0 1px color-mix(in srgb, var(--ic) 20%, transparent); }
 .rb-kpi-row { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
 .rb-kpi-val { font-size:22px; font-weight:780; letter-spacing:-.01em; line-height:1; color:var(--t1); }
 .rb-kpi-lbl { font-size:11.5px; font-weight:600; color:var(--t2); margin-top:7px; }
@@ -481,6 +482,62 @@ html:not(.dark) .rb-select option { background: #fff; color: #0e1e34; }
         </div>
 
     </div>
+    {{-- SECOND KPI ROW — Learning stats (all clickable) --}}
+    <div class="rb-kpis a d8">
+
+        <a href="{{ route('filament.admin.pages.users') }}" class="rb-kpi" style="--ic:var(--green); text-decoration:none; cursor:pointer;">
+            <div class="rb-kpi-row">
+                <div>
+                    <div class="rb-kpi-val">{{ number_format($totalStudents) }}</div>
+                    <div class="rb-kpi-lbl">Students</div>
+                </div>
+                <div class="rb-kpi-ico">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                </div>
+            </div>
+            <div class="rb-tag">↑ {{ number_format($newStudentsThisMonth) }} new this month</div>
+        </a>
+
+        <a href="{{ route('filament.admin.pages.sections') }}" class="rb-kpi" style="--ic:var(--blue); text-decoration:none; cursor:pointer;">
+            <div class="rb-kpi-row">
+                <div>
+                    <div class="rb-kpi-val">{{ number_format($totalSections) }}</div>
+                    <div class="rb-kpi-lbl">Sections</div>
+                </div>
+                <div class="rb-kpi-ico">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 0 1 0 3.75H5.625a1.875 1.875 0 0 1 0-3.75z"/></svg>
+                </div>
+            </div>
+            <div class="rb-tag neu">Across {{ number_format($totalCourses) }} courses</div>
+        </a>
+
+        <a href="{{ route('filament.admin.pages.lessons') }}" class="rb-kpi" style="--ic:var(--purple); text-decoration:none; cursor:pointer;">
+            <div class="rb-kpi-row">
+                <div>
+                    <div class="rb-kpi-val">{{ number_format($totalLessons) }}</div>
+                    <div class="rb-kpi-lbl">Lessons</div>
+                </div>
+                <div class="rb-kpi-ico">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m10 8 6 4-6 4V8z"/></svg>
+                </div>
+            </div>
+            <div class="rb-tag mute">{{ number_format($totalSections) }} sections total</div>
+        </a>
+
+        <a href="{{ route('filament.admin.pages.reviews') }}" class="rb-kpi" style="--ic:var(--amber); text-decoration:none; cursor:pointer;">
+            <div class="rb-kpi-row">
+                <div>
+                    <div class="rb-kpi-val">{{ number_format($totalReviews ?? \App\Domains\Learning\Models\Review::count()) }}</div>
+                    <div class="rb-kpi-lbl">Reviews</div>
+                </div>
+                <div class="rb-kpi-ico">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5z"/></svg>
+                </div>
+            </div>
+            <div class="rb-tag mute">From enrolled students</div>
+        </a>
+
+    </div>
 
     {{-- REVENUE CHART + ACTIVITY BARS --}}
     <div class="rb-g2 a d6">
@@ -664,62 +721,7 @@ html:not(.dark) .rb-select option { background: #fff; color: #0e1e34; }
 
     </div>
 
-    {{-- SECOND KPI ROW --}}
-    <div class="rb-kpis a d8">
-
-        <div class="rb-kpi" style="--ic:var(--blue)">
-            <div class="rb-kpi-row">
-                <div>
-                    <div class="rb-kpi-val">{{ number_format($totalInstructors) }}</div>
-                    <div class="rb-kpi-lbl">Instructors</div>
-                </div>
-                <div class="rb-kpi-ico">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
-                </div>
-            </div>
-            <div class="rb-tag {{ $pendingVerifications > 0 ? 'warn' : '' }}">{{ $pendingVerifications }} pending</div>
-        </div>
-
-        <div class="rb-kpi" style="--ic:var(--purple)">
-            <div class="rb-kpi-row">
-                <div>
-                    <div class="rb-kpi-val">{{ number_format($totalLessons) }}</div>
-                    <div class="rb-kpi-lbl">Lessons</div>
-                </div>
-                <div class="rb-kpi-ico">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m10 8 6 4-6 4V8z"/></svg>
-                </div>
-            </div>
-            <div class="rb-tag mute">{{ number_format($totalSections) }} sections</div>
-        </div>
-
-        <div class="rb-kpi" style="--ic:var(--green)">
-            <div class="rb-kpi-row">
-                <div>
-                    <div class="rb-kpi-val">${{ number_format($totalInstructorBalance, 0) }}</div>
-                    <div class="rb-kpi-lbl">Instructor Balance</div>
-                </div>
-                <div class="rb-kpi-ico">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                </div>
-            </div>
-            <div class="rb-tag mute">${{ number_format($totalPendingBalance, 0) }} pending</div>
-        </div>
-
-        <div class="rb-kpi" style="--ic:var(--red)">
-            <div class="rb-kpi-row">
-                <div>
-                    <div class="rb-kpi-val">{{ number_format($failedPayments) }}</div>
-                    <div class="rb-kpi-lbl">Failed Payments</div>
-                </div>
-                <div class="rb-kpi-ico">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
-                </div>
-            </div>
-            <div class="rb-tag {{ $failedPayments > 0 ? 'warn' : '' }}">{{ $failedPayments > 0 ? 'Needs review' : '✓ Clear' }}</div>
-        </div>
-
-    </div>
+    
 
     {{-- RECENT COURSES + PENDING VERIFICATIONS --}}
     <div class="rb-g2b a d9">

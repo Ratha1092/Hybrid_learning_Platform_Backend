@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Categories\Pages;
 
 use App\Filament\Resources\Categories\CategoryResource;
+use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
 
@@ -13,7 +14,17 @@ class EditCategory extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
+            Action::make('back')
+                ->label('Back to Categories')
+                ->icon('heroicon-o-arrow-left')
+                ->color('gray')
+                ->url(route('filament.admin.pages.categories')),
             DeleteAction::make(),
         ];
+    }
+
+    protected function getRedirectUrl(): string
+    {
+        return route('filament.admin.pages.categories');
     }
 }

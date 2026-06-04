@@ -55,8 +55,6 @@ class Category extends Model
             return null;
         }
 
-        return asset(
-            'storage/' . $this->image
-        );
+        return \Storage::disk(config('filament.default_filesystem_disk'))->url($this->image);
     }
 }

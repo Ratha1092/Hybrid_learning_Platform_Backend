@@ -41,25 +41,36 @@ class CourseService
 
     public function update(Course $course, array $data, ?UploadedFile $thumbnail = null): Course
     {
-        return DB::transaction(function () use ($course, $data, $thumbnail) {
+        $attempts = 0;
+        $slug = isset($data['title']) ? $this->generateUniqueSlug($data['title'], $course->id) : null;
 
-            if (isset($data['title'])) {
-                $data['slug'] = $this->generateUniqueSlug($data['title'], $course->id);
-            }
+        while (true) {
+            try {
+                return DB::transaction(function () use ($course, $data, $thumbnail, $slug) {
+                    if ($slug !== null) {
+                        $data['slug'] = $slug;
+                    }
 
-            if ($thumbnail) {
-                if ($course->thumbnail) {
-                    Storage::disk('public')->delete($course->thumbnail);
+                    if ($thumbnail) {
+                        if ($course->thumbnail) {
+                            Storage::disk('public')->delete($course->thumbnail);
+                        }
+                        $data['thumbnail'] = $thumbnail->store('courses/thumbnails', 'public');
+                    }
+
+                    unset($data['thumbnail_file']);
+
+                    $course->update($data);
+
+                    return $course->fresh();
+                });
+            } catch (UniqueConstraintViolationException) {
+                if (++$attempts >= 5) {
+                    throw new \RuntimeException('Failed to update course. Please try again.');
                 }
-                $data['thumbnail'] = $thumbnail->store('courses/thumbnails', 'public');
+                $slug = $this->generateUniqueSlug($data['title'], $course->id) . '-' . substr(uniqid(), -5);
             }
-
-            unset($data['thumbnail_file']);
-
-            $course->update($data);
-
-            return $course->fresh();
-        });
+        }
     }
 
     public function delete(Course $course): void

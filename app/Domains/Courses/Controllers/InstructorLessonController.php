@@ -7,6 +7,7 @@ use App\Domains\Courses\Models\Lesson;
 use App\Domains\Courses\Models\Section;
 use App\Support\ApiResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class InstructorLessonController extends Controller
 {
@@ -96,6 +97,44 @@ class InstructorLessonController extends Controller
         $lesson->update($validated);
 
         return ApiResponse::success($lesson, 'Lesson updated successfully');
+    }
+
+    public function uploadVideo(Request $request, $courseId, $sectionId, $lessonId)
+    {
+        $lesson = Lesson::where('id', $lessonId)
+            ->where('section_id', $sectionId)
+            ->whereHas('section', fn($q) => $q->where('course_id', $courseId))
+            ->first();
+
+        if (!$lesson) {
+            return ApiResponse::error('Lesson not found', 404);
+        }
+
+        if ($lesson->section->course->instructor_id !== auth()->id()) {
+            return ApiResponse::error('Unauthorized', 403);
+        }
+
+        $request->validate([
+            'video' => 'required|file|mimes:mp4,mov,avi,mkv,webm|max:512000',
+        ]);
+
+        if ($lesson->video_path) {
+            Storage::disk('public')->delete($lesson->video_path);
+        }
+
+        $path = $request->file('video')->store(
+            "courses/{$courseId}/videos", 'public'
+        );
+
+        $lesson->update([
+            'video_path' => $path,
+            'video_url'  => null,
+        ]);
+
+        return ApiResponse::success([
+            'video_path' => $path,
+            'video_url'  => Storage::disk('public')->url($path),
+        ], 'Video uploaded successfully');
     }
 
     public function destroy($courseId, $sectionId, $lessonId)

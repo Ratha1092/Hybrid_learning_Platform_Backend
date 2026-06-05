@@ -10,6 +10,8 @@ class CreateLesson extends CreateRecord
 {
     protected static string $resource = LessonResource::class;
 
+    protected string $view = 'filament.resources.lessons.edit-lesson';
+
     protected function getHeaderActions(): array
     {
         return [

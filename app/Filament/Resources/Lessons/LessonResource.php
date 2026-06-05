@@ -70,6 +70,7 @@ class LessonResource extends Resource
         return parent::getEloquentQuery()
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
-            ]);
+            ])
+            ->latest();
     }
 }

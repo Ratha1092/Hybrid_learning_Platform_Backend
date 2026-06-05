@@ -64,8 +64,8 @@ html:not(.dark) .lv {
 .lv-meta-item svg { width:13px; height:13px; }
 
 /* Video player */
-.lv-video-wrap { position:relative; background:#000; border-radius:0 0 14px 14px; overflow:hidden; }
-.lv-video-wrap video { display:block; width:100%; max-height:480px; object-fit:contain; }
+.lv-video-wrap { position:relative; background:#000; border-radius:0 0 14px 14px; overflow:hidden; aspect-ratio:16/9; }
+.lv-video-wrap video { display:block; width:100%; height:100%; object-fit:contain; }
 .lv-video-url { display:inline-flex; align-items:center; gap:6px; padding:10px 16px; background:rgba(124,58,237,.1); border:1px solid rgba(124,58,237,.25); border-radius:9px; color:var(--accent); font-size:13px; font-weight:600; text-decoration:none; }
 .lv-video-url:hover { background:rgba(124,58,237,.18); }
 .lv-video-url svg { width:14px; height:14px; flex-shrink:0; }

@@ -73,6 +73,23 @@ html:not(.dark) .lp {
 .lp-act-btn { display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; border-radius:7px; background:none; border:1px solid transparent; cursor:pointer; color:var(--t2); text-decoration:none; transition:background .15s, border-color .15s, color .15s; }
 .lp-act-btn:hover { background:var(--p2); border-color:var(--bd2); color:var(--t1); }
 .lp-act-btn svg { width:14px; height:14px; }
+.lp-act-btn-approve { color:#34d399; }
+.lp-act-btn-approve:hover { background:rgba(52,211,153,.12) !important; border-color:rgba(52,211,153,.3) !important; color:#34d399 !important; }
+.lp-act-btn-reject { color:#f87171; }
+.lp-act-btn-reject:hover { background:rgba(248,113,113,.12) !important; border-color:rgba(248,113,113,.3) !important; color:#f87171 !important; }
+
+/* Reject modal */
+.lp-modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:9999; align-items:center; justify-content:center; }
+.lp-modal-overlay.open { display:flex; }
+.lp-modal { background:var(--p1); border:1px solid var(--bd2); border-radius:14px; padding:26px; width:100%; max-width:460px; box-shadow:0 20px 60px rgba(0,0,0,.4); }
+.lp-modal h3 { font-size:15px; font-weight:750; color:var(--t1); margin-bottom:6px; }
+.lp-modal p { font-size:12.5px; color:var(--t2); margin-bottom:16px; }
+.lp-modal textarea { width:100%; background:var(--p2); border:1px solid var(--bd2); border-radius:9px; padding:10px 13px; color:var(--t1); font-size:13px; font-family:inherit; resize:vertical; min-height:90px; outline:none; }
+.lp-modal textarea:focus { border-color:#ea580c; }
+.lp-modal-footer { display:flex; justify-content:flex-end; gap:8px; margin-top:14px; }
+.lp-modal-btn { display:inline-flex; align-items:center; gap:6px; padding:8px 16px; border-radius:9px; font-size:12px; font-weight:700; cursor:pointer; border:none; font-family:inherit; transition:opacity .15s; }
+.lp-modal-btn-gray { background:var(--p2); border:1px solid var(--bd2); color:var(--t2); }
+.lp-modal-btn-danger { background:rgba(248,113,113,.15); color:#f87171; border:1px solid rgba(248,113,113,.3); }
 
 .lp-empty { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:56px 24px; gap:10px; color:var(--t2); }
 .lp-empty svg { width:40px; height:40px; opacity:.35; }
@@ -90,7 +107,7 @@ html:not(.dark) .lp {
 </style>
 
 <div>
-<div class="lp" id="lp-verifications" style="--accent:{{ $accent }}">
+<div class="lp" id="lp-verifications" style="--accent:{{ $accent }};">
 
     {{-- Header --}}
     <div class="lp-header lpa lp1">
@@ -180,6 +197,21 @@ html:not(.dark) .lp {
 
                     <td>
                         <div class="lp-actions">
+                            @if($verification->status === 'pending')
+                            <button wire:click="approve({{ $verification->id }})"
+                                    wire:confirm="Approve {{ $verification->user?->name }} as instructor?"
+                                    class="lp-act-btn lp-act-btn-approve" title="Approve">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/>
+                                </svg>
+                            </button>
+                            <button onclick="openRejectModal({{ $verification->id }}, '{{ addslashes($verification->user?->name) }}')"
+                                    class="lp-act-btn lp-act-btn-reject" title="Reject">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/>
+                                </svg>
+                            </button>
+                            @endif
                             <a href="{{ $viewUrl($verification) }}" class="lp-act-btn" title="View">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><circle cx="12" cy="12" r="3"/>
@@ -250,4 +282,45 @@ html:not(.dark) .lp {
     </div>
 
 </div>
+
+{{-- Reject Modal (inside single root div) --}}
+<div class="lp-modal-overlay" id="lp-reject-modal" onclick="if(event.target===this)closeRejectModal()">
+    <div class="lp-modal">
+        <h3>Reject Application</h3>
+        <p id="lp-reject-name-text">Explain why this application is being rejected. The instructor will be notified.</p>
+        <textarea id="lp-reject-reason" placeholder="e.g. Insufficient qualifications, invalid documents..."></textarea>
+        <div class="lp-modal-footer">
+            <button class="lp-modal-btn lp-modal-btn-gray" onclick="closeRejectModal()">Cancel</button>
+            <button class="lp-modal-btn lp-modal-btn-danger" onclick="submitReject()">Reject Application</button>
+        </div>
+    </div>
 </div>
+
+<script>
+    let rejectId = null;
+
+    function openRejectModal(id, name) {
+        rejectId = id;
+        document.getElementById('lp-reject-name-text').textContent =
+            'Explain why ' + name + '\'s application is being rejected. They will be notified.';
+        document.getElementById('lp-reject-reason').value = '';
+        document.getElementById('lp-reject-modal').classList.add('open');
+        setTimeout(() => document.getElementById('lp-reject-reason').focus(), 100);
+    }
+
+    function closeRejectModal() {
+        document.getElementById('lp-reject-modal').classList.remove('open');
+        rejectId = null;
+    }
+
+    function submitReject() {
+        const reason = document.getElementById('lp-reject-reason').value.trim();
+        if (!reason) {
+            alert('Please provide a rejection reason.');
+            return;
+        }
+        closeRejectModal();
+        @this.call('reject', rejectId, reason);
+    }
+</script>
+</div>{{-- end single root --}}

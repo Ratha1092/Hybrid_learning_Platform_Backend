@@ -59,6 +59,7 @@ Route::middleware(['auth:sanctum','verified_instructor','throttle:courses',])
                         Route::post('/',[InstructorLessonController::class, 'store']);
                         Route::put('/{lessonId}',[InstructorLessonController::class, 'update']);
                         Route::delete('/{lessonId}',[InstructorLessonController::class, 'destroy']);
+                        Route::post('/{lessonId}/upload-video',[InstructorLessonController::class, 'uploadVideo']);
 
                         // Upload Resources
                         Route::prefix('{lessonId}/resources')->group(function () {

@@ -12,6 +12,7 @@ use App\Domains\Analytics\Jobs\RecordEnrollmentJob;
 
 class EnrollStudentListener implements ShouldQueue
 {
+    public string $queue = 'high';
     public $tries = 3;
 
     public function handle(PaymentSuccessEvent $event): void

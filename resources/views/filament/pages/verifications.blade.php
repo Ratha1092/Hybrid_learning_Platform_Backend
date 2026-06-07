@@ -298,11 +298,9 @@ html:not(.dark) .lp {
 
 <script>
     let rejectId = null;
-
     function openRejectModal(id, name) {
         rejectId = id;
-        document.getElementById('lp-reject-name-text').textContent =
-            'Explain why ' + name + '\'s application is being rejected. They will be notified.';
+        document.getElementById('lp-reject-name-text').textContent ='Explain why ' + name + '\'s application is being rejected. They will be notified.';
         document.getElementById('lp-reject-reason').value = '';
         document.getElementById('lp-reject-modal').classList.add('open');
         setTimeout(() => document.getElementById('lp-reject-reason').focus(), 100);
@@ -311,8 +309,7 @@ html:not(.dark) .lp {
     function closeRejectModal() {
         document.getElementById('lp-reject-modal').classList.remove('open');
         rejectId = null;
-    }
-
+    }   
     function submitReject() {
         const reason = document.getElementById('lp-reject-reason').value.trim();
         if (!reason) {

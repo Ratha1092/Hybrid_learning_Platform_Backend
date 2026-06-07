@@ -7,6 +7,7 @@ use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class CourseService
@@ -19,7 +20,7 @@ class CourseService
         while (true) {
             try {
                 return DB::transaction(function () use ($data, $userId, $slug) {
-                    return Course::create([
+                    $course = Course::create([
                         ...$data,
                         'instructor_id' => $userId,
                         'slug' => $slug,
@@ -28,6 +29,9 @@ class CourseService
                         'level' => $data['level'] ?? 'beginner',
                         'language' => $data['language'] ?? 'English',
                     ]);
+
+                    Cache::forget('courses.published');
+                    return $course;
                 });
             } catch (UniqueConstraintViolationException) {
                 if (++$attempts >= 5) {
@@ -59,8 +63,9 @@ class CourseService
                     }
 
                     unset($data['thumbnail_file']);
-
                     $course->update($data);
+                    Cache::forget('courses.published');
+                    Cache::forget("courses.slug.{$course->slug}");
 
                     return $course->fresh();
                 });
@@ -76,6 +81,8 @@ class CourseService
     public function delete(Course $course): void
     {
         DB::transaction(function () use ($course) {
+            Cache::forget('courses.published');
+            Cache::forget("courses.slug.{$course->slug}");
             $course->delete();
         });
     }

@@ -17,6 +17,8 @@ class LessonProgressController extends Controller
 
     public function show(Request $request, Lesson $lesson)
     {
+        $this->authorize('view', $lesson);
+
         $progress = $this->progressService->getProgress(
             user: $request->user(),
             lesson: $lesson,
@@ -30,6 +32,8 @@ class LessonProgressController extends Controller
 
     public function update(Request $request, Lesson $lesson)
     {
+        $this->authorize('view', $lesson);
+
         $validated = $request->validate([
             'watch_time' => ['nullable', 'integer', 'min:0'],
             'duration' => ['nullable', 'integer', 'min:0'],
@@ -37,7 +41,7 @@ class LessonProgressController extends Controller
             'is_completed' => ['nullable', 'boolean'],
         ]);
 
-        $progress = $this->progressService->updateProgress(
+        $progress = $this->progressService->updateLessonProgress(
             user: $request->user(),
             lesson: $lesson,
             data: $validated,

@@ -13,6 +13,7 @@ use App\Domains\Payments\Models\Payment;
 use App\Domains\Finance\Models\InstructorWallet;
 use Filament\Pages\Dashboard as BaseDashboard;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 use App\Domains\Payments\Enums\PaymentGateway;
 
 class Dashboard extends BaseDashboard
@@ -77,10 +78,20 @@ class Dashboard extends BaseDashboard
     {
         [$from, $to] = $this->getDateRange();
 
-        $preset          = request('preset', 'this_month');
-        $gatewayFilter   = request('gateway', 'all');
-        $statusFilter    = request('status', 'all');
-        $courseStatus    = request('course_status', 'all');
+        $preset        = request('preset', 'this_month');
+        $gatewayFilter = request('gateway', 'all');
+        $statusFilter  = request('status', 'all');
+        $courseStatus  = request('course_status', 'all');
+        $fromKey = $from ? $from->format('Ymd') : 'null';
+        $toKey   = $to   ? $to->format('Ymd')   : 'null';
+        $cacheKey = "dashboard.{$preset}.{$gatewayFilter}.{$statusFilter}.{$courseStatus}.{$fromKey}.{$toKey}";
+        return Cache::tags(['dashboard'])->remember($cacheKey, 300, function () use ($from, $to, $preset, $gatewayFilter, $statusFilter, $courseStatus) {
+            return $this->buildViewData($from, $to, $preset, $gatewayFilter, $statusFilter, $courseStatus);
+        });
+    }
+
+    private function buildViewData($from, $to, $preset, $gatewayFilter, $statusFilter, $courseStatus): array
+    {
 
         $paidStatuses = [PaymentStatus::Paid->value, PaymentStatus::Completed->value];
 

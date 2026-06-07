@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use App\Domains\Users\Models\User;
 use App\Domains\Courses\Models\Section;
@@ -88,6 +89,8 @@ class Course extends Model
             'status' => self::STATUS_PENDING,
             'is_published' => false,
         ]);
+        Cache::tags(['dashboard'])->flush();
+        Cache::forget('courses.published');
     }
 
     public function publish(int $adminId): void
@@ -98,6 +101,9 @@ class Course extends Model
             'approved_at' => now(),
             'approved_by' => $adminId,
         ]);
+        Cache::tags(['dashboard'])->flush();
+        Cache::forget('courses.published');
+        Cache::forget("courses.slug.{$this->slug}");
     }
 
     public function reject(?string $reason = null): void
@@ -107,6 +113,8 @@ class Course extends Model
             'is_published'     => false,
             'rejection_reason' => $reason,
         ]);
+        Cache::tags(['dashboard'])->flush();
+        Cache::forget('courses.published');
     }
 
     public function archive(): void
@@ -115,6 +123,9 @@ class Course extends Model
             'status' => self::STATUS_ARCHIVED,
             'is_published' => false,
         ]);
+        Cache::tags(['dashboard'])->flush();
+        Cache::forget('courses.published');
+        Cache::forget("courses.slug.{$this->slug}");
     }
     public function instructor(): BelongsTo
     {

@@ -66,10 +66,8 @@ class Verifications extends Page
         ]);
 
         $user = $verification->user;
-
         $user->update(['instructor_status' => 'rejected']);
         $user->removeRole('instructor');
-
         Notification::make()
             ->title('Application Rejected')
             ->danger()
@@ -94,8 +92,7 @@ class Verifications extends Page
             ['key' => 'rejected', 'label' => 'Rejected', 'count' => $base()->where('status', 'rejected')->count(),    'color' => '#f87171'],
         ];
 
-        $query = InstructorVerification::withoutTrashed()
-            ->with('user:id,name,email');
+        $query = InstructorVerification::withoutTrashed()->with('user:id,name,email');
 
         if ($tab !== 'all' && in_array($tab, ['pending', 'approved', 'rejected'])) {
             $query->where('status', $tab);

@@ -17,10 +17,10 @@ class InstructorApprovedNotification extends Notification
     public function toArray(object $notifiable): array
     {
         return [
-            'title' => 'Application Approved',
-            'message' => 'Your instructor application has been approved. You can now create courses.',
-            'type' => 'instructor_approved',
-            'link' => env('FRONTEND_URL', 'http://localhost:3000') . '/instructor/login',
+            'title'       => 'Application Approved',
+            'message'     => 'Your instructor application has been approved. You can now create courses.',
+            'type'        => 'instructor_approved',
+            'link'        => env('FRONTEND_URL', 'http://localhost:3000') . '/instructor/login',
             'action_text' => 'Go to Instructor Dashboard',
         ];
     }

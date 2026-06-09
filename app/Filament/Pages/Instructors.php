@@ -49,7 +49,7 @@ class Instructors extends Page
             });
         }
 
-        $query->orderBy('id', 'asc');
+        $query->orderBy('id', 'desc');
 
         $total       = $query->count();
         $totalPages  = max(1, (int) ceil($total / $perPage));

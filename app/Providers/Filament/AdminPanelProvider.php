@@ -2,12 +2,12 @@
 
 namespace App\Providers\Filament;
 
-use Filament\Enums\DatabaseNotificationsPosition;
 use Filament\Enums\ThemeMode;
 use Filament\Navigation\NavigationGroup;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
+use Filament\View\PanelsRenderHook;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -17,6 +17,7 @@ use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use App\Filament\Pages\Dashboard;
 
@@ -38,7 +39,10 @@ class AdminPanelProvider extends PanelProvider
             ->colors([
                 'primary' => Color::Amber,
             ])
-            ->databaseNotifications(true, null, true, DatabaseNotificationsPosition::Topbar)
+            ->renderHook(
+                PanelsRenderHook::USER_MENU_BEFORE,
+                fn() => Blade::render('@livewire("admin-notification-bell")')
+            )
             ->navigationGroups([
                 NavigationGroup::make('Overview')
                     // ->icon('heroicon-o-squares-2x2')

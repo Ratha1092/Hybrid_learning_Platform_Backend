@@ -68,8 +68,8 @@ class PaymentController extends Controller
             return ApiResponse::error('Payment not found', 404);
         }
 
-        if (!$payment->isPending()) {
-            return ApiResponse::error('Only pending payments can be cancelled', 422);
+        if (!$payment->isCancellable()) {
+            return ApiResponse::error('Only pending or processing payments can be cancelled', 422);
         }
 
         $payment->update(['status' => PaymentStatus::Cancelled]);

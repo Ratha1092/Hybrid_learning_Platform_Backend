@@ -6,8 +6,10 @@ use Illuminate\Routing\Controller;
 use Illuminate\Http\Request;
 use App\Support\ApiResponse;
 use App\Domains\Auth\Services\OAuthService;
+use App\Domains\Auth\Requests\GithubOAuthRequest;
 use App\Domains\Auth\Requests\GoogleOAuthRequest;
 use App\Domains\Auth\Requests\LinkOAuthRequest;
+use RuntimeException;
 
 class OAuthController extends Controller
 {
@@ -22,9 +24,14 @@ class OAuthController extends Controller
         return ApiResponse::success($data, 'Login successful');
     }
 
-    public function handleGithubCallback(Request $request)
+    public function handleGithubCallback(GithubOAuthRequest $request)
     {
-        return ApiResponse::error('GitHub OAuth not fully implemented', 501);
+        try {
+            $data = $this->oauthService->handleGithub($request->validated()['code']);
+            return ApiResponse::success($data, 'Login successful');
+        } catch (RuntimeException $e) {
+            return ApiResponse::error($e->getMessage(), 422);
+        }
     }
 
     public function linkOAuthAccount(LinkOAuthRequest $request)

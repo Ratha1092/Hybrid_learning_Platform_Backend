@@ -53,6 +53,8 @@ class Verifications extends Page
             ->body("{$user->name} has been approved as instructor.")
             ->success()
             ->send();
+
+        $this->redirect(request()->fullUrl());
     }
 
     public function reject(int $id, string $reason): void
@@ -70,10 +72,13 @@ class Verifications extends Page
         $user->update(['instructor_status' => 'rejected']);
         $user->removeRole('instructor');
         $user->notify(new InstructorRejectedNotification($reason));
+
         Notification::make()
             ->title('Application Rejected')
             ->danger()
             ->send();
+
+        $this->redirect(request()->fullUrl());
     }
 
     protected function getViewData(): array

@@ -7,6 +7,13 @@ use Livewire\Component;
 
 class AdminNotificationBell extends Component
 {
+    public int $unreadCount = 0;
+
+    public function boot(): void
+    {
+        $this->unreadCount = (int) (auth()->user()?->unreadNotifications()->count() ?? 0);
+    }
+
     #[Computed]
     public function notifications()
     {
@@ -15,12 +22,6 @@ class AdminNotificationBell extends Component
             ->latest()
             ->take(12)
             ->get();
-    }
-
-    #[Computed]
-    public function unreadCount(): int
-    {
-        return auth()->user()->unreadNotifications()->count();
     }
 
     public function render()

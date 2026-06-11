@@ -22,12 +22,20 @@ class AdminNewOrderNotification extends Notification
         $isFree = (float) $this->order->final_amount === 0.0;
 
         return [
-            'title'       => $isFree ? 'New Free Enrollment' : 'New Order Placed',
-            'message'     => "Order #{$this->order->order_number} by {$this->customerName}" . ($isFree ? ' (free course).' : " — \${$this->order->final_amount}."),
-            'type'        => 'order',
-            'order_id'    => $this->order->id,
-            'action_url'  => '/admin/orders',
-            'action_text' => 'View Orders',
+            'title'    => $isFree ? 'New Free Enrollment' : 'New Order Placed',
+            'body'     => "Order #{$this->order->order_number} by {$this->customerName}" . ($isFree ? ' (free course).' : " — \${$this->order->final_amount}."),
+            'format'   => 'filament',
+            'duration' => 'persistent',
+            'actions'  => [
+                [
+                    'name'                 => 'view',
+                    'label'                => 'View Orders',
+                    'url'                  => '/admin/orders',
+                    'view'                 => 'filament-actions::link-action',
+                    'shouldOpenUrlInNewTab' => false,
+                    'alpineClickHandler'   => "window.location.href='/admin/orders'",
+                ],
+            ],
         ];
     }
 }

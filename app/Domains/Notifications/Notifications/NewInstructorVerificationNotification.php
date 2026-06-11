@@ -13,8 +13,7 @@ class NewInstructorVerificationNotification extends BaseNotification
 
     public function __construct(
         public InstructorVerification $verification
-    ) {
-    }
+    ) {}
 
     public function via(object $notifiable): array
     {
@@ -23,18 +22,24 @@ class NewInstructorVerificationNotification extends BaseNotification
 
     public function toDatabase(object $notifiable): array
     {
-        $message = "{$this->verification->user->name} submitted a verification request.";
+        $url = "/admin/instructor-verifications/{$this->verification->id}";
 
         return [
-            'title' => 'New Instructor Verification',
-            'body' => $message,
-            'message' => $message,
-            'type' => NotificationType::INSTRUCTOR_VERIFICATION->value,
-            'resource_id' => $this->verification->id,
-            'resource_type' => 'instructor_verification',
-            'action_url' => "/admin/instructor-verifications/{$this->verification->id}",
-            'format' => 'filament',
-            'created_at' => now(),
+            'title'    => 'New Instructor Verification',
+            'body'     => "{$this->verification->user->name} submitted a verification request.",
+            'format'   => 'filament',
+            'duration' => 'persistent',
+            'type'     => NotificationType::INSTRUCTOR_VERIFICATION->value,
+            'actions'  => [
+                [
+                    'name'                 => 'view',
+                    'label'                => 'Review Application',
+                    'url'                  => $url,
+                    'view'                 => 'filament-actions::link-action',
+                    'shouldOpenUrlInNewTab' => false,
+                    'alpineClickHandler'   => "window.location.href='{$url}'",
+                ],
+            ],
         ];
     }
 }

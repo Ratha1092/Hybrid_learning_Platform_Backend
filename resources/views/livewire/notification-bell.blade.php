@@ -155,12 +155,14 @@ html:not(.dark) {
         post(url) {
             return fetch(url, { method: 'POST', headers: { 'X-CSRF-TOKEN': this.csrf, 'Content-Type': 'application/json' } });
         },
-        doMarkRead(id, el) {
-            if (!el.classList.contains('unread')) return;
-            el.classList.remove('unread');
-            el.querySelector('.nb-dot')?.remove();
-            this.unread = Math.max(0, this.unread - 1);
-            this.post('/admin/notifications/' + id + '/mark-read');
+        doMarkRead(id, el, url) {
+            if (el.classList.contains('unread')) {
+                el.classList.remove('unread');
+                el.querySelector('.nb-dot')?.remove();
+                this.unread = Math.max(0, this.unread - 1);
+                this.post('/admin/notifications/' + id + '/mark-read');
+            }
+            if (url) window.location.href = url;
         },
         doMarkAllRead() {
             document.querySelectorAll('#nb-list .nb-item.unread').forEach(el => {
@@ -182,7 +184,7 @@ html:not(.dark) {
                 <path fill-rule="evenodd" d="M12 2.25A6.75 6.75 0 0 0 5.25 9v.75a8.217 8.217 0 0 1-2.119 5.52.75.75 0 0 0 .298 1.206c1.544.57 3.16.99 4.831 1.243a3.75 3.75 0 1 0 7.48 0 24.583 24.583 0 0 0 4.83-1.244.75.75 0 0 0 .298-1.205 8.217 8.217 0 0 1-2.118-5.52V9A6.75 6.75 0 0 0 12 2.25zM9.75 18c0-.034 0-.067.002-.1a25.05 25.05 0 0 0 4.496 0l.002.1a2.25 2.25 0 1 1-4.5 0z" clip-rule="evenodd"/>
             </svg>
         </template>
-        <template x-if="unread === 0">
+        <template x-if="unread <= 0">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"/>
             </svg>
@@ -223,7 +225,9 @@ html:not(.dark) {
                     $message  = $data['message'] ?? $data['body'] ?? '';
                     $isUnread = is_null($notification->read_at);
 
-                    $url = $data['action_url'] ?? null;
+                    $url = $data['action_url']
+                        ?? $data['url']
+                        ?? ($data['actions'][0]['url'] ?? null);
 
                     [$iconBg, $iconColor, $iconPath] = match(true) {
                         str_contains($type, 'course_approved')  => ['rgba(16,185,129,.15)',  '#10b981', 'M9 12.75L11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z'],
@@ -238,7 +242,7 @@ html:not(.dark) {
 
                 <div
                     class="nb-item {{ $isUnread ? 'unread' : '' }}"
-                    @click="doMarkRead('{{ $notification->id }}', $el); {{ $url ? "window.location.href='" . $url . "'" : '' }}"
+                    @click="doMarkRead('{{ $notification->id }}', $el, '{{ $url }}')"
                     style="cursor:pointer"
                 >
                     <div class="nb-icon" style="background:{{ $iconBg }}">

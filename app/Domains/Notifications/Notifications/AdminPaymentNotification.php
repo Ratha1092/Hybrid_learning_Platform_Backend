@@ -17,12 +17,20 @@ class AdminPaymentNotification extends Notification
     public function toArray(object $notifiable): array
     {
         return [
-            'title'       => 'Payment Received',
-            'message'     => "Payment completed for order #{$this->order->order_number} — \${$this->order->final_amount} by {$this->order->customer_name}.",
-            'type'        => 'payment',
-            'order_id'    => $this->order->id,
-            'action_url'  => '/admin/payments',
-            'action_text' => 'View Payments',
+            'title'    => 'Payment Received',
+            'body'     => "Payment for order #{$this->order->order_number} — \${$this->order->final_amount} by {$this->order->user?->name}.",
+            'format'   => 'filament',
+            'duration' => 'persistent',
+            'actions'  => [
+                [
+                    'name'                 => 'view',
+                    'label'                => 'View Payments',
+                    'url'                  => '/admin/payments',
+                    'view'                 => 'filament-actions::link-action',
+                    'shouldOpenUrlInNewTab' => false,
+                    'alpineClickHandler'   => "window.location.href='/admin/payments'",
+                ],
+            ],
         ];
     }
 }

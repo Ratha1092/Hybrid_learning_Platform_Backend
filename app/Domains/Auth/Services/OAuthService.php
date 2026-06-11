@@ -9,6 +9,8 @@ use App\Domains\Auth\Services\ActivityLogService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Laravel\Socialite\Facades\Socialite;
+use RuntimeException;
 
 class OAuthService
 {
@@ -46,6 +48,63 @@ class OAuthService
                 'name' => $data['name'],
                 'avatar' => $data['avatar'] ?? null,
                 'data' => $data,
+            ]);
+
+            return $this->loginUser($user, true);
+        });
+    }
+
+    public function handleGithub(string $code): array
+    {
+        $tokenResponse = Socialite::driver('github')
+            ->stateless()
+            ->getAccessTokenResponse($code);
+
+        if (empty($tokenResponse['access_token'])) {
+            throw new RuntimeException('Failed to obtain GitHub access token');
+        }
+
+        $socialUser = Socialite::driver('github')
+            ->stateless()
+            ->userFromToken($tokenResponse['access_token']);
+
+        $email = $socialUser->getEmail();
+        if (!$email) {
+            throw new RuntimeException('GitHub account has no accessible email address. Please make your email public on GitHub and try again.');
+        }
+
+        return DB::transaction(function () use ($socialUser, $email) {
+            $provider   = 'github';
+            $providerId = (string) $socialUser->getId();
+
+            $oauthAccount = OAuthAccount::where('provider', $provider)
+                ->where('provider_id', $providerId)
+                ->first();
+
+            if ($oauthAccount) {
+                return $this->loginUser($oauthAccount->user);
+            }
+
+            $user = User::where('email', $email)->first();
+
+            if (!$user) {
+                $user = User::create([
+                    'name'              => $socialUser->getName() ?? $socialUser->getNickname() ?? 'GitHub User',
+                    'email'             => $email,
+                    'password'          => Hash::make(Str::random(32)),
+                    'email_verified_at' => now(),
+                    'role'              => 'student',
+                ]);
+            }
+
+            OAuthAccount::create([
+                'user_id'     => $user->id,
+                'provider'    => $provider,
+                'provider_id' => $providerId,
+                'email'       => $email,
+                'name'        => $socialUser->getName() ?? $socialUser->getNickname(),
+                'avatar'      => $socialUser->getAvatar() ?? null,
+                'data'        => $socialUser->user,
             ]);
 
             return $this->loginUser($user, true);

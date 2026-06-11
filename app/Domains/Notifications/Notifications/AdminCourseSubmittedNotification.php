@@ -20,12 +20,20 @@ class AdminCourseSubmittedNotification extends Notification
     public function toArray(object $notifiable): array
     {
         return [
-            'title'       => 'New Course Submitted for Review',
-            'message'     => "\"{$this->course->title}\" was submitted by {$this->instructorName}.",
-            'type'        => 'course',
-            'course_id'   => $this->course->id,
-            'action_url'  => '/admin/courses',
-            'action_text' => 'Review Course',
+            'title'    => 'New Course Submitted for Review',
+            'body'     => "\"{$this->course->title}\" was submitted by {$this->instructorName}.",
+            'format'   => 'filament',
+            'duration' => 'persistent',
+            'actions'  => [
+                [
+                    'name'                 => 'view',
+                    'label'                => 'Review Course',
+                    'url'                  => '/admin/courses',
+                    'view'                 => 'filament-actions::link-action',
+                    'shouldOpenUrlInNewTab' => false,
+                    'alpineClickHandler'   => "window.location.href='/admin/courses'",
+                ],
+            ],
         ];
     }
 }

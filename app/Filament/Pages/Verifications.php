@@ -2,6 +2,8 @@
 
 namespace App\Filament\Pages;
 
+use App\Domains\Notifications\Notifications\InstructorApprovedNotification;
+use App\Domains\Notifications\Notifications\InstructorRejectedNotification;
 use App\Domains\Users\Models\InstructorProfile;
 use App\Domains\Users\Models\InstructorVerification;
 use BackedEnum;
@@ -44,6 +46,7 @@ class Verifications extends Page
         ]);
 
         $user->syncRoles(['instructor']);
+        $user->notify(new InstructorApprovedNotification());
 
         Notification::make()
             ->title('Instructor Approved')
@@ -55,9 +58,7 @@ class Verifications extends Page
     public function reject(int $id, string $reason): void
     {
         $verification = InstructorVerification::findOrFail($id);
-
         if ($verification->status !== 'pending') return;
-
         $verification->update([
             'status'           => 'rejected',
             'rejection_reason' => $reason,
@@ -68,6 +69,7 @@ class Verifications extends Page
         $user = $verification->user;
         $user->update(['instructor_status' => 'rejected']);
         $user->removeRole('instructor');
+        $user->notify(new InstructorRejectedNotification($reason));
         Notification::make()
             ->title('Application Rejected')
             ->danger()
@@ -82,7 +84,6 @@ class Verifications extends Page
         $perPage = (int) request('per_page', 10);
 
         if (!in_array($perPage, [10, 25, 50])) $perPage = 10;
-
         $base = fn() => InstructorVerification::withoutTrashed();
 
         $tabs = [
@@ -106,12 +107,10 @@ class Verifications extends Page
         }
 
         $query->orderBy('id', 'desc');
-
         $total         = $query->count();
         $totalPages    = max(1, (int) ceil($total / $perPage));
         $curPage       = min($page, $totalPages);
         $verifications = $query->skip(($curPage - 1) * $perPage)->take($perPage)->get();
-
         return compact('tabs', 'tab', 'search', 'verifications', 'total', 'totalPages', 'curPage', 'perPage');
     }
 }

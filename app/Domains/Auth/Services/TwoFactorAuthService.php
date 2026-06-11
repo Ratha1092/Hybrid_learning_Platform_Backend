@@ -2,10 +2,11 @@
 
 namespace App\Domains\Auth\Services;
 
-use App\Domains\Users\Models\User;
 use App\Domains\Auth\Models\TwoFactorCode;
+use App\Domains\Users\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Resend\Laravel\Facades\Resend;
 
 class TwoFactorAuthService
 {
@@ -19,9 +20,16 @@ class TwoFactorAuthService
         $plainCode = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
 
         TwoFactorCode::create([
-            'user_id' => $user->id,
-            'code' => Hash::make($plainCode),
+            'user_id'    => $user->id,
+            'code'       => Hash::make($plainCode),
             'expires_at' => now()->addMinutes(5),
+        ]);
+
+        Resend::emails()->send([
+            'from'    => config('mail.from.name') . ' <' . config('mail.from.address') . '>',
+            'to'      => [$user->email],
+            'subject' => 'Your Login Verification Code — ' . config('app.name'),
+            'html'    => view('emails.auth.two-factor-code', ['user' => $user, 'code' => $plainCode])->render(),
         ]);
 
         return $plainCode;

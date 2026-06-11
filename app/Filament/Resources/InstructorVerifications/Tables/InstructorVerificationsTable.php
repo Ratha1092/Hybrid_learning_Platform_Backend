@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\InstructorVerifications\Tables;
 
+use App\Domains\Notifications\Notifications\InstructorApprovedNotification;
+use App\Domains\Notifications\Notifications\InstructorRejectedNotification;
 use App\Domains\Users\Models\InstructorProfile;
 use App\Domains\Users\Models\InstructorVerification;
 use Filament\Actions;
@@ -100,6 +102,8 @@ class InstructorVerificationsTable
 
                         $user->syncRoles(['instructor']);
 
+                        $user->notify(new InstructorApprovedNotification());
+
                         Notification::make()
                             ->title('Instructor Approved')
                             ->body(
@@ -146,6 +150,8 @@ class InstructorVerificationsTable
                         ]);
 
                         $user->removeRole('instructor');
+
+                        $user->notify(new InstructorRejectedNotification($data['rejection_reason']));
 
                         Notification::make()
                             ->title('Application Rejected')

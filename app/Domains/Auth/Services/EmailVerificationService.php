@@ -2,13 +2,12 @@
 
 namespace App\Domains\Auth\Services;
 
-use App\Domains\Auth\Mail\VerifyEmailMail;
 use App\Domains\Auth\Models\EmailVerificationToken;
 use App\Domains\Users\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
+use Resend\Laravel\Facades\Resend;
 
 class EmailVerificationService
 {
@@ -30,7 +29,12 @@ class EmailVerificationService
 
         $link = $this->getVerificationLink($plainToken);
 
-        Mail::to($user->email)->queue(new VerifyEmailMail($user, $link, $plainToken));
+        Resend::emails()->send([
+            'from'    => config('mail.from.name') . ' <' . config('mail.from.address') . '>',
+            'to'      => [$user->email],
+            'subject' => 'Verify Your Email Address — ' . config('app.name'),
+            'html'    => view('emails.auth.verify-email', ['user' => $user, 'verificationLink' => $link])->render(),
+        ]);
 
         return [
             'record' => $record,

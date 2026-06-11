@@ -27,6 +27,7 @@
             \App\Domains\Orders\Enums\OrderPaymentStatus::Processing => ['bg' => 'rgba(251,191,36,.12)',  'color' => '#fbbf24', 'label' => 'Processing'],
             \App\Domains\Orders\Enums\OrderPaymentStatus::Failed     => ['bg' => 'rgba(248,113,113,.12)', 'color' => '#f87171', 'label' => 'Failed'],
             \App\Domains\Orders\Enums\OrderPaymentStatus::Expired    => ['bg' => 'rgba(248,113,113,.12)', 'color' => '#f87171', 'label' => 'Expired'],
+            \App\Domains\Orders\Enums\OrderPaymentStatus::Cancelled  => ['bg' => 'rgba(248,113,113,.12)', 'color' => '#f87171', 'label' => 'Cancelled'],
             \App\Domains\Orders\Enums\OrderPaymentStatus::Refunded   => ['bg' => 'rgba(167,139,250,.12)', 'color' => '#a78bfa', 'label' => 'Refunded'],
         },
         is_string($ps) => match($ps) {
@@ -35,6 +36,7 @@
             'processing' => ['bg' => 'rgba(251,191,36,.12)',  'color' => '#fbbf24', 'label' => 'Processing'],
             'failed'     => ['bg' => 'rgba(248,113,113,.12)', 'color' => '#f87171', 'label' => 'Failed'],
             'expired'    => ['bg' => 'rgba(248,113,113,.12)', 'color' => '#f87171', 'label' => 'Expired'],
+            'cancelled'  => ['bg' => 'rgba(248,113,113,.12)', 'color' => '#f87171', 'label' => 'Cancelled'],
             'refunded'   => ['bg' => 'rgba(167,139,250,.12)', 'color' => '#a78bfa', 'label' => 'Refunded'],
             default      => ['bg' => 'rgba(148,163,184,.1)',  'color' => '#94a3b8', 'label' => ucfirst($ps)],
         },

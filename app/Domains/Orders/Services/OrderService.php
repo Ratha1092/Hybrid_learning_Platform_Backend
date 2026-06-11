@@ -11,6 +11,7 @@ use App\Domains\Payments\Services\BakongConfig;
 use App\Domains\Payments\Services\BakongKhqrService;
 use App\Domains\Learning\Services\EnrollmentService;
 use App\Domains\Courses\Models\Course;
+use App\Domains\Notifications\Notifications\AdminNewOrderNotification;
 use App\Domains\Users\Models\User;
 use Illuminate\Support\Facades\DB;
 
@@ -24,7 +25,7 @@ class OrderService
 
     public function createOrder(User $user, int $courseId): Order
     {
-        return DB::transaction(function () use ($user, $courseId) {
+        $order = DB::transaction(function () use ($user, $courseId) {
 
             $course = Course::where('id', $courseId)
                 ->where('is_published', true)
@@ -68,6 +69,7 @@ class OrderService
                 'instructor_amount' => $instructorAmount,
                 'platform_amount' => $platformAmount,
             ]);
+
             if ((float) $course->price === 0.0) {
                 $order->update([
                     'status' => OrderStatus::Completed,
@@ -82,5 +84,12 @@ class OrderService
 
             return $order;
         });
+
+        // Notify admins — runs after transaction commits, synchronous DB write
+        $notification = new AdminNewOrderNotification($order, $user->name);
+        foreach (User::admins()->get() as $admin) {
+            $admin->notify($notification);
+        }
+        return $order;
     }
 }

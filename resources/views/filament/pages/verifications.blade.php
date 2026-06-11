@@ -11,7 +11,6 @@
     };
 
     $viewUrl = fn($v) => route('filament.admin.resources.instructor-verifications.view', ['record' => $v->id]);
-    $editUrl = fn($v) => route('filament.admin.resources.instructor-verifications.edit', ['record' => $v->id]);
 @endphp
 
 <style>
@@ -70,9 +69,9 @@ html:not(.dark) .lp {
 .lp-qual { font-size:12px; color:var(--t1); }
 
 .lp-actions { display:flex; align-items:center; gap:4px; justify-content:flex-end; }
-.lp-act-btn { display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; border-radius:7px; background:none; border:1px solid transparent; cursor:pointer; color:var(--t2); text-decoration:none; transition:background .15s, border-color .15s, color .15s; }
+.lp-act-btn { display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:8px; background:none; border:1px solid transparent; cursor:pointer; color:var(--t2); text-decoration:none; transition:background .15s, border-color .15s, color .15s; }
 .lp-act-btn:hover { background:var(--p2); border-color:var(--bd2); color:var(--t1); }
-.lp-act-btn svg { width:14px; height:14px; }
+.lp-act-btn svg { width:18px; height:18px; }
 .lp-act-btn-approve { color:#34d399; }
 .lp-act-btn-approve:hover { background:rgba(52,211,153,.12) !important; border-color:rgba(52,211,153,.3) !important; color:#34d399 !important; }
 .lp-act-btn-reject { color:#f87171; }
@@ -90,6 +89,7 @@ html:not(.dark) .lp {
 .lp-modal-btn { display:inline-flex; align-items:center; gap:6px; padding:8px 16px; border-radius:9px; font-size:12px; font-weight:700; cursor:pointer; border:none; font-family:inherit; transition:opacity .15s; }
 .lp-modal-btn-gray { background:var(--p2); border:1px solid var(--bd2); color:var(--t2); }
 .lp-modal-btn-danger { background:rgba(248,113,113,.15); color:#f87171; border:1px solid rgba(248,113,113,.3); }
+.lp-modal-btn-success { background:rgba(52,211,153,.15); color:#34d399; border:1px solid rgba(52,211,153,.3); }
 
 .lp-empty { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:56px 24px; gap:10px; color:var(--t2); }
 .lp-empty svg { width:40px; height:40px; opacity:.35; }
@@ -139,7 +139,9 @@ html:not(.dark) .lp {
 
             <form method="GET" action="{{ url()->current() }}" style="display:flex;align-items:center;gap:0">
                 @foreach(request()->except(['search', 'page']) as $k => $v)
+                    @if(is_scalar($v))
                     <input type="hidden" name="{{ $k }}" value="{{ $v }}">
+                    @endif
                 @endforeach
                 <div class="lp-search-box">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -198,8 +200,7 @@ html:not(.dark) .lp {
                     <td>
                         <div class="lp-actions">
                             @if($verification->status === 'pending')
-                            <button wire:click="approve({{ $verification->id }})"
-                                    wire:confirm="Approve {{ $verification->user?->name }} as instructor?"
+                            <button onclick="openApproveModal({{ $verification->id }}, '{{ addslashes($verification->user?->name) }}')"
                                     class="lp-act-btn lp-act-btn-approve" title="Approve">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/>
@@ -215,11 +216,6 @@ html:not(.dark) .lp {
                             <a href="{{ $viewUrl($verification) }}" class="lp-act-btn" title="View">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><circle cx="12" cy="12" r="3"/>
-                                </svg>
-                            </a>
-                            <a href="{{ $editUrl($verification) }}" class="lp-act-btn" title="Edit">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487z"/>
                                 </svg>
                             </a>
                         </div>
@@ -281,22 +277,51 @@ html:not(.dark) .lp {
         </div>
     </div>
 
-</div>
-
-{{-- Reject Modal (inside single root div) --}}
-<div class="lp-modal-overlay" id="lp-reject-modal" onclick="if(event.target===this)closeRejectModal()">
-    <div class="lp-modal">
-        <h3>Reject Application</h3>
-        <p id="lp-reject-name-text">Explain why this application is being rejected. The instructor will be notified.</p>
-        <textarea id="lp-reject-reason" placeholder="e.g. Insufficient qualifications, invalid documents..."></textarea>
-        <div class="lp-modal-footer">
-            <button class="lp-modal-btn lp-modal-btn-gray" onclick="closeRejectModal()">Cancel</button>
-            <button class="lp-modal-btn lp-modal-btn-danger" onclick="submitReject()">Reject Application</button>
+    {{-- Approve Modal --}}
+    <div class="lp-modal-overlay" id="lp-approve-modal" onclick="if(event.target===this)closeApproveModal()">
+        <div class="lp-modal">
+            <h3>Approve Application</h3>
+            <p id="lp-approve-name-text">Are you sure you want to approve this application? The instructor will be notified.</p>
+            <div class="lp-modal-footer">
+                <button class="lp-modal-btn lp-modal-btn-gray" onclick="closeApproveModal()">Cancel</button>
+                <button class="lp-modal-btn lp-modal-btn-success" onclick="submitApprove()">Approve Application</button>
+            </div>
         </div>
     </div>
+
+    {{-- Reject Modal — inside .lp so CSS vars (--p1, --t1 etc.) are accessible --}}
+    <div class="lp-modal-overlay" id="lp-reject-modal" onclick="if(event.target===this)closeRejectModal()">
+        <div class="lp-modal">
+            <h3>Reject Application</h3>
+            <p id="lp-reject-name-text">Explain why this application is being rejected. The instructor will be notified.</p>
+            <textarea id="lp-reject-reason" placeholder="e.g. Insufficient qualifications, invalid documents..."></textarea>
+            <div class="lp-modal-footer">
+                <button class="lp-modal-btn lp-modal-btn-gray" onclick="closeRejectModal()">Cancel</button>
+                <button class="lp-modal-btn lp-modal-btn-danger" onclick="submitReject()">Reject Application</button>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <script>
+    let approveId = null;
+    function openApproveModal(id, name) {
+        approveId = id;
+        document.getElementById('lp-approve-name-text').textContent = 'Are you sure you want to approve ' + name + '\'s application? They will be notified.';
+        document.getElementById('lp-approve-modal').classList.add('open');
+    }
+    function closeApproveModal() {
+        document.getElementById('lp-approve-modal').classList.remove('open');
+        approveId = null;
+    }
+    function submitApprove() {
+        if (!approveId) return;
+        const id = approveId;
+        closeApproveModal();
+        @this.call('approve', id);
+    }
+
     let rejectId = null;
     function openRejectModal(id, name) {
         rejectId = id;
@@ -316,8 +341,9 @@ html:not(.dark) .lp {
             alert('Please provide a rejection reason.');
             return;
         }
+        const id = rejectId;
         closeRejectModal();
-        @this.call('reject', rejectId, reason);
+        @this.call('reject', id, reason);
     }
 </script>
 </div>{{-- end single root --}}

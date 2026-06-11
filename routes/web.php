@@ -24,6 +24,16 @@ Route::get('/', function () {
 
 Route::middleware(['web', 'auth'])->group(function () {
 
+    Route::post('/admin/notifications/mark-all-read', function () {
+        auth()->user()->unreadNotifications()->update(['read_at' => now()]);
+        return response()->json(['ok' => true]);
+    })->name('admin.notifications.mark-all-read');
+
+    Route::post('/admin/notifications/{id}/mark-read', function (string $id) {
+        auth()->user()->notifications()->where('id', $id)->update(['read_at' => now()]);
+        return response()->json(['ok' => true]);
+    })->name('admin.notifications.mark-read');
+
     Route::post('/admin/courses/{course}/approve', function (Course $course) {
         if ($course->isPendingReview()) {
             $course->publish(auth()->id());

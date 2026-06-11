@@ -2,6 +2,9 @@
 
 namespace App\Domains\Payments\Controllers;
 
+use App\Domains\Orders\Enums\OrderPaymentStatus;
+use App\Domains\Orders\Enums\OrderStatus;
+use App\Domains\Payments\Enums\PaymentStatus;
 use App\Domains\Payments\Models\Payment;
 use App\Domains\Payments\Services\BakongKhqrService;
 use App\Domains\Payments\Services\QrCodeService;
@@ -57,6 +60,27 @@ class PaymentController extends Controller
         }
 
         return ApiResponse::success($this->paymentStatusPayload($payment), 'Payment verified successfully');
+    }
+
+    public function cancel(Request $request, Payment $payment)
+    {
+        if ((int) $payment->order->user_id !== (int) $request->user()->id) {
+            return ApiResponse::error('Payment not found', 404);
+        }
+
+        if (!$payment->isPending()) {
+            return ApiResponse::error('Only pending payments can be cancelled', 422);
+        }
+
+        $payment->update(['status' => PaymentStatus::Cancelled]);
+
+        $payment->order->update([
+            'status'         => OrderStatus::Cancelled,
+            'payment_status' => OrderPaymentStatus::Cancelled,
+            'cancelled_at'   => now(),
+        ]);
+
+        return ApiResponse::success(null, 'Payment cancelled successfully');
     }
 
     private function paymentStatusPayload(Payment $payment): array

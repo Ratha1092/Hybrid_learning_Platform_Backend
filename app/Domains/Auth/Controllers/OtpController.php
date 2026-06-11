@@ -1,0 +1,49 @@
+<?php
+
+namespace App\Domains\Auth\Controllers;
+
+use App\Domains\Auth\Services\OtpService;
+use App\Support\ApiResponse;
+use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
+
+class OtpController extends Controller
+{
+    public function __construct(private OtpService $otp) {}
+
+    public function send(Request $request)
+    {
+        $request->validate([
+            'email' => ['required', 'email', 'max:255'],
+        ]);
+
+        $plain = $this->otp->send($request->input('email'));
+
+        $data = [];
+
+        if (! app()->environment('production')) {
+            $data['code'] = $plain;
+        }
+
+        return ApiResponse::success($data, 'Verification code sent');
+    }
+
+    public function verify(Request $request)
+    {
+        $request->validate([
+            'email' => ['required', 'email', 'max:255'],
+            'code'  => ['required', 'string', 'size:6'],
+        ]);
+
+        $ok = $this->otp->verify(
+            $request->input('email'),
+            $request->input('code')
+        );
+
+        if (! $ok) {
+            return ApiResponse::error('Invalid or expired code', 400);
+        }
+
+        return ApiResponse::success(['verified' => true], 'Email verified');
+    }
+}

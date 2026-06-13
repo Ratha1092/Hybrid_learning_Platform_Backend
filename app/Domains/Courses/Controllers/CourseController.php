@@ -12,7 +12,11 @@ class CourseController extends Controller
 {
     public function index()
     {
-        $courses = Course::where('is_published', true)->latest()->get();
+        $courses = Course::with('instructor:id,name,avatar')
+            ->where('is_published', true)
+            ->latest()
+            ->get();
+
         return ApiResponse::success($courses, 'Courses retrieved successfully');
     }
 
@@ -20,7 +24,8 @@ class CourseController extends Controller
     {
         $course = Course::where('slug', $slug)
             ->where('is_published', true)
-            ->with('sections.lessons')
+            ->with(['sections.lessons', 'instructor:id,name,avatar'])
+
             ->first();
 
         if (!$course) {

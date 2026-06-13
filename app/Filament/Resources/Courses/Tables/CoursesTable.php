@@ -29,6 +29,7 @@ class CoursesTable
                 // ── COURSE (thumbnail + title + short description) ────────────
                 Tables\Columns\ImageColumn::make('thumbnail')
                     ->label('')
+                    ->disk('public')
                     ->square()
                     ->size(42)
                     ->defaultImageUrl(fn ($record) =>

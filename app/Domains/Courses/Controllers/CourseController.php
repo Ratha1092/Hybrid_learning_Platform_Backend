@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Domains\Courses\Models\Course;
 use App\Domains\Learning\Models\Enrollment;
 use App\Support\ApiResponse;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Cache;
 
 class CourseController extends Controller
 {
@@ -22,7 +22,17 @@ class CourseController extends Controller
 
     public function show($slug)
     {
-        $course = Course::where('slug', $slug)
+        $course = Cache::remember("courses.slug.{$slug}", 3600, fn() =>
+            Course::with([
+                'sections' => function ($q) {
+                    $q->orderBy('order')->with([
+                        'lessons' => function ($q) {
+                            $q->orderBy('order');
+                        }
+                    ]);
+                }
+            ])
+            ->where('slug', $slug)
             ->where('is_published', true)
             ->with(['sections.lessons', 'instructor:id,name,avatar'])
 

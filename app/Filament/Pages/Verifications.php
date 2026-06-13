@@ -2,8 +2,12 @@
 
 namespace App\Filament\Pages;
 
+use App\Domains\Notifications\Notifications\InstructorApprovedNotification;
+use App\Domains\Notifications\Notifications\InstructorRejectedNotification;
+use App\Domains\Users\Models\InstructorProfile;
 use App\Domains\Users\Models\InstructorVerification;
 use BackedEnum;
+use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 
 class Verifications extends Page
@@ -20,6 +24,67 @@ class Verifications extends Page
         return '';
     }
 
+    public function approve(int $id): void
+    {
+        $verification = InstructorVerification::findOrFail($id);
+
+        if ($verification->status !== 'pending') return;
+
+        $verification->update([
+            'status'      => 'approved',
+            'reviewed_by' => auth()->id(),
+            'reviewed_at' => now(),
+        ]);
+
+        $user = $verification->user;
+
+        InstructorProfile::firstOrCreate(['user_id' => $verification->user_id]);
+
+        $user->update([
+            'role'              => 'instructor',
+            'instructor_status' => 'verified',
+        ]);
+
+        $user->syncRoles(['instructor']);
+        $user->notify(new InstructorApprovedNotification());
+
+        $user->notify(new InstructorApprovedNotification());
+
+        Notification::make()
+            ->title('Instructor Approved')
+            ->body("{$user->name} has been approved as instructor.")
+            ->success()
+            ->send();
+
+        $this->redirect(request()->fullUrl());
+    }
+
+    public function reject(int $id, string $reason): void
+    {
+        $verification = InstructorVerification::findOrFail($id);
+        if ($verification->status !== 'pending') return;
+        $verification->update([
+            'status'           => 'rejected',
+            'rejection_reason' => $reason,
+            'reviewed_by'      => auth()->id(),
+            'reviewed_at'      => now(),
+        ]);
+
+        $user = $verification->user;
+        $user->update(['instructor_status' => 'rejected']);
+        $user->removeRole('instructor');
+        $user->notify(new InstructorRejectedNotification($reason));
+
+        $user->notify(new InstructorRejectedNotification());
+
+        Notification::make()
+            ->title('Application Rejected')
+            ->danger()
+            ->send();
+
+        $this->redirect(request()->fullUrl());
+    }
+
     protected function getViewData(): array
     {
         $tab     = request('tab', 'all');
@@ -28,7 +93,6 @@ class Verifications extends Page
         $perPage = (int) request('per_page', 10);
 
         if (!in_array($perPage, [10, 25, 50])) $perPage = 10;
-
         $base = fn() => InstructorVerification::withoutTrashed();
 
         $tabs = [
@@ -38,8 +102,7 @@ class Verifications extends Page
             ['key' => 'rejected', 'label' => 'Rejected', 'count' => $base()->where('status', 'rejected')->count(),    'color' => '#f87171'],
         ];
 
-        $query = InstructorVerification::withoutTrashed()
-            ->with('user:id,name,email');
+        $query = InstructorVerification::withoutTrashed()->with('user:id,name,email');
 
         if ($tab !== 'all' && in_array($tab, ['pending', 'approved', 'rejected'])) {
             $query->where('status', $tab);
@@ -53,12 +116,10 @@ class Verifications extends Page
         }
 
         $query->orderBy('id', 'desc');
-
         $total         = $query->count();
         $totalPages    = max(1, (int) ceil($total / $perPage));
         $curPage       = min($page, $totalPages);
         $verifications = $query->skip(($curPage - 1) * $perPage)->take($perPage)->get();
-
         return compact('tabs', 'tab', 'search', 'verifications', 'total', 'totalPages', 'curPage', 'perPage');
     }
 }

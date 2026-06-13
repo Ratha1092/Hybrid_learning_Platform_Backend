@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Log;
 
 class UpdateInstructorWalletListener implements ShouldQueue
 {
+    public string $queue = 'high';
     public $tries = 3;
 
     public function handle(PaymentSuccessEvent $event): void

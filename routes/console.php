@@ -12,3 +12,7 @@ Schedule::command('payments:verify-pending')
     ->everyMinute()
     ->withoutOverlapping()
     ->runInBackground();
+
+Schedule::command('horizon:snapshot')->everyFiveMinutes();
+
+Schedule::command('cache:prune-stale-tags')->hourly();

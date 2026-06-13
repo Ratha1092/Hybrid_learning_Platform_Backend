@@ -4,9 +4,9 @@
 @source '../../../../app/Filament/**/*';
 @source '../../../../resources/views/filament/**/*';
 
-/* =========================================
+/* 
    LIGHT MODE
-========================================= */
+ */
 
 :root {
     --fi-font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
@@ -44,9 +44,9 @@
     --hl-green: #16a34a;
 }
 
-/* =========================================
+/* 
    DARK MODE
-========================================= */
+ */
 
 .dark {
     --hl-bg: #07111f;
@@ -65,9 +65,9 @@
     --hl-faint: #65758a;
 }
 
-/* =========================================
+/* 
    GLOBAL
-========================================= */
+ */
 
 html,
 body,
@@ -89,9 +89,9 @@ body,
     background: transparent !important;
 }
 
-/* =========================================
+/* 
    TOPBAR
-========================================= */
+ */
 
 .fi-topbar {
     background: var(--hl-panel) !important;
@@ -106,9 +106,9 @@ body,
     border-color: var(--hl-border) !important;
 }
 
-/* =========================================
+/* 
    BRAND
-========================================= */
+ */
 
 .fi-logo,
 .fi-brand-name {
@@ -117,9 +117,9 @@ body,
     font-weight: 800 !important;
 }
 
-/* =========================================
+/* 
    SIDEBAR
-========================================= */
+ */
 
 .fi-sidebar {
     background: var(--hl-sidebar) !important;
@@ -164,9 +164,9 @@ body,
 }
 
 
-/* =========================================
+/* 
    SIDEBAR ITEMS
-========================================= */
+ */
 
 .fi-sidebar-item-btn,
 .fi-sidebar-item-button {
@@ -202,42 +202,29 @@ body,
 .fi-sidebar-item.fi-active > .fi-sidebar-item-button,
 .fi-sidebar-item-btn[aria-current='page'],
 .fi-sidebar-item-button[aria-current='page'] {
-    background:
-        linear-gradient(
-            90deg,
-            rgba(124, 58, 237, 0.20),
-            rgba(47, 140, 255, 0.08)
-        ) !important;
-
+    background:linear-gradient(90deg,rgba(124, 58, 237, 0.20),rgba(47, 140, 255, 0.08)) !important;
     border-color: rgba(124, 58, 237, 0.18) !important;
-
-    box-shadow:
-        inset 3px 0 0 #8b5cf6 !important;
+    box-shadow:inset 3px 0 0 #8b5cf6 !important;
 }
 
-/* =========================================
+/* 
    PANELS
-========================================= */
+ */
 
 .fi-section,
 .fi-ta-ctn,
 .fi-fo-component-ctn,
 .fi-in-entry-wrp {
     background: var(--hl-panel) !important;
-
     border: 1px solid var(--hl-border) !important;
-
     border-radius: 0.9rem !important;
-
     backdrop-filter: blur(20px) !important;
-
-    box-shadow:
-        0 10px 35px rgba(0, 0, 0, 0.08) !important;
+    box-shadow:0 10px 35px rgba(0, 0, 0, 0.08) !important;
 }
 
-/* =========================================
+/* 
    TABLES
-========================================= */
+ */
 
 .fi-ta-header,
 .fi-ta-header-cell {
@@ -247,17 +234,14 @@ body,
 .fi-ta-header-cell,
 .fi-ta-header-cell span {
     color: var(--hl-muted) !important;
-
     font-size: 0.69rem !important;
     font-weight: 800 !important;
-
     letter-spacing: 0.08em !important;
     text-transform: uppercase !important;
 }
 
 .fi-ta-row {
-    border-bottom:
-        1px solid var(--hl-border-soft) !important;
+    border-bottom:1px solid var(--hl-border-soft) !important;
 }
 
 .fi-ta-row:hover {
@@ -269,9 +253,9 @@ body,
     color: var(--hl-text) !important;
 }
 
-/* =========================================
+/* 
    FORMS
-========================================= */
+ */
 
 .fi-input-wrp {
     border: 1px solid var(--hl-border) !important;
@@ -281,9 +265,7 @@ body,
 
 .fi-input-wrp:focus-within {
     border-color: rgb(var(--fi-color-primary-500)) !important;
-
-    box-shadow:
-        0 0 0 1px rgb(var(--fi-color-primary-500)) !important;
+    box-shadow:0 0 0 1px rgb(var(--fi-color-primary-500)) !important;
 }
 
 .fi-input,
@@ -299,9 +281,9 @@ body,
     color: var(--hl-muted) !important;
 }
 
-/* =========================================
+/* 
    LABELS
-========================================= */
+ */
 
 .fi-fo-field-wrp-label label,
 .fi-input-wrp-label,
@@ -310,9 +292,9 @@ body,
     font-weight: 600 !important;
 }
 
-/* =========================================
+/* 
    CHECKBOXES
-========================================= */
+ */
 
 .fi-checkbox-list-label,
 .fi-fo-checkbox-list-option-label,
@@ -321,17 +303,14 @@ label[for*="remember"] {
     color: var(--hl-text) !important;
 }
 
-/* =========================================
+/* 
    BUTTONS
-========================================= */
+ */
 
 .fi-btn-color-primary {
     background: var(--hl-orange) !important;
-
     color: white !important;
-
     font-weight: 700 !important;
-
     border: none !important;
 }
 
@@ -339,18 +318,18 @@ label[for*="remember"] {
     filter: brightness(1.05);
 }
 
-/* =========================================
+/* 
    BADGES
-========================================= */
+ */
 
 .fi-badge {
     border-radius: 999px !important;
     font-weight: 700 !important;
 }
 
-/* =========================================
+/* 
    TABS
-========================================= */
+ */
 
 .fi-tabs-item {
     border-radius: 999px !important;
@@ -360,9 +339,9 @@ label[for*="remember"] {
     background: rgba(124, 58, 237, 0.12) !important;
 }
 
-/* =========================================
+/* 
    LOGIN PAGE
-========================================= */
+ */
 
 .fi-simple-layout,
 .fi-simple-main {
@@ -377,9 +356,9 @@ label[for*="remember"] {
     background: transparent !important;
 }
 
-/* =========================================
+/* 
    SCROLLBAR
-========================================= */
+ */
 
 ::-webkit-scrollbar {
     width: 10px;
@@ -395,9 +374,9 @@ label[for*="remember"] {
     background: transparent;
 }
 
-/* =========================================
+/* 
    REDUCED MOTION
-========================================= */
+ */
 
 @media (prefers-reduced-motion: reduce) {
     * {

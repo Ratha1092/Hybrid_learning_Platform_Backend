@@ -5,6 +5,8 @@ namespace App\Domains\Courses\Controllers;
 use App\Http\Controllers\Controller;
 use App\Domains\Courses\Models\Course;
 use App\Domains\Courses\Services\CourseService;
+use App\Domains\Notifications\Notifications\AdminCourseSubmittedNotification;
+use App\Domains\Users\Models\User;
 use App\Support\ApiResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -129,6 +131,12 @@ class InstructorCourseController extends Controller
             return ApiResponse::error('Course is already published.',400);
         }
         $course->submitForReview();
+
+        // Notify admins via bell — synchronous DB write
+        $notification = new AdminCourseSubmittedNotification($course, auth()->user()->name);
+        foreach (User::admins()->get() as $admin) {
+            $admin->notify($notification);
+        }
 
         return ApiResponse::success(
             $course,

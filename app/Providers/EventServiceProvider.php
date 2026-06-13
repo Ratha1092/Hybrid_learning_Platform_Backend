@@ -18,6 +18,7 @@ class EventServiceProvider extends ServiceProvider
             \App\Domains\Finance\Listeners\ProcessRevenueListener::class,
             \App\Domains\Finance\Listeners\RecordWalletTransactionListener::class,
             \App\Domains\Finance\Listeners\UpdateInstructorWalletListener::class,
+            \App\Domains\Payments\Listeners\PaymentNotificationListener::class,
         ],
     ];
 }

@@ -11,6 +11,7 @@ use App\Domains\Analytics\Jobs\RecordRevenueJob;
 
 class ProcessRevenueListener implements ShouldQueue
 {
+    public string $queue = 'high';
     public $tries = 3;
 
     public function handle(PaymentSuccessEvent $event): void

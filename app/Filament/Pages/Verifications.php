@@ -48,6 +48,8 @@ class Verifications extends Page
         $user->syncRoles(['instructor']);
         $user->notify(new InstructorApprovedNotification());
 
+        $user->notify(new InstructorApprovedNotification());
+
         Notification::make()
             ->title('Instructor Approved')
             ->body("{$user->name} has been approved as instructor.")
@@ -72,6 +74,8 @@ class Verifications extends Page
         $user->update(['instructor_status' => 'rejected']);
         $user->removeRole('instructor');
         $user->notify(new InstructorRejectedNotification($reason));
+
+        $user->notify(new InstructorRejectedNotification());
 
         Notification::make()
             ->title('Application Rejected')

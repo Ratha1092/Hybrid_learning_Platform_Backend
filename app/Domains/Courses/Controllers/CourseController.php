@@ -21,10 +21,18 @@ class CourseController extends Controller
     public function show($slug)
     {
         $course = Cache::remember("courses.slug.{$slug}", 3600, fn() =>
-            Course::where('slug', $slug)
-                ->where('is_published', true)
-                ->with('sections.lessons')
-                ->first()
+            Course::with([
+                'sections' => function ($q) {
+                    $q->orderBy('order')->with([
+                        'lessons' => function ($q) {
+                            $q->orderBy('order');
+                        }
+                    ]);
+                }
+            ])
+            ->where('slug', $slug)
+            ->where('is_published', true)
+            ->first()
         );
 
         if (!$course) {

@@ -82,6 +82,15 @@ class Course extends Model
                 $course->status = self::STATUS_DRAFT;
             }
         });
+        static::saving(function ($course) {
+            $course->is_published = $course->status === self::STATUS_PUBLISHED;
+
+            if ($course->isDirty(['is_published', 'status'])) {
+                Cache::forget('courses.published');
+                Cache::forget("courses.slug.{$course->slug}");
+            }
+        });
+        
     }
     public function submitForReview(): void
     {
@@ -231,7 +240,7 @@ class Course extends Model
             return null;
         }
 
-        return \Storage::disk(config('filament.default_filesystem_disk'))->url($this->thumbnail);
+        return \Storage::disk('public')->url($this->thumbnail);
     }
     public function scopePublished($query)
     {

@@ -21,7 +21,7 @@ class Category extends Model
     protected $casts = [
         'is_featured' => 'boolean',
     ];
-
+    protected $appends = ['image_url'];
     protected static function booted(): void
     {
         static::creating(function ($category) {

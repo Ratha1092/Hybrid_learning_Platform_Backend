@@ -23,7 +23,7 @@ class CourseController extends Controller
         $course = Cache::remember("courses.slug.{$slug}", 3600, fn() =>
             Course::where('slug', $slug)
                 ->where('is_published', true)
-                ->with('sections.lessons')
+                ->with('sections.lessons',)
                 ->first()
         );
 

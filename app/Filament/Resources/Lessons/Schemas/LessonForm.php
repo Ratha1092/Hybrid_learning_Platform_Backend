@@ -59,6 +59,7 @@ class LessonForm
                             ->label('Video File')
                             ->directory('lessons/videos')
                             ->acceptedFileTypes(['video/*'])
+                            ->maxSize(512 * 1024)
                             ->columnSpanFull(),
                         TextInput::make('video_url')
                             ->label('External Video URL')

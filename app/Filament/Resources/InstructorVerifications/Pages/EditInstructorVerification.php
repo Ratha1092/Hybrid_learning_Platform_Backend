@@ -7,6 +7,7 @@ use App\Domains\Notifications\Notifications\InstructorRejectedNotification;
 use App\Domains\Users\Models\InstructorProfile;
 use App\Filament\Resources\InstructorVerifications\InstructorVerificationResource;
 use Filament\Resources\Pages\EditRecord;
+use Illuminate\Support\Facades\Mail;
 
 class EditInstructorVerification extends EditRecord
 {

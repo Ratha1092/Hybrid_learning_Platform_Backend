@@ -33,11 +33,10 @@ class CategoryForm
 
                 Textarea::make('description')
                     ->columnSpanFull(),
-
                 TextInput::make('icon')
                     ->maxLength(100)
                     ->placeholder('heroicon-o-academic-cap'),
-
+                    
                 TextInput::make('sort_order')
                     ->numeric()
                     ->default(0),

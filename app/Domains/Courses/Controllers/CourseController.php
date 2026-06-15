@@ -35,8 +35,8 @@ class CourseController extends Controller
             ->where('slug', $slug)
             ->where('is_published', true)
             ->with(['sections.lessons', 'instructor:id,name,avatar'])
-
-            ->first();
+            ->first()
+        );
 
         if (!$course) {
             return ApiResponse::error('Course not found', 404);

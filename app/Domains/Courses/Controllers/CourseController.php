@@ -7,6 +7,7 @@ use App\Domains\Courses\Models\Course;
 use App\Domains\Learning\Models\Enrollment;
 use App\Support\ApiResponse;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
 
 class CourseController extends Controller
 {
@@ -24,6 +25,7 @@ class CourseController extends Controller
     {
         $course = Cache::remember("courses.slug.{$slug}", 3600, fn() =>
             Course::with([
+                'instructor:id,name,avatar',
                 'sections' => function ($q) {
                     $q->orderBy('order')->with([
                         'lessons' => function ($q) {

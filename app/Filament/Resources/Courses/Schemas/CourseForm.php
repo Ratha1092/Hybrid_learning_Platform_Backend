@@ -38,6 +38,7 @@ class CourseForm
                     ->schema([
                         FileUpload::make('thumbnail')
                             ->image()
+                            ->disk('public')
                             ->directory('courses/thumbnails'),
                         TextInput::make('preview_video_url')
                             ->label('Preview Video URL')

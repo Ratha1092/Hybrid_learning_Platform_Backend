@@ -4,15 +4,20 @@ use Illuminate\Support\Facades\Route;
 
 use App\Domains\Auth\Controllers\AuthController;
 use App\Domains\Auth\Controllers\EmailVerificationController;
+use App\Domains\Auth\Controllers\OAuthController;
+use App\Domains\Auth\Controllers\OtpController;
 use App\Domains\Auth\Controllers\PasswordResetController;
 use App\Domains\Auth\Controllers\TwoFactorAuthController;
-use App\Domains\Auth\Controllers\OAuthController;
 
 Route::prefix('auth')->group(function () {
 
     //Public Authentication
     Route::post('/register',[AuthController::class, 'register'])->middleware('throttle:auth');
     Route::post('/login',[AuthController::class, 'login'])->middleware('throttle:login');
+
+    //Pre-registration OTP (no auth required)
+    Route::post('/otp/send',   [OtpController::class, 'send'])->middleware('throttle:auth');
+    Route::post('/otp/verify', [OtpController::class, 'verify'])->middleware('throttle:auth');
 
     //Password Reset
     Route::post('/forgot-password',[PasswordResetController::class, 'forgotPassword'])->middleware('throttle:auth');

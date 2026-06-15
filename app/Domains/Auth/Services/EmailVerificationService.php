@@ -2,11 +2,12 @@
 
 namespace App\Domains\Auth\Services;
 
-use App\Domains\Users\Models\User;
 use App\Domains\Auth\Models\EmailVerificationToken;
+use App\Domains\Users\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Resend\Laravel\Facades\Resend;
 
 class EmailVerificationService
 {
@@ -26,9 +27,19 @@ class EmailVerificationService
             'expires_at' => now()->addHours(24),
         ]);
 
+        $link = $this->getVerificationLink($plainToken);
+
+        Resend::emails()->send([
+            'from'    => config('mail.from.name') . ' <' . config('mail.from.address') . '>',
+            'to'      => [$user->email],
+            'subject' => 'Verify Your Email Address — ' . config('app.name'),
+            'html'    => view('emails.auth.verify-email', ['user' => $user, 'verificationLink' => $link])->render(),
+        ]);
+
         return [
             'record' => $record,
-            'token' => $plainToken,
+            'token'  => $plainToken,
+            'link'   => $link,
         ];
     }
 

@@ -60,9 +60,6 @@ class User extends Authenticatable implements FilamentUser
         'last_login_at',
         'two_factor_enabled',
         'two_factor_secret',
-        'oauth_provider',
-        'oauth_id',
-        'oauth_avatar',
     ];
     protected $hidden = [
         'password',

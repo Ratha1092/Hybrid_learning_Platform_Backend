@@ -2,11 +2,9 @@
 
 namespace App\Domains\Users\Services;
 
-use App\Domains\Notifications\Enums\NotificationType;
+use App\Domains\Notifications\Notifications\NewInstructorVerificationNotification;
 use App\Domains\Users\Models\InstructorVerification;
 use App\Domains\Users\Models\User;
-use Filament\Actions\Action;
-use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\DB;
 
 class InstructorVerificationService
@@ -91,26 +89,9 @@ class InstructorVerificationService
             return;
         }
 
-        $message = "{$user->name} submitted an instructor verification application.";
-        $actionUrl = "/admin/instructor-verifications/{$verification->id}";
-
-        Notification::make()
-            ->title('New instructor application')
-            ->body($message)
-            ->icon('heroicon-o-document-check')
-            ->warning()
-            ->viewData([
-                'message' => $message,
-                'type' => NotificationType::INSTRUCTOR_VERIFICATION->value,
-                'resource_id' => $verification->id,
-                'resource_type' => 'instructor_verification',
-                'action_url' => $actionUrl,
-            ])
-            ->actions([
-                Action::make('review')
-                    ->label('Review')
-                    ->url($actionUrl),
-            ])
-            ->sendToDatabase($admins, isEventDispatched: true);
+        $notification = new NewInstructorVerificationNotification($verification);
+        foreach ($admins as $admin) {
+            $admin->notify($notification);
+        }
     }
 }

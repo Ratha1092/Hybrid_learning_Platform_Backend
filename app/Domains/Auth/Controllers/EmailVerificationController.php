@@ -27,15 +27,12 @@ class EmailVerificationController extends Controller
         }
 
         $token = $this->emailService->generateToken($user);
-        $verificationLink = $this->emailService->getVerificationLink($token['token']);
 
-        $data = [
-            'message' => 'Verification email sent',
-        ];
+        $data = ['message' => 'Verification email sent'];
 
         if (!app()->environment('production')) {
-            $data['verification_link'] = $verificationLink;
-            $data['token'] = $token['token'];
+            $data['verification_link'] = $token['link'];
+            $data['token']             = $token['token'];
         }
 
         return ApiResponse::success($data, 'Verification email sent');

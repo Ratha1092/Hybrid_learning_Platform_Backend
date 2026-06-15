@@ -92,6 +92,14 @@ class Payment extends Model
         return $this->isPending()
             && ! $this->hasExpired();
     }
+    public function isCancellable(): bool
+    {
+        return in_array($this->status, [
+            PaymentStatus::Pending,
+            PaymentStatus::Processing,
+        ], true);
+    }
+
     public function canRefund(): bool
     {
         return $this->isPaid();

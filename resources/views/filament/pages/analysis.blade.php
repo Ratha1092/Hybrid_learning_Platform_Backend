@@ -307,6 +307,55 @@ html:not(.dark) .an-sel option { background:#fff; color:#0e1e34; }
         </div>
     </div>
 
+    {{-- PLATFORM CONTENT STATS --}}
+    <p class="an-section-lbl ana an7">Platform Content (All-Time)</p>
+
+    <div class="an-g3b ana an8">
+
+        <div class="an-mini">
+            <div class="an-mini-val" style="color:var(--blue);">{{ number_format($totalCourses) }}</div>
+            <div class="an-mini-lbl">Total Courses</div>
+            <div class="an-mini-sub">{{ number_format($publishedCourses) }} published</div>
+        </div>
+
+        <div class="an-mini">
+            <div class="an-mini-val" style="color:var(--purple);">{{ number_format($totalSections) }}</div>
+            <div class="an-mini-lbl">Sections</div>
+            <div class="an-mini-sub">Across all courses</div>
+        </div>
+
+        <div class="an-mini">
+            <div class="an-mini-val" style="color:var(--cyan);">{{ number_format($totalLessons) }}</div>
+            <div class="an-mini-lbl">Lessons</div>
+            <div class="an-mini-sub">Total content units</div>
+        </div>
+
+        <div class="an-mini">
+            <div class="an-mini-val" style="color:var(--green);">{{ number_format($totalInstructors) }}</div>
+            <div class="an-mini-lbl">Instructors</div>
+            <div class="an-mini-sub">
+                @if($pendingVerifications > 0)
+                    <span style="color:var(--amber);">{{ $pendingVerifications }} pending</span>
+                @else
+                    All verified
+                @endif
+            </div>
+        </div>
+
+        <div class="an-mini">
+            <div class="an-mini-val" style="color:{{ $pendingCourseReviews > 0 ? 'var(--amber)' : 'var(--green)' }};">{{ number_format($pendingCourseReviews) }}</div>
+            <div class="an-mini-lbl">Pending Reviews</div>
+            <div class="an-mini-sub">Courses awaiting approval</div>
+        </div>
+
+        <div class="an-mini">
+            <div class="an-mini-val" style="color:var(--amber);">${{ number_format($totalInstructorBalance, 0) }}</div>
+            <div class="an-mini-lbl">Instructor Balance</div>
+            <div class="an-mini-sub">${{ number_format($totalPendingBalance, 0) }} pending</div>
+        </div>
+
+    </div>
+    
     {{-- KPI CARDS --}}
     <div class="an-kpis ana an2">
 
@@ -524,55 +573,6 @@ html:not(.dark) .an-sel option { background:#fff; color:#0e1e34; }
                     <div style="font-size:16px;font-weight:780;color:var(--red);">{{ number_format($failedPayments + $pendingPayments) }}</div>
                 </div>
             </div>
-        </div>
-
-    </div>
-
-    {{-- PLATFORM CONTENT STATS --}}
-    <p class="an-section-lbl ana an7">Platform Content (All-Time)</p>
-
-    <div class="an-g3b ana an8">
-
-        <div class="an-mini">
-            <div class="an-mini-val" style="color:var(--blue);">{{ number_format($totalCourses) }}</div>
-            <div class="an-mini-lbl">Total Courses</div>
-            <div class="an-mini-sub">{{ number_format($publishedCourses) }} published</div>
-        </div>
-
-        <div class="an-mini">
-            <div class="an-mini-val" style="color:var(--purple);">{{ number_format($totalSections) }}</div>
-            <div class="an-mini-lbl">Sections</div>
-            <div class="an-mini-sub">Across all courses</div>
-        </div>
-
-        <div class="an-mini">
-            <div class="an-mini-val" style="color:var(--cyan);">{{ number_format($totalLessons) }}</div>
-            <div class="an-mini-lbl">Lessons</div>
-            <div class="an-mini-sub">Total content units</div>
-        </div>
-
-        <div class="an-mini">
-            <div class="an-mini-val" style="color:var(--green);">{{ number_format($totalInstructors) }}</div>
-            <div class="an-mini-lbl">Instructors</div>
-            <div class="an-mini-sub">
-                @if($pendingVerifications > 0)
-                    <span style="color:var(--amber);">{{ $pendingVerifications }} pending</span>
-                @else
-                    All verified
-                @endif
-            </div>
-        </div>
-
-        <div class="an-mini">
-            <div class="an-mini-val" style="color:{{ $pendingCourseReviews > 0 ? 'var(--amber)' : 'var(--green)' }};">{{ number_format($pendingCourseReviews) }}</div>
-            <div class="an-mini-lbl">Pending Reviews</div>
-            <div class="an-mini-sub">Courses awaiting approval</div>
-        </div>
-
-        <div class="an-mini">
-            <div class="an-mini-val" style="color:var(--amber);">${{ number_format($totalInstructorBalance, 0) }}</div>
-            <div class="an-mini-lbl">Instructor Balance</div>
-            <div class="an-mini-sub">${{ number_format($totalPendingBalance, 0) }} pending</div>
         </div>
 
     </div>

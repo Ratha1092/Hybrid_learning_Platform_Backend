@@ -31,6 +31,8 @@
     $studentsUrl = url('/admin/courses/' . $course->id . '/students');
 @endphp
 
+<div class="cv">
+
 <style>
 .cv, .cv *, .cv *::before, .cv *::after { box-sizing: border-box; margin: 0; padding: 0; }
 .cv {
@@ -130,8 +132,6 @@ html:not(.dark) .cv {
 .cv-modal textarea:focus { border-color: var(--accent); }
 .cv-modal-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
 </style>
-
-<div class="cv">
 
     {{-- Top bar --}}
     <div class="cv-topbar">
@@ -352,24 +352,24 @@ html:not(.dark) .cv {
         </div>
     </div>
 
-</div>
-
-{{-- Reject modal --}}
-@if($course->isPendingReview())
-<div class="cv-modal-overlay" id="cv-reject-modal" onclick="if(event.target===this)this.classList.remove('open')">
-    <div class="cv-modal">
-        <h3>Reject Course</h3>
-        <p>Explain what the instructor needs to fix. They'll receive an email with your feedback.</p>
-        <textarea id="cv-reject-reason" placeholder="e.g. Video quality is too low, please re-record lessons 3–5 with better audio..."></textarea>
-        <div class="cv-modal-footer">
-            <button type="button" class="cv-btn cv-btn-gray" onclick="document.getElementById('cv-reject-modal').classList.remove('open')">Cancel</button>
-            <button type="button" class="cv-btn cv-btn-danger" onclick="
-                var reason = document.getElementById('cv-reject-reason').value.trim();
-                if(!reason){ alert('Rejection reason is required.'); return; }
-                document.getElementById('cv-reject-modal').classList.remove('open');
-                @this.call('rejectCourse', reason);
-            ">Reject Course</button>
+    {{-- Reject modal --}}
+    @if($course->isPendingReview())
+    <div class="cv-modal-overlay" id="cv-reject-modal" onclick="if(event.target===this)this.classList.remove('open')">
+        <div class="cv-modal">
+            <h3>Reject Course</h3>
+            <p>Explain what the instructor needs to fix. They'll receive an email with your feedback.</p>
+            <textarea id="cv-reject-reason" placeholder="e.g. Video quality is too low, please re-record lessons 3–5 with better audio..."></textarea>
+            <div class="cv-modal-footer">
+                <button type="button" class="cv-btn cv-btn-gray" onclick="document.getElementById('cv-reject-modal').classList.remove('open')">Cancel</button>
+                <button type="button" class="cv-btn cv-btn-danger" onclick="
+                    var reason = document.getElementById('cv-reject-reason').value.trim();
+                    if(!reason){ alert('Rejection reason is required.'); return; }
+                    document.getElementById('cv-reject-modal').classList.remove('open');
+                    @this.call('rejectCourse', reason);
+                ">Reject Course</button>
+            </div>
         </div>
     </div>
+    @endif
+
 </div>
-@endif

@@ -38,6 +38,7 @@ class OrderForm
                             OrderPaymentStatus::Paid->value       => 'Paid',
                             OrderPaymentStatus::Failed->value     => 'Failed',
                             OrderPaymentStatus::Expired->value    => 'Expired',
+                            OrderPaymentStatus::Cancelled->value  => 'Cancelled',
                             OrderPaymentStatus::Refunded->value   => 'Refunded',
                         ])
                         ->required(),

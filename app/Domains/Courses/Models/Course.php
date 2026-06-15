@@ -90,6 +90,7 @@ class Course extends Model
                 Cache::forget("courses.slug.{$course->slug}");
             }
         });
+        
     }
     public function submitForReview(): void
     {
@@ -239,7 +240,7 @@ class Course extends Model
             return null;
         }
 
-        return \Storage::disk(config('filament.default_filesystem_disk'))->url($this->thumbnail);
+        return \Storage::disk('public')->url($this->thumbnail);
     }
     public function scopePublished($query)
     {

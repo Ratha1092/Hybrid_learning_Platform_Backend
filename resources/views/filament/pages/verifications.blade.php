@@ -36,7 +36,7 @@ html:not(.dark) .lp {
 .lpa { opacity:0; animation:lpUp .45s cubic-bezier(.16,1,.3,1) forwards; }
 .lp1{animation-delay:.04s} .lp2{animation-delay:.09s}
 
-.lp-header { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-wrap:wrap; padding-bottom:20px; border-bottom:1px solid var(--bd); }
+.lp-header { display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; padding-bottom:20px; border-bottom:1px solid var(--bd); }
 .lp-header-text h1 { font-size:clamp(20px,2.2vw,26px); font-weight:780; letter-spacing:-.018em; color:var(--t1); line-height:1.15; }
 .lp-header-text p { font-size:12px; color:var(--t2); margin-top:5px; }
 

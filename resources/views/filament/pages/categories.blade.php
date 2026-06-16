@@ -32,7 +32,7 @@ html:not(.dark) .lp {
 .lp1{animation-delay:.04s} .lp2{animation-delay:.09s}
 
 .lp-header {
-    display:flex; align-items:flex-start; justify-content:space-between;
+    display:flex; align-items:center; justify-content:space-between;
     gap:16px; flex-wrap:wrap;
     padding-bottom:20px; border-bottom:1px solid var(--bd);
 }
@@ -229,12 +229,16 @@ html:not(.dark) .lp {
                     </td>
 
                     <td class="lp-count-cell">
-                        <span class="lp-count-val">
+                        <a href="{{ route('filament.admin.pages.category-courses') }}?id={{ $cat->id }}"
+                           class="lp-count-val"
+                           title="View courses in {{ $cat->name }}"
+                           style="text-decoration:none;cursor:{{ $cat->courses_count > 0 ? 'pointer' : 'default' }};border-radius:7px;padding:4px 8px;transition:background .15s;{{ $cat->courses_count === 0 ? 'opacity:.45;pointer-events:none' : '' }}"
+                           onmouseover="this.style.background='var(--p2)'" onmouseout="this.style.background=''">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"/>
                             </svg>
                             {{ number_format($cat->courses_count) }}
-                        </span>
+                        </a>
                     </td>
 
                     <td><span class="lp-date">{{ $cat->created_at?->format('M d, Y') }}</span></td>

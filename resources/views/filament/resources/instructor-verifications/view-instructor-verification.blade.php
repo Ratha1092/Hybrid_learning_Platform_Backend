@@ -43,7 +43,7 @@ html:not(.dark) .iv {
 .iv1{animation-delay:.04s} .iv2{animation-delay:.09s} .iv3{animation-delay:.14s} .iv4{animation-delay:.19s}
 
 /* Header */
-.iv-header { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-wrap:wrap; padding-bottom:20px; border-bottom:1px solid var(--bd); }
+.iv-header { display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; padding-bottom:20px; border-bottom:1px solid var(--bd); }
 .iv-header-left { display:flex; align-items:center; gap:12px; }
 .iv-back { display:inline-flex; align-items:center; gap:5px; padding:7px 13px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; text-decoration:none; color:var(--t2); background:var(--p1); border:1px solid var(--bd2); transition:background .15s, color .15s; }
 .iv-back:hover { background:var(--p2); color:var(--t1); }

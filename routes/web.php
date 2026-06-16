@@ -5,6 +5,7 @@ use App\Domains\Notifications\Notifications\CourseApprovedNotification;
 use App\Domains\Notifications\Notifications\CourseRejectedNotification;
 use App\Domains\Payments\Models\Payment;
 use App\Domains\Payments\Services\BakongKhqrService;
+use App\Domains\System\Models\Setting;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -66,6 +67,25 @@ Route::middleware(['web', 'auth'])->group(function () {
         session()->flash('course_success', 'Course returned to draft.');
         return redirect()->back();
     })->name('admin.courses.return-to-draft');
+
+    Route::post('/admin/settings/commission', function (\Illuminate\Http\Request $request) {
+        $value = $request->input('default_commission_percentage');
+
+        if (!is_numeric($value) || (float)$value < 0 || (float)$value > 100) {
+            return back()->with('settings_error', 'Commission must be a number between 0 and 100.');
+        }
+
+        $value = round((float) $value, 2);
+        Setting::set('default_commission_percentage', $value, 'finance');
+
+        if ($request->boolean('apply_to_all_courses')) {
+            Course::withoutGlobalScopes()->update(['commission_percentage' => $value]);
+            $count = Course::withoutGlobalScopes()->count();
+            return back()->with('settings_success', "Commission updated to {$value}% and applied to all {$count} courses.");
+        }
+
+        return back()->with('settings_success', "Default commission set to {$value}%. New courses will use this rate.");
+    })->name('admin.settings.commission');
 
     Route::post('/admin/courses/{course}/archive', function (Course $course) {
         if ($course->isPublished()) {

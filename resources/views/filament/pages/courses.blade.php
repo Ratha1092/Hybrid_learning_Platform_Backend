@@ -56,7 +56,7 @@ html:not(.dark) .cp {
 
 /* ── Page header ── */
 .cp-header {
-    display: flex; align-items: flex-start; justify-content: space-between;
+    display: flex; align-items: center; justify-content: space-between;
     gap: 16px; flex-wrap: wrap;
     padding-bottom: 20px; border-bottom: 1px solid var(--bd);
 }

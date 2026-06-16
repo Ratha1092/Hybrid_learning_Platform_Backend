@@ -20,9 +20,21 @@ use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use App\Filament\Pages\Dashboard;
+use App\Domains\System\Models\Setting;
+use Filament\Support\Facades\FilamentIcon;
 
 class AdminPanelProvider extends PanelProvider
 {
+    public function register(): void
+    {
+        parent::register();
+
+        FilamentIcon::register([
+            'panels::sidebar.collapse-button' => 'heroicon-o-adjustments-horizontal',
+            'panels::sidebar.expand-button'   => 'heroicon-o-adjustments-horizontal',
+        ]);
+    }
+
     public function panel(Panel $panel): Panel
     {
         return $panel
@@ -40,25 +52,29 @@ class AdminPanelProvider extends PanelProvider
                 'primary' => Color::Amber,
             ])
             ->renderHook(
+                PanelsRenderHook::GLOBAL_SEARCH_BEFORE,
+                function () {
+                    $rate = (float) Setting::get('default_commission_percentage', 20);
+                    $url  = url('/admin/settings');
+                    return <<<HTML
+                    <a href="{$url}" title="Platform commission rate — click to configure" class="hl-commission-pill">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/>
+                        </svg>
+                        Commission {$rate}%
+                    </a>
+                    HTML;
+                }
+            )
+            ->renderHook(
                 PanelsRenderHook::USER_MENU_BEFORE,
                 fn() => Blade::render('@livewire("admin-notification-bell")')
             )
-            ->navigationGroups([
-                NavigationGroup::make('Overview')
-                    // ->icon('heroicon-o-squares-2x2')
-                    ->collapsible(),
-                NavigationGroup::make('Learning')
-                    // ->icon('heroicon-o-academic-cap')
-                    ->collapsible(),
-                NavigationGroup::make('Marketplace')
-                    // ->icon('heroicon-o-shopping-bag')
-                    ->collapsible(),
-                NavigationGroup::make('Users')
-                    // ->icon('heroicon-o-users')
-                    ->collapsible(),
-                NavigationGroup::make('System')
-                    // ->icon('heroicon-o-cog-6-tooth')
-                    ->collapsible(),
+            ->navigationGroups([NavigationGroup::make('Overview')->collapsible(),
+                NavigationGroup::make('Learning')->collapsible(),
+                NavigationGroup::make('Marketplace')->collapsible(),
+                NavigationGroup::make('Users')->collapsible(),
+                NavigationGroup::make('System')->collapsible(),
             ])
             ->discoverResources(
                 in: app_path('Filament/Resources'),

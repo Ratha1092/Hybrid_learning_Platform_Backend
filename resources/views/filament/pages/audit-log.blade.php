@@ -39,7 +39,7 @@ html:not(.dark) .al {
 .al1{animation-delay:.04s} .al2{animation-delay:.09s} .al3{animation-delay:.14s}
 
 /* ── Header ─────────────────────────────────────────────────── */
-.al-header { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-wrap:wrap; padding-bottom:20px; border-bottom:1px solid var(--bd); }
+.al-header { display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; padding-bottom:20px; border-bottom:1px solid var(--bd); }
 .al-header-text h1 { font-size:clamp(20px,2.2vw,26px); font-weight:780; letter-spacing:-.018em; color:var(--t1); line-height:1.15; }
 .al-header-text p  { font-size:12px; color:var(--t2); margin-top:5px; }
 

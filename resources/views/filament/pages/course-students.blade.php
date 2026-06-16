@@ -18,7 +18,7 @@ html:not(.dark) .cs {
     --sh: 0 2px 16px rgba(15,23,42,.1);
 }
 
-.cs-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding-bottom: 20px; border-bottom: 1px solid var(--bd); }
+.cs-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding-bottom: 20px; border-bottom: 1px solid var(--bd); }
 .cs-back { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--t2); text-decoration: none; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--bd2); transition: background .15s, color .15s; }
 .cs-back:hover { background: var(--p2); color: var(--t1); }
 .cs-back svg { width: 14px; height: 14px; }

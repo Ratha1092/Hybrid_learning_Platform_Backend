@@ -12,6 +12,7 @@ class SectionForm
     {
         return $schema
             ->components([
+                Forms\Components\Hidden::make('id'),
                 Forms\Components\Select::make('course_id')
                     ->label('Course')
                     ->options(

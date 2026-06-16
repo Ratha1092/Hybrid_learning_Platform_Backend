@@ -87,6 +87,7 @@
                 <div style="font-size:1.15rem;font-weight:700;margin-top:2px">{{ number_format($todayData['new_users']) }}</div>
             </div>
         </div>
+        
     </div>
 
     <div class="chart-row">

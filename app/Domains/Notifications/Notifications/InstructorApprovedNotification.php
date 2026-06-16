@@ -17,8 +17,8 @@ class InstructorApprovedNotification extends Notification
     public function toArray(object $notifiable): array
     {
         return [
-            'title' => 'Application Approved',
-            'message' => 'Your instructor application has been approved. Please logout and login again to access your instructor dashboard.',
+            'title' => 'Admin Approved',
+            'message' => 'Your instructor form has been approved.Please log out and log back in to your instructor dashboard to get started.',
             'type' => 'instructor_approved',
             'link' => env('FRONTEND_URL', 'http://localhost:3000') . '/instructor/login',
             'action_text' => 'Go to Instructor Dashboard',

@@ -16,7 +16,6 @@ return new class extends Migration
             $table->string('password');
             $table->string('avatar')->nullable();
             $table->string('phone')->nullable();
-            $table->string('role')->default('student')->index();
             $table->string('status')->default('active');
             $table->timestamp('last_login_at')->nullable();
             $table->rememberToken();

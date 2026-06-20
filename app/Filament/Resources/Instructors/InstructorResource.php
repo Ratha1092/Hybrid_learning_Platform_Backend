@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Instructors;
 
 use App\Domains\Users\Models\User;
+use App\Support\PanelAccess;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Support\Icons\Heroicon;
@@ -37,19 +38,20 @@ class InstructorResource extends Resource
                     ->searchable()
                     ->color('gray'),
 
-                Tables\Columns\TextColumn::make('instructor_status')
+                Tables\Columns\TextColumn::make('instructorVerification.status')
                     ->label('Status')
                     ->badge()
                     ->formatStateUsing(fn (?string $state) => match ($state) {
-                        'verified'  => 'Verified',
+                        'approved'  => 'Verified',
                         'pending'   => 'Pending',
                         'rejected'  => 'Rejected',
+                        'suspended' => 'Suspended',
                         default     => ucfirst($state ?? 'Unknown'),
                     })
                     ->color(fn (?string $state) => match ($state) {
-                        'verified'  => 'success',
+                        'approved'  => 'success',
                         'pending'   => 'warning',
-                        'rejected'  => 'danger',
+                        'rejected', 'suspended' => 'danger',
                         default     => 'gray',
                     }),
 
@@ -67,17 +69,22 @@ class InstructorResource extends Resource
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('instructor_status')
+                    ->label('Status')
                     ->options([
-                        'verified' => 'Verified',
+                        'approved' => 'Verified',
                         'pending'  => 'Pending',
                         'rejected' => 'Rejected',
-                    ]),
+                    ])
+                    ->query(fn (Builder $query, array $data) => $query->when(
+                        $data['value'],
+                        fn (Builder $q, $value) => $q->whereHas('instructorVerification', fn ($q2) => $q2->where('status', $value))
+                    )),
             ]);
     }
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->where('role', 'instructor');
+        return parent::getEloquentQuery()->role('instructor');
     }
 
     public static function getPages(): array
@@ -88,5 +95,10 @@ class InstructorResource extends Resource
     public static function canCreate(): bool
     {
         return false;
+    }
+
+    public static function canViewAny(): bool
+    {
+        return PanelAccess::can('users.view');
     }
 }

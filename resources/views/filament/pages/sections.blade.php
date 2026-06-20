@@ -82,6 +82,7 @@ html:not(.dark) .lp {
 .lp-table tbody tr { border-bottom:1px solid var(--bd); transition:background .12s; }
 .lp-table tbody tr:last-child { border-bottom:none; }
 .lp-table tbody tr:hover { background:var(--p2); }
+.lp-row-link { cursor:pointer; }
 .lp-table td { padding:12px 12px; vertical-align:middle; }
 
 .lp-id   { font-size:11.5px; font-weight:700; color:var(--t2); white-space:nowrap; }
@@ -193,7 +194,7 @@ html:not(.dark) .lp {
             </thead>
             <tbody>
                 @forelse ($sections as $section)
-                <tr>
+                <tr class="lp-row-link" onclick="window.location='{{ $viewUrl($section) }}'">
                     <td><span class="lp-id">{{ $section->id }}</span></td>
 
                     <td><span class="lp-title">{{ $section->title }}</span></td>
@@ -213,7 +214,7 @@ html:not(.dark) .lp {
 
                     <td><span class="lp-date">{{ $section->created_at?->format('M d, Y') }}</span></td>
 
-                    <td>
+                    <td onclick="event.stopPropagation()">
                         <div class="lp-actions">
                             <a href="{{ $viewUrl($section) }}" class="lp-act-btn" title="View">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">

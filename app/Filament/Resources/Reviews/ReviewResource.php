@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Reviews;
 
 use App\Domains\Learning\Models\Review;
+use App\Support\PanelAccess;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Support\Icons\Heroicon;
@@ -68,5 +69,10 @@ class ReviewResource extends Resource
     public static function canCreate(): bool
     {
         return false;
+    }
+
+    public static function canViewAny(): bool
+    {
+        return PanelAccess::can('reviews.view');
     }
 }

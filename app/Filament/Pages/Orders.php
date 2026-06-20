@@ -3,17 +3,49 @@
 namespace App\Filament\Pages;
 
 use App\Domains\Orders\Models\Order;
+use App\Support\NavBadge;
+use App\Support\PanelAccess;
 use BackedEnum;
 use Filament\Pages\Page;
+use Illuminate\Support\Number;
 
 class Orders extends Page
 {
     protected string $view = 'filament.pages.orders';
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-shopping-bag';
     protected static ?string $navigationLabel = 'Orders';
-    protected static string|\UnitEnum|null $navigationGroup = 'Marketplace';
+    protected static string|\UnitEnum|null $navigationGroup = 'Commerce';
     protected static ?int $navigationSort = 1;
     protected static ?string $slug = 'orders';
+
+    public static function canAccess(): bool
+    {
+        return PanelAccess::can('orders.view');
+    }
+
+    public function mount(): void
+    {
+        NavBadge::markSeen('orders');
+    }
+
+    public static function getNavigationBadge(): ?string
+    {
+        $count = NavBadge::countSince('orders', fn (?\Carbon\Carbon $since) => $since
+            ? Order::where('created_at', '>', $since)->count()
+            : Order::count());
+
+        return $count > 0 ? Number::abbreviate($count) : null;
+    }
+
+    public static function getNavigationBadgeColor(): ?string
+    {
+        return 'danger';
+    }
+
+    public static function getNavigationBadgeTooltip(): ?string
+    {
+        return 'New orders since you last viewed this page';
+    }
 
     public function getHeading(): string|\Illuminate\Contracts\Support\Htmlable
     {

@@ -34,11 +34,6 @@ class ViewInstructorVerification extends ViewRecord
             'reviewed_at' => now(),
         ]);
 
-        $record->user->update([
-            'role'               => 'instructor',
-            'instructor_status'  => 'verified',
-        ]);
-
         $record->user->syncRoles(['instructor']);
 
         $record->user->notify(new InstructorApprovedNotification());
@@ -70,7 +65,7 @@ class ViewInstructorVerification extends ViewRecord
             'reviewed_at'      => now(),
         ]);
 
-        $record->user->update(['instructor_status' => 'rejected']);
+        $record->user->removeRole('instructor');
 
         $record->user->notify(new InstructorRejectedNotification($reason));
 

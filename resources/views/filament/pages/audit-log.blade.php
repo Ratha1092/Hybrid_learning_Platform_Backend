@@ -1,5 +1,6 @@
 @php
     $url = fn(array $p) => url()->current() . '?' . http_build_query(array_merge(request()->query(), $p));
+    $activeTab = collect($tabs ?? [])->firstWhere('active', true) ?? ($tabs[0] ?? ['key' => 'all', 'label' => 'All', 'color' => '#6366f1']);
 
     $accent = '#6366f1';
 
@@ -53,13 +54,36 @@ html:not(.dark) .al {
 @media(max-width:640px){ .al-stats { grid-template-columns:1fr; } }
 
 /* ── Card ───────────────────────────────────────────────────── */
-.al-card { background:var(--p1); border:1px solid var(--bd); border-radius:12px; overflow:hidden; box-shadow:var(--sh); }
+.al-card { background:var(--p1); border:1px solid var(--bd); border-radius:12px; box-shadow:var(--sh); }
 
 /* ── Toolbar ────────────────────────────────────────────────── */
 .al-toolbar { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 16px; border-bottom:1px solid var(--bd); flex-wrap:wrap; }
-.al-tabs { display:flex; align-items:center; gap:4px; flex-wrap:wrap; }
-.al-tab  { display:inline-flex; align-items:center; gap:6px; padding:5px 12px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; text-decoration:none; color:var(--t2); border:1px solid transparent; transition:background .15s, color .15s, border-color .15s; white-space:nowrap; }
-.al-tab:hover { background:var(--p2); color:var(--t1); }
+.al-role-filter { position:relative; flex-shrink:0; }
+.al-role-filter-btn {
+    display:inline-flex; align-items:center; gap:8px; padding:8px 12px;
+    border-radius:9px; font-size:12.5px; font-weight:700; color:var(--t1);
+    background:var(--p2); border:1px solid var(--bd2); cursor:pointer;
+    font-family:inherit; transition:background .15s, border-color .15s;
+}
+.al-role-filter-btn:hover { background:var(--p2); border-color:var(--bd2); }
+.al-role-filter-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.al-role-filter-chevron { width:13px; height:13px; color:var(--t2); transition:transform .15s; margin-left:2px; }
+.al-role-filter:focus-within .al-role-filter-chevron { transform:rotate(180deg); }
+.al-role-filter-menu {
+    display:none; position:absolute; left:0; top:calc(100% + 6px);
+    background:var(--p1); border:1px solid var(--bd2);
+    border-radius:10px; box-shadow:0 12px 32px rgba(0,0,0,.35);
+    min-width:220px; max-height:340px; overflow-y:auto; z-index:50; padding:6px;
+}
+.al-role-filter:focus-within .al-role-filter-menu { display:block; }
+.al-role-filter-item {
+    display:flex; align-items:center; gap:9px; padding:8px 10px; border-radius:7px;
+    font-size:12.5px; font-weight:600; color:var(--t1); text-decoration:none;
+    transition:background .12s;
+}
+.al-role-filter-item:hover { background:var(--p2); }
+.al-role-filter-item.active { background:var(--p2); }
+.al-role-filter-item-label { flex:1 1 auto; }
 
 /* filters row */
 .al-filters { display:flex; align-items:center; gap:8px; flex-wrap:wrap; padding:10px 16px; border-bottom:1px solid var(--bd); background:var(--p2); }
@@ -188,21 +212,25 @@ html:not(.dark) .al {
 
     {{-- Action tabs --}}
     <div class="al-toolbar">
-        <div class="al-tabs">
-            @foreach ($tabs as $t)
-            @php
-                $isActive  = $t['active'];
-                $tabStyle  = $isActive
-                    ? "background:{$t['color']}1a;color:{$t['color']};border-color:{$t['color']}55;"
-                    : '';
-            @endphp
-            <a href="{{ $url(['action' => $t['key'], 'page' => 1]) }}" class="al-tab" style="{{ $tabStyle }}">
-                @if ($t['key'] === 'failed_login')
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0zm-9 3.75h.008v.008H12v-.008z"/></svg>
-                @endif
-                {{ $t['label'] }}
-            </a>
-            @endforeach
+        <div class="al-role-filter" tabindex="0">
+            <button type="button" class="al-role-filter-btn">
+                <span class="al-role-filter-dot" style="background:{{ $activeTab['color'] }}"></span>
+                {{ $activeTab['label'] }}
+                <svg class="al-role-filter-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/>
+                </svg>
+            </button>
+            <div class="al-role-filter-menu">
+                @foreach ($tabs as $t)
+                <a href="{{ $url(['action' => $t['key'], 'page' => 1]) }}" class="al-role-filter-item {{ $t['active'] ? 'active' : '' }}">
+                    <span class="al-role-filter-dot" style="background:{{ $t['color'] }}"></span>
+                    <span class="al-role-filter-item-label">{{ $t['label'] }}</span>
+                    @if ($t['key'] === 'failed_login')
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0zm-9 3.75h.008v.008H12v-.008z"/></svg>
+                    @endif
+                </a>
+                @endforeach
+            </div>
         </div>
     </div>
 
@@ -241,7 +269,7 @@ html:not(.dark) .al {
     </form>
 
     {{-- Table --}}
-    <div style="overflow-x:auto">
+    <div style="overflow-x:auto;border-radius:0 0 12px 12px;">
     <table class="al-table">
         <thead>
             <tr>

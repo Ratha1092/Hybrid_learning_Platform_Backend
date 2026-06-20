@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 
 use App\Domains\Courses\Models\Course;
 use App\Domains\Learning\Models\Enrollment;
+use App\Support\PanelAccess;
 use BackedEnum;
 use Filament\Pages\Page;
 
@@ -12,6 +13,11 @@ class CourseStudents extends Page
     protected string $view = 'filament.pages.course-students';
     protected static bool $shouldRegisterNavigation = false;
     protected static ?string $slug = 'courses/{course}/students';
+
+    public static function canAccess(): bool
+    {
+        return PanelAccess::can('courses.view');
+    }
 
     public function getHeading(): string|\Illuminate\Contracts\Support\Htmlable
     {

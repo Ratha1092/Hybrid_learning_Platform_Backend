@@ -38,14 +38,11 @@ class UserService
         if ($userData !== []) {
             $user->update($userData);
         }
-
-        // Update student profile
         if ($user->isStudent()) {
             $studentProfileData = $this->onlyPresent(
                 $data,
                 self::STUDENT_PROFILE_FIELDS
             );
-
             if ($studentProfileData !== []) {
                 $user->studentProfile()->updateOrCreate(
                     ['user_id' => $user->id],
@@ -53,14 +50,11 @@ class UserService
                 );
             }
         }
-
-        // Update instructor profile
         if ($user->isInstructor()) {
             $instructorProfileData = $this->onlyPresent(
                 $data,
                 self::INSTRUCTOR_PROFILE_FIELDS
             );
-
             if ($instructorProfileData !== []) {
                 $user->instructorProfile()->updateOrCreate(
                     ['user_id' => $user->id],

@@ -29,7 +29,7 @@ class Login extends BaseLogin
                 return [
                     [
                         'value' => $this->formatCompactNumber(
-                            User::where('role', 'student')->count()
+                            User::role('student')->count()
                         ),
                         'label' => 'Students',
                     ],
@@ -39,8 +39,8 @@ class Login extends BaseLogin
                     ],
                     [
                         'value' => $this->formatCompactNumber(
-                            User::where('role', 'instructor')
-                                ->where('instructor_status', User::INSTRUCTOR_VERIFIED)
+                            User::role('instructor')
+                                ->whereHas('instructorVerification', fn ($q) => $q->where('status', User::INSTRUCTOR_VERIFIED))
                                 ->count()
                         ),
                         'label' => 'Instructors',
@@ -59,7 +59,6 @@ class Login extends BaseLogin
     private function getPlatformInitials(): string
     {
         $words = preg_split('/\s+/', trim((string) config('app.name', 'Hybrid Learning')));
-
         $initials = collect($words)
             ->filter()
             ->take(3)
@@ -78,7 +77,6 @@ class Login extends BaseLogin
         if ($value >= 1000) {
             return round($value / 1000, 1) . 'K';
         }
-
         return (string) $value;
     }
 }

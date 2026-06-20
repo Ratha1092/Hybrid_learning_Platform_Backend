@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 
 use App\Domains\Courses\Models\Category;
 use App\Domains\Courses\Models\Course;
+use App\Support\PanelAccess;
 use BackedEnum;
 use Filament\Pages\Page;
 
@@ -13,6 +14,11 @@ class CategoryCourses extends Page
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-academic-cap';
     protected static bool $shouldRegisterNavigation = false;
     protected static ?string $slug = 'category-courses';
+
+    public static function canAccess(): bool
+    {
+        return PanelAccess::can('courses.view');
+    }
 
     public function getHeading(): string|\Illuminate\Contracts\Support\Htmlable
     {

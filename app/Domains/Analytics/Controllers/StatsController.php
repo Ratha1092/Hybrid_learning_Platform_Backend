@@ -13,8 +13,8 @@ class StatsController extends Controller
     public function index()
     {
         return ApiResponse::success([
-            'total_students'    => User::where('role', 'student')->count(),
-            'total_instructors' => User::where('role', 'instructor')->count(),
+            'total_students'    => User::role('student')->count(),
+            'total_instructors' => User::role('instructor')->count(),
             'total_courses'     => Course::where('status', Course::STATUS_PUBLISHED)->count(),
             'total_enrollments' => Enrollment::count(),
         ], 'Platform stats retrieved successfully');

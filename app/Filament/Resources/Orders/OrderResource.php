@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Orders;
 
 use App\Domains\Orders\Models\Order;
+use App\Support\PanelAccess;
 use App\Filament\Resources\Orders\Pages;
 use App\Filament\Resources\Orders\Schemas\OrderForm;
 use App\Filament\Resources\Orders\Schemas\OrderInfolist;
@@ -42,5 +43,10 @@ class OrderResource extends Resource
             'view' => Pages\ViewOrder::route('/{record}'),
             'edit' => Pages\EditOrder::route('/{record}/edit'),
         ];
+    }
+
+    public static function canViewAny(): bool
+    {
+        return PanelAccess::can('orders.view');
     }
 }

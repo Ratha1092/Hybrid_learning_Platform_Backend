@@ -47,7 +47,7 @@ class InstructorVerificationController extends Controller
         $verification = $this->service->latestForUser($user);
 
         return ApiResponse::success([
-            'instructor_status' => $user->instructor_status,
+            'instructor_status' => $verification?->status,
             'application' => $verification,
         ], 'Instructor application status retrieved successfully');
     }

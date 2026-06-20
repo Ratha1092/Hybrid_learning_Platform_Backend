@@ -11,7 +11,6 @@ class InstructorVerificationService
 {
     public function apply(User $user, array $data): InstructorVerification
     {
-        // Prevent duplicate applications
         if (
             InstructorVerification::where('user_id', $user->id)
                 ->where('status', 'pending')
@@ -23,7 +22,6 @@ class InstructorVerificationService
         }
 
         if (
-            $user->instructor_status === User::INSTRUCTOR_VERIFIED ||
             InstructorVerification::where('user_id', $user->id)
                 ->where('status', 'approved')
                 ->exists()
@@ -34,34 +32,21 @@ class InstructorVerificationService
         }
 
         $verification = DB::transaction(function () use ($user, $data) {
-
-            // Upload certificate
             $certificatePath = $data['certificate_file']
                 ->store('verifications/certificates', 'public');
-
-            // Upload identity document
             $identityPath = $data['identity_file']
                 ->store('verifications/identities', 'public');
-
-            // Create instructor verification
             $verification = InstructorVerification::create([
                 'user_id' => $user->id,
-
                 'bio' => $data['bio'],
                 'experience' => $data['experience'],
                 'qualification_type' => $data['qualification_type'],
                 'institution' => $data['institution'],
                 'completion_year' => $data['completion_year'],
                 'portfolio_url' => $data['portfolio_url'] ?? null,
-
                 'certificate_file' => $certificatePath,
                 'identity_file' => $identityPath,
-
                 'status' => 'pending',
-            ]);
-
-            $user->update([
-                'instructor_status' => User::INSTRUCTOR_PENDING,
             ]);
 
             return $verification;
@@ -83,7 +68,7 @@ class InstructorVerificationService
         InstructorVerification $verification,
         User $user
     ): void {
-        $admins = User::admins()->get();
+        $admins = User::role(['super-admin', 'admin'])->get();
 
         if ($admins->isEmpty()) {
             return;

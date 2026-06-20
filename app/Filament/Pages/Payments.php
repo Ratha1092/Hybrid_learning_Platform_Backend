@@ -4,17 +4,25 @@ namespace App\Filament\Pages;
 
 use App\Domains\Payments\Models\Payment;
 use App\Domains\Payments\Services\BakongKhqrService;
+use App\Support\NavBadge;
+use App\Support\PanelAccess;
 use BackedEnum;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use Illuminate\Support\Number;
 class Payments extends Page
 {
     protected string $view = 'filament.pages.payments';
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-credit-card';
     protected static ?string $navigationLabel = 'Payments';
-    protected static string|\UnitEnum|null $navigationGroup = 'Marketplace';
+    protected static string|\UnitEnum|null $navigationGroup = 'Commerce';
     protected static ?int $navigationSort = 2;
     protected static ?string $slug = 'payments';
+
+    public static function canAccess(): bool
+    {
+        return PanelAccess::can('payments.view');
+    }
 
     public string $activeTab   = 'all';
     public string $search      = '';
@@ -28,6 +36,27 @@ class Payments extends Page
         $this->currentPage = max(1, (int) request('page', 1));
         $this->perPage     = in_array((int) request('per_page', 10), [10, 25, 50])
             ? (int) request('per_page', 10) : 10;
+
+        NavBadge::markSeen('payments');
+    }
+
+    public static function getNavigationBadge(): ?string
+    {
+        $count = NavBadge::countSince('payments', fn (?\Carbon\Carbon $since) => $since
+            ? Payment::where('created_at', '>', $since)->count()
+            : Payment::count());
+
+        return $count > 0 ? Number::abbreviate($count) : null;
+    }
+
+    public static function getNavigationBadgeColor(): ?string
+    {
+        return 'danger';
+    }
+
+    public static function getNavigationBadgeTooltip(): ?string
+    {
+        return 'New payments since you last viewed this page';
     }
 
     public function getHeading(): string|\Illuminate\Contracts\Support\Htmlable

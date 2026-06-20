@@ -6,6 +6,7 @@ use App\Domains\Learning\Models\Enrollment;
 
 use App\Domains\Orders\Models\Order;
 use App\Domains\Orders\Models\OrderItem;
+use App\Domains\System\Models\Setting;
 
 use Illuminate\Support\Facades\DB;
 
@@ -28,6 +29,8 @@ class EnrollmentService
         Order $order,
         OrderItem $item
     ): void {
+        $durationMonths = (int) Setting::get('course_access_duration_months', 6);
+
         Enrollment::firstOrCreate(
 
             [
@@ -42,6 +45,7 @@ class EnrollmentService
                 'progress_percentage' => 0,
                 'certificate_issued' => false,
                 'enrolled_at' => now(),
+                'expires_at' => $durationMonths > 0 ? now()->addMonths($durationMonths) : null,
             ]
         );
     }

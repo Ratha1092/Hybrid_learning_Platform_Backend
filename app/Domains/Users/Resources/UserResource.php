@@ -12,12 +12,10 @@ class UserResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'email' => $this->email,
-            'role' => $this->role,
+            'role' => $this->getRoleNames()->first(),
             'email_verified_at' => $this->email_verified_at,
-
             'student_profile' => $this->whenLoaded('studentProfile'),
             'instructor_profile' => $this->whenLoaded('instructorProfile'),
-
             'created_at' => $this->created_at,
         ];
     }

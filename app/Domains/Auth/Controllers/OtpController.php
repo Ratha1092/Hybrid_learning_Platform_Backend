@@ -3,6 +3,7 @@
 namespace App\Domains\Auth\Controllers;
 
 use App\Domains\Auth\Services\OtpService;
+use App\Domains\Users\Models\User;
 use App\Support\ApiResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -17,7 +18,13 @@ class OtpController extends Controller
             'email' => ['required', 'email', 'max:255'],
         ]);
 
-        $plain = $this->otp->send($request->input('email'));
+        $email = strtolower(trim($request->input('email')));
+
+        if (User::where('email', $email)->exists()) {
+            return ApiResponse::error('This email is already registered', 422);
+        }
+
+        $plain = $this->otp->send($email);
 
         $data = [];
 

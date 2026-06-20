@@ -7,6 +7,7 @@ use App\Domains\Courses\Models\Course;
 use App\Domains\Courses\Models\Lesson;
 use App\Domains\Courses\Models\Section;
 use App\Domains\Users\Models\User;
+use App\Domains\Users\Models\InstructorVerification;
 use App\Domains\Orders\Models\Order;
 use App\Domains\Payments\Enums\PaymentStatus;
 use App\Domains\Payments\Models\Payment;
@@ -117,19 +118,18 @@ class Dashboard extends BaseDashboard
         };
 
         // ── People ──────────────────────────────────────────────────────
-        $studentQ = User::where('role', 'student');
+        $studentQ = User::role('student');
         $this->applyDateRange($studentQ, 'created_at', $from, $to);
         $totalStudents = $studentQ->count();
 
         // Use the already date-filtered student count so this sub-stat responds to the period filter.
         $newStudentsThisMonth = $totalStudents;
 
-        $totalInstructors     = User::where('role', 'instructor')->count();
-        $pendingVerifications = User::where('role', 'instructor')->where('is_verified', false)->count();
+        $totalInstructors     = User::role('instructor')->count();
+        $pendingVerifications = InstructorVerification::pending()->count();
         $pendingCourseReviews = Course::where('status', Course::STATUS_PENDING)->count();
 
-        $pendingInstructors = User::where('role', 'instructor')
-            ->where('is_verified', false)
+        $pendingInstructors = User::whereHas('instructorVerification', fn ($q) => $q->where('status', 'pending'))
             ->latest()->take(5)->get();
 
         // ── Courses ──────────────────────────────────────────────────────
@@ -189,7 +189,7 @@ class Dashboard extends BaseDashboard
             $date = (clone $trendBase)->subMonths($mo);
             return [
                 'month' => $date->format('M'),
-                'count' => User::where('role', 'student')
+                'count' => User::role('student')
                     ->whereMonth('created_at', $date->month)
                     ->whereYear('created_at', $date->year)
                     ->count(),

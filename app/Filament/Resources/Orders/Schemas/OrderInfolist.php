@@ -105,11 +105,12 @@ class OrderInfolist
                             ->label('Email')
                             ->icon('heroicon-m-envelope')
                             ->copyable(),
-                        TextEntry::make('user.role')
+                        TextEntry::make('user.roles.name')
                             ->label('Role')
                             ->badge()
+                            ->separator(',')
                             ->color(fn ($state) => match ($state?->value ?? $state) {
-                                'admin'      => 'danger',
+                                'super-admin', 'admin' => 'danger',
                                 'instructor' => 'warning',
                                 'student'    => 'info',
                                 default      => 'gray',

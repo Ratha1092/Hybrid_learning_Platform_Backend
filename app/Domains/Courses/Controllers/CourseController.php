@@ -45,19 +45,25 @@ class CourseController extends Controller
         }
 
         $user = auth('sanctum')->user();
-        $isEnrolled = $user && Enrollment::where('user_id', $user->id)
+        $enrollment = $user ? Enrollment::where('user_id', $user->id)
             ->where('course_id', $course->id)
-            ->exists();
+            ->first() : null;
+
+        $isEnrolled = (bool) $enrollment;
+        $accessExpired = $enrollment ? $enrollment->isExpired() : false;
+        $hasAccess = $enrollment && $enrollment->status === 'active' && !$accessExpired;
 
         $courseData = $course->toArray();
         $courseData['is_enrolled'] = $isEnrolled;
+        $courseData['access_expired'] = $accessExpired;
+        $courseData['access_expires_at'] = $enrollment?->expires_at?->toIso8601String();
 
-        $courseData['sections'] = $course->sections->map(function ($section) use ($isEnrolled) {
+        $courseData['sections'] = $course->sections->map(function ($section) use ($hasAccess) {
             $sectionData = $section->toArray();
-            $sectionData['lessons'] = $section->lessons->map(function ($lesson) use ($isEnrolled) {
+            $sectionData['lessons'] = $section->lessons->map(function ($lesson) use ($hasAccess) {
                 $lessonData = $lesson->toArray();
 
-                $canWatch = $isEnrolled || $lesson->is_preview;
+                $canWatch = $hasAccess || $lesson->is_preview;
                 $lessonData['video_url'] = $canWatch ? $this->resolveVideoUrl($lesson) : null;
 
                 return $lessonData;

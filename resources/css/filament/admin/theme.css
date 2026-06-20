@@ -1,27 +1,30 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 @import '../../../../vendor/filament/filament/resources/css/theme.css';
 
 @source '../../../../app/Filament/**/*';
 @source '../../../../resources/views/filament/**/*';
 
-/* 
+/*
    LIGHT MODE
  */
 
 :root {
     --fi-font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    --hl-font-display: 'Space Grotesk', 'Inter', sans-serif;
+    --hl-font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
 
-    --fi-color-primary-50: 255 247 237;
-    --fi-color-primary-100: 255 237 213;
-    --fi-color-primary-200: 254 215 170;
-    --fi-color-primary-300: 253 186 116;
-    --fi-color-primary-400: 251 146 60;
-    --fi-color-primary-500: 249 115 22;
-    --fi-color-primary-600: 234 88 12;
-    --fi-color-primary-700: 194 65 12;
-    --fi-color-primary-800: 154 52 18;
-    --fi-color-primary-900: 124 45 18;
-    --fi-color-primary-950: 67 20 7;
+    /* brass accent scale (built around #D7A441) */
+    --fi-color-primary-50: 253 248 237;
+    --fi-color-primary-100: 250 240 219;
+    --fi-color-primary-200: 245 224 180;
+    --fi-color-primary-300: 237 202 137;
+    --fi-color-primary-400: 227 182 101;
+    --fi-color-primary-500: 215 164 65;
+    --fi-color-primary-600: 187 138 48;
+    --fi-color-primary-700: 149 108 36;
+    --fi-color-primary-800: 112 82 27;
+    --fi-color-primary-900: 84 62 21;
+    --fi-color-primary-950: 46 34 12;
 
     --hl-bg: #f4f7fb;
     --hl-bg-soft: #ffffff;
@@ -40,8 +43,9 @@
 
     --hl-blue: #2563eb;
     --hl-purple: #7c3aed;
-    --hl-orange: #f97316;
+    --hl-orange: #d7a441;
     --hl-green: #16a34a;
+    --hl-red-glow: rgba(229, 72, 77, 0.5);
 }
 
 /* 
@@ -49,20 +53,20 @@
  */
 
 .dark {
-    --hl-bg: #07111f;
-    --hl-bg-soft: #0b1727;
+    --hl-bg: #080b10;
+    --hl-bg-soft: #0c1119;
 
-    --hl-panel: rgba(15, 27, 44, 0.68);
-    --hl-panel-strong: #121f32;
+    --hl-panel: rgba(15, 21, 31, 0.78);
+    --hl-panel-strong: #101720;
 
-    --hl-sidebar: #07101d;
+    --hl-sidebar: #0b1018;
 
-    --hl-border: rgba(148, 163, 184, 0.14);
-    --hl-border-soft: rgba(148, 163, 184, 0.08);
+    --hl-border: rgba(148, 163, 184, 0.13);
+    --hl-border-soft: rgba(148, 163, 184, 0.07);
 
-    --hl-text: #eef5ff;
-    --hl-muted: #91a2b8;
-    --hl-faint: #65758a;
+    --hl-text: #f1f5f9;
+    --hl-muted: #94a3b8;
+    --hl-faint: #617086;
 }
 
 /* 
@@ -81,8 +85,8 @@ body,
 .dark body,
 .dark .fi-body {
     background:
-        radial-gradient(circle at 78% -6%, rgba(47, 140, 255, 0.12), transparent 30%),
-        linear-gradient(180deg, var(--hl-bg) 0%, #091522 100%) !important;
+        radial-gradient(circle at 75% -10%, rgba(215, 164, 65, 0.045), transparent 28%),
+        var(--hl-bg) !important;
 }
 
 .fi-main {
@@ -94,7 +98,7 @@ body,
  */
 
 .fi-topbar {
-    height: 3.75rem !important;
+    height: 4rem !important;
     padding: 0 1.25rem !important;
     display: flex !important;
     align-items: center !important;
@@ -103,10 +107,47 @@ body,
     border-bottom: 1px solid var(--hl-border) !important;
     backdrop-filter: blur(18px) !important;
     box-shadow: none !important;
+    transition: padding-inline-start 180ms ease !important;
 }
 
 .dark .fi-topbar {
     background: var(--hl-sidebar) !important;
+}
+
+/* The page location remains in the topbar in both sidebar states. */
+.hl-breadcrumb {
+    display: flex !important;
+    align-items: baseline !important;
+    gap: 0.4rem !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+}
+
+.hl-breadcrumb-slug {
+    font-family: var(--hl-font-mono) !important;
+    font-size: 0.75rem !important;
+    font-weight: 500 !important;
+    color: #53657c !important;
+    white-space: nowrap !important;
+}
+
+.hl-breadcrumb-sep {
+    font-size: 0.75rem !important;
+    color: var(--hl-faint) !important;
+}
+
+.hl-breadcrumb-title {
+    font-family: var(--hl-font-mono) !important;
+    font-size: 0.8rem !important;
+    font-weight: 500 !important;
+    color: var(--hl-text) !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+.hl-breadcrumb-title::first-letter {
+    text-transform: uppercase;
 }
 
 /* Start section (logo + collapse btn) — grows to fill space, pushing search right */
@@ -118,7 +159,7 @@ body,
     margin-inline-end: 0 !important;
 }
 
-/* Collapse / expand sidebar button */
+/* Native mobile sidebar buttons. Desktop controls live in the sidebar header. */
 .fi-topbar-close-collapse-sidebar-btn,
 .fi-topbar-open-collapse-sidebar-btn,
 .fi-topbar-open-sidebar-btn,
@@ -198,8 +239,8 @@ body,
 }
 
 .fi-topbar .fi-global-search-field .fi-input-wrp:focus-within {
-    border-color: var(--hl-purple) !important;
-    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12) !important;
+    border-color: var(--hl-orange) !important;
+    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.12) !important;
 }
 
 .fi-topbar .fi-global-search-field input {
@@ -241,7 +282,7 @@ body,
     color: var(--hl-muted) !important;
     background: transparent !important;
     border-radius: 0.5rem !important;
-    transition: background 0.15s, color 0.15s !important;
+    transition: background 0.15s, color 0.15s, border-color 0.15s !important;
 }
 
 .fi-topbar-end .fi-icon-btn:hover,
@@ -250,11 +291,20 @@ body,
     color: var(--hl-text) !important;
 }
 
-/* User avatar circle */
+.dark .fi-topbar-end .fi-icon-btn {
+    background: var(--hl-panel-strong) !important;
+    border: 1px solid var(--hl-border) !important;
+}
+
+.dark .fi-topbar-end .fi-icon-btn:hover {
+    border-color: rgba(255, 255, 255, 0.18) !important;
+}
+
+/* User avatar — rounded square, matching the brand mark language */
 .fi-user-avatar {
-    width: 2rem !important;
-    height: 2rem !important;
-    border-radius: 50% !important;
+    width: 1.9rem !important;
+    height: 1.9rem !important;
+    border-radius: 0.45rem !important;
     object-fit: cover !important;
 }
 
@@ -314,42 +364,206 @@ body,
     background: var(--hl-sidebar) !important;
     border-right: 1px solid var(--hl-border) !important;
     box-shadow: none !important;
+    transition: width 180ms ease, transform 180ms ease !important;
 }
 
 .dark .fi-sidebar {
-    background:
-        linear-gradient(
-            180deg,
-            var(--hl-sidebar),
-            #060d18
-        ) !important;
+    background: linear-gradient(180deg, #0d131c 0%, #090d14 100%) !important;
 }
 
-.fi-sidebar-inner {
-    background: transparent !important;
+.fi-sidebar-header-ctn {
+    height: 4rem !important;
+    box-sizing: border-box !important;
+    border-bottom: 1px solid var(--hl-border) !important;
+    flex-shrink: 0 !important;
 }
 
 .fi-sidebar-header {
-    border-bottom: 1px solid var(--hl-border) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+    height: 4rem !important;
+    padding: 0 1rem !important;
+    background: transparent !important;
+    border-bottom: none !important;
+    box-shadow: none !important;
+    --tw-ring-shadow: 0 0 #0000 !important;
+}
+
+/* Native logos are replaced by the lockup and breadcrumb rendered through hooks. */
+.fi-sidebar-header-logo-ctn,
+.fi-topbar-start .fi-logo,
+.fi-topbar-start a:has(.fi-logo) {
+    display: none !important;
+}
+
+.hl-sidebar-brand {
+    display: flex !important;
+    align-items: center !important;
+    width: 100% !important;
+    min-width: 0 !important;
+}
+
+.hl-brand-lockup {
+    /* No !important on display: x-show toggles visibility via an inline
+       style, and an !important stylesheet rule would always beat it. */
+    display: flex;
+    align-items: center !important;
+    gap: 0.75rem !important;
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
+    text-decoration: none !important;
+}
+
+.hl-brand-icon {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 2.35rem !important;
+    height: 2.35rem !important;
+    flex-shrink: 0 !important;
+    border-radius: 0.7rem !important;
+    background: linear-gradient(145deg, rgba(215, 164, 65, 0.22), rgba(215, 164, 65, 0.05)) !important;
+    border: 1px solid rgba(215, 164, 65, 0.38) !important;
+    color: var(--hl-orange) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+}
+
+.hl-brand-icon svg {
+    width: 1.2rem !important;
+    height: 1.2rem !important;
+    fill: none !important;
+    stroke: currentColor !important;
+    stroke-width: 1.7 !important;
+    stroke-linecap: round !important;
+    stroke-linejoin: round !important;
+}
+
+.hl-brand-copy {
+    display: flex !important;
+    flex-direction: column !important;
+    min-width: 0 !important;
+}
+
+.hl-brand-name {
+    color: var(--hl-text) !important;
+    font-family: var(--hl-font-display) !important;
+    font-size: 0.95rem !important;
+    font-weight: 700 !important;
+    line-height: 1.2 !important;
+    letter-spacing: -0.015em !important;
+    white-space: nowrap !important;
+}
+
+.hl-brand-subtitle {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.4rem !important;
+    font-family: var(--hl-font-mono) !important;
+    font-size: 0.66rem !important;
+    font-weight: 500 !important;
+    color: var(--hl-faint) !important;
+    text-transform: lowercase !important;
+    white-space: nowrap !important;
+}
+
+.hl-brand-dot {
+    width: 6px !important;
+    height: 6px !important;
+    border-radius: 999px !important;
+    background: #36c887 !important;
+    flex-shrink: 0 !important;
+}
+
+.hl-brand-dot:not(.hl-live) {
+    background: #f59e0b !important;
+}
+
+.hl-brand-dot.hl-live {
+    animation: hl-pulse 2.4s cubic-bezier(0.2, 0.7, 0.2, 1) infinite;
+}
+
+.hl-sidebar-toggle {
+    /* No !important on display: x-show toggles visibility via an inline
+       style, and an !important stylesheet rule would always beat it. */
+    display: inline-flex;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 2rem !important;
+    height: 2rem !important;
+    flex: 0 0 2rem !important;
+    border-radius: 0.5rem !important;
+    color: var(--hl-muted) !important;
+    transition: color 150ms ease, background-color 150ms ease !important;
+}
+
+.hl-sidebar-toggle:hover {
+    color: var(--hl-text) !important;
+    background: rgba(148, 163, 184, 0.09) !important;
+}
+
+.hl-sidebar-toggle svg {
+    width: 1.15rem !important;
+    height: 1.15rem !important;
+    fill: none !important;
+    stroke: currentColor !important;
+    stroke-width: 1.7 !important;
+    stroke-linecap: round !important;
+    stroke-linejoin: round !important;
+}
+
+.hl-sidebar-toggle-collapse {
+    margin-inline-start: 0.5rem !important;
+}
+
+.hl-sidebar-toggle-expand {
+    margin-inline: auto !important;
+}
+
+@keyframes hl-pulse {
+    0% { box-shadow: 0 0 0 0 rgba(54, 200, 135, 0.45); }
+    70% { box-shadow: 0 0 0 6px rgba(54, 200, 135, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(54, 200, 135, 0); }
 }
 
 .fi-sidebar-group-label {
-    color: var(--hl-muted) !important;
+    color: var(--hl-faint) !important;
 
-    font-size: 0.68rem !important;
-    font-weight: 700 !important;
+    font-family: var(--hl-font-mono) !important;
+    font-size: 0.625rem !important;
+    font-weight: 500 !important;
 
-    letter-spacing: 0.08em !important;
+    letter-spacing: 0.14em !important;
     text-transform: uppercase !important;
 }
 
 .fi-sidebar-nav-groups {
-    row-gap: 0.5rem !important;
+    row-gap: 0.4rem !important;
 }
 
 .fi-sidebar-nav {
-    padding-top: 1rem !important;
-    padding-bottom: 1rem !important;
+    gap: 0 !important;
+    padding: 1rem 1rem 0.75rem !important;
+    scrollbar-width: thin !important;
+    scrollbar-color: rgba(148, 163, 184, 0.24) transparent !important;
+}
+
+.fi-sidebar-group-items {
+    gap: 0.1rem !important;
+}
+
+.fi-sidebar-group-btn {
+    min-height: 1.9rem !important;
+    padding: 0.25rem 0.65rem !important;
+}
+
+.fi-sidebar-group-collapse-btn {
+    color: var(--hl-faint) !important;
+}
+
+.fi-sidebar-group[data-group-label='Overview'] > .fi-sidebar-group-btn {
+    display: none !important;
 }
 
 
@@ -359,16 +573,18 @@ body,
 
 .fi-sidebar-item-btn,
 .fi-sidebar-item-button {
-    min-height: 2.35rem !important;
+    min-height: 2.05rem !important;
+    gap-x: 0.5rem !important;
+    gap: 0.5rem !important;
 
-    border-radius: 0.55rem !important;
+    border-radius: 0.6rem !important;
 
     background: transparent !important;
     border: 1px solid transparent !important;
 
     color: var(--hl-text) !important;
 
-    font-size: 0.88rem !important;
+    font-size: 0.825rem !important;
     font-weight: 500 !important;
 
     transition:
@@ -382,19 +598,32 @@ body,
     color: var(--hl-muted) !important;
 }
 
+.fi-sidebar-item-btn > .fi-icon {
+    width: 1.1rem !important;
+    height: 1.1rem !important;
+}
+
+/* Extra breathing room between the tracker dot and the icon, so the icon +
+   label clearly read as the item's content rather than crowding the line. */
+.fi-sidebar-group:not([data-group-label='Overview']) .fi-sidebar-item-btn > .fi-icon {
+    margin-inline-start: 0.4rem !important;
+}
+
 .fi-sidebar-item-btn:hover,
 .fi-sidebar-item-button:hover {
-    background: rgba(148, 163, 184, 0.08) !important;
+    background: rgba(148, 163, 184, 0.07) !important;
 }
 
 .fi-sidebar-item.fi-active > .fi-sidebar-item-btn,
 .fi-sidebar-item.fi-active > .fi-sidebar-item-button,
 .fi-sidebar-item-btn[aria-current='page'],
 .fi-sidebar-item-button[aria-current='page'] {
-    background: linear-gradient(90deg, rgba(124, 58, 237, 0.20), rgba(47, 140, 255, 0.08)) !important;
-    border-color: rgba(124, 58, 237, 0.18) !important;
-    box-shadow: inset 3px 0 0 #8b5cf6 !important;
-    color: #5a00f5 !important;
+    background: linear-gradient(90deg, rgba(215, 164, 65, 0.18), rgba(215, 164, 65, 0.045)) !important;
+    border-color: rgba(215, 164, 65, 0.2) !important;
+    box-shadow:
+        inset 3px 0 0 var(--hl-orange),
+        0 0 18px rgba(215, 164, 65, 0.08) !important;
+    color: var(--hl-text) !important;
     font-weight: 600 !important;
 }
 
@@ -402,10 +631,195 @@ body,
 .fi-sidebar-item.fi-active > .fi-sidebar-item-button svg,
 .fi-sidebar-item-btn[aria-current='page'] svg,
 .fi-sidebar-item-button[aria-current='page'] svg {
-    color: #4c00ff !important;
+    color: var(--hl-orange) !important;
 }
 
-/* 
+.fi-sidebar-item.fi-active > .fi-sidebar-item-btn .fi-sidebar-item-label,
+.fi-sidebar-item-btn[aria-current='page'] .fi-sidebar-item-label {
+    color: var(--hl-text) !important;
+}
+
+/* Sidebar item badges (count / pending pills) */
+.fi-sidebar-item-badge-ctn .fi-badge {
+    font-family: var(--hl-font-mono) !important;
+    font-variant-numeric: tabular-nums !important;
+    padding: 0.05rem 0.5rem !important;
+    font-size: 0.7rem !important;
+    min-height: 0 !important;
+}
+
+.fi-sidebar-item-badge-ctn .fi-color-danger {
+    box-shadow: 0 0 9px var(--hl-red-glow) !important;
+}
+
+/*
+   Filament only renders a connecting border for nested sub-navigation items,
+   never for flat top-level ones — so the reference's node-tracker spine
+   (dot per item + connecting line) is built here from scratch with
+   pseudo-elements instead of relying on a Filament-rendered element.
+ */
+.fi-sidebar-group:not([data-group-label='Overview']) .fi-sidebar-group-items {
+    position: relative !important;
+}
+
+.fi-sidebar-group:not([data-group-label='Overview']) .fi-sidebar-group-items::before {
+    content: '' !important;
+    position: absolute !important;
+    top: 1rem !important;
+    bottom: 1rem !important;
+    left: 0.7rem !important;
+    width: 1px !important;
+    background: rgba(148, 163, 184, 0.2) !important;
+}
+
+.fi-sidebar-group:not([data-group-label='Overview']) .fi-sidebar-item-btn::before {
+    content: '' !important;
+    position: relative !important;
+    z-index: 1 !important;
+    width: 0.38rem !important;
+    height: 0.38rem !important;
+    flex-shrink: 0 !important;
+    border-radius: 999px !important;
+    background: var(--hl-sidebar) !important;
+    border: 1px solid #68778b !important;
+}
+
+.fi-sidebar-group:not([data-group-label='Overview']) .fi-sidebar-item.fi-active > .fi-sidebar-item-btn::before {
+    background: var(--hl-orange) !important;
+    border-color: var(--hl-orange) !important;
+    box-shadow: 0 0 0 3px rgba(215, 164, 65, 0.12), 0 0 10px rgba(215, 164, 65, 0.5) !important;
+}
+
+/* Collapsed icon rail stays clean — no spine, matching the reference. */
+.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-group-items::before,
+.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-item-btn::before {
+    display: none !important;
+}
+
+/*
+   COLLAPSED (icon rail) STATE — center everything, drop the spine gutter
+ */
+
+.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-header {
+    padding: 0 0.75rem !important;
+    /* Reserve the same scrollbar gutter as .fi-sidebar-nav below (via a
+       harmless, never-visible vertical scrollbar) so both rows share an
+       identical content width and their centered icons share one centerline,
+       regardless of the browser/OS's actual scrollbar width. */
+    overflow-y: auto !important;
+    scrollbar-gutter: stable !important;
+}
+
+.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-nav {
+    padding: 1rem 0.75rem !important;
+    scrollbar-gutter: stable !important;
+}
+
+.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-nav-groups {
+    margin-inline: 0 !important;
+    row-gap: 0 !important;
+}
+
+.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-group {
+    padding-block: 0.5rem !important;
+    gap: 0.25rem !important;
+}
+
+.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-group:first-child {
+    padding-top: 0 !important;
+}
+
+.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-group + .fi-sidebar-group {
+    border-top: 1px solid var(--hl-border) !important;
+}
+
+.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-group-items {
+    gap: 0.25rem !important;
+}
+
+.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-item-grouped-border {
+    display: none !important;
+}
+
+.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-item-badge-ctn {
+    display: none !important;
+}
+
+.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-item-btn {
+    width: 2.35rem !important;
+    min-height: 2.35rem !important;
+    margin-inline: auto !important;
+    padding: 0 !important;
+}
+
+.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-item.fi-active > .fi-sidebar-item-btn {
+    background: rgba(215, 164, 65, 0.14) !important;
+    border-color: rgba(215, 164, 65, 0.34) !important;
+    box-shadow: inset 0 0 0 1px rgba(215, 164, 65, 0.04) !important;
+}
+
+.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-item-btn > .fi-icon {
+    width: 1.05rem !important;
+    height: 1.05rem !important;
+}
+
+@media (min-width: 64rem) {
+    /*
+       Filament places the topbar above the layout. Pull the sticky sidebar up by
+       that exact height so the rail owns the full viewport, as in the reference.
+    */
+    .fi-body-has-topbar .fi-sidebar {
+        top: 0 !important;
+        z-index: 40 !important;
+        height: 100dvh !important;
+        margin-top: -4rem !important;
+    }
+
+    .fi-body-has-sidebar-collapsible-on-desktop .fi-sidebar.fi-sidebar-open {
+        width: var(--sidebar-width) !important;
+    }
+
+    .fi-body-has-sidebar-collapsible-on-desktop .fi-sidebar:not(.fi-sidebar-open) {
+        width: var(--collapsed-sidebar-width) !important;
+    }
+
+    .fi-body-has-topbar .fi-sidebar-header {
+        display: flex !important;
+    }
+
+    .fi-topbar-open-collapse-sidebar-btn,
+    .fi-topbar-close-collapse-sidebar-btn {
+        display: none !important;
+    }
+
+    .fi-topbar-collapse-sidebar-btn-ctn {
+        display: none !important;
+    }
+
+    .fi-body:has(.fi-sidebar.fi-sidebar-open) .fi-topbar {
+        padding-inline-start: calc(var(--sidebar-width) + 1.65rem) !important;
+    }
+
+    .fi-body:has(.fi-sidebar:not(.fi-sidebar-open)) .fi-topbar {
+        padding-inline-start: calc(var(--collapsed-sidebar-width) + 1.65rem) !important;
+    }
+}
+
+@media (max-width: 63.999rem) {
+    .fi-topbar-start {
+        display: none !important;
+    }
+
+    .hl-sidebar-toggle {
+        display: none !important;
+    }
+
+    .hl-brand-lockup {
+        padding-inline: 0.25rem !important;
+    }
+}
+
+/*
    PANELS
  */
 

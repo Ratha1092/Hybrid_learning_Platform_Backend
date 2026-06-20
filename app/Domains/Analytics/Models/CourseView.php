@@ -13,18 +13,10 @@ class CourseView extends Model
         'user_id',
         'ip_address',
     ];
-
-    /**
-     * Course view belongs to course
-     */
     public function course()
     {
         return $this->belongsTo(Course::class);
     }
-
-    /**
-     * Course view belongs to user
-     */
     public function user()
     {
         return $this->belongsTo(User::class);

@@ -8,5 +8,6 @@ Route::middleware(['auth:sanctum','throttle:payments',])->post('/checkout',[Orde
 Route::middleware(['auth:sanctum','throttle:payments',])->prefix('orders')->group(function () {
         Route::post('/',[OrderController::class, 'store']);
         Route::get('/{id}',[OrderController::class, 'show']);
+        Route::get('/{id}/receipt',[OrderController::class, 'receipt']);
         Route::get('/',[OrderController::class, 'index']);
 });

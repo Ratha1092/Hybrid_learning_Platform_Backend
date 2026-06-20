@@ -5,6 +5,7 @@ namespace App\Domains\Auth\Services;
 use App\Domains\Users\Models\User;
 use App\Domains\Auth\Models\ActivityLog;
 use App\Jobs\LogActivityJob;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 
 class ActivityLogService
@@ -15,11 +16,30 @@ class ActivityLogService
         ?Request $request = null,
         ?array $data = null
     ): void {
-        // Extract strings now — Request cannot be serialized into a queue job
         $ip        = $request?->ip() ?? request()->ip();
         $userAgent = $request?->userAgent() ?? request()->userAgent();
-
         LogActivityJob::dispatch($action, $user?->id, $ip, $userAgent, $data);
+    }
+    public static function logChange(
+        string $action,
+        ?Model $subject,
+        array $oldValues = [],
+        array $newValues = [],
+        ?User $actor = null
+    ): void {
+        $actor ??= auth()->user();
+
+        LogActivityJob::dispatch(
+            $action,
+            $actor?->id,
+            request()->ip(),
+            request()->userAgent(),
+            null,
+            $subject ? $subject::class : null,
+            $subject?->getKey(),
+            $oldValues,
+            $newValues,
+        );
     }
 
     public static function getUserHistory(User $user, int $limit = 50)

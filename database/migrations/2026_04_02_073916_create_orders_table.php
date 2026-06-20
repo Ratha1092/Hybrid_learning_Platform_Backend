@@ -24,6 +24,7 @@ return new class extends Migration
             $table->timestamp('cancelled_at')->nullable();
             $table->timestamp('refunded_at')->nullable();
             $table->string('coupon_code')->nullable();
+            $table->foreignId('coupon_id')->nullable()->after('coupon_code')->constrained()->nullOnDelete();
             $table->timestamps();
             $table->softDeletes();
         });

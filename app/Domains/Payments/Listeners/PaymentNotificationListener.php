@@ -19,14 +19,10 @@ class PaymentNotificationListener implements ShouldQueue
         $courseTitle = $order->items->first()?->course_title
             ?? $order->items->first()?->course?->title
             ?? 'a course';
-
-        // Admin bell — payment received, synchronous DB write
         $adminNotification = new AdminPaymentNotification($order);
-        foreach (User::admins()->get() as $admin) {
+        foreach (User::role(['super-admin', 'admin'])->get() as $admin) {
             $admin->notify($adminNotification);
         }
-
-        // Student — enrollment confirmed
         if ($order->user) {
             $order->user->notify(new EnrollmentConfirmedNotification($order, $courseTitle));
         }

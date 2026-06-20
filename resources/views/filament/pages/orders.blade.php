@@ -97,6 +97,7 @@ html:not(.dark) .lp {
 .lp-table tbody tr { border-bottom:1px solid var(--bd); transition:background .12s; }
 .lp-table tbody tr:last-child { border-bottom:none; }
 .lp-table tbody tr:hover { background:var(--p2); }
+.lp-row-link { cursor:pointer; }
 .lp-table td { padding:12px 12px; vertical-align:middle; }
 
 .lp-id { font-size:11.5px; font-weight:700; color:var(--t2); white-space:nowrap; }
@@ -206,7 +207,7 @@ html:not(.dark) .lp {
                     $avUrl = 'https://ui-avatars.com/api/?name=' . urlencode($order->user?->name ?? '?') . '&background=' . $bgHex . '&color=fff&bold=true&size=64';
                     $amount = $order->final_amount ?? $order->total_amount ?? 0;
                 @endphp
-                <tr>
+                <tr class="lp-row-link" onclick="window.location='{{ $viewUrl($order) }}'">
                     <td><span class="lp-id">{{ $order->id }}</span></td>
 
                     <td><span class="lp-order-num">{{ $order->order_number ?? '—' }}</span></td>
@@ -240,7 +241,7 @@ html:not(.dark) .lp {
 
                     <td><span class="lp-date">{{ $order->created_at?->format('M d, Y') }}</span></td>
 
-                    <td>
+                    <td onclick="event.stopPropagation()">
                         <div class="lp-actions">
                             <a href="{{ $viewUrl($order) }}" class="lp-act-btn" title="View">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">

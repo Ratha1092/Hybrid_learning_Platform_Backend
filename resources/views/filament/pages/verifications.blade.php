@@ -57,6 +57,7 @@ html:not(.dark) .lp {
 .lp-table tbody tr { border-bottom:1px solid var(--bd); transition:background .12s; }
 .lp-table tbody tr:last-child { border-bottom:none; }
 .lp-table tbody tr:hover { background:var(--p2); }
+.lp-row-link { cursor:pointer; }
 .lp-table td { padding:12px 12px; vertical-align:middle; }
 
 .lp-id { font-size:11.5px; font-weight:700; color:var(--t2); white-space:nowrap; }
@@ -174,7 +175,7 @@ html:not(.dark) .lp {
                     $avUrl = 'https://ui-avatars.com/api/?name=' . urlencode($verification->user?->name ?? '?') . '&background=' . $bgHex . '&color=fff&bold=true&size=64';
                     $qual  = ucfirst(str_replace('_', ' ', $verification->qualification_type ?? '—'));
                 @endphp
-                <tr>
+                <tr class="lp-row-link" onclick="window.location='{{ $viewUrl($verification) }}'">
                     <td><span class="lp-id">{{ $verification->id }}</span></td>
 
                     <td>
@@ -197,7 +198,7 @@ html:not(.dark) .lp {
 
                     <td><span class="lp-date">{{ $verification->created_at?->format('M d, Y') }}</span></td>
 
-                    <td>
+                    <td onclick="event.stopPropagation()">
                         <div class="lp-actions">
                             @if($verification->status === 'pending')
                             <button onclick="openApproveModal({{ $verification->id }}, '{{ addslashes($verification->user?->name) }}')"

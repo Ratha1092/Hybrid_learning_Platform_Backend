@@ -8,13 +8,6 @@ use App\Domains\Payments\Services\BakongKhqrService;
 use App\Domains\System\Models\Setting;
 use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes (Fallback Only)
-|--------------------------------------------------------------------------
-| This is a minimal fallback. Main system uses API + React.
-*/
-
 Route::get('/web', function () {
     return 'Web fallback active';
 });
@@ -68,24 +61,98 @@ Route::middleware(['web', 'auth'])->group(function () {
         return redirect()->back();
     })->name('admin.courses.return-to-draft');
 
-    Route::post('/admin/settings/commission', function (\Illuminate\Http\Request $request) {
-        $value = $request->input('default_commission_percentage');
-
-        if (!is_numeric($value) || (float)$value < 0 || (float)$value > 100) {
-            return back()->with('settings_error', 'Commission must be a number between 0 and 100.');
+    Route::post('/admin/settings/{group}', function (string $group, \Illuminate\Http\Request $request) {
+        if (!array_key_exists($group, \App\Filament\Pages\Settings::GROUPS)) {
+            abort(404);
         }
 
-        $value = round((float) $value, 2);
-        Setting::set('default_commission_percentage', $value, 'finance');
+        [$label, , , , $permission] = \App\Filament\Pages\Settings::GROUPS[$group];
+        $redirectUrl = route('filament.admin.pages.settings') . '#' . $group;
 
-        if ($request->boolean('apply_to_all_courses')) {
-            Course::withoutGlobalScopes()->update(['commission_percentage' => $value]);
+        if (!auth()->user()->can("{$permission}.update")) {
+            abort(403);
+        }
+
+        $settings = Setting::byGroup($group);
+        $oldState = [];
+        $newState = [];
+
+        foreach ($settings as $setting) {
+            $oldState[$setting->key] = $setting->value;
+
+            if ($setting->type === 'boolean') {
+                $value = $request->boolean($setting->key) ? 'true' : 'false';
+            } else {
+                $value = trim((string) $request->input($setting->key, $setting->value));
+
+                if (in_array($setting->type, ['integer', 'decimal'], true) && $value !== '' && !is_numeric($value)) {
+                    return redirect()->to($redirectUrl)->with('settings_error', "\"{$setting->key}\" must be a number.");
+                }
+
+                if (str_contains($setting->key, 'percentage') && is_numeric($value) && ((float) $value < 0 || (float) $value > 100)) {
+                    return redirect()->to($redirectUrl)->with('settings_error', "\"{$setting->key}\" must be between 0 and 100.");
+                }
+
+                if ($setting->type === 'decimal' && is_numeric($value)) {
+                    $value = (string) round((float) $value, 2);
+                }
+            }
+
+            Setting::set($setting->key, $value, $group);
+            $newState[$setting->key] = $value;
+        }
+
+        \App\Domains\Auth\Services\ActivityLogService::logChange("settings.{$group}_updated", $settings->first(), $oldState, $newState);
+
+        if ($group === 'finance' && $request->boolean('apply_to_all_courses')) {
+            $commission = (float) ($newState['default_commission_percentage'] ?? Setting::get('default_commission_percentage', 20));
+            Course::withoutGlobalScopes()->update(['commission_percentage' => $commission]);
             $count = Course::withoutGlobalScopes()->count();
-            return back()->with('settings_success', "Commission updated to {$value}% and applied to all {$count} courses.");
+            return redirect()->to($redirectUrl)->with('settings_success', "{$label} settings updated and commission applied to all {$count} courses.");
         }
 
-        return back()->with('settings_success', "Default commission set to {$value}%. New courses will use this rate.");
-    })->name('admin.settings.commission');
+        return redirect()->to($redirectUrl)->with('settings_success', "{$label} settings updated successfully.");
+    })->name('admin.settings.update');
+
+    Route::post('/admin/roles/{role}/update', function (\Spatie\Permission\Models\Role $role, \Illuminate\Http\Request $request) {
+        if (!auth()->user()->can('roles.update')) {
+            abort(403);
+        }
+
+        $isProtected = in_array($role->name, \App\Filament\Resources\Roles\RoleResource::protectedRoleNames(), true);
+
+        $oldState = [
+            'name' => $role->name,
+            'permissions' => $role->permissions->pluck('name')->sort()->values()->all(),
+        ];
+
+        if (!$isProtected) {
+            $name = trim((string) $request->input('name'));
+
+            if ($name === '') {
+                return back()->with('role_error', 'Role name is required.');
+            }
+
+            if (\Spatie\Permission\Models\Role::where('name', $name)->where('id', '!=', $role->id)->exists()) {
+                return back()->with('role_error', "A role named \"{$name}\" already exists.");
+            }
+
+            $role->update(['name' => $name]);
+        }
+
+        $permissionIds = array_map('intval', $request->input('permissions', []));
+        $permissionNames = \Spatie\Permission\Models\Permission::whereIn('id', $permissionIds)->pluck('name')->all();
+        $role->syncPermissions($permissionNames);
+
+        $newState = [
+            'name' => $role->fresh()->name,
+            'permissions' => $role->permissions()->pluck('name')->sort()->values()->all(),
+        ];
+
+        \App\Domains\Auth\Services\ActivityLogService::logChange('role.updated', $role, $oldState, $newState);
+
+        return redirect()->to(url('/admin/roles/' . $role->id))->with('role_success', 'Role updated successfully.');
+    })->name('admin.roles.update');
 
     Route::post('/admin/courses/{course}/archive', function (Course $course) {
         if ($course->isPublished()) {

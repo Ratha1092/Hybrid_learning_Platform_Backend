@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Users;
 
 use App\Domains\Users\Models\User;
+use App\Support\PanelAccess;
 use App\Filament\Resources\Users\Pages\CreateUser;
 use App\Filament\Resources\Users\Pages\EditUser;
 use App\Filament\Resources\Users\Pages\ListUsers;
@@ -59,5 +60,10 @@ class UserResource extends Resource
             'view' => ViewUser::route('/{record}'),
             'edit' => EditUser::route('/{record}/edit'),
         ];
+    }
+
+    public static function canViewAny(): bool
+    {
+        return PanelAccess::can('users.view');
     }
 }

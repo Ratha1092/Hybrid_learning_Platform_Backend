@@ -21,15 +21,16 @@ class UsersTable
                     ->sortable(),
                 Tables\Columns\TextColumn::make('email')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('role')
+                Tables\Columns\TextColumn::make('roles.name')
+                    ->label('Role')
                     ->badge()
+                    ->separator(',')
                     ->color(fn (string $state): string => match ($state) {
-                        'admin' => 'danger',
+                        'super-admin', 'admin' => 'danger',
                         'instructor' => 'warning',
                         'student' => 'success',
                         default => 'gray',
-                    })
-                    ->sortable(),
+                    }),
                 Tables\Columns\TextColumn::make('status')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
@@ -37,13 +38,13 @@ class UsersTable
                         'suspended' => 'danger',
                         default => 'gray',
                     }),
-                Tables\Columns\TextColumn::make('instructor_status')
+                Tables\Columns\TextColumn::make('instructorVerification.status')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'verified' => 'success',
+                    ->placeholder('—')
+                    ->color(fn (?string $state): string => match ($state) {
+                        'approved' => 'success',
                         'pending' => 'warning',
-                        'rejected' => 'danger',
-                        'not_instructor' => 'gray',
+                        'rejected', 'suspended' => 'danger',
                         default => 'gray',
                     })
                     ->label('Instructor'),
@@ -98,15 +99,15 @@ class UsersTable
                     ->color('success')
                     ->visible(
                         fn ($record) =>
-                        $record->instructor_status === 'pending'
+                        $record->instructorVerification?->status === 'pending'
                     )
 
                     ->requiresConfirmation()
                     ->action(function ($record) {
-                        $record->update([
-                            'role' => 'instructor',
-
-                            'instructor_status' => 'verified',
+                        $record->instructorVerification->update([
+                            'status' => 'approved',
+                            'reviewed_by' => auth()->id(),
+                            'reviewed_at' => now(),
                         ]);
 
                         InstructorProfile::firstOrCreate([
@@ -126,12 +127,14 @@ class UsersTable
                     ->color('danger')
                     ->visible(
                         fn ($record) =>
-                        $record->instructor_status === 'pending'
+                        $record->instructorVerification?->status === 'pending'
                     )
                     ->requiresConfirmation()
                     ->action(function ($record) {
-                        $record->update([
-                            'instructor_status' => 'rejected',
+                        $record->instructorVerification->update([
+                            'status' => 'rejected',
+                            'reviewed_by' => auth()->id(),
+                            'reviewed_at' => now(),
                         ]);
                         Notification::make()
                             ->title('Instructor Rejected')

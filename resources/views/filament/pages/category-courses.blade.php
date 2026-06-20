@@ -75,6 +75,7 @@ html:not(.dark) .cc{
 .cc-table tbody tr{border-bottom:1px solid var(--bd);transition:background .12s}
 .cc-table tbody tr:last-child{border-bottom:none}
 .cc-table tbody tr:hover{background:var(--p2)}
+.cc-row-link { cursor:pointer; }
 .cc-table td{padding:12px 12px;vertical-align:middle}
 
 /* Cells */
@@ -213,7 +214,7 @@ html:not(.dark) .cc{
                     $statusKey   = $course->status ?? 'draft';
                     $statusStyle = $statusStyles[$statusKey] ?? ['bg' => 'rgba(148,163,184,.1)', 'color' => '#94a3b8', 'dot' => '#94a3b8', 'label' => ucfirst($statusKey)];
                 @endphp
-                <tr>
+                <tr class="cc-row-link" onclick="window.location='{{ $viewUrl($course) }}'">
                     <td><span class="cc-id">#{{ $course->id }}</span></td>
 
                     <td style="min-width:240px">
@@ -259,7 +260,7 @@ html:not(.dark) .cc{
 
                     <td><span class="cc-date">{{ $course->created_at?->format('M d, Y') }}</span></td>
 
-                    <td>
+                    <td onclick="event.stopPropagation()">
                         <div class="cc-actions">
                             <a href="{{ $viewUrl($course) }}" class="cc-act-btn" title="View">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.964-7.178z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/></svg>

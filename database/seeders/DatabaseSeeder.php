@@ -35,7 +35,6 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
-use Spatie\Permission\Models\Role;
 class DatabaseSeeder extends Seeder
 {
     use WithoutModelEvents;
@@ -44,30 +43,56 @@ class DatabaseSeeder extends Seeder
     {
         $faker = Faker::create();
 
-        Role::findOrCreate('admin');
-        Role::findOrCreate('instructor');
-        Role::findOrCreate('student');
+        $this->call(RolePermissionSeeder::class);
+        $this->call(SettingsSeeder::class);
+
+        $superAdmin = User::firstOrCreate([
+            'email' => 'superadmin@example.com',
+        ], [
+            'name' => 'Super Admin',
+            'password' => Hash::make('admin123'),
+            'status' => User::STATUS_ACTIVE,
+            'email_verified_at' => now(),
+        ]);
+
+        $superAdmin->syncRoles(['super-admin']);
 
         $admin = User::firstOrCreate([
             'email' => 'admin@example.com',
         ], [
             'name' => 'Admin',
             'password' => Hash::make('admin123'),
-            'role' => 'admin',
-            'instructor_status' => User::INSTRUCTOR_NONE,
             'status' => User::STATUS_ACTIVE,
             'email_verified_at' => now(),
         ]);
 
         $admin->syncRoles(['admin']);
 
+        $staffRoles = [
+            'finance-manager' => 'Finance Manager',
+            'accountant' => 'Accountant',
+            'content-manager' => 'Content Manager',
+            'moderator' => 'Moderator',
+            'support-staff' => 'Support Staff',
+        ];
+
+        foreach ($staffRoles as $roleName => $label) {
+            $staffUser = User::firstOrCreate([
+                'email' => str_replace('-', '.', $roleName) . '@example.com',
+            ], [
+                'name' => $label,
+                'password' => Hash::make('password'),
+                'status' => User::STATUS_ACTIVE,
+                'email_verified_at' => now(),
+            ]);
+            $staffUser->syncRoles([$roleName]);
+        }
+
         $testUser = User::firstOrCreate([
             'email' => 'test@example.com',
         ], [
             'name' => 'Test User',
             'password' => Hash::make('password'),
-            'role' => 'student',
-            'instructor_status' => User::INSTRUCTOR_NONE,
             'status' => User::STATUS_ACTIVE,
             'email_verified_at' => now(),
         ]);
@@ -80,13 +105,18 @@ class DatabaseSeeder extends Seeder
                 'name' => $faker->name(),
                 'email' => $faker->unique()->safeEmail(),
                 'password' => Hash::make('password'),
-                'role' => 'instructor',
-                'instructor_status' => User::INSTRUCTOR_VERIFIED,
                 'status' => User::STATUS_ACTIVE,
                 'email_verified_at' => now(),
             ]);
 
             $instructor->assignRole('instructor');
+
+            InstructorVerification::create([
+                'user_id' => $instructor->id,
+                'status' => 'approved',
+                'reviewed_by' => $admin->id,
+                'reviewed_at' => now(),
+            ]);
 
             InstructorProfile::create([
                 'user_id' => $instructor->id,
@@ -114,8 +144,6 @@ class DatabaseSeeder extends Seeder
                 'name' => $faker->name(),
                 'email' => $faker->unique()->safeEmail(),
                 'password' => Hash::make('password'),
-                'role' => 'student',
-                'instructor_status' => User::INSTRUCTOR_NONE,
                 'status' => User::STATUS_ACTIVE,
                 'email_verified_at' => $faker->optional(0.9)->dateTimeThisYear(),
             ]);

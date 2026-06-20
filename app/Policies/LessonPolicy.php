@@ -15,7 +15,7 @@ class LessonPolicy
         if (! $user) {
             return false;
         }
-        if ($user->role === 'admin') {
+        if ($user->isAdmin()) {
             return true;
         }
         $course = $lesson->section?->course;

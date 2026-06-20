@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Courses;
 
 use App\Domains\Courses\Models\Course;
+use App\Support\PanelAccess;
 
 use App\Filament\Resources\Courses\Pages\CreateCourse;
 use App\Filament\Resources\Courses\Pages\EditCourse;
@@ -70,5 +71,10 @@ class CourseResource extends Resource
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ]);
+    }
+
+    public static function canViewAny(): bool
+    {
+        return PanelAccess::can('courses.view');
     }
 }

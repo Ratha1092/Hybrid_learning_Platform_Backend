@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Payments;
 
 use App\Domains\Payments\Models\Payment;
+use App\Support\PanelAccess;
 use App\Filament\Resources\Payments\Pages;
 use Filament\Resources\Resource;
 
@@ -28,5 +29,10 @@ class PaymentResource extends Resource
             'view' => Pages\ViewPayment::route('/{record}'),
             'edit' => Pages\EditPayment::route('/{record}/edit'),
         ];
+    }
+
+    public static function canViewAny(): bool
+    {
+        return PanelAccess::can('payments.view');
     }
 }

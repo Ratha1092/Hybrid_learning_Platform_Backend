@@ -19,26 +19,26 @@ class ListUsers extends ListRecords
                 ->badge(User::count()),
             'students' => Tab::make('Students')
                 ->badge(
-                    User::where('role', 'student')->count()
+                    User::role('student')->count()
                 )
                 ->modifyQueryUsing(fn ($query) =>
-                    $query->where('role', 'student')
+                    $query->role('student')
                 ),
 
             'instructors' => Tab::make('Instructors')
                 ->badge(
-                    User::where('role', 'instructor')->count()
+                    User::role('instructor')->count()
                 )
                 ->modifyQueryUsing(fn ($query) =>
-                    $query->where('role', 'instructor')
+                    $query->role('instructor')
                 ),
 
             'admins' => Tab::make('Admins')
                 ->badge(
-                    User::where('role', 'admin')->count()
+                    User::role(['super-admin', 'admin'])->count()
                 )
                 ->modifyQueryUsing(fn ($query) =>
-                    $query->where('role', 'admin')
+                    $query->role(['super-admin', 'admin'])
                 ),
 
             'suspended' => Tab::make('Suspended')

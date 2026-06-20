@@ -7,6 +7,7 @@ use App\Domains\Courses\Models\Course;
 use App\Domains\Courses\Models\Lesson;
 use App\Domains\Courses\Models\Section;
 use App\Domains\Users\Models\User;
+use App\Domains\Users\Models\InstructorVerification;
 use App\Domains\Orders\Models\Order;
 use App\Domains\Payments\Enums\PaymentStatus;
 use App\Domains\Payments\Enums\PaymentGateway;
@@ -97,7 +98,7 @@ class Analysis extends Page
         $allPayments       = max($completedPayments + $pendingPayments + $failedPayments + $refundedPayments, 1);
         $successRate       = round(($completedPayments / $allPayments) * 100);
 
-        $totalStudents = User::where('role', 'student')
+        $totalStudents = User::role('student')
             ->when($from, fn($q) => $q->where('created_at', '>=', $from))
             ->when($to,   fn($q) => $q->where('created_at', '<=', $to))
             ->count();
@@ -105,10 +106,10 @@ class Analysis extends Page
         // ── Platform content (all-time) ───────────────────────────────────
         $totalCourses         = Course::count();
         $publishedCourses     = Course::where('is_published', true)->count();
-        $totalInstructors     = User::where('role', 'instructor')->count();
+        $totalInstructors     = User::role('instructor')->count();
         $totalLessons         = Lesson::count();
         $totalSections        = Section::count();
-        $pendingVerifications = User::where('role', 'instructor')->where('is_verified', false)->count();
+        $pendingVerifications = InstructorVerification::pending()->count();
         $pendingCourseReviews = Course::where('status', Course::STATUS_PENDING)->count();
 
         $totalInstructorBalance = (float) InstructorWallet::sum('balance');
@@ -121,7 +122,7 @@ class Analysis extends Page
             $date = (clone $trendBase)->subMonths($mo);
             return [
                 'month' => $date->format('M'),
-                'count' => User::where('role', 'student')
+                'count' => User::role('student')
                     ->whereMonth('created_at', $date->month)
                     ->whereYear('created_at',  $date->year)
                     ->count(),

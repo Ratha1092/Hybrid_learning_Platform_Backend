@@ -44,8 +44,9 @@ class User extends Authenticatable implements FilamentUser
     public const STATUS_SUSPENDED = 'suspended';
     public const INSTRUCTOR_NONE = 'not_instructor';
     public const INSTRUCTOR_PENDING = 'pending';
-    public const INSTRUCTOR_VERIFIED = 'verified';
+    public const INSTRUCTOR_VERIFIED = 'approved';
     public const INSTRUCTOR_REJECTED = 'rejected';
+    public const INSTRUCTOR_SUSPENDED = 'suspended';
 
     protected $fillable = [
         'name',
@@ -54,8 +55,6 @@ class User extends Authenticatable implements FilamentUser
         'password',
         'avatar',
         'phone',
-        'role',
-        'instructor_status',
         'status',
         'last_login_at',
         'two_factor_enabled',
@@ -142,7 +141,7 @@ class User extends Authenticatable implements FilamentUser
 
     public function instructorVerification(): HasOne
     {
-        return $this->hasOne(InstructorVerification::class);
+        return $this->hasOne(InstructorVerification::class)->latestOfMany();
     }
 
     public function emailVerificationTokens(): HasMany
@@ -172,35 +171,47 @@ class User extends Authenticatable implements FilamentUser
 
     public function isAdmin(): bool
     {
-        return $this->role === 'admin' || $this->hasRole('admin');
+        return $this->hasAnyRole(['super-admin', 'admin']);
     }
 
     public function isInstructor(): bool
     {
-        return $this->role === 'instructor' || $this->hasRole('instructor');
+        return $this->hasRole('instructor');
     }
 
     public function isStudent(): bool
     {
-        return $this->role === 'student' || $this->hasRole('student');
+        return $this->hasRole('student');
+    }
+    public function isStaff(): bool
+    {
+        return $this->hasAnyRole([
+            'super-admin',
+            'admin',
+            'finance-manager',
+            'accountant',
+            'content-manager',
+            'moderator',
+            'support-staff',
+        ]);
     }
 
     public function isVerifiedInstructor(): bool
     {
-        return ($this->role === 'instructor' || $this->hasRole('instructor'))
-            && $this->instructor_status === self::INSTRUCTOR_VERIFIED;
+        return $this->hasRole('instructor')
+            && $this->instructorVerification?->status === self::INSTRUCTOR_VERIFIED;
     }
 
     public function hasVerificationPending(): bool
     {
-        return ($this->role === 'instructor' || $this->hasRole('instructor'))
-            && $this->instructor_status === self::INSTRUCTOR_PENDING;
+        return $this->hasRole('instructor')
+            && $this->instructorVerification?->status === self::INSTRUCTOR_PENDING;
     }
 
     public function hasVerificationRejected(): bool
     {
-        return ($this->role === 'instructor' || $this->hasRole('instructor'))
-            && $this->instructor_status === self::INSTRUCTOR_REJECTED;
+        return $this->hasRole('instructor')
+            && $this->instructorVerification?->status === self::INSTRUCTOR_REJECTED;
     }
 
     public function canCreateCourses(): bool
@@ -208,29 +219,19 @@ class User extends Authenticatable implements FilamentUser
         return $this->isVerifiedInstructor();
     }
 
-    public function scopeAdmins($query)
-    {
-        return $query->role('admin');
-    }
-
-    public function scopeInstructors($query)
-    {
-        return $query->role('instructor');
-    }
-
-    public function scopeStudents($query)
-    {
-        return $query->role('student');
-    }
     public function canAccessPanel(Panel $panel): bool
     {
         return $panel->getId() === 'admin'
-            && $this->hasRole('admin');
+            && $this->isStaff();
     }
     public function hasEnrolledCourse(int $courseId): bool {
             return $this->enrollments()
                 ->where('course_id', $courseId)
                 ->where('status', 'active')
+                ->where(function ($query) {
+                    $query->whereNull('expires_at')
+                        ->orWhere('expires_at', '>', now());
+                })
                 ->exists();
     }
 

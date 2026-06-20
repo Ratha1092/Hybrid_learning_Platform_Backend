@@ -14,6 +14,11 @@ class AuditLog extends Page
     protected static ?int    $navigationSort                  = 2;
     protected static ?string $slug                            = 'audit-log';
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->hasRole('super-admin') ?? false;
+    }
+
     public function getHeading(): string|\Illuminate\Contracts\Support\Htmlable
     {
         return '';
@@ -41,6 +46,14 @@ class AuditLog extends Page
             'email_verified'   => ['label' => 'Email Verified',   'color' => '#06b6d4'],
             '2fa_enabled'      => ['label' => '2FA Enabled',      'color' => '#8b5cf6'],
             '2fa_disabled'     => ['label' => '2FA Disabled',     'color' => '#ec4899'],
+            'role.created'     => ['label' => 'Role Created',     'color' => '#7c3aed'],
+            'role.updated'     => ['label' => 'Role Updated',     'color' => '#7c3aed'],
+            'user.roles_changed' => ['label' => 'User Roles Changed', 'color' => '#0ea5e9'],
+            'instructor_verification.approved' => ['label' => 'Instructor Approved', 'color' => '#34d399'],
+            'instructor_verification.rejected' => ['label' => 'Instructor Rejected', 'color' => '#f87171'],
+            'settings.finance_updated' => ['label' => 'Finance Settings Updated', 'color' => '#fb923c'],
+            'coupon.created'   => ['label' => 'Coupon Created', 'color' => '#6366f1'],
+            'coupon.updated'   => ['label' => 'Coupon Updated', 'color' => '#6366f1'],
         ];
 
         $query = ActivityLog::with('user')->latest();

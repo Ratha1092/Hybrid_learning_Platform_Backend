@@ -28,17 +28,10 @@ return new class extends Migration
             $table->index('user_id');
             $table->index('status');
         });
-        Schema::table('users', function (Blueprint $table) {
-            $table->string('instructor_status')->default('not_instructor')->nullable()->after('role');
-        });
     }
 
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn(['instructor_status']);
-        });
-        
         Schema::dropIfExists('instructor_verifications');
     }
 };

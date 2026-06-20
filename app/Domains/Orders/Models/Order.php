@@ -5,6 +5,7 @@ namespace App\Domains\Orders\Models;
 use App\Domains\Orders\Enums\OrderPaymentStatus;
 use App\Domains\Orders\Enums\OrderStatus;
 use App\Domains\Payments\Models\Payment;
+use App\Domains\Promotions\Models\Coupon;
 use App\Domains\Users\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -33,6 +34,7 @@ class Order extends Model
         'cancelled_at',
         'refunded_at',
         'coupon_code',
+        'coupon_id',
     ];
 
     protected $casts = [
@@ -48,6 +50,11 @@ class Order extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function coupon(): BelongsTo
+    {
+        return $this->belongsTo(Coupon::class);
     }
 
     public function items(): HasMany

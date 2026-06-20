@@ -20,13 +20,11 @@ class EditInstructorVerification extends EditRecord
 
         if ($record->status === 'approved') {
             InstructorProfile::firstOrCreate(['user_id' => $record->user_id]);
-            $user->update(['role' => 'instructor', 'instructor_status' => 'verified']);
             $user->syncRoles(['instructor']);
             $user->notify(new InstructorApprovedNotification());
         }
 
         if ($record->status === 'rejected') {
-            $user->update(['instructor_status' => 'rejected']);
             $user->removeRole('instructor');
             $user->notify(new InstructorRejectedNotification());
         }

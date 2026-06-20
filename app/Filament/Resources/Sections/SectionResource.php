@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Sections;
 
 use App\Domains\Courses\Models\Section;
+use App\Support\PanelAccess;
 
 use App\Filament\Resources\Sections\Pages\CreateSection;
 use App\Filament\Resources\Sections\Pages\EditSection;
@@ -69,5 +70,10 @@ class SectionResource extends Resource
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ]);
+    }
+
+    public static function canViewAny(): bool
+    {
+        return PanelAccess::can('courses.view');
     }
 }

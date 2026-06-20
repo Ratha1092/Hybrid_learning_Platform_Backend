@@ -131,6 +131,7 @@ html:not(.dark) .cp {
 }
 .cp-table tbody tr:last-child { border-bottom: none; }
 .cp-table tbody tr:hover { background: var(--p2); }
+.cp-row-link { cursor:pointer; }
 .cp-table td { padding: 12px 12px; vertical-align: middle; }
 
 /* ── Cells ── */
@@ -167,13 +168,13 @@ html:not(.dark) .cp {
 .cp-actions { display: flex; align-items: center; gap: 4px; justify-content: flex-end; }
 .cp-act-btn {
     display: inline-flex; align-items: center; justify-content: center;
-    width: 30px; height: 30px; border-radius: 7px;
+    width: 34px; height: 34px; border-radius: 8px;
     background: none; border: 1px solid transparent;
     cursor: pointer; color: var(--t2); text-decoration: none;
     transition: background .15s, border-color .15s, color .15s;
 }
 .cp-act-btn:hover { background: var(--p2); border-color: var(--bd2); color: var(--t1); }
-.cp-act-btn svg { width: 14px; height: 14px; }
+.cp-act-btn svg { width: 17px; height: 17px; }
 .cp-act-more { position: relative; }
 .cp-act-menu {
     display: none; position: absolute; right: 0; top: calc(100% + 4px);
@@ -340,7 +341,7 @@ html:not(.dark) .cp {
                     $bgHex = substr(md5($course->instructor?->name ?? ''), 0, 6);
                     $avUrl = 'https://ui-avatars.com/api/?name=' . urlencode($course->instructor?->name ?? '?') . '&background=' . $bgHex . '&color=fff&bold=true&size=64';
                 @endphp
-                <tr>
+                <tr class="cp-row-link" onclick="window.location='{{ $viewUrl($course) }}'">
 
                     <td><span class="cp-id">{{ $course->id }}</span></td>
 
@@ -390,7 +391,7 @@ html:not(.dark) .cp {
                         </span>
                     </td>
 
-                    <td class="cp-students">
+                    <td class="cp-students" onclick="event.stopPropagation()">
                         <a href="{{ url('/admin/courses/' . $course->id . '/students') }}" class="cp-students-val" title="View enrolled students" style="text-decoration:none;cursor:pointer;transition:color .15s" onmouseover="this.style.color='#7c3aed'" onmouseout="this.style.color=''">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"/>
@@ -401,7 +402,7 @@ html:not(.dark) .cp {
 
                     <td><span class="cp-date">{{ $course->created_at?->format('M d, Y') }}</span></td>
 
-                    <td>
+                    <td onclick="event.stopPropagation()">
                         <div class="cp-actions">
                             <a href="{{ $viewUrl($course) }}" class="cp-act-btn" title="View">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">

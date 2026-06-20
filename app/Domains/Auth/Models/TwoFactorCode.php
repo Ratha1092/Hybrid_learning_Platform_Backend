@@ -28,10 +28,6 @@ class TwoFactorCode extends Model
     {
         return $this->belongsTo(User::class);
     }
-
-    /**
-     * Helper: check expiration
-     */
     public function isExpired(): bool
     {
         return $this->expires_at && $this->expires_at->isPast();

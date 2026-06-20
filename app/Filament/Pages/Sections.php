@@ -3,8 +3,11 @@
 namespace App\Filament\Pages;
 
 use App\Domains\Courses\Models\Section;
+use App\Support\NavBadge;
+use App\Support\PanelAccess;
 use BackedEnum;
 use Filament\Pages\Page;
+use Illuminate\Support\Number;
 
 class Sections extends Page
 {
@@ -14,6 +17,35 @@ class Sections extends Page
     protected static string|\UnitEnum|null $navigationGroup = 'Learning';
     protected static ?int $navigationSort = 4;
     protected static ?string $slug = 'sections';
+
+    public static function canAccess(): bool
+    {
+        return PanelAccess::can('courses.view');
+    }
+
+    public function mount(): void
+    {
+        NavBadge::markSeen('sections');
+    }
+
+    public static function getNavigationBadge(): ?string
+    {
+        $count = NavBadge::countSince('sections', fn (?\Carbon\Carbon $since) => $since
+            ? Section::where('created_at', '>', $since)->count()
+            : Section::count());
+
+        return $count > 0 ? Number::abbreviate($count) : null;
+    }
+
+    public static function getNavigationBadgeColor(): ?string
+    {
+        return 'danger';
+    }
+
+    public static function getNavigationBadgeTooltip(): ?string
+    {
+        return 'New sections since you last viewed this page';
+    }
 
     public function getHeading(): string|\Illuminate\Contracts\Support\Htmlable
     {

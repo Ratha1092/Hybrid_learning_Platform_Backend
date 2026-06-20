@@ -3,7 +3,6 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -14,13 +13,13 @@ return new class extends Migration
             $table->string('key')->unique();
             $table->text('value')->nullable();
             $table->string('group')->default('general');
+            $table->string('type')->default('string');
+            $table->text('description')->nullable();
+            $table->boolean('is_public')->default(false);
             $table->timestamps();
+            $table->index('group');
+            $table->index('is_public');
         });
-
-        // Seed default values
-        DB::table('settings')->insert([
-            ['key' => 'default_commission_percentage', 'value' => '20', 'group' => 'finance', 'created_at' => now(), 'updated_at' => now()],
-        ]);
     }
 
     public function down(): void

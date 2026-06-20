@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict SdoWY01ArwDGo0MMvpLzWGW3ydeegbhbNsF9VBwe1k5AuCk9nWcLt4fsEYOsNFj
+\restrict f2nNbePGWqRj8iqTDj4Xng9Kyv1XH67hu53Bdfm0QvH1fTFEtrDdAMxAVu25ahV
 
 -- Dumped from database version 16.14 (Ubuntu 16.14-0ubuntu0.24.04.1)
 -- Dumped by pg_dump version 16.14 (Ubuntu 16.14-0ubuntu0.24.04.1)
@@ -44,6 +44,10 @@ CREATE TABLE public.activity_logs (
     id bigint NOT NULL,
     user_id bigint,
     action character varying(255) NOT NULL,
+    subject_type character varying(255),
+    subject_id bigint,
+    old_values json,
+    new_values json,
     ip_address character varying(255),
     user_agent character varying(255),
     data json,
@@ -127,6 +131,49 @@ CREATE SEQUENCE public.categories_id_seq
 --
 
 ALTER SEQUENCE public.categories_id_seq OWNED BY public.categories.id;
+
+
+--
+-- Name: coupons; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.coupons (
+    id bigint NOT NULL,
+    code character varying(255) NOT NULL,
+    type character varying(255) DEFAULT 'percentage'::character varying NOT NULL,
+    value numeric(12,2) NOT NULL,
+    min_order_amount numeric(12,2),
+    max_uses integer,
+    used_count integer DEFAULT 0 NOT NULL,
+    max_uses_per_user integer DEFAULT 1 NOT NULL,
+    starts_at timestamp(0) without time zone,
+    expires_at timestamp(0) without time zone,
+    is_active boolean DEFAULT true NOT NULL,
+    description text,
+    created_by bigint,
+    created_at timestamp(0) without time zone,
+    updated_at timestamp(0) without time zone,
+    deleted_at timestamp(0) without time zone
+);
+
+
+--
+-- Name: coupons_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.coupons_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: coupons_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.coupons_id_seq OWNED BY public.coupons.id;
 
 
 --
@@ -792,6 +839,7 @@ CREATE TABLE public.orders (
     cancelled_at timestamp(0) without time zone,
     refunded_at timestamp(0) without time zone,
     coupon_code character varying(255),
+    coupon_id bigint,
     created_at timestamp(0) without time zone,
     updated_at timestamp(0) without time zone,
     deleted_at timestamp(0) without time zone,
@@ -1192,6 +1240,42 @@ ALTER SEQUENCE public.sections_id_seq OWNED BY public.sections.id;
 
 
 --
+-- Name: settings; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.settings (
+    id bigint NOT NULL,
+    key character varying(255) NOT NULL,
+    value text,
+    "group" character varying(255) DEFAULT 'general'::character varying NOT NULL,
+    type character varying(255) DEFAULT 'string'::character varying NOT NULL,
+    description text,
+    is_public boolean DEFAULT false NOT NULL,
+    created_at timestamp(0) without time zone,
+    updated_at timestamp(0) without time zone
+);
+
+
+--
+-- Name: settings_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.settings_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: settings_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.settings_id_seq OWNED BY public.settings.id;
+
+
+--
 -- Name: student_profiles; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1374,20 +1458,14 @@ CREATE TABLE public.users (
     password character varying(255) NOT NULL,
     avatar character varying(255),
     phone character varying(255),
-    role character varying(255) DEFAULT 'student'::character varying NOT NULL,
     status character varying(255) DEFAULT 'active'::character varying NOT NULL,
     last_login_at timestamp(0) without time zone,
     remember_token character varying(100),
     created_at timestamp(0) without time zone,
     updated_at timestamp(0) without time zone,
     deleted_at timestamp(0) without time zone,
-    oauth_provider character varying(255),
-    oauth_id character varying(255),
-    oauth_avatar character varying(255),
-    instructor_status character varying(255) DEFAULT 'not_instructor'::character varying,
     two_factor_enabled boolean DEFAULT false NOT NULL,
-    two_factor_secret character varying(255),
-    is_verified boolean DEFAULT false NOT NULL
+    two_factor_secret character varying(255)
 );
 
 
@@ -1493,6 +1571,13 @@ ALTER TABLE ONLY public.activity_logs ALTER COLUMN id SET DEFAULT nextval('publi
 --
 
 ALTER TABLE ONLY public.categories ALTER COLUMN id SET DEFAULT nextval('public.categories_id_seq'::regclass);
+
+
+--
+-- Name: coupons id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.coupons ALTER COLUMN id SET DEFAULT nextval('public.coupons_id_seq'::regclass);
 
 
 --
@@ -1685,6 +1770,13 @@ ALTER TABLE ONLY public.sections ALTER COLUMN id SET DEFAULT nextval('public.sec
 
 
 --
+-- Name: settings id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.settings ALTER COLUMN id SET DEFAULT nextval('public.settings_id_seq'::regclass);
+
+
+--
 -- Name: student_profiles id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -1778,6 +1870,22 @@ ALTER TABLE ONLY public.categories
 
 ALTER TABLE ONLY public.categories
     ADD CONSTRAINT categories_slug_unique UNIQUE (slug);
+
+
+--
+-- Name: coupons coupons_code_unique; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.coupons
+    ADD CONSTRAINT coupons_code_unique UNIQUE (code);
+
+
+--
+-- Name: coupons coupons_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.coupons
+    ADD CONSTRAINT coupons_pkey PRIMARY KEY (id);
 
 
 --
@@ -2189,6 +2297,22 @@ ALTER TABLE ONLY public.sections
 
 
 --
+-- Name: settings settings_key_unique; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.settings
+    ADD CONSTRAINT settings_key_unique UNIQUE (key);
+
+
+--
+-- Name: settings settings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.settings
+    ADD CONSTRAINT settings_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: student_profiles student_profiles_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2299,6 +2423,13 @@ CREATE INDEX activity_logs_created_at_index ON public.activity_logs USING btree 
 
 
 --
+-- Name: activity_logs_subject_type_subject_id_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX activity_logs_subject_type_subject_id_index ON public.activity_logs USING btree (subject_type, subject_id);
+
+
+--
 -- Name: activity_logs_user_id_index; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -2317,6 +2448,13 @@ CREATE INDEX cache_expiration_index ON public.cache USING btree (expiration);
 --
 
 CREATE INDEX cache_locks_expiration_index ON public.cache_locks USING btree (expiration);
+
+
+--
+-- Name: coupons_is_active_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX coupons_is_active_index ON public.coupons USING btree (is_active);
 
 
 --
@@ -2495,6 +2633,20 @@ CREATE INDEX personal_access_tokens_tokenable_type_tokenable_id_index ON public.
 
 
 --
+-- Name: settings_group_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX settings_group_index ON public.settings USING btree ("group");
+
+
+--
+-- Name: settings_is_public_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX settings_is_public_index ON public.settings USING btree (is_public);
+
+
+--
 -- Name: two_factor_codes_code_index; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -2506,13 +2658,6 @@ CREATE INDEX two_factor_codes_code_index ON public.two_factor_codes USING btree 
 --
 
 CREATE INDEX two_factor_codes_user_id_index ON public.two_factor_codes USING btree (user_id);
-
-
---
--- Name: users_role_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX users_role_index ON public.users USING btree (role);
 
 
 --
@@ -2528,6 +2673,14 @@ CREATE INDEX wishlists_user_id_index ON public.wishlists USING btree (user_id);
 
 ALTER TABLE ONLY public.activity_logs
     ADD CONSTRAINT activity_logs_user_id_foreign FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE SET NULL;
+
+
+--
+-- Name: coupons coupons_created_by_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.coupons
+    ADD CONSTRAINT coupons_created_by_foreign FOREIGN KEY (created_by) REFERENCES public.users(id) ON DELETE SET NULL;
 
 
 --
@@ -2739,6 +2892,14 @@ ALTER TABLE ONLY public.order_items
 
 
 --
+-- Name: orders orders_coupon_id_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.orders
+    ADD CONSTRAINT orders_coupon_id_foreign FOREIGN KEY (coupon_id) REFERENCES public.coupons(id) ON DELETE SET NULL;
+
+
+--
 -- Name: orders orders_user_id_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2918,13 +3079,13 @@ ALTER TABLE ONLY public.wishlists
 -- PostgreSQL database dump complete
 --
 
-\unrestrict SdoWY01ArwDGo0MMvpLzWGW3ydeegbhbNsF9VBwe1k5AuCk9nWcLt4fsEYOsNFj
+\unrestrict f2nNbePGWqRj8iqTDj4Xng9Kyv1XH67hu53Bdfm0QvH1fTFEtrDdAMxAVu25ahV
 
 --
 -- PostgreSQL database dump
 --
 
-\restrict 0b8FTPVff5dmTlhbwoqbaPwGbIxB13P3VGwaJoeuf7hU0af7oS8cgtlR5ZQbfbw
+\restrict JKvMR7FMUTuVebxPTzl3dGkm2aYtWsr4FfBzy7gmoG6xYGyslUJi9c6MDdaYVSM
 
 -- Dumped from database version 16.14 (Ubuntu 16.14-0ubuntu0.24.04.1)
 -- Dumped by pg_dump version 16.14 (Ubuntu 16.14-0ubuntu0.24.04.1)
@@ -2955,22 +3116,22 @@ COPY public.migrations (id, migration, batch) FROM stdin;
 8	2026_04_02_073756_create_course_tag_table	1
 9	2026_04_02_073831_create_sections_table	1
 10	2026_04_02_073856_create_lessons_table	1
-11	2026_04_02_073915_create_lesson_resources_table	1
-12	2026_04_02_073916_create_orders_table	1
-13	2026_04_02_075304_create_enrollments_table	1
-14	2026_04_02_080012_create_lesson_progress_table	1
-15	2026_04_02_080126_create_wishlists_table	1
-16	2026_04_02_080149_create_reviews_table	1
-17	2026_04_02_080951_create_order_items_table	1
-18	2026_04_02_081212_create_payments_table	1
-19	2026_04_02_081313_create_transactions_table	1
-20	2026_04_02_081353_create_revenue_shares_table	1
-21	2026_04_02_081442_create_instructor_wallets_table	1
-22	2026_04_02_081512_create_payout_requests_table	1
-23	2026_04_02_081513_create_wallet_transactions_table	1
-24	2026_04_09_113443_create_failed_jobs_table	1
-25	2026_04_10_115404_create_daily_metrics_table	1
-26	2026_04_21_082223_add_oauth_fields_to_users_table	1
+11	2026_04_02_073915_create_coupons_table	1
+12	2026_04_02_073915_create_lesson_resources_table	1
+13	2026_04_02_073916_create_orders_table	1
+14	2026_04_02_075304_create_enrollments_table	1
+15	2026_04_02_080012_create_lesson_progress_table	1
+16	2026_04_02_080126_create_wishlists_table	1
+17	2026_04_02_080149_create_reviews_table	1
+18	2026_04_02_080951_create_order_items_table	1
+19	2026_04_02_081212_create_payments_table	1
+20	2026_04_02_081313_create_transactions_table	1
+21	2026_04_02_081353_create_revenue_shares_table	1
+22	2026_04_02_081442_create_instructor_wallets_table	1
+23	2026_04_02_081512_create_payout_requests_table	1
+24	2026_04_02_081513_create_wallet_transactions_table	1
+25	2026_04_09_113443_create_failed_jobs_table	1
+26	2026_04_10_115404_create_daily_metrics_table	1
 27	2026_04_21_120000_create_student_profiles_table	1
 28	2026_04_21_120001_create_instructor_profiles_table	1
 29	2026_04_23_create_instructor_verifications_table	1
@@ -2983,16 +3144,16 @@ COPY public.migrations (id, migration, batch) FROM stdin;
 36	2026_05_08_111944_create_permission_tables	1
 37	2026_05_09_122355_add_preview_video_to_courses_table	1
 38	2026_05_09_122844_add_learning_content_fields_to_lessons_table	1
-39	2026_05_10_100629_add_is_verified_to_users_table	1
-40	2026_05_11_150914_create_cache_table	1
-41	2026_05_12_200018_add_khqr_fields_to_payments_table	1
-42	2026_05_12_200106_add_payment_method_to_orders_table	1
-43	2026_05_13_000001_add_verification_tracking_to_payments_table	1
-44	2026_05_15_152556_add_course_id_to_lesson_progress_table	1
-45	2026_05_21_163426_create_notifications_table	1
-46	2026_05_24_191526_create_course_views_table	1
-47	2026_05_26_002708_add_rejection_reason_to_courses_table	2
-48	2026_06_09_210205_create_otp_codes_table	3
+39	2026_05_11_150914_create_cache_table	1
+40	2026_05_12_200018_add_khqr_fields_to_payments_table	1
+41	2026_05_12_200106_add_payment_method_to_orders_table	1
+42	2026_05_13_000001_add_verification_tracking_to_payments_table	1
+43	2026_05_15_152556_add_course_id_to_lesson_progress_table	1
+44	2026_05_21_163426_create_notifications_table	1
+45	2026_05_24_191526_create_course_views_table	1
+46	2026_05_26_002708_add_rejection_reason_to_courses_table	1
+47	2026_06_09_210205_create_otp_codes_table	1
+48	2026_06_16_000001_create_settings_table	1
 \.
 
 
@@ -3000,12 +3161,12 @@ COPY public.migrations (id, migration, batch) FROM stdin;
 -- Name: migrations_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.migrations_id_seq', 80, true);
+SELECT pg_catalog.setval('public.migrations_id_seq', 48, true);
 
 
 --
 -- PostgreSQL database dump complete
 --
 
-\unrestrict 0b8FTPVff5dmTlhbwoqbaPwGbIxB13P3VGwaJoeuf7hU0af7oS8cgtlR5ZQbfbw
+\unrestrict JKvMR7FMUTuVebxPTzl3dGkm2aYtWsr4FfBzy7gmoG6xYGyslUJi9c6MDdaYVSM
 

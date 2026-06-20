@@ -90,6 +90,7 @@ html:not(.dark) .lp {
 .lp-table tbody tr { border-bottom:1px solid var(--bd); transition:background .12s; }
 .lp-table tbody tr:last-child { border-bottom:none; }
 .lp-table tbody tr:hover { background:var(--p2); }
+.lp-row-link { cursor:pointer; }
 .lp-table td { padding:12px 12px; vertical-align:middle; }
 
 .lp-id { font-size:11.5px; font-weight:700; color:var(--t2); white-space:nowrap; }
@@ -210,7 +211,7 @@ html:not(.dark) .lp {
                     $bgHex = substr(md5($customer), 0, 6);
                     $avUrl = 'https://ui-avatars.com/api/?name=' . urlencode($customer) . '&background=' . $bgHex . '&color=fff&bold=true&size=64';
                 @endphp
-                <tr>
+                <tr class="lp-row-link" onclick="window.location='{{ $viewUrl($payment) }}'">
                     <td><span class="lp-id">{{ $payment->id }}</span></td>
 
                     <td><span class="lp-order-num">{{ $payment->order?->order_number ?? '—' }}</span></td>
@@ -241,7 +242,7 @@ html:not(.dark) .lp {
 
                     <td><span class="lp-date">{{ $payment->created_at?->format('M d, Y') }}</span></td>
 
-                    <td>
+                    <td onclick="event.stopPropagation()">
                         <div class="lp-actions">
                             @php $statusVal = $payment->status?->value ?? $payment->status; @endphp
                             @if(in_array($statusVal, ['pending', 'processing', 'expired']))

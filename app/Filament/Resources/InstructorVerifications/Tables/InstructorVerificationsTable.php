@@ -68,9 +68,7 @@ class InstructorVerificationsTable
             ->recordActions([
 
                 Actions\ViewAction::make(),
-
                 Actions\EditAction::make(),
-
                 Actions\Action::make('approve')
                     ->label('Approve')
                     ->icon('heroicon-o-check-circle')
@@ -95,13 +93,7 @@ class InstructorVerificationsTable
                             'user_id' => $record->user_id,
                         ]);
 
-                        $user->update([
-                            'role' => 'instructor',
-                            'instructor_status' => 'verified',
-                        ]);
-
                         $user->syncRoles(['instructor']);
-
                         $user->notify(new InstructorApprovedNotification());
 
                         Notification::make()
@@ -117,7 +109,6 @@ class InstructorVerificationsTable
                     ->label('Reject')
                     ->icon('heroicon-o-x-circle')
                     ->color('danger')
-
                     ->visible(
                         fn (InstructorVerification $record) =>
                         $record->status === 'pending'
@@ -144,10 +135,6 @@ class InstructorVerificationsTable
                         ]);
 
                         $user = $record->user;
-
-                        $user->update([
-                            'instructor_status' => 'rejected',
-                        ]);
 
                         $user->removeRole('instructor');
 

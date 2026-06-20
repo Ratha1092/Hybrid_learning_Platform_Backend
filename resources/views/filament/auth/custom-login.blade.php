@@ -1,8 +1,8 @@
 <x-filament-panels::page.simple>
 @php
     $platformName    = filament()->getBrandName() ?: 'Hybrid Learning';
-    $studentCount    = \App\Domains\Users\Models\User::where('role', 'student')->count();
-    $instructorCount = \App\Domains\Users\Models\User::where('role', 'instructor')->count();
+    $studentCount    = \App\Domains\Users\Models\User::role('student')->count();
+    $instructorCount = \App\Domains\Users\Models\User::role('instructor')->count();
     $courseCount     = \App\Domains\Courses\Models\Course::count();
     $orderCount      = \App\Domains\Orders\Models\Order::count();
 

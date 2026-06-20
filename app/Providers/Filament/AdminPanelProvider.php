@@ -2,39 +2,29 @@
 
 namespace App\Providers\Filament;
 
+use App\Domains\System\Models\Setting;
+use App\Filament\Pages\Dashboard;
 use Filament\Enums\ThemeMode;
+use Filament\Http\Middleware\Authenticate;
+use Filament\Http\Middleware\AuthenticateSession;
+use Filament\Http\Middleware\DisableBladeIconComponents;
+use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Navigation\NavigationGroup;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
 use Filament\View\PanelsRenderHook;
-use Filament\Http\Middleware\Authenticate;
-use Filament\Http\Middleware\AuthenticateSession;
-use Filament\Http\Middleware\DisableBladeIconComponents;
-use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Str;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
-use App\Filament\Pages\Dashboard;
-use App\Domains\System\Models\Setting;
-use Filament\Support\Facades\FilamentIcon;
 
 class AdminPanelProvider extends PanelProvider
 {
-    public function register(): void
-    {
-        parent::register();
-
-        FilamentIcon::register([
-            'panels::sidebar.collapse-button' => 'heroicon-o-adjustments-horizontal',
-            'panels::sidebar.expand-button'   => 'heroicon-o-adjustments-horizontal',
-        ]);
-    }
-
     public function panel(Panel $panel): Panel
     {
         return $panel
@@ -43,19 +33,101 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->defaultThemeMode(ThemeMode::Dark)
             ->brandName('Hybrid Learning')
-            ->sidebarFullyCollapsibleOnDesktop()
-            ->sidebarWidth('17rem')
+            ->favicon(asset('favicon.svg'))
+            ->sidebarCollapsibleOnDesktop()
+            ->sidebarWidth('15rem')
+            ->collapsedSidebarWidth('4.75rem')
             ->maxContentWidth('full')
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->login(\App\Filament\Auth\Pages\Login::class)
             ->colors([
-                'primary' => Color::Amber,
+                'primary' => Color::hex('#4141d7'),
             ])
+            ->renderHook(
+                PanelsRenderHook::SIDEBAR_LOGO_BEFORE,
+                function () {
+                    $brandName = e(filament()->getBrandName());
+                    $homeUrl = e(filament()->getHomeUrl() ?? url('/admin'));
+                    $environment = e(app()->environment());
+                    $isProduction = app()->environment('production');
+                    $dotClasses = 'hl-brand-dot'.($isProduction ? ' hl-live' : '');
+
+                    return <<<HTML
+                    <div class="hl-sidebar-brand">
+                        <button
+                            type="button"
+                            class="hl-sidebar-toggle hl-sidebar-toggle-expand"
+                            aria-label="Expand sidebar"
+                            title="Expand sidebar"
+                            x-show="! \$store.sidebar.isOpen"
+                            x-on:click="\$store.sidebar.open()"
+                            x-cloak
+                        >
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M4 7h16M4 12h16M4 17h16"/>
+                            </svg>
+                        </button>
+
+                        <a href="{$homeUrl}" class="hl-brand-lockup" x-show="\$store.sidebar.isOpen" x-cloak>
+                            <span class="hl-brand-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M12 3 2 8l10 5 10-5-10-5Z"/>
+                                    <path d="M5 10v5c0 1.5 3.1 3 7 3s7-1.5 7-3v-5"/>
+                                </svg>
+                            </span>
+                            <span class="hl-brand-copy">
+                                <span class="hl-brand-name">{$brandName}</span>
+                                <span class="hl-brand-subtitle">
+                                    <span>admin</span>
+                                    <span class="{$dotClasses}"></span>
+                                    <span>{$environment}</span>
+                                </span>
+                            </span>
+                        </a>
+
+                        <button
+                            type="button"
+                            class="hl-sidebar-toggle hl-sidebar-toggle-collapse"
+                            aria-label="Collapse sidebar"
+                            title="Collapse sidebar"
+                            x-show="\$store.sidebar.isOpen"
+                            x-on:click="\$store.sidebar.close()"
+                            x-cloak
+                        >
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M9 5H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h4M14 8l-4 4 4 4M10 12h11"/>
+                            </svg>
+                        </button>
+                    </div>
+                    HTML;
+                }
+            )
+            ->renderHook(
+                PanelsRenderHook::TOPBAR_LOGO_AFTER,
+                function () {
+                    $pageClass = request()->route()?->getAction('controller');
+                    $title = (is_string($pageClass) && class_exists($pageClass) && method_exists($pageClass, 'getNavigationLabel'))
+                        ? $pageClass::getNavigationLabel()
+                        : Str::headline(Str::afterLast(request()->route()?->getName() ?? 'Dashboard', '.'));
+
+                    $slug = e(Str::slug(filament()->getBrandName()));
+                    $title = e($title);
+
+                    return <<<HTML
+                    <div class="hl-breadcrumb">
+                        <span class="hl-breadcrumb-slug">{$slug}</span>
+                        <span class="hl-breadcrumb-sep">/</span>
+                        <span class="hl-breadcrumb-title">{$title}</span>
+                    </div>
+                    HTML;
+                }
+            )
             ->renderHook(
                 PanelsRenderHook::GLOBAL_SEARCH_BEFORE,
                 function () {
                     $rate = (float) Setting::get('default_commission_percentage', 20);
-                    $url  = url('/admin/settings');
+                    $url = url('/admin/settings');
+
                     return <<<HTML
                     <a href="{$url}" title="Platform commission rate — click to configure" class="hl-commission-pill">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -68,12 +140,13 @@ class AdminPanelProvider extends PanelProvider
             )
             ->renderHook(
                 PanelsRenderHook::USER_MENU_BEFORE,
-                fn() => Blade::render('@livewire("admin-notification-bell")')
+                fn () => Blade::render('@livewire("admin-notification-bell")')
             )
             ->navigationGroups([NavigationGroup::make('Overview')->collapsible(),
                 NavigationGroup::make('Learning')->collapsible(),
-                NavigationGroup::make('Marketplace')->collapsible(),
-                NavigationGroup::make('Users')->collapsible(),
+                NavigationGroup::make('Commerce')->collapsible(),
+                NavigationGroup::make('People')->collapsible(),
+                NavigationGroup::make('Finance')->collapsible(),
                 NavigationGroup::make('System')->collapsible(),
             ])
             ->discoverResources(

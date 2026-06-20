@@ -3,9 +3,12 @@
 namespace App\Filament\Pages;
 
 use App\Domains\Courses\Models\Lesson;
+use App\Support\NavBadge;
+use App\Support\PanelAccess;
 use BackedEnum;
 use Filament\Pages\Page;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Number;
 
 class Lessons extends Page
 {
@@ -15,6 +18,35 @@ class Lessons extends Page
     protected static string|\UnitEnum|null $navigationGroup = 'Learning';
     protected static ?int $navigationSort = 5;
     protected static ?string $slug = 'lessons';
+
+    public static function canAccess(): bool
+    {
+        return PanelAccess::can('courses.view');
+    }
+
+    public function mount(): void
+    {
+        NavBadge::markSeen('lessons');
+    }
+
+    public static function getNavigationBadge(): ?string
+    {
+        $count = NavBadge::countSince('lessons', fn (?\Carbon\Carbon $since) => $since
+            ? Lesson::withoutGlobalScopes([SoftDeletingScope::class])->where('created_at', '>', $since)->count()
+            : Lesson::withoutGlobalScopes([SoftDeletingScope::class])->count());
+
+        return $count > 0 ? Number::abbreviate($count) : null;
+    }
+
+    public static function getNavigationBadgeColor(): ?string
+    {
+        return 'danger';
+    }
+
+    public static function getNavigationBadgeTooltip(): ?string
+    {
+        return 'New lessons since you last viewed this page';
+    }
 
     public function getHeading(): string|\Illuminate\Contracts\Support\Htmlable
     {

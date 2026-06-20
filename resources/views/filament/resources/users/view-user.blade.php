@@ -12,19 +12,26 @@
         default     => ['bg' => 'rgba(148,163,184,.1)', 'color' => '#64748b', 'dot' => '#94a3b8', 'label' => ucfirst($statusVal)],
     };
 
-    $role = $user->role ?? '';
+    $role = $user->getRoleNames()->first() ?? '';
     $roleStyle = match ($role) {
-        'admin'      => ['bg' => 'rgba(124,58,237,.1)',  'color' => '#7c3aed', 'label' => 'Admin'],
-        'instructor' => ['bg' => 'rgba(245,158,11,.1)',  'color' => '#d97706', 'label' => 'Instructor'],
-        'student'    => ['bg' => 'rgba(37,99,235,.1)',   'color' => '#2563eb', 'label' => 'Student'],
-        default      => ['bg' => 'rgba(148,163,184,.1)', 'color' => '#64748b', 'label' => ucfirst($role ?: '—')],
+        'super-admin'      => ['bg' => 'rgba(220,38,38,.1)',   'color' => '#dc2626', 'label' => 'Super Admin'],
+        'admin'            => ['bg' => 'rgba(124,58,237,.1)',  'color' => '#7c3aed', 'label' => 'Admin'],
+        'finance-manager'  => ['bg' => 'rgba(13,148,136,.1)',  'color' => '#0d9488', 'label' => 'Finance Manager'],
+        'accountant'       => ['bg' => 'rgba(13,148,136,.1)',  'color' => '#0d9488', 'label' => 'Accountant'],
+        'content-manager'  => ['bg' => 'rgba(217,119,6,.1)',   'color' => '#d97706', 'label' => 'Content Manager'],
+        'moderator'        => ['bg' => 'rgba(217,119,6,.1)',   'color' => '#d97706', 'label' => 'Moderator'],
+        'support-staff'    => ['bg' => 'rgba(37,99,235,.1)',   'color' => '#2563eb', 'label' => 'Support Staff'],
+        'instructor'       => ['bg' => 'rgba(245,158,11,.1)',  'color' => '#d97706', 'label' => 'Instructor'],
+        'student'          => ['bg' => 'rgba(37,99,235,.1)',   'color' => '#2563eb', 'label' => 'Student'],
+        default            => ['bg' => 'rgba(148,163,184,.1)', 'color' => '#64748b', 'label' => $role ? ucfirst($role) : '—'],
     };
 
-    $instructorStatus = $user->instructor_status ?? null;
+    $instructorStatus = $user->instructorVerification?->status;
     $instructorStatusStyle = match ($instructorStatus) {
-        'verified'  => ['bg' => 'rgba(22,163,74,.1)',   'color' => '#16a34a', 'label' => 'Verified'],
+        'approved'  => ['bg' => 'rgba(22,163,74,.1)',   'color' => '#16a34a', 'label' => 'Approved'],
         'pending'   => ['bg' => 'rgba(245,158,11,.1)',  'color' => '#d97706', 'label' => 'Pending'],
         'rejected'  => ['bg' => 'rgba(220,38,38,.1)',   'color' => '#dc2626', 'label' => 'Rejected'],
+        'suspended' => ['bg' => 'rgba(220,38,38,.1)',   'color' => '#dc2626', 'label' => 'Suspended'],
         default     => null,
     };
 
@@ -209,7 +216,7 @@ html.dark .uv{
                 </span>
             </span>
         </div>
-        @if($user->role === 'instructor' && $instructorStatusStyle)
+        @if($user->hasRole('instructor') && $instructorStatusStyle)
         <div class="uv-field-row">
             <span class="uv-field-label">Instructor</span>
             <span class="uv-field-value">
@@ -319,7 +326,7 @@ html.dark .uv{
     @php
         $ordersCount      = $user->orders()->count();
         $enrollCount      = $user->enrollments()->count();
-        $coursesCount     = $user->role === 'instructor' ? $user->courses()->count() : null;
+        $coursesCount     = $user->hasRole('instructor') ? $user->courses()->count() : null;
     @endphp
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:0;border-top:none">
         <div style="padding:20px 24px;border-right:1px solid var(--bd);text-align:center">

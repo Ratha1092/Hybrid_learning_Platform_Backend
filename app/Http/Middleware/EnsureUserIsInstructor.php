@@ -26,14 +26,14 @@ class EnsureUserIsInstructor
             return $next($request);
         }
 
-        if (!($user->role === 'instructor' || $user->hasRole('instructor'))) {
+        if (!$user->hasRole('instructor')) {
             return response()->json([
                 'success' => false,
                 'message' => 'Instructor access required.',
             ], 403);
         }
 
-        if ($user->instructor_status !== 'verified') {
+        if (!$user->isVerifiedInstructor()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Instructor verification required.',

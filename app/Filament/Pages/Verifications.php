@@ -6,6 +6,7 @@ use App\Domains\Notifications\Notifications\InstructorApprovedNotification;
 use App\Domains\Notifications\Notifications\InstructorRejectedNotification;
 use App\Domains\Users\Models\InstructorProfile;
 use App\Domains\Users\Models\InstructorVerification;
+use App\Support\PanelAccess;
 use BackedEnum;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
@@ -15,9 +16,26 @@ class Verifications extends Page
     protected string $view = 'filament.pages.verifications';
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-document-check';
     protected static ?string $navigationLabel = 'Verifications';
-    protected static string|\UnitEnum|null $navigationGroup = 'Users';
+    protected static string|\UnitEnum|null $navigationGroup = 'People';
     protected static ?int $navigationSort = 3;
     protected static ?string $slug = 'instructor-verifications';
+
+    public static function canAccess(): bool
+    {
+        return PanelAccess::can('users.view');
+    }
+
+    public static function getNavigationBadge(): ?string
+    {
+        $pending = InstructorVerification::pending()->count();
+
+        return $pending > 0 ? (string) $pending : null;
+    }
+
+    public static function getNavigationBadgeColor(): ?string
+    {
+        return 'danger';
+    }
 
     public function getHeading(): string|\Illuminate\Contracts\Support\Htmlable
     {
@@ -40,14 +58,7 @@ class Verifications extends Page
 
         InstructorProfile::firstOrCreate(['user_id' => $verification->user_id]);
 
-        $user->update([
-            'role'              => 'instructor',
-            'instructor_status' => 'verified',
-        ]);
-
         $user->syncRoles(['instructor']);
-        $user->notify(new InstructorApprovedNotification());
-
         $user->notify(new InstructorApprovedNotification());
 
         Notification::make()
@@ -71,11 +82,8 @@ class Verifications extends Page
         ]);
 
         $user = $verification->user;
-        $user->update(['instructor_status' => 'rejected']);
         $user->removeRole('instructor');
         $user->notify(new InstructorRejectedNotification($reason));
-
-        $user->notify(new InstructorRejectedNotification());
 
         Notification::make()
             ->title('Application Rejected')

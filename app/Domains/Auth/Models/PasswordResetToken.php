@@ -28,10 +28,6 @@ class PasswordResetToken extends Model
     {
         return $this->belongsTo(User::class);
     }
-
-    /**
-     * Helper method (very useful)
-     */
     public function isExpired(): bool
     {
         return $this->expires_at && $this->expires_at->isPast();

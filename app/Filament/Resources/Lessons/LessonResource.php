@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Lessons;
 
 use App\Domains\Courses\Models\Lesson;
+use App\Support\PanelAccess;
 
 use App\Filament\Resources\Lessons\Pages\CreateLesson;
 use App\Filament\Resources\Lessons\Pages\EditLesson;
@@ -72,5 +73,10 @@ class LessonResource extends Resource
                 SoftDeletingScope::class,
             ])
             ->latest();
+    }
+
+    public static function canViewAny(): bool
+    {
+        return PanelAccess::can('courses.view');
     }
 }

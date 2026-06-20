@@ -166,9 +166,11 @@ class BakongKhqrPaymentTest extends TestCase
 
     private function createPublishedCourse(int $price = 30): Course
     {
-        $instructor = User::factory()->create([
-            'role' => 'instructor',
-            'instructor_status' => 'verified',
+        $instructor = User::factory()->create();
+        $instructor->assignRole('instructor');
+        \App\Domains\Users\Models\InstructorVerification::create([
+            'user_id' => $instructor->id,
+            'status' => 'approved',
         ]);
 
         $category = Category::create([

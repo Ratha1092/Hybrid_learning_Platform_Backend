@@ -13,7 +13,7 @@ class IsAdmin
             return response()->json(['message' => 'Unauthenticated'], 401);
         }
 
-        if (auth()->user()->role !== 'admin') {
+        if (!auth()->user()->isAdmin()) {
             return response()->json(['message' => 'Admin access only'], 403);
         }
 

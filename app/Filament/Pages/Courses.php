@@ -5,9 +5,12 @@ namespace App\Filament\Pages;
 use App\Domains\Courses\Models\Course;
 use App\Domains\Notifications\Notifications\CourseApprovedNotification;
 use App\Domains\Notifications\Notifications\CourseRejectedNotification;
+use App\Support\NavBadge;
+use App\Support\PanelAccess;
 use BackedEnum;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use Illuminate\Support\Number;
 class Courses extends Page
 {
     protected string $view = 'filament.pages.courses';
@@ -16,6 +19,11 @@ class Courses extends Page
     protected static string|\UnitEnum|null $navigationGroup = 'Learning';
     protected static ?int $navigationSort = 1;
     protected static ?string $slug = 'courses';
+
+    public static function canAccess(): bool
+    {
+        return PanelAccess::can('courses.view');
+    }
 
     public string $activeTab   = 'all';
     public string $search      = '';
@@ -29,6 +37,27 @@ class Courses extends Page
         $this->currentPage = max(1, (int) request('page', 1));
         $this->perPage     = in_array((int) request('per_page', 10), [10, 25, 50])
             ? (int) request('per_page', 10) : 10;
+
+        NavBadge::markSeen('courses');
+    }
+
+    public static function getNavigationBadge(): ?string
+    {
+        $count = NavBadge::countSince('courses', fn (?\Carbon\Carbon $since) => $since
+            ? Course::withoutGlobalScopes()->where('status', Course::STATUS_PENDING)->where('created_at', '>', $since)->count()
+            : Course::withoutGlobalScopes()->where('status', Course::STATUS_PENDING)->count());
+
+        return $count > 0 ? Number::abbreviate($count) : null;
+    }
+
+    public static function getNavigationBadgeColor(): ?string
+    {
+        return 'danger';
+    }
+
+    public static function getNavigationBadgeTooltip(): ?string
+    {
+        return 'Courses pending review since you last viewed this page';
     }
 
     public function getHeading(): string|\Illuminate\Contracts\Support\Htmlable

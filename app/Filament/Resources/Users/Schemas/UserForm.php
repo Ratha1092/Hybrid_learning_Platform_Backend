@@ -24,14 +24,11 @@ class UserForm
                     ->unique(ignoreRecord: true)
                     ->maxLength(255),
 
-                Select::make('role')
-                    ->options([
-                        'admin' => 'Admin',
-                        'instructor' => 'Instructor',
-                        'student' => 'Student',
-                    ])
-                    ->required()
-                    ->default('student'),
+                Select::make('roles')
+                    ->relationship('roles', 'name')
+                    ->multiple()
+                    ->preload()
+                    ->required(),
 
                 TextInput::make('password')
                     ->password()

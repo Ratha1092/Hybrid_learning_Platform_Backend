@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Notifications;
 
+use App\Support\PanelAccess;
 use Filament\Resources\Resource;
 use Filament\Tables\Table;
 use Illuminate\Notifications\DatabaseNotification;
@@ -49,5 +50,10 @@ class NotificationResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return NotificationForm::configure($schema);
+    }
+
+    public static function canViewAny(): bool
+    {
+        return PanelAccess::isStaff();
     }
 }

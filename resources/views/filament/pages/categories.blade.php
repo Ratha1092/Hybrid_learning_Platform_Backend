@@ -89,6 +89,7 @@ html:not(.dark) .lp {
 }
 .lp-table tbody tr:last-child { border-bottom:none; }
 .lp-table tbody tr:hover { background:var(--p2); }
+.lp-row-link { cursor:pointer; }
 .lp-table td { padding:12px 12px; vertical-align:middle; }
 
 .lp-id { font-size:11.5px; font-weight:700; color:var(--t2); white-space:nowrap; }
@@ -210,7 +211,7 @@ html:not(.dark) .lp {
                     $hue      = abs(crc32($cat->name)) % 360;
                     $bgColor  = "hsl({$hue},55%,40%)";
                 @endphp
-                <tr>
+                <tr class="lp-row-link" onclick="window.location='{{ $editUrl($cat) }}'">
                     <td><span class="lp-id">{{ $cat->id }}</span></td>
 
                     <td>
@@ -228,7 +229,7 @@ html:not(.dark) .lp {
                         <span class="lp-desc">{{ $cat->description ? \Illuminate\Support\Str::limit($cat->description, 50) : '—' }}</span>
                     </td>
 
-                    <td class="lp-count-cell">
+                    <td class="lp-count-cell" onclick="event.stopPropagation()">
                         <a href="{{ route('filament.admin.pages.category-courses') }}?id={{ $cat->id }}"
                            class="lp-count-val"
                            title="View courses in {{ $cat->name }}"
@@ -243,7 +244,7 @@ html:not(.dark) .lp {
 
                     <td><span class="lp-date">{{ $cat->created_at?->format('M d, Y') }}</span></td>
 
-                    <td>
+                    <td onclick="event.stopPropagation()">
                         <div class="lp-actions">
                             <a href="{{ $editUrl($cat) }}" class="lp-act-btn" title="Edit">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">

@@ -1,13 +1,20 @@
 @php
     $url = fn(array $p) => url()->current() . '?' . http_build_query(array_merge(request()->query(), $p));
+    $activeTab = collect($tabs ?? [])->firstWhere('key', $tab) ?? ($tabs[0] ?? ['key' => 'all', 'label' => 'All', 'count' => 0, 'color' => '#2563eb']);
 
     $accent = '#2563eb';
 
     $roleStyle = fn($role) => match($role) {
-        'admin'      => ['bg' => 'rgba(168,85,247,.12)', 'color' => '#a855f7', 'label' => 'Admin'],
-        'instructor' => ['bg' => 'rgba(59,130,246,.12)', 'color' => '#3b82f6', 'label' => 'Instructor'],
-        'student'    => ['bg' => 'rgba(16,185,129,.12)', 'color' => '#10b981', 'label' => 'Student'],
-        default      => ['bg' => 'rgba(148,163,184,.1)', 'color' => '#94a3b8', 'label' => ucfirst($role ?? '—')],
+        'super-admin'     => ['bg' => 'rgba(220,38,38,.12)',  'color' => '#dc2626', 'label' => 'Super Admin'],
+        'admin'           => ['bg' => 'rgba(168,85,247,.12)', 'color' => '#a855f7', 'label' => 'Admin'],
+        'finance-manager' => ['bg' => 'rgba(13,148,136,.12)', 'color' => '#0d9488', 'label' => 'Finance Manager'],
+        'accountant'      => ['bg' => 'rgba(13,148,136,.12)', 'color' => '#0d9488', 'label' => 'Accountant'],
+        'content-manager' => ['bg' => 'rgba(217,119,6,.12)',  'color' => '#d97706', 'label' => 'Content Manager'],
+        'moderator'       => ['bg' => 'rgba(217,119,6,.12)',  'color' => '#d97706', 'label' => 'Moderator'],
+        'support-staff'   => ['bg' => 'rgba(59,130,246,.12)', 'color' => '#3b82f6', 'label' => 'Support Staff'],
+        'instructor'      => ['bg' => 'rgba(59,130,246,.12)', 'color' => '#3b82f6', 'label' => 'Instructor'],
+        'student'         => ['bg' => 'rgba(16,185,129,.12)', 'color' => '#10b981', 'label' => 'Student'],
+        default           => ['bg' => 'rgba(148,163,184,.1)', 'color' => '#94a3b8', 'label' => $role ? ucfirst($role) : '—'],
     };
 
     $statusStyle = fn($status) => match($status) {
@@ -52,12 +59,37 @@ html:not(.dark) .lp {
 .lp-btn:hover { opacity:.85; transform:translateY(-1px); }
 .lp-btn-primary { color:#fff; }
 
-.lp-card { background:var(--p1); border:1px solid var(--bd); border-radius:12px; overflow:hidden; box-shadow:var(--sh); }
+.lp-card { background:var(--p1); border:1px solid var(--bd); border-radius:12px; box-shadow:var(--sh); }
 .lp-toolbar { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 16px; border-bottom:1px solid var(--bd); flex-wrap:wrap; }
-.lp-tabs { display:flex; align-items:center; gap:4px; flex-wrap:wrap; }
-.lp-tab { display:inline-flex; align-items:center; gap:6px; padding:6px 13px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; text-decoration:none; color:var(--t2); border:1px solid transparent; transition:background .15s, color .15s, border-color .15s; }
-.lp-tab:hover { background:var(--p2); color:var(--t1); }
+.lp-toolbar > form { flex-shrink:0; }
 .lp-tab-badge { display:inline-flex; align-items:center; justify-content:center; min-width:18px; height:18px; padding:0 5px; border-radius:5px; font-size:10px; font-weight:800; }
+
+.lp-role-filter { position:relative; flex-shrink:0; }
+.lp-role-filter-btn {
+    display:inline-flex; align-items:center; gap:8px; padding:8px 12px;
+    border-radius:9px; font-size:12.5px; font-weight:700; color:var(--t1);
+    background:var(--p2); border:1px solid var(--bd2); cursor:pointer;
+    font-family:inherit; transition:background .15s, border-color .15s;
+}
+.lp-role-filter-btn:hover { background:var(--p3,var(--p2)); border-color:var(--bd2); }
+.lp-role-filter-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.lp-role-filter-chevron { width:13px; height:13px; color:var(--t2); transition:transform .15s; margin-left:2px; }
+.lp-role-filter:focus-within .lp-role-filter-chevron { transform:rotate(180deg); }
+.lp-role-filter-menu {
+    display:none; position:absolute; left:0; top:calc(100% + 6px);
+    background:var(--p1); border:1px solid var(--bd2);
+    border-radius:10px; box-shadow:0 12px 32px rgba(0,0,0,.35);
+    min-width:220px; max-height:340px; overflow-y:auto; z-index:50; padding:6px;
+}
+.lp-role-filter:focus-within .lp-role-filter-menu { display:block; }
+.lp-role-filter-item {
+    display:flex; align-items:center; gap:9px; padding:8px 10px; border-radius:7px;
+    font-size:12.5px; font-weight:600; color:var(--t1); text-decoration:none;
+    transition:background .12s;
+}
+.lp-role-filter-item:hover { background:var(--p2); }
+.lp-role-filter-item.active { background:var(--p2); }
+.lp-role-filter-item-label { flex:1 1 auto; }
 .lp-search-box { display:flex; align-items:center; gap:6px; background:var(--p2); border:1px solid var(--bd2); border-radius:8px; padding:6px 12px; }
 .lp-search-box svg { width:14px; height:14px; color:var(--t2); flex-shrink:0; }
 .lp-search-box input { background:none; border:none; outline:none; color:var(--t1); font-size:12px; font-family:inherit; width:200px; }
@@ -69,6 +101,7 @@ html:not(.dark) .lp {
 .lp-table tbody tr { border-bottom:1px solid var(--bd); transition:background .12s; }
 .lp-table tbody tr:last-child { border-bottom:none; }
 .lp-table tbody tr:hover { background:var(--p2); }
+.lp-row-link { cursor:pointer; }
 .lp-table td { padding:12px 12px; vertical-align:middle; }
 
 .lp-id { font-size:11.5px; font-weight:700; color:var(--t2); white-space:nowrap; }
@@ -123,19 +156,24 @@ html:not(.dark) .lp {
 
         {{-- Toolbar --}}
         <div class="lp-toolbar">
-            <div class="lp-tabs">
-                @foreach ($tabs as $t)
-                @php
-                    $isActive   = $tab === $t['key'];
-                    $tabColor   = $t['color'];
-                    $tabStyle   = $isActive ? "background:{$tabColor}1a;color:{$tabColor};border-color:{$tabColor}55;font-weight:700;" : '';
-                    $badgeStyle = "background:{$tabColor}20;color:{$tabColor};";
-                @endphp
-                <a href="{{ $url(['tab' => $t['key'], 'page' => 1]) }}" class="lp-tab" style="{{ $tabStyle }}">
-                    {{ $t['label'] }}
-                    <span class="lp-tab-badge" style="{{ $badgeStyle }}">{{ $t['count'] }}</span>
-                </a>
-                @endforeach
+            <div class="lp-role-filter" tabindex="0">
+                <button type="button" class="lp-role-filter-btn">
+                    <span class="lp-role-filter-dot" style="background:{{ $activeTab['color'] }}"></span>
+                    {{ $activeTab['label'] }}
+                    <span class="lp-tab-badge" style="background:{{ $activeTab['color'] }}20;color:{{ $activeTab['color'] }}">{{ $activeTab['count'] }}</span>
+                    <svg class="lp-role-filter-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/>
+                    </svg>
+                </button>
+                <div class="lp-role-filter-menu">
+                    @foreach ($tabs as $t)
+                    <a href="{{ $url(['tab' => $t['key'], 'page' => 1]) }}" class="lp-role-filter-item {{ $tab === $t['key'] ? 'active' : '' }}">
+                        <span class="lp-role-filter-dot" style="background:{{ $t['color'] }}"></span>
+                        <span class="lp-role-filter-item-label">{{ $t['label'] }}</span>
+                        <span class="lp-tab-badge" style="background:{{ $t['color'] }}20;color:{{ $t['color'] }}">{{ $t['count'] }}</span>
+                    </a>
+                    @endforeach
+                </div>
             </div>
 
             <form method="GET" action="{{ url()->current() }}" style="display:flex;align-items:center;gap:0">
@@ -152,7 +190,7 @@ html:not(.dark) .lp {
         </div>
 
         {{-- Table --}}
-        <div style="overflow-x:auto">
+        <div style="overflow-x:auto;border-radius:0 0 12px 12px;">
         <table class="lp-table">
             <thead>
                 <tr>
@@ -168,12 +206,12 @@ html:not(.dark) .lp {
             <tbody>
                 @forelse ($users as $user)
                 @php
-                    $rs   = $roleStyle($user->role);
+                    $rs   = $roleStyle($user->getRoleNames()->first());
                     $ss   = $statusStyle($user->status);
                     $bgHex = substr(md5($user->name ?? ''), 0, 6);
                     $avUrl = 'https://ui-avatars.com/api/?name=' . urlencode($user->name ?? '?') . '&background=' . $bgHex . '&color=fff&bold=true&size=64';
                 @endphp
-                <tr>
+                <tr class="lp-row-link" onclick="window.location='{{ $viewUrl($user) }}'">
                     <td><span class="lp-id">{{ $user->id }}</span></td>
 
                     <td>
@@ -200,7 +238,7 @@ html:not(.dark) .lp {
 
                     <td><span class="lp-date">{{ $user->created_at?->format('M d, Y') }}</span></td>
 
-                    <td>
+                    <td onclick="event.stopPropagation()">
                         <div class="lp-actions">
                             <a href="{{ $viewUrl($user) }}" class="lp-act-btn" title="View">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">

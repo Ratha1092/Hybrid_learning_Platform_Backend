@@ -3,8 +3,11 @@
 namespace App\Filament\Pages;
 
 use App\Domains\Learning\Models\Review;
+use App\Support\NavBadge;
+use App\Support\PanelAccess;
 use BackedEnum;
 use Filament\Pages\Page;
+use Illuminate\Support\Number;
 
 class Reviews extends Page
 {
@@ -14,6 +17,35 @@ class Reviews extends Page
     protected static string|\UnitEnum|null $navigationGroup = 'Learning';
     protected static ?int $navigationSort = 6;
     protected static ?string $slug = 'reviews';
+
+    public static function canAccess(): bool
+    {
+        return PanelAccess::can('reviews.view');
+    }
+
+    public function mount(): void
+    {
+        NavBadge::markSeen('reviews');
+    }
+
+    public static function getNavigationBadge(): ?string
+    {
+        $count = NavBadge::countSince('reviews', fn (?\Carbon\Carbon $since) => $since
+            ? Review::where('created_at', '>', $since)->count()
+            : Review::count());
+
+        return $count > 0 ? Number::abbreviate($count) : null;
+    }
+
+    public static function getNavigationBadgeColor(): ?string
+    {
+        return 'danger';
+    }
+
+    public static function getNavigationBadgeTooltip(): ?string
+    {
+        return 'New reviews since you last viewed this page';
+    }
 
     public function getHeading(): string|\Illuminate\Contracts\Support\Htmlable
     {

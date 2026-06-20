@@ -15,6 +15,18 @@ class Notifications extends Page
     protected static ?int $navigationSort = 1;
     protected static ?string $slug = 'notifications';
 
+    public static function getNavigationBadge(): ?string
+    {
+        $unread = (int) (auth()->user()?->unreadNotifications()->count() ?? 0);
+
+        return $unread > 0 ? (string) $unread : null;
+    }
+
+    public static function getNavigationBadgeColor(): ?string
+    {
+        return 'danger';
+    }
+
     public function getHeading(): string|\Illuminate\Contracts\Support\Htmlable
     {
         return '';

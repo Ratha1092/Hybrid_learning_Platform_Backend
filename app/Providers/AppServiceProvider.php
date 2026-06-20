@@ -35,6 +35,8 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        Gate::before(fn ($user) => $user->hasRole('super-admin') ? true : null);
+
         Gate::policy(
             Course::class,
             CoursePolicy::class

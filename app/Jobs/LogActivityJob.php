@@ -22,16 +22,24 @@ class LogActivityJob implements ShouldQueue
         public readonly ?string $ipAddress,
         public readonly ?string $userAgent,
         public readonly ?array $data,
+        public readonly ?string $subjectType = null,
+        public readonly ?int $subjectId = null,
+        public readonly ?array $oldValues = null,
+        public readonly ?array $newValues = null,
     ) {}
 
     public function handle(): void
     {
         ActivityLog::create([
-            'user_id'    => $this->userId,
-            'action'     => $this->action,
-            'ip_address' => $this->ipAddress,
-            'user_agent' => $this->userAgent,
-            'data'       => $this->data,
+            'user_id'      => $this->userId,
+            'action'       => $this->action,
+            'subject_type' => $this->subjectType,
+            'subject_id'   => $this->subjectId,
+            'old_values'   => $this->oldValues,
+            'new_values'   => $this->newValues,
+            'ip_address'   => $this->ipAddress,
+            'user_agent'   => $this->userAgent,
+            'data'         => $this->data,
         ]);
     }
 }

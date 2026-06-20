@@ -104,6 +104,7 @@ html:not(.dark) .lp {
 .lp-table tbody tr { border-bottom:1px solid var(--bd); transition:background .12s; }
 .lp-table tbody tr:last-child { border-bottom:none; }
 .lp-table tbody tr:hover { background:var(--p2); }
+.lp-row-link { cursor:pointer; }
 .lp-table td { padding:12px 12px; vertical-align:middle; }
 
 .lp-id   { font-size:11.5px; font-weight:700; color:var(--t2); white-space:nowrap; }
@@ -237,7 +238,7 @@ html:not(.dark) .lp {
                 @php
                     $ts = $typeMap[$lesson->type] ?? ['bg' => 'rgba(148,163,184,.1)', 'color' => '#94a3b8', 'label' => ucfirst($lesson->type ?? '?')];
                 @endphp
-                <tr>
+                <tr class="lp-row-link" onclick="window.location='{{ $viewUrl($lesson) }}'">
                     <td><span class="lp-id">{{ $lesson->id }}</span></td>
 
                     <td><span class="lp-title">{{ $lesson->title }}</span></td>
@@ -269,7 +270,7 @@ html:not(.dark) .lp {
 
                     <td><span class="lp-date">{{ $lesson->created_at?->format('M d, Y') }}</span></td>
 
-                    <td>
+                    <td onclick="event.stopPropagation()">
                         <div class="lp-actions">
                             <a href="{{ $viewUrl($lesson) }}" class="lp-act-btn" title="View">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">

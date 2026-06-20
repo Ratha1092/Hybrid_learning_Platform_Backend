@@ -134,7 +134,7 @@ class InstructorCourseController extends Controller
 
         // Notify admins via bell — synchronous DB write
         $notification = new AdminCourseSubmittedNotification($course, auth()->user()->name);
-        foreach (User::admins()->get() as $admin) {
+        foreach (User::role(['super-admin', 'admin'])->get() as $admin) {
             $admin->notify($notification);
         }
 

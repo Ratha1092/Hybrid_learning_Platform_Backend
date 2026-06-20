@@ -33,10 +33,12 @@ class UserInfolist
                                             ->size('lg')
                                             ->weight('bold'),
                                         TextEntry::make('email'),
-                                        TextEntry::make('role')
+                                        TextEntry::make('roles.name')
+                                            ->label('Role')
                                             ->badge()
+                                            ->separator(',')
                                             ->color(fn (string $state): string => match ($state) {
-                                                'admin' => 'danger',
+                                                'super-admin', 'admin' => 'danger',
                                                 'instructor' => 'warning',
                                                 'student' => 'success',
                                                 default => 'gray',
@@ -69,13 +71,14 @@ class UserInfolist
                     ->columns(2),
                 Section::make('Instructor Status')
                     ->schema([
-                        TextEntry::make('instructor_status')
+                        TextEntry::make('instructorVerification.status')
+                            ->label('Instructor Status')
                             ->badge()
-                            ->color(fn (string $state): string => match ($state) {
-                                'verified' => 'success',
+                            ->placeholder('Not applicable')
+                            ->color(fn (?string $state): string => match ($state) {
+                                'approved' => 'success',
                                 'pending' => 'warning',
-                                'rejected' => 'danger',
-                                'not_instructor' => 'gray',
+                                'rejected', 'suspended' => 'danger',
                                 default => 'gray',
                             }),
                         TextEntry::make('two_factor_enabled')

@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\InstructorVerifications;
 
+use App\Domains\Auth\Services\ActivityLogService;
+use App\Support\PanelAccess;
 use App\Domains\Users\Models\InstructorProfile;
 use App\Domains\Users\Models\InstructorVerification;
 use App\Domains\Users\Mail\InstructorApprovedMail;
@@ -147,12 +149,14 @@ class InstructorVerificationResource extends Resource
                             'reviewed_at' => now(),
                         ]);
 
-                        $record->user->update([
-                            'role' => 'instructor',
-                            'instructor_status' => 'verified',
-                        ]);
-
                         $record->user->syncRoles(['instructor']);
+
+                        ActivityLogService::logChange(
+                            'instructor_verification.approved',
+                            $record,
+                            ['status' => 'pending'],
+                            ['status' => 'approved'],
+                        );
 
                         $record->user->notify(new InstructorApprovedNotification());
 
@@ -188,7 +192,14 @@ class InstructorVerificationResource extends Resource
                             'reviewed_at' => now(),
                         ]);
 
-                        $record->user->update(['instructor_status' => 'rejected']);
+                        $record->user->removeRole('instructor');
+
+                        ActivityLogService::logChange(
+                            'instructor_verification.rejected',
+                            $record,
+                            ['status' => 'pending'],
+                            ['status' => 'rejected', 'rejection_reason' => $data['rejection_reason']],
+                        );
 
                         $record->user->notify(new InstructorRejectedNotification($data['rejection_reason']));
 
@@ -267,6 +278,11 @@ class InstructorVerificationResource extends Resource
             'view' => Pages\ViewInstructorVerification::route('/{record}'),
             'edit' => Pages\EditInstructorVerification::route('/{record}/edit'),
         ];
+    }
+
+    public static function canViewAny(): bool
+    {
+        return PanelAccess::can('users.view');
     }
 
     public static function getModelLabel(): string

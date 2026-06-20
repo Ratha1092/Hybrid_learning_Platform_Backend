@@ -36,8 +36,9 @@ class OAuthService
                     'email' => $data['email'],
                     'password' => Hash::make(Str::random(32)),
                     'email_verified_at' => now(),
-                    'role' => 'student',
                 ]);
+
+                $user->assignRole('student');
             }
 
             OAuthAccount::create([
@@ -93,8 +94,9 @@ class OAuthService
                     'email'             => $email,
                     'password'          => Hash::make(Str::random(32)),
                     'email_verified_at' => now(),
-                    'role'              => 'student',
                 ]);
+
+                $user->assignRole('student');
             }
 
             OAuthAccount::create([

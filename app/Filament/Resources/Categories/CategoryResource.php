@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Categories;
 
 use App\Domains\Courses\Models\Category;
+use App\Support\PanelAccess;
 use App\Filament\Resources\Categories\Pages\CreateCategory;
 use App\Filament\Resources\Categories\Pages\EditCategory;
 use App\Filament\Resources\Categories\Schemas\CategoryForm;
@@ -51,5 +52,10 @@ class CategoryResource extends Resource
     public static function getIndexUrl(array $parameters = [], bool $isAbsolute = true, ?string $panel = null, ?\Illuminate\Database\Eloquent\Model $tenant = null, bool $shouldGuessMissingParameters = false): string
     {
         return route('filament.admin.pages.categories');
+    }
+
+    public static function canViewAny(): bool
+    {
+        return PanelAccess::can('categories.view');
     }
 }

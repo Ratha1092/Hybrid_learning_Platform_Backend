@@ -6,6 +6,7 @@ use App\Domains\Courses\Models\Category;
 use App\Domains\Courses\Models\Course;
 use App\Domains\Courses\Models\Section;
 use App\Domains\Orders\Models\Order;
+use App\Domains\Users\Models\InstructorVerification;
 use App\Domains\Users\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
@@ -89,10 +90,9 @@ class ApiBackendRepairTest extends TestCase
 
     public function test_verified_instructor_can_manage_nested_sections_and_lessons(): void
     {
-        $instructor = User::factory()->create([
-            'role' => 'instructor',
-            'instructor_status' => 'verified',
-        ]);
+        $instructor = User::factory()->create();
+        $instructor->assignRole('instructor');
+        InstructorVerification::create(['user_id' => $instructor->id, 'status' => 'approved']);
         $category = Category::create(['name' => 'Development', 'slug' => 'development']);
         $course = Course::create([
             'instructor_id' => $instructor->id,
@@ -128,10 +128,9 @@ class ApiBackendRepairTest extends TestCase
     {
         $student = User::factory()->create();
         $otherStudent = User::factory()->create();
-        $instructor = User::factory()->create([
-            'role' => 'instructor',
-            'instructor_status' => 'verified',
-        ]);
+        $instructor = User::factory()->create();
+        $instructor->assignRole('instructor');
+        InstructorVerification::create(['user_id' => $instructor->id, 'status' => 'approved']);
         $category = Category::create(['name' => 'Business', 'slug' => 'business']);
         $course = Course::create([
             'instructor_id' => $instructor->id,

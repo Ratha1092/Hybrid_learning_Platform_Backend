@@ -2,12 +2,14 @@
     $url = fn(array $p) => url()->current() . '?' . http_build_query(array_merge(request()->query(), $p));
 
     $statusMap = [
-        'verified' => ['bg' => 'rgba(52,211,153,.12)',  'color' => '#34d399', 'label' => 'Verified'],
-        'pending'  => ['bg' => 'rgba(251,191,36,.12)',  'color' => '#fbbf24', 'label' => 'Pending'],
-        'rejected' => ['bg' => 'rgba(248,113,113,.12)', 'color' => '#f87171', 'label' => 'Rejected'],
+        'approved'  => ['bg' => 'rgba(52,211,153,.12)',  'color' => '#34d399', 'label' => 'Verified'],
+        'pending'   => ['bg' => 'rgba(251,191,36,.12)',  'color' => '#fbbf24', 'label' => 'Pending'],
+        'rejected'  => ['bg' => 'rgba(248,113,113,.12)', 'color' => '#f87171', 'label' => 'Rejected'],
+        'suspended' => ['bg' => 'rgba(248,113,113,.12)', 'color' => '#f87171', 'label' => 'Suspended'],
     ];
 
     $accent = '#2563eb';
+    $viewUrl = fn($u) => route('filament.admin.resources.users.view', ['record' => $u->id]);
 @endphp
 
 <style>
@@ -92,6 +94,7 @@ html:not(.dark) .lp {
 .lp-table tbody tr { border-bottom:1px solid var(--bd); transition:background .12s; }
 .lp-table tbody tr:last-child { border-bottom:none; }
 .lp-table tbody tr:hover { background:var(--p2); }
+.lp-row-link { cursor:pointer; }
 .lp-table td { padding:12px 12px; vertical-align:middle; }
 
 .lp-id { font-size:11.5px; font-weight:700; color:var(--t2); white-space:nowrap; }
@@ -205,11 +208,12 @@ html:not(.dark) .lp {
             <tbody>
                 @forelse ($instructors as $instructor)
                 @php
-                    $ss     = $statusMap[$instructor->instructor_status] ?? ['bg' => 'rgba(148,163,184,.1)', 'color' => '#94a3b8', 'label' => ucfirst($instructor->instructor_status ?? 'Unknown')];
+                    $instructorVerificationStatus = $instructor->instructorVerification?->status;
+                    $ss     = $statusMap[$instructorVerificationStatus] ?? ['bg' => 'rgba(148,163,184,.1)', 'color' => '#94a3b8', 'label' => ucfirst($instructorVerificationStatus ?? 'Unknown')];
                     $bgHex  = substr(md5($instructor->name ?? ''), 0, 6);
                     $avUrl  = 'https://ui-avatars.com/api/?name=' . urlencode($instructor->name ?? '?') . '&background=' . $bgHex . '&color=fff&bold=true&size=64';
                 @endphp
-                <tr>
+                <tr class="lp-row-link" onclick="window.location='{{ $viewUrl($instructor) }}'">
                     <td><span class="lp-id">{{ $instructor->id }}</span></td>
 
                     <td>

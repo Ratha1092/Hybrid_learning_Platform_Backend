@@ -40,6 +40,7 @@ html:not(.dark) .cs {
 .cs-table tbody tr { border-bottom: 1px solid var(--bd); transition: background .12s; }
 .cs-table tbody tr:last-child { border-bottom: none; }
 .cs-table tbody tr:hover { background: var(--p2); }
+.cs-row-link { cursor:pointer; }
 .cs-table td { padding: 12px 16px; vertical-align: middle; }
 
 .cs-user { display: flex; align-items: center; gap: 10px; }
@@ -135,8 +136,9 @@ html:not(.dark) .cs {
                     $bgHex = substr(md5($user?->name ?? 'x'), 0, 6);
                     $avatarUrl = $user?->avatar_url
                         ?? 'https://ui-avatars.com/api/?name=' . urlencode($user?->name ?? '?') . '&background=' . $bgHex . '&color=fff&bold=true&size=64';
+                    $studentViewUrl = $user ? route('filament.admin.resources.users.view', ['record' => $user->id]) : null;
                 @endphp
-                <tr>
+                <tr @if($studentViewUrl) class="cs-row-link" onclick="window.location='{{ $studentViewUrl }}'" @endif>
                     <td><span style="font-size:11.5px;color:var(--t2);font-weight:700">{{ ($curPage - 1) * $perPage + $i + 1 }}</span></td>
 
                     <td>

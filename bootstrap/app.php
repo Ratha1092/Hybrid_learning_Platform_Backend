@@ -32,6 +32,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'instructor' => \App\Http\Middleware\EnsureUserIsInstructor::class,
         ]);
 
+        $middleware->api(prepend: [
+            \App\Http\Middleware\CheckMaintenanceMode::class,
+        ]);
+
     })
     ->withProviders([
         App\Providers\EventServiceProvider::class,

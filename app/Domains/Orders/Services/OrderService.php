@@ -12,6 +12,7 @@ use App\Domains\Payments\Services\BakongKhqrService;
 use App\Domains\Learning\Services\EnrollmentService;
 use App\Domains\Courses\Models\Course;
 use App\Domains\Notifications\Notifications\AdminNewOrderNotification;
+use App\Domains\Promotions\Models\Coupon;
 use App\Domains\Users\Models\User;
 use Illuminate\Support\Facades\DB;
 
@@ -23,10 +24,9 @@ class OrderService
     ) {}
 
 
-    public function createOrder(User $user, int $courseId): Order
+    public function createOrder(User $user, int $courseId, ?string $couponCode = null): Order
     {
-        $order = DB::transaction(function () use ($user, $courseId) {
-
+        $order = DB::transaction(function () use ($user, $courseId, $couponCode) {
             $course = Course::where('id', $courseId)
                 ->where('is_published', true)
                 ->firstOrFail();
@@ -38,31 +38,55 @@ class OrderService
             if (Enrollment::where('user_id', $user->id)->where('course_id', $course->id)->exists()) {
                 throw new \RuntimeException('You are already enrolled in this course');
             }
-            $orderNumber = 'ORD-' . now()->format('YmdHis') . '-' . uniqid();
 
+            $coupon = null;
+            $discountAmount = 0.0;
+
+            if ($couponCode && (float) $course->price > 0) {
+                $coupon = Coupon::where('code', strtoupper(trim($couponCode)))->first();
+
+                if (!$coupon) {
+                    throw new \RuntimeException('Invalid coupon code');
+                }
+
+                if ($error = $coupon->validateFor($user, (float) $course->price)) {
+                    throw new \RuntimeException($error);
+                }
+
+                $discountAmount = $coupon->calculateDiscount((float) $course->price);
+            }
+
+            $finalAmount = round((float) $course->price - $discountAmount, 2);
+
+            $orderNumber = 'ORD-' . now()->format('YmdHis') . '-' . uniqid();
             $order = Order::create([
                 'order_number' => $orderNumber,
                 'user_id' => $user->id,
                 'total_amount' => $course->price,
-                'discount_amount' => 0,
-                'final_amount' => $course->price,
+                'discount_amount' => $discountAmount,
+                'final_amount' => $finalAmount,
                 'currency' => $this->bakongConfig->currency,
                 'status' => OrderStatus::Pending,
                 'payment_status' => OrderPaymentStatus::Pending,
                 'customer_name' => $user->name ?? 'Guest',
                 'customer_email' => $user->email ?? null,
+                'coupon_code' => $coupon?->code,
+                'coupon_id' => $coupon?->id,
             ]);
-            $commissionPercentage = 20;
-            $platformAmount = ((float) $course->price * $commissionPercentage) / 100;
-            $instructorAmount = (float) $course->price - $platformAmount;
 
-            // Order Item
+            if ($coupon) {
+                $coupon->increment('used_count');
+            }
+
+            $commissionPercentage = 20;
+            $platformAmount = ($finalAmount * $commissionPercentage) / 100;
+            $instructorAmount = $finalAmount - $platformAmount;
             OrderItem::create([
                 'order_id' => $order->id,
                 'course_id' => $course->id,
                 'price' => $course->price,
-                'discount_amount' => 0,
-                'final_amount' => $course->price,
+                'discount_amount' => $discountAmount,
+                'final_amount' => $finalAmount,
                 'instructor_id' => $course->instructor_id,
                 'course_title' => $course->title,
                 'commission_percentage' => $commissionPercentage,
@@ -84,10 +108,8 @@ class OrderService
 
             return $order;
         });
-
-        // Notify admins — runs after transaction commits, synchronous DB write
         $notification = new AdminNewOrderNotification($order, $user->name);
-        foreach (User::admins()->get() as $admin) {
+        foreach (User::role(['super-admin', 'admin'])->get() as $admin) {
             $admin->notify($notification);
         }
         return $order;

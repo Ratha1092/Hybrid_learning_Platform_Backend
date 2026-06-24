@@ -2,6 +2,7 @@
 
 namespace App\Domains\Orders\Services;
 
+use App\Domains\Auth\Services\ActivityLogService;
 use App\Domains\Orders\Enums\OrderPaymentStatus;
 use App\Domains\Orders\Enums\OrderStatus;
 use App\Domains\Orders\Models\Order;
@@ -12,6 +13,7 @@ use App\Domains\Payments\Services\BakongKhqrService;
 use App\Domains\Learning\Services\EnrollmentService;
 use App\Domains\Courses\Models\Course;
 use App\Domains\Notifications\Notifications\AdminNewOrderNotification;
+use App\Jobs\Notifications\NotifyAdminsJob;
 use App\Domains\Promotions\Models\Coupon;
 use App\Domains\Users\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -108,10 +110,9 @@ class OrderService
 
             return $order;
         });
-        $notification = new AdminNewOrderNotification($order, $user->name);
-        foreach (User::role(['super-admin', 'admin'])->get() as $admin) {
-            $admin->notify($notification);
-        }
+        ActivityLogService::logChange('order.placed', $order, [], [], $user);
+
+        NotifyAdminsJob::dispatch(AdminNewOrderNotification::class, [$order->id, $user->name]);
         return $order;
     }
 }

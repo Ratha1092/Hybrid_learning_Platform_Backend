@@ -13,11 +13,13 @@ use App\Domains\Payments\Enums\PaymentStatus;
 use App\Domains\Payments\Enums\PaymentGateway;
 use App\Domains\Payments\Models\Payment;
 use App\Domains\Finance\Models\InstructorWallet;
+use App\Support\Concerns\HasDateRangePresets;
 use Filament\Pages\Page;
-use Illuminate\Support\Carbon;
 
 class Analysis extends Page
 {
+    use HasDateRangePresets;
+
     protected string $view = 'filament.pages.analysis';
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-chart-bar';
     protected static ?string $navigationLabel = 'Analysis';
@@ -29,38 +31,9 @@ class Analysis extends Page
         return '';
     }
 
-    protected function getDateRange(): array
-    {
-        $preset   = request('preset', 'last_6m');
-        $dateFrom = request('date_from');
-        $dateTo   = request('date_to');
-
-        if ($preset !== 'custom') {
-            [$dateFrom, $dateTo] = match ($preset) {
-                'today'        => [now()->startOfDay(), now()->endOfDay()],
-                'yesterday'    => [now()->subDay()->startOfDay(), now()->subDay()->endOfDay()],
-                'this_week'    => [now()->startOfWeek(), now()->endOfWeek()],
-                'last_week'    => [now()->subWeek()->startOfWeek(), now()->subWeek()->endOfWeek()],
-                'last_30'      => [now()->subDays(29)->startOfDay(), now()->endOfDay()],
-                'last_6m'      => [now()->subMonths(6)->startOfDay(), now()->endOfDay()],
-                'this_month'   => [now()->startOfMonth(), now()->endOfMonth()],
-                'last_month'   => [now()->subMonth()->startOfMonth(), now()->subMonth()->endOfMonth()],
-                'this_quarter' => [now()->startOfQuarter(), now()->endOfQuarter()],
-                'this_year'    => [now()->startOfYear(), now()->endOfYear()],
-                'all_time'     => [null, null],
-                default        => [now()->subMonths(6)->startOfDay(), now()->endOfDay()],
-            };
-        } else {
-            $dateFrom = $dateFrom ? Carbon::parse($dateFrom)->startOfDay() : null;
-            $dateTo   = $dateTo   ? Carbon::parse($dateTo)->endOfDay()   : null;
-        }
-
-        return [$dateFrom, $dateTo];
-    }
-
     protected function getViewData(): array
     {
-        [$from, $to] = $this->getDateRange();
+        [$from, $to] = $this->resolveDateRange('last_6m');
 
         $preset        = request('preset', 'last_6m');
         $gatewayFilter = request('gateway', 'all');

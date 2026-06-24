@@ -6,6 +6,8 @@ use App\Domains\Notifications\Notifications\CourseRejectedNotification;
 use App\Domains\Payments\Models\Payment;
 use App\Domains\Payments\Services\BakongKhqrService;
 use App\Domains\System\Models\Setting;
+use App\Http\Controllers\Admin\ReportCsvController;
+use App\Http\Controllers\Admin\ReportPdfController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/web', function () {
@@ -163,6 +165,16 @@ Route::middleware(['web', 'auth'])->group(function () {
     })->name('admin.courses.archive');
 
 });
+
+Route::middleware(['web', 'auth'])->get(
+    '/admin/reports/{type}/pdf',
+    [ReportPdfController::class, 'show']
+)->name('admin.reports.pdf');
+
+Route::middleware(['web', 'auth'])->get(
+    '/admin/reports/{type}/csv',
+    [ReportCsvController::class, 'show']
+)->name('admin.reports.csv');
 
 Route::middleware(['web', 'auth'])->get(
     '/admin/export/courses',

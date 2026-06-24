@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Domains\Auth\Services\ActivityLogService;
 use App\Domains\Courses\Models\Course;
 use App\Domains\Notifications\Notifications\CourseApprovedNotification;
 use App\Domains\Notifications\Notifications\CourseRejectedNotification;
@@ -91,6 +92,7 @@ class Courses extends Page
 
         $course->publish(auth()->id());
         $course->instructor?->notify(new CourseApprovedNotification($course));
+        ActivityLogService::logChange('course.published', $course);
         Notification::make()->title('Course Approved')->body("\"{$course->title}\" is now live.")->success()->send();
     }
 
@@ -107,6 +109,7 @@ class Courses extends Page
 
         $course->reject($reason);
         $course->instructor?->notify(new CourseRejectedNotification($course, $reason));
+        ActivityLogService::logChange('course.rejected', $course, [], ['reason' => $reason]);
         Notification::make()->title('Course Rejected')->body('Instructor notified.')->danger()->send();
     }
 

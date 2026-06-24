@@ -3,6 +3,7 @@
 namespace App\Domains\Users\Services;
 
 use App\Domains\Notifications\Notifications\NewInstructorVerificationNotification;
+use App\Jobs\Notifications\NotifyAdminsJob;
 use App\Domains\Users\Models\InstructorVerification;
 use App\Domains\Users\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -68,15 +69,9 @@ class InstructorVerificationService
         InstructorVerification $verification,
         User $user
     ): void {
-        $admins = User::role(['super-admin', 'admin'])->get();
-
-        if ($admins->isEmpty()) {
-            return;
-        }
-
-        $notification = new NewInstructorVerificationNotification($verification);
-        foreach ($admins as $admin) {
-            $admin->notify($notification);
-        }
+        NotifyAdminsJob::dispatch(
+            NewInstructorVerificationNotification::class,
+            [$verification->id, $user->name]
+        );
     }
 }

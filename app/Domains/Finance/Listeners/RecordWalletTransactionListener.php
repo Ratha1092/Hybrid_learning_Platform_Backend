@@ -13,6 +13,11 @@ class RecordWalletTransactionListener implements ShouldQueue
     public string $queue = 'high';
     public $tries = 3;
 
+    public function tags(): array
+    {
+        return ['finance', 'wallet-transaction'];
+    }
+
     public function handle(PaymentSuccessEvent $event): void
     {
         $shares = RevenueShare::whereIn(

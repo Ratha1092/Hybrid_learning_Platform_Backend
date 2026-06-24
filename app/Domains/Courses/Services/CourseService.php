@@ -2,6 +2,7 @@
 
 namespace App\Domains\Courses\Services;
 
+use App\Domains\Auth\Services\ActivityLogService;
 use App\Domains\Courses\Models\Course;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\UploadedFile;
@@ -31,13 +32,13 @@ class CourseService
                     ]);
 
                     Cache::forget('courses.published');
+                    ActivityLogService::logChange('course.created', $course);
                     return $course;
                 });
             } catch (UniqueConstraintViolationException) {
                 if (++$attempts >= 5) {
                     throw new \RuntimeException('Failed to create course. Please try again.');
                 }
-                // Race condition: another request took this slug, force unique with random suffix
                 $slug = $this->generateUniqueSlug($data['title']) . '-' . substr(uniqid(), -5);
             }
         }

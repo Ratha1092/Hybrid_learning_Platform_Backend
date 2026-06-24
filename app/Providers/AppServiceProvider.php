@@ -107,5 +107,8 @@ class AppServiceProvider extends ServiceProvider
                     ?: $request->ip()
             );
         });
+
+        // Outbound email rate limit for Resend API
+        RateLimiter::for('resend-emails', fn () => Limit::perMinute(20));
     }
 }

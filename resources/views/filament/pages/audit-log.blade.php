@@ -31,7 +31,7 @@
 }
 html:not(.dark) .al {
     --bg:#f1f5f9; --p1:#ffffff; --p2:#f8fafc;
-    --bd:rgba(15,23,42,.08); --bd2:rgba(15,23,42,.14);
+    --bd:rgba(15,23,42,.13); --bd2:rgba(15,23,42,.20);
     --t1:#0f172a; --t2:#64748b; --t3:#cbd5e1;
     --sh:0 2px 16px rgba(15,23,42,.1);
 }
@@ -168,6 +168,7 @@ html:not(.dark) .al {
         <h1>Audit Log</h1>
         <p>Track every user action across the platform — logins, registrations, and security events.</p>
     </div>
+    <button type="button" wire:click="exportCsv" style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid var(--bd2, rgba(255,255,255,.13));background:transparent;color:inherit;">Export CSV</button>
 </div>
 
 {{-- ── Stat cards ──────────────────────────────────────────── --}}
@@ -446,5 +447,7 @@ function alCloseModal() {
 }
 document.addEventListener('keydown', e => { if (e.key === 'Escape') alCloseModal(); });
 </script>
+
+@include('filament.pages.partials._csv-download-script')
 
 </div>{{-- single root closes here --}}

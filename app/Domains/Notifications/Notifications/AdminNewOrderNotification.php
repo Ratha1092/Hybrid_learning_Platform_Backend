@@ -8,7 +8,7 @@ use Illuminate\Notifications\Notification;
 class AdminNewOrderNotification extends Notification
 {
     public function __construct(
-        public readonly Order $order,
+        public readonly int    $orderId,
         public readonly string $customerName,
     ) {}
 
@@ -19,11 +19,12 @@ class AdminNewOrderNotification extends Notification
 
     public function toArray(object $notifiable): array
     {
-        $isFree = (float) $this->order->final_amount === 0.0;
+        $order  = Order::find($this->orderId);
+        $isFree = (float) ($order?->final_amount ?? 0) === 0.0;
 
         return [
             'title'    => $isFree ? 'New Free Enrollment' : 'New Order Placed',
-            'body'     => "Order #{$this->order->order_number} by {$this->customerName}" . ($isFree ? ' (free course).' : " — \${$this->order->final_amount}."),
+            'body'     => "Order #{$order?->order_number} by {$this->customerName}" . ($isFree ? ' (free course).' : " — \${$order?->final_amount}."),
             'format'   => 'filament',
             'duration' => 'persistent',
             'actions'  => [

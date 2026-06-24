@@ -9,6 +9,7 @@ use App\Domains\Finance\Models\PayoutRequest;
 use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class FinanceController extends Controller
@@ -27,34 +28,42 @@ class FinanceController extends Controller
     {
         $instructorId = $request->user()->id;
 
-        $total = (float) DB::table('order_items')
-            ->join('orders', 'orders.id', '=', 'order_items.order_id')
-            ->where('order_items.instructor_id', $instructorId)
-            ->where('orders.payment_status', 'paid')
-            ->sum('order_items.instructor_amount');
+        $data = Cache::remember(
+            "finance:{$instructorId}:earnings",
+            now()->addMinutes(15),
+            function () use ($instructorId) {
+                $total = (float) DB::table('order_items')
+                    ->join('orders', 'orders.id', '=', 'order_items.order_id')
+                    ->where('order_items.instructor_id', $instructorId)
+                    ->where('orders.payment_status', 'paid')
+                    ->sum('order_items.instructor_amount');
 
-        $thisMonth = (float) DB::table('order_items')
-            ->join('orders', 'orders.id', '=', 'order_items.order_id')
-            ->where('order_items.instructor_id', $instructorId)
-            ->where('orders.payment_status', 'paid')
-            ->where('order_items.created_at', '>=', now()->startOfMonth())
-            ->sum('order_items.instructor_amount');
+                $thisMonth = (float) DB::table('order_items')
+                    ->join('orders', 'orders.id', '=', 'order_items.order_id')
+                    ->where('order_items.instructor_id', $instructorId)
+                    ->where('orders.payment_status', 'paid')
+                    ->where('order_items.created_at', '>=', now()->startOfMonth())
+                    ->sum('order_items.instructor_amount');
 
-        $trend = DB::table('order_items')
-            ->join('orders', 'orders.id', '=', 'order_items.order_id')
-            ->where('order_items.instructor_id', $instructorId)
-            ->where('orders.payment_status', 'paid')
-            ->where('order_items.created_at', '>=', now()->subMonths(6)->startOfMonth())
-            ->selectRaw("TO_CHAR(order_items.created_at, 'YYYY-MM') as month, SUM(order_items.instructor_amount) as total")
-            ->groupBy('month')
-            ->orderBy('month')
-            ->get();
+                $trend = DB::table('order_items')
+                    ->join('orders', 'orders.id', '=', 'order_items.order_id')
+                    ->where('order_items.instructor_id', $instructorId)
+                    ->where('orders.payment_status', 'paid')
+                    ->where('order_items.created_at', '>=', now()->subMonths(6)->startOfMonth())
+                    ->selectRaw("TO_CHAR(order_items.created_at, 'YYYY-MM') as month, SUM(order_items.instructor_amount) as total")
+                    ->groupBy('month')
+                    ->orderBy('month')
+                    ->get();
 
-        return ApiResponse::success([
-            'total_earned'  => $total,
-            'this_month'    => $thisMonth,
-            'monthly_trend' => $trend,
-        ], 'Earnings retrieved successfully');
+                return [
+                    'total_earned'  => $total,
+                    'this_month'    => $thisMonth,
+                    'monthly_trend' => $trend,
+                ];
+            }
+        );
+
+        return ApiResponse::success($data, 'Earnings retrieved successfully');
     }
 
     public function transactions(Request $request): JsonResponse

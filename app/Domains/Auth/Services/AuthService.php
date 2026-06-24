@@ -106,10 +106,17 @@ class AuthService
 
     private function recordFailedAttempt(User $user): void
     {
+        $maxAttempts = (int) Setting::get('max_login_attempts', 5);
         $lockMinutes = max(1, (int) Setting::get('account_lock_duration', 15));
-        $key = $this->lockoutCacheKey($user);
+        $key         = $this->lockoutCacheKey($user);
 
-        Cache::put($key, (int) Cache::get($key, 0) + 1, now()->addMinutes($lockMinutes));
+        $newCount = (int) Cache::get($key, 0) + 1;
+        Cache::put($key, $newCount, now()->addMinutes($lockMinutes));
+
+        // Log the lockout event exactly once — when the threshold is crossed
+        if ($maxAttempts > 0 && $newCount === $maxAttempts) {
+            ActivityLogService::log('account_locked', $user);
+        }
     }
 
     private function clearFailedAttempts(User $user): void

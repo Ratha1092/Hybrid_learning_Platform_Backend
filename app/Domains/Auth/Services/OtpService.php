@@ -3,8 +3,8 @@
 namespace App\Domains\Auth\Services;
 
 use App\Domains\Auth\Models\OtpCode;
+use App\Jobs\Mail\SendOtpEmailJob;
 use Illuminate\Support\Facades\Hash;
-use Resend\Laravel\Facades\Resend;
 
 class OtpService
 {
@@ -20,12 +20,7 @@ class OtpService
             'expires_at' => now()->addMinutes(10),
         ]);
 
-        Resend::emails()->send([
-            'from'    => config('mail.from.name') . ' <' . config('mail.from.address') . '>',
-            'to'      => [$email],
-            'subject' => 'Your Verification Code — ' . config('app.name'),
-            'html'    => view('emails.auth.otp', ['email' => $email, 'code' => $plain])->render(),
-        ]);
+        SendOtpEmailJob::dispatch($email, $plain);
 
         return $plain;
     }

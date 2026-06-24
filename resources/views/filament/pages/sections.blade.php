@@ -21,7 +21,7 @@
 }
 html:not(.dark) .lp {
     --bg:#f1f5f9; --p1:#ffffff; --p2:#f8fafc;
-    --bd:rgba(15,23,42,.08); --bd2:rgba(15,23,42,.14);
+    --bd:rgba(15,23,42,.13); --bd2:rgba(15,23,42,.20);
     --t1:#0f172a; --t2:#64748b; --t3:#cbd5e1;
     --sh:0 2px 16px rgba(15,23,42,.1);
 }

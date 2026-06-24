@@ -7,6 +7,7 @@ use App\Domains\Courses\Models\Course;
 use App\Domains\Courses\Services\CourseService;
 use App\Domains\Notifications\Notifications\AdminCourseSubmittedNotification;
 use App\Domains\Users\Models\User;
+use App\Jobs\Notifications\NotifyAdminsJob;
 use App\Support\ApiResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -132,11 +133,10 @@ class InstructorCourseController extends Controller
         }
         $course->submitForReview();
 
-        // Notify admins via bell — synchronous DB write
-        $notification = new AdminCourseSubmittedNotification($course, auth()->user()->name);
-        foreach (User::role(['super-admin', 'admin'])->get() as $admin) {
-            $admin->notify($notification);
-        }
+        NotifyAdminsJob::dispatch(
+            AdminCourseSubmittedNotification::class,
+            [$course->id, $course->title, auth()->user()->name]
+        );
 
         return ApiResponse::success(
             $course,

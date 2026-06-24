@@ -4,9 +4,9 @@ namespace App\Domains\Auth\Services;
 
 use App\Domains\Auth\Models\TwoFactorCode;
 use App\Domains\Users\Models\User;
+use App\Jobs\Mail\SendTwoFactorEmailJob;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Resend\Laravel\Facades\Resend;
 
 class TwoFactorAuthService
 {
@@ -25,12 +25,7 @@ class TwoFactorAuthService
             'expires_at' => now()->addMinutes(5),
         ]);
 
-        Resend::emails()->send([
-            'from'    => config('mail.from.name') . ' <' . config('mail.from.address') . '>',
-            'to'      => [$user->email],
-            'subject' => 'Your Login Verification Code — ' . config('app.name'),
-            'html'    => view('emails.auth.two-factor-code', ['user' => $user, 'code' => $plainCode])->render(),
-        ]);
+        SendTwoFactorEmailJob::dispatch($user->id, $plainCode);
 
         return $plainCode;
     }

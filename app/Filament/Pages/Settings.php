@@ -12,10 +12,10 @@ class Settings extends Page
 {
     protected string $view = 'filament.pages.settings';
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-cog-6-tooth';
-    protected static ?string $navigationLabel               = 'Settings';
+    protected static ?string $navigationLabel = 'Settings';
     protected static string|\UnitEnum|null $navigationGroup = 'System';
-    protected static ?int    $navigationSort                = 1;
-    protected static ?string $slug                          = 'settings';
+    protected static ?int $navigationSort = 1;
+    protected static ?string $slug = 'settings';
 
     /**
      * group key => [label, icon svg path, color, description, permission]

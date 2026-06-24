@@ -21,9 +21,9 @@
     font-family:Inter,ui-sans-serif,system-ui,-apple-system,sans-serif;
     font-size:13px;line-height:1.5;
     display:grid;gap:20px;
-    --p1:#ffffff;--p2:#f8fafc;--p3:#f1f5f9;
-    --bd:rgba(15,23,42,.08);--bd2:rgba(15,23,42,.14);
-    --t1:#0f172a;--t2:#64748b;--t3:#cbd5e1;
+    --p1:#ffffff;--p2:#f1f5f9;--p3:#e8eef5;
+    --bd:rgba(15,23,42,.13);--bd2:rgba(15,23,42,.20);
+    --t1:#0f172a;--t2:#475569;--t3:#94a3b8;
     --accent:#f97316;--accent-soft:rgba(249,115,22,.14);--radius:14px;
     color:var(--t1);
 }

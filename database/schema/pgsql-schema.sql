@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict f2nNbePGWqRj8iqTDj4Xng9Kyv1XH67hu53Bdfm0QvH1fTFEtrDdAMxAVu25ahV
+\restrict a0jqVvGPrAXnWprHN3SwsOuAecncwxAfqDChfTqZgvKadOZS2jfrkNOgaYD2OQu
 
 -- Dumped from database version 16.14 (Ubuntu 16.14-0ubuntu0.24.04.1)
 -- Dumped by pg_dump version 16.14 (Ubuntu 16.14-0ubuntu0.24.04.1)
@@ -648,7 +648,7 @@ CREATE TABLE public.lessons (
     video_provider character varying(255),
     attachment character varying(255),
     attachment_name character varying(255),
-    CONSTRAINT lessons_type_check CHECK (((type)::text = ANY ((ARRAY['video'::character varying, 'article'::character varying, 'quiz'::character varying])::text[])))
+    CONSTRAINT lessons_type_check CHECK (((type)::text = ANY (ARRAY[('video'::character varying)::text, ('article'::character varying)::text, ('quiz'::character varying)::text])))
 );
 
 
@@ -1088,6 +1088,40 @@ ALTER SEQUENCE public.personal_access_tokens_id_seq OWNED BY public.personal_acc
 
 
 --
+-- Name: refunds; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.refunds (
+    id bigint NOT NULL,
+    order_id bigint NOT NULL,
+    amount numeric(12,2) NOT NULL,
+    reason character varying(255) NOT NULL,
+    refunded_by bigint NOT NULL,
+    created_at timestamp(0) without time zone,
+    updated_at timestamp(0) without time zone
+);
+
+
+--
+-- Name: refunds_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.refunds_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: refunds_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.refunds_id_seq OWNED BY public.refunds.id;
+
+
+--
 -- Name: revenue_shares; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1204,6 +1238,45 @@ CREATE SEQUENCE public.roles_id_seq
 --
 
 ALTER SEQUENCE public.roles_id_seq OWNED BY public.roles.id;
+
+
+--
+-- Name: scheduled_reports; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.scheduled_reports (
+    id bigint NOT NULL,
+    report_type character varying(255) NOT NULL,
+    frequency character varying(255) NOT NULL,
+    format character varying(255) NOT NULL,
+    recipient_emails json NOT NULL,
+    filters json,
+    created_by bigint,
+    is_active boolean DEFAULT true NOT NULL,
+    last_run_at timestamp(0) without time zone,
+    next_run_at timestamp(0) without time zone,
+    created_at timestamp(0) without time zone,
+    updated_at timestamp(0) without time zone
+);
+
+
+--
+-- Name: scheduled_reports_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.scheduled_reports_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: scheduled_reports_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.scheduled_reports_id_seq OWNED BY public.scheduled_reports.id;
 
 
 --
@@ -1742,6 +1815,13 @@ ALTER TABLE ONLY public.personal_access_tokens ALTER COLUMN id SET DEFAULT nextv
 
 
 --
+-- Name: refunds id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.refunds ALTER COLUMN id SET DEFAULT nextval('public.refunds_id_seq'::regclass);
+
+
+--
 -- Name: revenue_shares id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -1760,6 +1840,13 @@ ALTER TABLE ONLY public.reviews ALTER COLUMN id SET DEFAULT nextval('public.revi
 --
 
 ALTER TABLE ONLY public.roles ALTER COLUMN id SET DEFAULT nextval('public.roles_id_seq'::regclass);
+
+
+--
+-- Name: scheduled_reports id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.scheduled_reports ALTER COLUMN id SET DEFAULT nextval('public.scheduled_reports_id_seq'::regclass);
 
 
 --
@@ -2241,6 +2328,14 @@ ALTER TABLE ONLY public.personal_access_tokens
 
 
 --
+-- Name: refunds refunds_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.refunds
+    ADD CONSTRAINT refunds_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: revenue_shares revenue_shares_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2286,6 +2381,14 @@ ALTER TABLE ONLY public.roles
 
 ALTER TABLE ONLY public.roles
     ADD CONSTRAINT roles_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: scheduled_reports scheduled_reports_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.scheduled_reports
+    ADD CONSTRAINT scheduled_reports_pkey PRIMARY KEY (id);
 
 
 --
@@ -2633,6 +2736,20 @@ CREATE INDEX personal_access_tokens_tokenable_type_tokenable_id_index ON public.
 
 
 --
+-- Name: scheduled_reports_next_run_at_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX scheduled_reports_next_run_at_index ON public.scheduled_reports USING btree (next_run_at);
+
+
+--
+-- Name: scheduled_reports_report_type_is_active_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX scheduled_reports_report_type_is_active_index ON public.scheduled_reports USING btree (report_type, is_active);
+
+
+--
 -- Name: settings_group_index; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -2940,6 +3057,22 @@ ALTER TABLE ONLY public.payout_requests
 
 
 --
+-- Name: refunds refunds_order_id_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.refunds
+    ADD CONSTRAINT refunds_order_id_foreign FOREIGN KEY (order_id) REFERENCES public.orders(id) ON DELETE CASCADE;
+
+
+--
+-- Name: refunds refunds_refunded_by_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.refunds
+    ADD CONSTRAINT refunds_refunded_by_foreign FOREIGN KEY (refunded_by) REFERENCES public.users(id) ON DELETE CASCADE;
+
+
+--
 -- Name: revenue_shares revenue_shares_instructor_id_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2993,6 +3126,14 @@ ALTER TABLE ONLY public.role_has_permissions
 
 ALTER TABLE ONLY public.role_has_permissions
     ADD CONSTRAINT role_has_permissions_role_id_foreign FOREIGN KEY (role_id) REFERENCES public.roles(id) ON DELETE CASCADE;
+
+
+--
+-- Name: scheduled_reports scheduled_reports_created_by_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.scheduled_reports
+    ADD CONSTRAINT scheduled_reports_created_by_foreign FOREIGN KEY (created_by) REFERENCES public.users(id) ON DELETE SET NULL;
 
 
 --
@@ -3079,13 +3220,13 @@ ALTER TABLE ONLY public.wishlists
 -- PostgreSQL database dump complete
 --
 
-\unrestrict f2nNbePGWqRj8iqTDj4Xng9Kyv1XH67hu53Bdfm0QvH1fTFEtrDdAMxAVu25ahV
+\unrestrict a0jqVvGPrAXnWprHN3SwsOuAecncwxAfqDChfTqZgvKadOZS2jfrkNOgaYD2OQu
 
 --
 -- PostgreSQL database dump
 --
 
-\restrict JKvMR7FMUTuVebxPTzl3dGkm2aYtWsr4FfBzy7gmoG6xYGyslUJi9c6MDdaYVSM
+\restrict jjfS16TueZBthvamQ16QZwwZC2QyvDaGlsW0vkGFwYGTwrsjjVkDm2YnrhR51wX
 
 -- Dumped from database version 16.14 (Ubuntu 16.14-0ubuntu0.24.04.1)
 -- Dumped by pg_dump version 16.14 (Ubuntu 16.14-0ubuntu0.24.04.1)
@@ -3154,6 +3295,8 @@ COPY public.migrations (id, migration, batch) FROM stdin;
 46	2026_05_26_002708_add_rejection_reason_to_courses_table	1
 47	2026_06_09_210205_create_otp_codes_table	1
 48	2026_06_16_000001_create_settings_table	1
+49	2026_06_20_084657_create_refunds_table	2
+50	2026_06_21_000001_create_scheduled_reports_table	3
 \.
 
 
@@ -3161,12 +3304,12 @@ COPY public.migrations (id, migration, batch) FROM stdin;
 -- Name: migrations_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.migrations_id_seq', 48, true);
+SELECT pg_catalog.setval('public.migrations_id_seq', 50, true);
 
 
 --
 -- PostgreSQL database dump complete
 --
 
-\unrestrict JKvMR7FMUTuVebxPTzl3dGkm2aYtWsr4FfBzy7gmoG6xYGyslUJi9c6MDdaYVSM
+\unrestrict jjfS16TueZBthvamQ16QZwwZC2QyvDaGlsW0vkGFwYGTwrsjjVkDm2YnrhR51wX
 

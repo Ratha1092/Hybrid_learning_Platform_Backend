@@ -26,20 +26,20 @@
     --fi-color-primary-900: 84 62 21;
     --fi-color-primary-950: 46 34 12;
 
-    --hl-bg: #f4f7fb;
+    --hl-bg: #f1f5f9;
     --hl-bg-soft: #ffffff;
 
-    --hl-panel: rgba(255, 255, 255, 0.85);
+    --hl-panel: rgba(255, 255, 255, 0.95);
     --hl-panel-strong: #ffffff;
 
-    --hl-sidebar: rgba(255, 255, 255, 0.92);
+    --hl-sidebar: #ffffff;
 
-    --hl-border: rgba(15, 23, 42, 0.08);
-    --hl-border-soft: rgba(15, 23, 42, 0.04);
+    --hl-border: rgba(15, 23, 42, 0.13);
+    --hl-border-soft: rgba(15, 23, 42, 0.07);
 
     --hl-text: #0f172a;
-    --hl-muted: #64748b;
-    --hl-faint: #94a3b8;
+    --hl-muted: #475569;
+    --hl-faint: #64748b;
 
     --hl-blue: #2563eb;
     --hl-purple: #7c3aed;
@@ -986,7 +986,7 @@ label[for*="remember"] {
     background: transparent;
 }
 
-/* 
+/*
    REDUCED MOTION
  */
 
@@ -996,3 +996,4 @@ label[for*="remember"] {
         animation: none !important;
     }
 }
+

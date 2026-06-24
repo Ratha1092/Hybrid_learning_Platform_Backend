@@ -68,7 +68,7 @@
 }
 html:not(.dark) .an {
     --bg:#edf1f8; --p1:#ffffff; --p2:#f5f8fc; --p3:#eef2f9;
-    --bd:rgba(15,23,42,.08); --bd2:rgba(15,23,42,.14);
+    --bd:rgba(15,23,42,.13); --bd2:rgba(15,23,42,.20);
     --t1:#0e1e34; --t2:#5070a0; --t3:#9ab0cc;
     --sh:0 4px 18px rgba(15,23,42,.1);
     color: var(--t1);

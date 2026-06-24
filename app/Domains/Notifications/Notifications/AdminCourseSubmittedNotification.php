@@ -2,13 +2,13 @@
 
 namespace App\Domains\Notifications\Notifications;
 
-use App\Domains\Courses\Models\Course;
 use Illuminate\Notifications\Notification;
 
 class AdminCourseSubmittedNotification extends Notification
 {
     public function __construct(
-        public readonly Course $course,
+        public readonly int    $courseId,
+        public readonly string $courseTitle,
         public readonly string $instructorName,
     ) {}
 
@@ -21,7 +21,7 @@ class AdminCourseSubmittedNotification extends Notification
     {
         return [
             'title'    => 'New Course Submitted for Review',
-            'body'     => "\"{$this->course->title}\" was submitted by {$this->instructorName}.",
+            'body'     => "\"{$this->courseTitle}\" was submitted by {$this->instructorName}.",
             'format'   => 'filament',
             'duration' => 'persistent',
             'actions'  => [

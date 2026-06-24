@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Domains\Auth\Services\ActivityLogService;
 use App\Domains\Finance\Models\InstructorWallet;
 use App\Domains\Finance\Models\PayoutRequest;
 use App\Domains\Finance\Models\WalletTransaction;
@@ -65,6 +66,8 @@ class Payouts extends Page
                 ->update(['status' => 'completed']);
         });
 
+        ActivityLogService::logChange('payout.approved', $payout);
+
         Notification::make()
             ->title('Payout Approved')
             ->body('The payout request has been marked as approved.')
@@ -120,6 +123,8 @@ class Payouts extends Page
                 'description' => 'Payout request rejected — funds returned to wallet',
             ]);
         });
+
+        ActivityLogService::logChange('payout.rejected', $payout, [], ['reason' => $reason]);
 
         Notification::make()
             ->title('Payout Rejected')

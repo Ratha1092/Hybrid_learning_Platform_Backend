@@ -12,7 +12,7 @@ class Notifications extends Page
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-bell-alert';
     protected static ?string $navigationLabel = 'Notifications';
     protected static string|\UnitEnum|null $navigationGroup = 'System';
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 3;
     protected static ?string $slug = 'notifications';
 
     public static function getNavigationBadge(): ?string

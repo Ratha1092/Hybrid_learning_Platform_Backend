@@ -10,6 +10,7 @@ use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Navigation\NavigationGroup;
+use Filament\Navigation\NavigationItem;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
@@ -126,7 +127,7 @@ class AdminPanelProvider extends PanelProvider
                 PanelsRenderHook::GLOBAL_SEARCH_BEFORE,
                 function () {
                     $rate = (float) Setting::get('default_commission_percentage', 20);
-                    $url = url('/admin/settings');
+                    $url = url('/admin/settings') . '#finance';
 
                     return <<<HTML
                     <a href="{$url}" title="Platform commission rate — click to configure" class="hl-commission-pill">
@@ -142,12 +143,42 @@ class AdminPanelProvider extends PanelProvider
                 PanelsRenderHook::USER_MENU_BEFORE,
                 fn () => Blade::render('@livewire("admin-notification-bell")')
             )
-            ->navigationGroups([NavigationGroup::make('Overview')->collapsible(),
+            ->renderHook(
+                PanelsRenderHook::BODY_END,
+                fn () => <<<'HTML'
+                <script>
+                    function hlExpandActiveGroup() {
+                        const activeGroup = document.querySelector('.fi-sidebar-group.fi-active');
+                        if (! activeGroup) return;
+                        const label = activeGroup.dataset.groupLabel;
+                        if (! label) return;
+                        const store = window.Alpine?.store('sidebar');
+                        if (! store) return;
+                        store.collapsedGroups = (store.collapsedGroups ?? []).filter(g => g !== label);
+                    }
+                    document.addEventListener('DOMContentLoaded', () => setTimeout(hlExpandActiveGroup, 0));
+                    document.addEventListener('livewire:navigated', () => setTimeout(hlExpandActiveGroup, 0));
+                </script>
+                HTML
+            )
+            ->navigationGroups([
+                NavigationGroup::make('Overview')->collapsible(),
                 NavigationGroup::make('Learning')->collapsible(),
                 NavigationGroup::make('Commerce')->collapsible(),
                 NavigationGroup::make('People')->collapsible(),
                 NavigationGroup::make('Finance')->collapsible(),
+                NavigationGroup::make('Reports')->collapsible(),
                 NavigationGroup::make('System')->collapsible(),
+                NavigationGroup::make('Security')->collapsible(),
+                NavigationGroup::make('Monitoring')->collapsible(),
+            ])
+            ->navigationItems([
+                NavigationItem::make('Horizon')
+                    ->url('/horizon')
+                    ->icon('heroicon-o-chart-bar-square')
+                    ->group('Monitoring')
+                    ->sort(3)
+                    ->visible(fn () => auth()->user()?->hasRole(['super-admin'])),
             ])
             ->discoverResources(
                 in: app_path('Filament/Resources'),

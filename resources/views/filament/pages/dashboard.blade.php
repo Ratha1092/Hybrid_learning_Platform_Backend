@@ -82,7 +82,7 @@
 }
 html:not(.dark) .rb {
     --bg: #edf1f8; --p1: #ffffff; --p2: #f5f8fc; --p3: #eef2f9;
-    --bd: rgba(15,23,42,.08); --bd2: rgba(15,23,42,.14);
+    --bd: rgba(15,23,42,.13); --bd2: rgba(15,23,42,.20);
     --t1: #0e1e34; --t2: #5070a0; --t3: #9ab0cc;
     --sh: 0 4px 18px rgba(15,23,42,.1);
     color: var(--t1);
@@ -420,6 +420,14 @@ a.rb-kpi:hover { border-color: color-mix(in srgb, var(--ic) 40%, transparent); b
             </div>
 
             <button class="rb-apply-btn" onclick="rbApplyFilters()">Apply</button>
+
+            @if(\App\Support\PanelAccess::can('reports.view_executive'))
+                <a href="{{ route('admin.reports.csv', ['type' => 'executive'] + request()->query()) }}" class="rb-apply-btn" style="background:transparent;border:1px solid var(--bd2, rgba(255,255,255,.13));color:inherit;text-decoration:none;display:inline-flex;align-items:center;">Export CSV</a>
+                <a href="{{ route('admin.reports.pdf', ['type' => 'executive'] + request()->query()) }}" class="rb-apply-btn" style="background:transparent;border:1px solid var(--bd2, rgba(255,255,255,.13));color:inherit;text-decoration:none;display:inline-flex;align-items:center;">Export PDF</a>
+                @if(\App\Support\PanelAccess::can('reports.schedule'))
+                    <button type="button" onclick="window.dispatchEvent(new CustomEvent('open-schedule-modal'))" class="rb-apply-btn">Schedule</button>
+                @endif
+            @endif
 
         </div>
     </div>
@@ -784,6 +792,11 @@ a.rb-kpi:hover { border-color: color-mix(in srgb, var(--ic) 40%, transparent); b
         </div>
 
     </div>
+
+    @if(\App\Support\PanelAccess::can('reports.schedule'))
+        @include('filament.pages.partials._schedule-modal', ['reportLabel' => 'Executive Dashboard'])
+    @endif
+
 
 </div>
 

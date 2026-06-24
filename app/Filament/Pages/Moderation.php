@@ -14,7 +14,7 @@ class Moderation extends Page
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-shield-exclamation';
     protected static ?string $navigationLabel = 'Moderation';
     protected static string|\UnitEnum|null $navigationGroup = 'System';
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 4;
     protected static ?string $slug = 'moderation';
 
     public static function canAccess(): bool

@@ -14,6 +14,11 @@ class UpdateInstructorWalletListener implements ShouldQueue
     public string $queue = 'high';
     public $tries = 3;
 
+    public function tags(): array
+    {
+        return ['finance', 'wallet'];
+    }
+
     public function handle(PaymentSuccessEvent $event): void
     {
         $shares = RevenueShare::whereIn(

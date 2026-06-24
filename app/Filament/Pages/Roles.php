@@ -13,7 +13,7 @@ class Roles extends Page
     protected string $view = 'filament.pages.roles';
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedShieldCheck;
     protected static ?string $navigationLabel = 'Roles';
-    protected static string|\UnitEnum|null $navigationGroup = 'People';
+    protected static string|\UnitEnum|null $navigationGroup = 'System';
     protected static ?int $navigationSort = 2;
     protected static ?string $slug = 'roles';
 

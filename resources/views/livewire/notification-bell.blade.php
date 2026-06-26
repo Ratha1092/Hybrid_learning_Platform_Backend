@@ -174,7 +174,7 @@ html:not(.dark) {
         }
     }"
     @click.outside="open = false"
-    wire:poll.30s
+    wire:poll.5s
 >
     {{-- Bell button --}}
     <button class="nb-btn" @click="open = !open" type="button">

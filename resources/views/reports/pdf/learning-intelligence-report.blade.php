@@ -14,6 +14,42 @@
     <td class="kpi-cell"><div class="kpi-label">Dropout Rate</div><div class="kpi-value">{{ $kpis['dropoutRate'] }}%</div></td>
 </tr></table>
 
+@php
+    $topCourses   = $courses->take(6);
+    $watchMax     = max(1, $topCourses->max('totalWatchHours'));
+    $completionMax = max(1, $topCourses->max('completionRate'));
+@endphp
+@if($topCourses->count() > 0)
+<table class="charts-row">
+    <tr>
+        <td class="chart-card">
+            <div class="chart-title">Watch Hours by Course</div>
+            <table class="bar-chart">
+                @foreach($topCourses as $c)
+                    <tr>
+                        <td class="bar-label">{{ \Illuminate\Support\Str::limit($c['title'], 18) }}</td>
+                        <td><div class="bar-bg"><div class="bar-fill" style="width:{{ $c['totalWatchHours'] > 0 ? max(3, ($c['totalWatchHours']/$watchMax)*100) : 0 }}%;background:#D7A441;"></div></div></td>
+                        <td class="bar-value">{{ $c['totalWatchHours'] }}h</td>
+                    </tr>
+                @endforeach
+            </table>
+        </td>
+        <td class="chart-card">
+            <div class="chart-title">Completion Rate by Course</div>
+            <table class="bar-chart">
+                @foreach($topCourses as $c)
+                    <tr>
+                        <td class="bar-label">{{ \Illuminate\Support\Str::limit($c['title'], 18) }}</td>
+                        <td><div class="bar-bg"><div class="bar-fill" style="width:{{ $c['completionRate'] > 0 ? max(3, ($c['completionRate']/$completionMax)*100) : 0 }}%;background:#34d399;"></div></div></td>
+                        <td class="bar-value">{{ $c['completionRate'] }}%</td>
+                    </tr>
+                @endforeach
+            </table>
+        </td>
+    </tr>
+</table>
+@endif
+
 <table class="items">
     <thead>
         <tr><th>Course</th><th class="amount">Enrollments</th><th class="amount">Completion %</th><th class="amount">Watch Hours</th></tr>

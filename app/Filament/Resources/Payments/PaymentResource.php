@@ -12,10 +12,11 @@ class PaymentResource extends Resource
     protected static ?string $model = Payment::class;
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-credit-card';
     protected static ?string $navigationLabel = 'Payments';
-    protected static string|\UnitEnum|null $navigationGroup = 'Marketplace';
+    protected static string|\UnitEnum|null $navigationGroup = 'Commerce';
     protected static ?int $navigationSort = 2;
 
     protected static bool $shouldRegisterNavigation = false;
+    protected static ?string $recordTitleAttribute = 'transaction_id';
 
     public static function getIndexUrl(array $parameters = [], bool $isAbsolute = true, ?string $panel = null, ?\Illuminate\Database\Eloquent\Model $tenant = null, bool $shouldGuessMissingParameters = false): string
     {

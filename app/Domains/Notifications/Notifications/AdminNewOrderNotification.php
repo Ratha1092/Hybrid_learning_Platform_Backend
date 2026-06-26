@@ -23,8 +23,9 @@ class AdminNewOrderNotification extends Notification
         $isFree = (float) ($order?->final_amount ?? 0) === 0.0;
 
         return [
+            'type'     => 'order',
             'title'    => $isFree ? 'New Free Enrollment' : 'New Order Placed',
-            'body'     => "Order #{$order?->order_number} by {$this->customerName}" . ($isFree ? ' (free course).' : " — \${$order?->final_amount}."),
+            'message'  => "Order #{$order?->order_number} by {$this->customerName}" . ($isFree ? ' (free course).' : " — \${$order?->final_amount}."),
             'format'   => 'filament',
             'duration' => 'persistent',
             'actions'  => [

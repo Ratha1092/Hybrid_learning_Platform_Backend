@@ -24,34 +24,34 @@ class NotificationInfolist
                         TextEntry::make('data.type')
                             ->label('Notification Type')
                             ->badge()
+                            ->formatStateUsing(fn ($state) => ucfirst(str_replace('_', ' ', $state ?? '')))
                             ->color(fn ($state) => match ($state) {
-                                'InstructorVerification' => 'warning',
-                                'Order' => 'success',
-                                'Payment' => 'info',
+                                'instructor_verification' => 'warning',
+                                'order' => 'success',
+                                'payment' => 'info',
+                                'course' => 'primary',
+                                'finance' => 'danger',
+                                'system' => 'gray',
                                 default => 'gray',
                             }),
 
                     ])
                     ->columns(1),
 
-                Section::make('Resource')
+                Section::make('Action')
                     ->schema([
-                        TextEntry::make('data.resource_type')
-                            ->label('Resource Type'),
-                        TextEntry::make('data.resource_id')
-                            ->label('Resource ID'),
-                        TextEntry::make('data.action_url')
+                        TextEntry::make('action_url')
                             ->label('Action URL')
-                            ->url(
-                                fn ($record) =>
-                                    $record->data['action_url']
-                                    ?? null
-                            )
+                            ->state(fn ($record) => $record->data['actions'][0]['url'] ?? null)
+                            ->url(fn ($record) => $record->data['actions'][0]['url'] ?? null)
                             ->openUrlInNewTab()
                             ->placeholder('N/A'),
-
+                        TextEntry::make('action_label')
+                            ->label('Action Label')
+                            ->state(fn ($record) => $record->data['actions'][0]['label'] ?? null)
+                            ->placeholder('N/A'),
                     ])
-                    ->columns(3),
+                    ->columns(2),
                 Section::make('Status')
                     ->schema([
                         TextEntry::make('read_at')

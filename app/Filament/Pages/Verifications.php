@@ -22,7 +22,7 @@ class Verifications extends Page
 
     public static function canAccess(): bool
     {
-        return PanelAccess::can('users.view');
+        return PanelAccess::can('users.view') || PanelAccess::can('instructor_verifications.view');
     }
 
     public static function getNavigationBadge(): ?string

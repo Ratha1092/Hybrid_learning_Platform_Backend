@@ -30,7 +30,21 @@ class CourseResource extends Resource
     protected static string|\UnitEnum|null $navigationGroup = 'Learning';
     protected static ?int $navigationSort = 1;
     protected static bool $shouldRegisterNavigation = false;
-    protected static ?string $recordTitleAttribute ='title';
+    protected static ?string $recordTitleAttribute = 'title';
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['title', 'instructor.name'];
+    }
+
+    public static function getGlobalSearchResultDetails(\Illuminate\Database\Eloquent\Model $record): array
+    {
+        return [
+            'Instructor' => $record->instructor?->name ?? '—',
+            'Status'     => ucfirst($record->status ?? ''),
+        ];
+    }
+
     public static function form(Schema $schema): Schema
     {
         return CourseForm::configure($schema);

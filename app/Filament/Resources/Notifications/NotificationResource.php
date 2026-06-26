@@ -12,7 +12,7 @@ use App\Filament\Resources\Notifications\Tables\NotificationsTable;
 use BackedEnum;
 use UnitEnum;
 use Filament\Schemas\Schema;
-use App\Filament\Resources\Notifications\Schemas\NotificationForm;
+use App\Filament\Resources\Notifications\Schemas\NotificationInfolist;
 
 class NotificationResource extends Resource
 {
@@ -47,9 +47,9 @@ class NotificationResource extends Resource
     {
         return false;
     }
-    public static function form(Schema $schema): Schema
+    public static function infolist(Schema $schema): Schema
     {
-        return NotificationForm::configure($schema);
+        return NotificationInfolist::configure($schema);
     }
 
     public static function canViewAny(): bool

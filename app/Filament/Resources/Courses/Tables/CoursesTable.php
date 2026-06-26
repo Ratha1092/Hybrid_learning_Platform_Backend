@@ -105,11 +105,6 @@ class CoursesTable
                     ->icon('heroicon-m-user-group')
                     ->alignCenter(),
 
-                // ── CREATED ───────────────────────────────────────────────────
-                Tables\Columns\TextColumn::make('created_at')
-                    ->label('Created')
-                    ->dateTime('M d, Y')
-                    ->sortable(),
             ])
 
             // ── FILTERS ───────────────────────────────────────────────────────
@@ -138,43 +133,46 @@ class CoursesTable
             ->recordActions([
                 Actions\ViewAction::make()->iconButton(),
                 Actions\EditAction::make()->iconButton(),
+
+                Actions\Action::make('approve')
+                    ->label('Approve')
+                    ->icon('heroicon-o-check-circle')
+                    ->color('success')
+                    ->iconButton()
+                    ->hidden(fn (Course $record) => ! $record->isPendingReview())
+                    ->requiresConfirmation()
+                    ->modalHeading('Approve Course')
+                    ->modalDescription('This will publish the course and notify the instructor.')
+                    ->action(function (Course $record) {
+                        $record->publish(auth()->id());
+                        $record->instructor?->notify(new CourseApprovedNotification($record));
+                        Notification::make()
+                            ->title('Course Approved & Published')
+                            ->body("\"{$record->title}\" is now live.")
+                            ->success()->send();
+                    }),
+
+                Actions\Action::make('reject')
+                    ->label('Reject')
+                    ->icon('heroicon-o-x-circle')
+                    ->color('danger')
+                    ->iconButton()
+                    ->hidden(fn (Course $record) => ! $record->isPendingReview())
+                    ->form([
+                        Textarea::make('reason')
+                            ->label('Rejection Reason')
+                            ->placeholder('Explain why this course is being rejected…')
+                            ->rows(3)
+                            ->required(),
+                    ])
+                    ->modalHeading('Reject Course')
+                    ->action(function (Course $record, array $data) {
+                        $record->reject($data['reason']);
+                        $record->instructor?->notify(new CourseRejectedNotification($record, $data['reason']));
+                        Notification::make()->title('Course Rejected')->body('The instructor has been notified.')->danger()->send();
+                    }),
+
                 Actions\ActionGroup::make([
-                    Actions\Action::make('approve')
-                        ->label('Approve')
-                        ->icon('heroicon-o-check-circle')
-                        ->color('success')
-                        ->visible(fn (Course $record) => $record->isPendingReview())
-                        ->requiresConfirmation()
-                        ->modalHeading('Approve Course')
-                        ->modalDescription('This will publish the course and notify the instructor.')
-                        ->action(function (Course $record) {
-                            $record->publish(auth()->id());
-                            $record->instructor?->notify(new CourseApprovedNotification($record));
-                            Notification::make()
-                                ->title('Course Approved & Published')
-                                ->body("\"{$record->title}\" is now live.")
-                                ->success()->send();
-                        }),
-
-                    Actions\Action::make('reject')
-                        ->label('Reject')
-                        ->icon('heroicon-o-x-circle')
-                        ->color('danger')
-                        ->visible(fn (Course $record) => $record->isPendingReview())
-                        ->form([
-                            Textarea::make('reason')
-                                ->label('Rejection Reason')
-                                ->placeholder('Explain why this course is being rejected…')
-                                ->rows(3)
-                                ->required(),
-                        ])
-                        ->modalHeading('Reject Course')
-                        ->action(function (Course $record, array $data) {
-                            $record->reject($data['reason']);
-                            $record->instructor?->notify(new CourseRejectedNotification($record, $data['reason']));
-                            Notification::make()->title('Course Rejected')->body('The instructor has been notified.')->danger()->send();
-                        }),
-
                     Actions\Action::make('submitReview')
                         ->label('Submit for Review')
                         ->icon('heroicon-o-paper-airplane')

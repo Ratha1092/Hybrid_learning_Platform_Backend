@@ -2,6 +2,7 @@
 
 namespace App\Domains\Notifications\Notifications;
 
+use App\Domains\Notifications\Enums\NotificationType;
 use Illuminate\Notifications\Notification;
 
 class AdminCourseSubmittedNotification extends Notification
@@ -20,8 +21,9 @@ class AdminCourseSubmittedNotification extends Notification
     public function toArray(object $notifiable): array
     {
         return [
+            'type'     => NotificationType::COURSE->value,
             'title'    => 'New Course Submitted for Review',
-            'body'     => "\"{$this->courseTitle}\" was submitted by {$this->instructorName}.",
+            'message'  => "\"{$this->courseTitle}\" was submitted by {$this->instructorName}.",
             'format'   => 'filament',
             'duration' => 'persistent',
             'actions'  => [

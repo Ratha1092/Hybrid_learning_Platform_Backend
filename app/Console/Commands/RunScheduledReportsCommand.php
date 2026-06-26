@@ -30,6 +30,7 @@ class RunScheduledReportsCommand extends Command
         'course_intelligence' => \App\Filament\Pages\Reports\CourseIntelligenceReport::class,
         'instructor_intelligence' => \App\Filament\Pages\Reports\InstructorIntelligenceReport::class,
         'learning_intelligence' => \App\Filament\Pages\Reports\LearningIntelligenceReport::class,
+        'user'                  => \App\Filament\Pages\Reports\UserReport::class,
     ];
 
     public function handle(): int

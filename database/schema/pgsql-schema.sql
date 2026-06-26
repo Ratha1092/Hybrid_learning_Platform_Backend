@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict a0jqVvGPrAXnWprHN3SwsOuAecncwxAfqDChfTqZgvKadOZS2jfrkNOgaYD2OQu
+\restrict PhqGGhwE4MvVatmPQBTPJWnFgtDyAxh7O0v0zpNhkSk5bCA3lN6iuJFR6hlcRnf
 
 -- Dumped from database version 16.14 (Ubuntu 16.14-0ubuntu0.24.04.1)
 -- Dumped by pg_dump version 16.14 (Ubuntu 16.14-0ubuntu0.24.04.1)
@@ -72,6 +72,40 @@ CREATE SEQUENCE public.activity_logs_id_seq
 --
 
 ALTER SEQUENCE public.activity_logs_id_seq OWNED BY public.activity_logs.id;
+
+
+--
+-- Name: blocked_ips; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.blocked_ips (
+    id bigint NOT NULL,
+    ip_address character varying(255) NOT NULL,
+    reason character varying(255),
+    blocked_by bigint,
+    expires_at timestamp(0) without time zone,
+    created_at timestamp(0) without time zone,
+    updated_at timestamp(0) without time zone
+);
+
+
+--
+-- Name: blocked_ips_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.blocked_ips_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: blocked_ips_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.blocked_ips_id_seq OWNED BY public.blocked_ips.id;
 
 
 --
@@ -1640,6 +1674,13 @@ ALTER TABLE ONLY public.activity_logs ALTER COLUMN id SET DEFAULT nextval('publi
 
 
 --
+-- Name: blocked_ips id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.blocked_ips ALTER COLUMN id SET DEFAULT nextval('public.blocked_ips_id_seq'::regclass);
+
+
+--
 -- Name: categories id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -1925,6 +1966,22 @@ ALTER TABLE ONLY public.wishlists ALTER COLUMN id SET DEFAULT nextval('public.wi
 
 ALTER TABLE ONLY public.activity_logs
     ADD CONSTRAINT activity_logs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: blocked_ips blocked_ips_ip_address_unique; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.blocked_ips
+    ADD CONSTRAINT blocked_ips_ip_address_unique UNIQUE (ip_address);
+
+
+--
+-- Name: blocked_ips blocked_ips_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.blocked_ips
+    ADD CONSTRAINT blocked_ips_pkey PRIMARY KEY (id);
 
 
 --
@@ -2793,6 +2850,14 @@ ALTER TABLE ONLY public.activity_logs
 
 
 --
+-- Name: blocked_ips blocked_ips_blocked_by_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.blocked_ips
+    ADD CONSTRAINT blocked_ips_blocked_by_foreign FOREIGN KEY (blocked_by) REFERENCES public.users(id) ON DELETE SET NULL;
+
+
+--
 -- Name: coupons coupons_created_by_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3220,13 +3285,13 @@ ALTER TABLE ONLY public.wishlists
 -- PostgreSQL database dump complete
 --
 
-\unrestrict a0jqVvGPrAXnWprHN3SwsOuAecncwxAfqDChfTqZgvKadOZS2jfrkNOgaYD2OQu
+\unrestrict PhqGGhwE4MvVatmPQBTPJWnFgtDyAxh7O0v0zpNhkSk5bCA3lN6iuJFR6hlcRnf
 
 --
 -- PostgreSQL database dump
 --
 
-\restrict jjfS16TueZBthvamQ16QZwwZC2QyvDaGlsW0vkGFwYGTwrsjjVkDm2YnrhR51wX
+\restrict aXRnvh4VcwCiGt3RwWvY16qqunUBhDbUv8oYTjkqMgKcr12IjyF8AxiLRTZxl5K
 
 -- Dumped from database version 16.14 (Ubuntu 16.14-0ubuntu0.24.04.1)
 -- Dumped by pg_dump version 16.14 (Ubuntu 16.14-0ubuntu0.24.04.1)
@@ -3297,6 +3362,7 @@ COPY public.migrations (id, migration, batch) FROM stdin;
 48	2026_06_16_000001_create_settings_table	1
 49	2026_06_20_084657_create_refunds_table	2
 50	2026_06_21_000001_create_scheduled_reports_table	3
+51	2026_06_24_141134_create_blocked_ips_table	4
 \.
 
 
@@ -3304,12 +3370,12 @@ COPY public.migrations (id, migration, batch) FROM stdin;
 -- Name: migrations_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.migrations_id_seq', 50, true);
+SELECT pg_catalog.setval('public.migrations_id_seq', 51, true);
 
 
 --
 -- PostgreSQL database dump complete
 --
 
-\unrestrict jjfS16TueZBthvamQ16QZwwZC2QyvDaGlsW0vkGFwYGTwrsjjVkDm2YnrhR51wX
+\unrestrict aXRnvh4VcwCiGt3RwWvY16qqunUBhDbUv8oYTjkqMgKcr12IjyF8AxiLRTZxl5K
 

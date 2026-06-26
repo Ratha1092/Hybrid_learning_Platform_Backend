@@ -32,7 +32,7 @@ class InstructorVerificationResource extends Resource
     protected static ?string $model = InstructorVerification::class;
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-document-check';
     protected static ?string $navigationLabel = 'Verification';
-    protected static string|\UnitEnum|null $navigationGroup = 'Users';
+    protected static string|\UnitEnum|null $navigationGroup = 'People';
     protected static ?int $navigationSort = 3;
     public static function form(Schema $schema): Schema
     {
@@ -141,7 +141,7 @@ class InstructorVerificationResource extends Resource
                     ->label('Approve')
                     ->icon('heroicon-o-check-circle')
                     ->color('success')
-                    ->visible(fn (InstructorVerification $record) => $record->status === 'pending')
+                    ->visible(fn (InstructorVerification $record) => $record->status === 'pending' && PanelAccess::can('instructor_verifications.approve'))
                     ->action(function (InstructorVerification $record) {
                         $record->update([
                             'status' => 'approved',
@@ -177,7 +177,7 @@ class InstructorVerificationResource extends Resource
                     ->label('Reject')
                     ->icon('heroicon-o-x-circle')
                     ->color('danger')
-                    ->visible(fn (InstructorVerification $record) => $record->status === 'pending')
+                    ->visible(fn (InstructorVerification $record) => $record->status === 'pending' && PanelAccess::can('instructor_verifications.reject'))
                     ->form([
                         Forms\Components\Textarea::make('rejection_reason')
                             ->label('Rejection Reason')
@@ -282,7 +282,7 @@ class InstructorVerificationResource extends Resource
 
     public static function canViewAny(): bool
     {
-        return PanelAccess::can('users.view');
+        return PanelAccess::can('instructor_verifications.view');
     }
 
     public static function getModelLabel(): string

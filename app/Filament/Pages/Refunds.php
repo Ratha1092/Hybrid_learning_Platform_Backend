@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Domains\Billing\Services\InvoiceService;
 use App\Domains\Finance\Models\InstructorWallet;
 use App\Domains\Finance\Models\RevenueShare;
 use App\Domains\Finance\Models\WalletTransaction;
@@ -124,6 +125,15 @@ class Refunds extends Page
                 'reason' => $reason,
                 'refunded_by' => auth()->id(),
             ]);
+
+            try {
+                app(InvoiceService::class)->issueCreditNote($order, $reason);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error('Credit note generation failed', [
+                    'order_id' => $order->id,
+                    'error'    => $e->getMessage(),
+                ]);
+            }
         });
 
         Notification::make()

@@ -17,9 +17,6 @@ class Settings extends Page
     protected static ?int $navigationSort = 1;
     protected static ?string $slug = 'settings';
 
-    /**
-     * group key => [label, icon svg path, color, description, permission]
-     */
     public const GROUPS = [
         'general' => ['General', 'M3.75 6A2.25 2.25 0 0 1 6 3.75h12A2.25 2.25 0 0 1 20.25 6v12A2.25 2.25 0 0 1 18 20.25H6A2.25 2.25 0 0 1 3.75 18V6Z M8.25 8.25h7.5v7.5h-7.5z', '#2563eb', 'Core site identity and availability.', 'settings'],
         'branding' => ['Branding', 'M9.53 16.122a3 3 0 0 0-5.78 1.128 2.25 2.25 0 0 1-2.4 2.245 4.5 4.5 0 0 0 8.4-2.245c0-.399-.078-.78-.22-1.128Zm0 0a15.998 15.998 0 0 0 3.388-1.62m-5.043-.025a15.994 15.994 0 0 1 1.622-3.395m3.42 3.42a15.995 15.995 0 0 0 4.764-4.648l3.876-5.814a1.151 1.151 0 0 0-1.597-1.597L14.146 6.32a15.996 15.996 0 0 0-4.649 4.763m3.42 3.42a6.776 6.776 0 0 0-3.42-3.42', '#d946ef', 'Colors, footer, and social links.', 'settings'],
@@ -35,10 +32,6 @@ class Settings extends Page
         'email' => ['Email', 'M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75', '#64748b', 'Outgoing mail identity.', 'settings'],
     ];
 
-    /**
-     * group key => [section label => [setting keys...]]. Keys left out of every section
-     * for a group fall back into an auto "Other" section so nothing is silently dropped.
-     */
     public const SECTIONS = [
         'general' => [
             'Site Identity' => ['site_name', 'site_logo', 'site_favicon', 'site_description'],
@@ -140,12 +133,6 @@ class Settings extends Page
 
         return compact('visibleGroups', 'commissionValue', 'courseStats');
     }
-
-    /**
-     * Split a group's settings into the labeled sections defined in SECTIONS, in order.
-     * Any setting not assigned to a section (and not the special finance commission
-     * field, which gets its own bespoke widget) falls back into a final "Other" bucket.
-     */
     private function buildSections(string $groupKey, $groupSettings): array
     {
         $byKey = $groupSettings->keyBy('key');

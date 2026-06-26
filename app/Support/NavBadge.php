@@ -19,7 +19,17 @@ class NavBadge
 
     public static function countSince(string $key, Closure $countQuery): int
     {
-        return $countQuery(Cache::get(self::cacheKey($key)));
+        $cacheKey = self::cacheKey($key);
+        $since    = Cache::get($cacheKey);
+
+        if ($since === null) {
+            // First load: initialize the timestamp so the badge starts from now,
+            // not from the beginning of time.
+            Cache::put($cacheKey, now(), now()->addYear());
+            return 0;
+        }
+
+        return $countQuery($since);
     }
 
     private static function cacheKey(string $key): string

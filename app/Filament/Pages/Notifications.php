@@ -4,7 +4,6 @@ namespace App\Filament\Pages;
 
 use BackedEnum;
 use Filament\Pages\Page;
-use Illuminate\Notifications\DatabaseNotification;
 
 class Notifications extends Page
 {
@@ -40,7 +39,8 @@ class Notifications extends Page
 
         if (!in_array($perPage, [10, 25, 50])) $perPage = 10;
 
-        $base = fn() => DatabaseNotification::query();
+        $user = auth()->user();
+        $base = fn() => $user->notifications();
 
         $tabs = [
             ['key' => 'all',    'label' => 'All',    'count' => $base()->count(),                           'color' => '#9333ea'],
@@ -48,7 +48,7 @@ class Notifications extends Page
             ['key' => 'read',   'label' => 'Read',   'count' => $base()->whereNotNull('read_at')->count(),  'color' => '#34d399'],
         ];
 
-        $query = DatabaseNotification::query()->with('notifiable');
+        $query = $user->notifications();
 
         if ($tab === 'unread') {
             $query->whereNull('read_at');

@@ -22,9 +22,22 @@ class UserResource extends Resource
     protected static ?string $model = User::class;
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUsers;
     protected static ?string $navigationLabel = 'Users';
-    protected static string|\UnitEnum|null $navigationGroup = 'Users';
+    protected static string|\UnitEnum|null $navigationGroup = 'People';
     protected static ?int $navigationSort = 1;
     protected static ?string $recordTitleAttribute = 'name';
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['name', 'email'];
+    }
+
+    public static function getGlobalSearchResultDetails(\Illuminate\Database\Eloquent\Model $record): array
+    {
+        return [
+            'Email' => $record->email,
+            'Role'  => $record->getRoleNames()->first() ?? '—',
+        ];
+    }
 
     public static function form(Schema $schema): Schema
     {

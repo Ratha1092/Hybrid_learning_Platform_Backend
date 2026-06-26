@@ -94,6 +94,9 @@ html:not(.dark) .re{
 .re-footer-bar{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding-top:4px}
 .re-footer-info{font-size:12px;color:var(--t2)}
 .re-footer-info b{color:var(--t1)}
+
+/* Suppress any Filament-rendered schema sections that appear alongside this custom form */
+.fi-section,.fi-fo-component-ctn,.fi-schema{display:none!important}
 </style>
 
 <form method="POST" action="{{ $updateUrl }}">

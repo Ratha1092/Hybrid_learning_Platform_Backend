@@ -109,7 +109,109 @@
         text-align: center;
         color: #000;
         font-size: 10px;
-        }
+    }
+    /* ── Chart section ── */
+    .charts-row {
+        display: table;
+        width: 100%;
+        margin-bottom: 20px;
+        border-collapse: separate;
+        border-spacing: 10px 0;
+    }
+    .chart-card {
+        display: table-cell;
+        width: 50%;
+        padding: 12px 14px;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        background: #f9fafb;
+        vertical-align: top;
+    }
+    .chart-card.full { width: 100%; }
+    .chart-title {
+        font-size: 9.5px;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: .5px;
+        color: #374151;
+        margin-bottom: 10px;
+    }
+    table.bar-chart {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    table.bar-chart td {
+        padding: 3px 0;
+        vertical-align: middle;
+        border: none;
+    }
+    .bar-label {
+        font-size: 10px;
+        color: #6b7280;
+        width: 100px;
+        padding-right: 8px;
+        white-space: nowrap;
+    }
+    .bar-bg {
+        background: #e5e7eb;
+        border-radius: 3px;
+        height: 10px;
+    }
+    .bar-fill {
+        height: 10px;
+        border-radius: 3px;
+    }
+    .bar-value {
+        font-size: 10px;
+        font-weight: bold;
+        color: #111827;
+        width: 75px;
+        text-align: right;
+        padding-left: 8px;
+        white-space: nowrap;
+    }
+    /* Column trend chart */
+    table.trend-chart {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    table.trend-chart td {
+        text-align: center;
+        vertical-align: bottom;
+        padding: 0 4px;
+        border: none;
+    }
+    .trend-col-wrap {
+        display: block;
+        height: 70px;
+        vertical-align: bottom;
+        position: relative;
+    }
+    .trend-col-fill {
+        display: block;
+        background: #D7A441;
+        border-radius: 3px 3px 0 0;
+        width: 100%;
+    }
+    .trend-month {
+        font-size: 8.5px;
+        color: #9ca3af;
+        margin-top: 4px;
+    }
+    .trend-amount {
+        font-size: 8px;
+        color: #374151;
+        font-weight: bold;
+    }
+    /* Coupon list */
+    .coupon-row {
+        display: table;
+        width: 100%;
+        padding: 4px 0;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    .coupon-code { display: table-cell; font-size: 10px; font-weight: bold; color: #111827; }
+    .coupon-uses { display: table-cell; text-align: right; font-size: 10px; color: #6b7280; }
 </style>
 
 <div class="header">

@@ -14,6 +14,40 @@
     <td class="kpi-cell"><div class="kpi-label">Failed</div><div class="kpi-value">{{ number_format($kpis['failedCount']) }}</div></td>
 </tr></table>
 
+@php
+    $gwMax  = max(1, collect($gatewayBreakdown)->max('amount'));
+    $stMax  = max(1, collect($statusBreakdown)->max('count'));
+    $stColors = ['paid'=>'#34d399','pending'=>'#fbbf24','failed'=>'#f87171','refunded'=>'#a78bfa'];
+@endphp
+<table class="charts-row">
+    <tr>
+        <td class="chart-card">
+            <div class="chart-title">Revenue by Gateway</div>
+            <table class="bar-chart">
+                @foreach($gatewayBreakdown as $gw => $row)
+                    <tr>
+                        <td class="bar-label">{{ strtoupper($gw) }}</td>
+                        <td><div class="bar-bg"><div class="bar-fill" style="width:{{ $row['amount'] > 0 ? max(3, ($row['amount']/$gwMax)*100) : 0 }}%;background:#D7A441;"></div></div></td>
+                        <td class="bar-value">${{ number_format($row['amount'], 0) }}</td>
+                    </tr>
+                @endforeach
+            </table>
+        </td>
+        <td class="chart-card">
+            <div class="chart-title">Count by Status</div>
+            <table class="bar-chart">
+                @foreach($statusBreakdown as $st => $row)
+                    <tr>
+                        <td class="bar-label">{{ ucfirst($st) }}</td>
+                        <td><div class="bar-bg"><div class="bar-fill" style="width:{{ $row['count'] > 0 ? max(3, ($row['count']/$stMax)*100) : 0 }}%;background:{{ $stColors[$st] ?? '#94a3b8' }};"></div></div></td>
+                        <td class="bar-value">{{ number_format($row['count']) }}</td>
+                    </tr>
+                @endforeach
+            </table>
+        </td>
+    </tr>
+</table>
+
 <table class="items">
     <thead>
         <tr><th>Transaction</th><th>Order #</th><th>Gateway</th><th class="amount">Amount</th><th>Status</th><th>Paid At</th></tr>

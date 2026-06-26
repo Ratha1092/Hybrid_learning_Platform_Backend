@@ -22,6 +22,17 @@ class InstructorResource extends Resource
     protected static ?int $navigationSort = 3;
     protected static ?string $slug = 'instructors';
     protected static bool $shouldRegisterNavigation = false;
+    protected static ?string $recordTitleAttribute = 'name';
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['name', 'email'];
+    }
+
+    public static function getGlobalSearchResultDetails(\Illuminate\Database\Eloquent\Model $record): array
+    {
+        return ['Email' => $record->email];
+    }
 
     public static function table(Table $table): Table
     {

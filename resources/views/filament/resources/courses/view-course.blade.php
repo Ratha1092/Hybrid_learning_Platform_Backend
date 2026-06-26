@@ -27,7 +27,7 @@
     $thumbnailUrl = $course->thumbnail_url;
 
     $editUrl = url('/admin/courses/' . $course->id . '/edit');
-    $backUrl = url('/admin/courses');
+    $backUrl = url('/admin/courses' . (request()->getQueryString() ? '?' . request()->getQueryString() : ''));
     $studentsUrl = url('/admin/courses/' . $course->id . '/students');
 @endphp
 
@@ -161,10 +161,12 @@ html:not(.dark) .cv {
                 <span wire:loading wire:target="archiveCourse">Archiving…</span>
             </button>
             @endif
+            @unless($course->isPendingReview())
             <a href="{{ $editUrl }}" class="cv-btn cv-btn-primary">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487z"/></svg>
                 Edit
             </a>
+            @endunless
         </div>
     </div>
 

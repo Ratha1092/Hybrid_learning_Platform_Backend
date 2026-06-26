@@ -116,6 +116,36 @@ Route::middleware(['web', 'auth'])->group(function () {
         return redirect()->to($redirectUrl)->with('settings_success', "{$label} settings updated successfully.");
     })->name('admin.settings.update');
 
+    Route::post('/admin/roles/store', function (\Illuminate\Http\Request $request) {
+        if (!auth()->user()->can('roles.create')) {
+            abort(403);
+        }
+
+        $name = trim((string) $request->input('name', ''));
+
+        if ($name === '') {
+            return back()->with('role_error', 'Role name is required.')->withInput();
+        }
+
+        if (!\preg_match('/^[a-z0-9\-]+$/', $name)) {
+            return back()->with('role_error', 'Role name must be lowercase and hyphen-separated (e.g. "content-manager").')->withInput();
+        }
+
+        if (\Spatie\Permission\Models\Role::where('name', $name)->exists()) {
+            return back()->with('role_error', "A role named \"{$name}\" already exists.")->withInput();
+        }
+
+        $role = \Spatie\Permission\Models\Role::create(['name' => $name, 'guard_name' => 'web']);
+
+        $permissionIds = array_map('intval', $request->input('permissions', []));
+        $permissionNames = \Spatie\Permission\Models\Permission::whereIn('id', $permissionIds)->pluck('name')->all();
+        $role->syncPermissions($permissionNames);
+
+        \App\Domains\Auth\Services\ActivityLogService::logChange('role.created', $role, [], ['name' => $name, 'permissions' => $permissionNames]);
+
+        return redirect()->to(url('/admin/roles/' . $role->id))->with('role_success', "Role \"{$name}\" created successfully.");
+    })->name('admin.roles.store');
+
     Route::post('/admin/roles/{role}/update', function (\Spatie\Permission\Models\Role $role, \Illuminate\Http\Request $request) {
         if (!auth()->user()->can('roles.update')) {
             abort(403);
@@ -156,6 +186,60 @@ Route::middleware(['web', 'auth'])->group(function () {
         return redirect()->to(url('/admin/roles/' . $role->id))->with('role_success', 'Role updated successfully.');
     })->name('admin.roles.update');
 
+    Route::post('/admin/roles/{role}/users/assign', function (\Spatie\Permission\Models\Role $role, \Illuminate\Http\Request $request) {
+        if (!auth()->user()->can('roles.update')) {
+            abort(403);
+        }
+
+        $query = trim((string) $request->input('user_query', ''));
+        if ($query === '') {
+            return back()->with('role_error', 'Please enter a name or email to search.');
+        }
+
+        $user = \App\Domains\Users\Models\User::where('email', $query)
+            ->orWhere('name', 'like', "%{$query}%")
+            ->first();
+
+        if (!$user) {
+            return back()->with('role_error', "No user found matching \"{$query}\".");
+        }
+
+        if ($user->hasRole($role->name)) {
+            return back()->with('role_error', "{$user->name} already has the {$role->name} role.");
+        }
+
+        $user->assignRole($role);
+
+        \App\Domains\Auth\Services\ActivityLogService::logChange(
+            'user.roles_changed', $user,
+            ['roles' => $user->getRoleNames()->reject(fn ($r) => $r === $role->name)->values()->all()],
+            ['roles' => $user->getRoleNames()->values()->all()],
+        );
+
+        return back()->with('role_success', "{$user->name} has been assigned the {$role->name} role.");
+    })->name('admin.roles.users.assign');
+
+    Route::post('/admin/roles/{role}/users/{user}/remove', function (\Spatie\Permission\Models\Role $role, \App\Domains\Users\Models\User $user) {
+        if (!auth()->user()->can('roles.update')) {
+            abort(403);
+        }
+
+        if (!$user->hasRole($role->name)) {
+            return back()->with('role_error', "{$user->name} does not have the {$role->name} role.");
+        }
+
+        $oldRoles = $user->getRoleNames()->values()->all();
+        $user->removeRole($role);
+
+        \App\Domains\Auth\Services\ActivityLogService::logChange(
+            'user.roles_changed', $user,
+            ['roles' => $oldRoles],
+            ['roles' => $user->fresh()->getRoleNames()->values()->all()],
+        );
+
+        return back()->with('role_success', "{$user->name} has been removed from the {$role->name} role.");
+    })->name('admin.roles.users.remove');
+
     Route::post('/admin/courses/{course}/archive', function (Course $course) {
         if ($course->isPublished()) {
             $course->archive();
@@ -165,6 +249,74 @@ Route::middleware(['web', 'auth'])->group(function () {
     })->name('admin.courses.archive');
 
 });
+
+Route::middleware(['web', 'auth'])->get(
+    '/admin/billing/invoices/{id}/download',
+    function (int $id) {
+        $invoice = \App\Domains\Billing\Models\Invoice::findOrFail($id);
+        abort_unless(auth()->user()->can('invoices.download'), 403);
+
+        if (!$invoice->pdf_path || !\Illuminate\Support\Facades\Storage::disk('local')->exists($invoice->pdf_path)) {
+            app(\App\Domains\Billing\Services\InvoiceService::class)->regeneratePdf($invoice);
+            $invoice->refresh();
+        }
+
+        return \Illuminate\Support\Facades\Storage::disk('local')->download(
+            $invoice->pdf_path,
+            $invoice->invoice_number . '.pdf',
+            ['Content-Type' => 'application/pdf']
+        );
+    }
+)->name('admin.billing.invoices.download');
+
+Route::middleware(['web', 'auth'])->post(
+    '/admin/billing/invoices/{id}/resend',
+    function (int $id) {
+        abort_unless(auth()->user()->can('invoices.resend'), 403);
+        $invoice = \App\Domains\Billing\Models\Invoice::findOrFail($id);
+        app(\App\Domains\Billing\Services\InvoiceService::class)->sendByEmail($invoice);
+        return redirect()->back()->with('billing_success', 'Invoice email queued for delivery.');
+    }
+)->name('admin.billing.invoices.resend');
+
+Route::middleware(['web', 'auth'])->post(
+    '/admin/billing/invoices/{id}/regenerate',
+    function (int $id) {
+        abort_unless(auth()->user()->can('invoices.resend'), 403);
+        $invoice = \App\Domains\Billing\Models\Invoice::findOrFail($id);
+        app(\App\Domains\Billing\Services\InvoiceService::class)->regeneratePdf($invoice);
+        return redirect()->back()->with('billing_success', 'PDF regenerated successfully.');
+    }
+)->name('admin.billing.invoices.regenerate');
+
+Route::middleware(['web', 'auth'])->get(
+    '/admin/billing/receipts/{id}/download',
+    function (int $id) {
+        $receipt = \App\Domains\Billing\Models\Receipt::findOrFail($id);
+        abort_unless(auth()->user()->can('receipts.download'), 403);
+
+        if (!$receipt->pdf_path || !\Illuminate\Support\Facades\Storage::disk('local')->exists($receipt->pdf_path)) {
+            app(\App\Domains\Billing\Services\ReceiptService::class)->regeneratePdf($receipt);
+            $receipt->refresh();
+        }
+
+        return \Illuminate\Support\Facades\Storage::disk('local')->download(
+            $receipt->pdf_path,
+            $receipt->receipt_number . '.pdf',
+            ['Content-Type' => 'application/pdf']
+        );
+    }
+)->name('admin.billing.receipts.download');
+
+Route::middleware(['web', 'auth'])->post(
+    '/admin/billing/receipts/{id}/resend',
+    function (int $id) {
+        abort_unless(auth()->user()->can('receipts.resend'), 403);
+        $receipt = \App\Domains\Billing\Models\Receipt::findOrFail($id);
+        app(\App\Domains\Billing\Services\ReceiptService::class)->sendByEmail($receipt);
+        return redirect()->back()->with('billing_success', 'Receipt email queued for delivery.');
+    }
+)->name('admin.billing.receipts.resend');
 
 Route::middleware(['web', 'auth'])->get(
     '/admin/reports/{type}/pdf',

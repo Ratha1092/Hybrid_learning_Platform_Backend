@@ -23,6 +23,7 @@ use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Str;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Livewire\Livewire;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -35,6 +36,7 @@ class AdminPanelProvider extends PanelProvider
             ->defaultThemeMode(ThemeMode::Dark)
             ->brandName('Hybrid Learning')
             ->favicon(asset('favicon.svg'))
+            ->spa()
             ->sidebarCollapsibleOnDesktop()
             ->sidebarWidth('15rem')
             ->collapsedSidebarWidth('4.75rem')
@@ -141,23 +143,118 @@ class AdminPanelProvider extends PanelProvider
             )
             ->renderHook(
                 PanelsRenderHook::USER_MENU_BEFORE,
-                fn () => Blade::render('@livewire("admin-notification-bell")')
+                fn () => Livewire::mount('admin-notification-bell')
             )
             ->renderHook(
                 PanelsRenderHook::BODY_END,
                 fn () => <<<'HTML'
                 <script>
-                    function hlExpandActiveGroup() {
-                        const activeGroup = document.querySelector('.fi-sidebar-group.fi-active');
-                        if (! activeGroup) return;
-                        const label = activeGroup.dataset.groupLabel;
-                        if (! label) return;
-                        const store = window.Alpine?.store('sidebar');
-                        if (! store) return;
-                        store.collapsedGroups = (store.collapsedGroups ?? []).filter(g => g !== label);
+                    var _hlNavScroll  = 0;
+                    var _hlNavFrozen  = false;
+                    var _hlWatching   = false;
+                    var _hlGroupTimer = null;
+                    var _hlRafId      = null;
+
+                    function hlGetNav() {
+                        var navs = document.querySelectorAll('.fi-sidebar-nav');
+                        for (var i = 0; i < navs.length; i++) {
+                            if (navs[i].offsetHeight > 0) return navs[i];
+                        }
+                        return navs[0] || null;
                     }
-                    document.addEventListener('DOMContentLoaded', () => setTimeout(hlExpandActiveGroup, 0));
-                    document.addEventListener('livewire:navigated', () => setTimeout(hlExpandActiveGroup, 0));
+
+                    function hlAttach(nav) {
+                        if (!nav || nav._hlA) return;
+                        nav._hlA = true;
+                        nav.addEventListener('scroll', function () {
+                            if (!_hlNavFrozen) _hlNavScroll = this.scrollTop;
+                        }, { passive: true });
+                    }
+
+                    // rAF loop: keep forcing scrollTop on every frame while navigating
+                    function hlRestoreLoop() {
+                        if (!_hlNavFrozen) return;
+                        var nav = hlGetNav();
+                        if (nav) nav.scrollTop = _hlNavScroll;
+                        _hlRafId = requestAnimationFrame(hlRestoreLoop);
+                    }
+
+                    function hlEnsureVisible() {
+                        var nav    = hlGetNav();
+                        var active = nav && nav.querySelector('.fi-sidebar-item.fi-active');
+                        if (!nav || !active) return;
+                        var nr = nav.getBoundingClientRect();
+                        var ir = active.getBoundingClientRect();
+                        if (ir.top < nr.top) {
+                            nav.scrollTop -= (nr.top - ir.top) + 4;
+                        } else if (ir.bottom > nr.bottom) {
+                            nav.scrollTop += (ir.bottom - nr.bottom) + 4;
+                        }
+                    }
+
+                    function hlWatchGroups() {
+                        if (_hlWatching) return;
+                        var nav = hlGetNav();
+                        if (!nav) return;
+                        _hlWatching = true;
+                        new MutationObserver(function (mutations) {
+                            if (_hlNavFrozen) return;
+                            for (var i = 0; i < mutations.length; i++) {
+                                if (mutations[i].target.classList.contains('fi-sidebar-group')) {
+                                    clearTimeout(_hlGroupTimer);
+                                    _hlGroupTimer = setTimeout(hlEnsureVisible, 220);
+                                    return;
+                                }
+                            }
+                        }).observe(nav, { attributes: true, attributeFilter: ['class'], subtree: true });
+                    }
+
+                    // Capture scroll + start rAF loop on the click itself
+                    document.addEventListener('click', function (e) {
+                        if (e.target.closest('.fi-sidebar-item a')) {
+                            var nav = hlGetNav();
+                            if (nav) {
+                                _hlNavScroll = nav.scrollTop;
+                                _hlNavFrozen = true;
+                                cancelAnimationFrame(_hlRafId);
+                                hlRestoreLoop();
+                            }
+                        }
+                    }, true);
+
+                    document.addEventListener('livewire:navigate', function () {
+                        _hlNavFrozen = true; // freeze for non-click navigations too
+                    });
+
+                    function hlSidebarFocus() {
+                        var store = window.Alpine && window.Alpine.store('sidebar');
+                        var expanded = false;
+
+                        if (store) {
+                            var ag  = document.querySelector('.fi-sidebar-group.fi-active');
+                            var lbl = ag && ag.dataset.groupLabel;
+                            if (lbl && (store.collapsedGroups || []).includes(lbl)) {
+                                store.collapsedGroups = store.collapsedGroups.filter(function (g) { return g !== lbl; });
+                                expanded = true;
+                            }
+                        }
+
+                        setTimeout(function () {
+                            cancelAnimationFrame(_hlRafId); // stop the restore loop
+                            var nav = hlGetNav();
+                            if (nav) nav.scrollTop = _hlNavScroll; // final restore
+                            hlEnsureVisible();
+                            _hlNavFrozen = false;
+                            hlAttach(nav);
+                            hlWatchGroups();
+                        }, expanded ? 260 : 100);
+                    }
+
+                    document.addEventListener('DOMContentLoaded', function () {
+                        hlAttach(hlGetNav());
+                        setTimeout(function () { hlSidebarFocus(); hlWatchGroups(); }, 150);
+                    });
+                    document.addEventListener('livewire:navigated', hlSidebarFocus);
                 </script>
                 HTML
             )

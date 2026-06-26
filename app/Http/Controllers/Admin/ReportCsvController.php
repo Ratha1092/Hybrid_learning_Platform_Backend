@@ -19,6 +19,7 @@ class ReportCsvController extends Controller
         'course_intelligence'     => [\App\Filament\Pages\Reports\CourseIntelligenceReport::class,'reports.view_course_intelligence'],
         'instructor_intelligence' => [\App\Filament\Pages\Reports\InstructorIntelligenceReport::class,'reports.view_instructor_intelligence'],
         'learning_intelligence'   => [\App\Filament\Pages\Reports\LearningIntelligenceReport::class,'reports.view_learning_intelligence'],
+        'user'                    => [\App\Filament\Pages\Reports\UserReport::class,'reports.view_user'],
     ];
 
     public function show(Request $request, string $type)

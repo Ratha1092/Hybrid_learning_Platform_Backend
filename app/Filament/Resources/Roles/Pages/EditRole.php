@@ -6,12 +6,18 @@ use App\Filament\Resources\Roles\RoleResource;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
+use Filament\Schemas\Schema;
 use Spatie\Permission\Models\Permission;
 
 class EditRole extends EditRecord
 {
     protected static string $resource = RoleResource::class;
     protected string $view = 'filament.resources.roles.edit-role';
+
+    public function form(Schema $schema): Schema
+    {
+        return $schema->components([]);
+    }
 
     protected function getHeaderActions(): array
     {

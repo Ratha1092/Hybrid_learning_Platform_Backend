@@ -158,41 +158,50 @@ html:not(.dark) .cp {
 .cp-price { font-size: 12.5px; font-weight: 700; color: var(--t1); white-space: nowrap; }
 .cp-students { text-align: center; }
 .cp-students-val {
-    display: inline-flex; align-items: center; justify-content: center; gap: 5px;
-    font-size: 12.5px; font-weight: 600; color: var(--t1);
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    min-width: 70px; padding: 6px 10px; border-radius: 999px;
+    background: rgba(99,102,241,.08); border: 1px solid rgba(99,102,241,.18);
+    font-size: 12.5px; font-weight: 600; color: #4338ca;
+    transition: background .15s, border-color .15s, color .15s;
 }
-.cp-students-val svg { width: 13px; height: 13px; color: var(--t2); }
+.cp-students-val:hover { background: rgba(99,102,241,.14); color: #3730a3; }
+.cp-students-val svg { width: 13px; height: 13px; color: #6366f1; }
 .cp-date { font-size: 12px; color: var(--t2); white-space: nowrap; }
 
 /* ── Action buttons ── */
-.cp-actions { display: flex; align-items: center; gap: 4px; justify-content: flex-end; }
+.cp-actions { display: flex; align-items: center; gap: 6px; justify-content: flex-end; }
 .cp-act-btn {
     display: inline-flex; align-items: center; justify-content: center;
-    width: 34px; height: 34px; border-radius: 8px;
-    background: none; border: 1px solid transparent;
+    width: 36px; height: 36px; border-radius: 10px;
+    background: var(--p2); border: 1px solid transparent;
     cursor: pointer; color: var(--t2); text-decoration: none;
-    transition: background .15s, border-color .15s, color .15s;
+    transition: background .15s, border-color .15s, color .15s, transform .15s;
 }
-.cp-act-btn:hover { background: var(--p2); border-color: var(--bd2); color: var(--t1); }
-.cp-act-btn svg { width: 17px; height: 17px; }
+.cp-act-btn:hover { background: var(--p1); border-color: var(--bd2); color: var(--t1); transform: translateY(-1px); }
+.cp-act-btn svg { width: 16px; height: 16px; }
+.cp-act-btn-neutral { background: var(--p2); }
+.cp-act-btn-success { background: rgba(52,211,153,.14); color: #16a34a; }
+.cp-act-btn-success:hover { background: rgba(52,211,153,.22); color: #166534; }
+.cp-act-btn-danger  { background: rgba(248,113,113,.14); color: #dc2626; }
+.cp-act-btn-danger:hover { background: rgba(248,113,113,.2); color: #b91c1c; }
 .cp-act-more { position: relative; }
 .cp-act-menu {
-    display: none; position: absolute; right: 0; top: calc(100% + 4px);
+    display: none; position: absolute; right: 0; top: calc(100% + 6px);
     background: var(--p1); border: 1px solid var(--bd2);
-    border-radius: 9px; box-shadow: 0 8px 28px rgba(0,0,0,.35);
-    min-width: 160px; z-index: 50; overflow: hidden;
+    border-radius: 12px; box-shadow: 0 12px 32px rgba(0,0,0,.22);
+    min-width: 180px; z-index: 50; overflow: hidden;
 }
 .cp-act-more:focus-within .cp-act-menu { display: block; }
 .cp-act-menu-item {
-    display: flex; align-items: center; gap: 8px;
-    padding: 9px 14px; font-size: 12px; font-weight: 600;
+    display: flex; align-items: center; gap: 10px;
+    padding: 11px 16px; font-size: 13px; font-weight: 600;
     color: var(--t1); cursor: pointer; background: none; border: none;
     width: 100%; text-align: left; font-family: inherit;
     transition: background .12s; white-space: nowrap;
 }
 .cp-act-menu-item:hover { background: var(--p2); }
-.cp-act-menu-item.danger { color: #f87171; }
-.cp-act-menu-item svg { width: 13px; height: 13px; flex-shrink: 0; }
+.cp-act-menu-item.danger { color: #ef4444; }
+.cp-act-menu-item svg { width: 14px; height: 14px; flex-shrink: 0; }
 
 /* ── Empty state ── */
 .cp-empty {
@@ -329,7 +338,6 @@ html:not(.dark) .cp {
                     <th>Price</th>
                     <th>Status</th>
                     <th class="th-center">Students</th>
-                    <th>Created</th>
                     <th style="text-align:right">Actions</th>
                 </tr>
             </thead>
@@ -400,42 +408,37 @@ html:not(.dark) .cp {
                         </a>
                     </td>
 
-                    <td><span class="cp-date">{{ $course->created_at?->format('M d, Y') }}</span></td>
-
                     <td onclick="event.stopPropagation()">
                         <div class="cp-actions">
-                            <a href="{{ $viewUrl($course) }}" class="cp-act-btn" title="View">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><circle cx="12" cy="12" r="3"/>
-                                </svg>
-                            </a>
-                            <a href="{{ $editUrl($course) }}" class="cp-act-btn" title="Edit">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487z"/>
-                                </svg>
-                            </a>
-                            @if($course->isPendingReview() || $course->isPublished() || !$course->isDraft())
+                            @if($course->isPendingReview())
+                                <form method="POST" action="{{ route('admin.courses.approve', $course) }}">
+                                    @csrf
+                                    <button type="submit" class="cp-act-btn cp-act-btn-success" title="Approve">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg>
+                                    </button>
+                                </form>
+                                <button type="button" class="cp-act-btn cp-act-btn-danger" title="Reject" onclick="openReject({{ $course->id }}, @js($course->title))">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg>
+                                </button>
+                            @endif
+
                             <div class="cp-act-more" tabindex="0">
-                                <button class="cp-act-btn" title="More">
+                                <button class="cp-act-btn cp-act-btn-neutral" title="More actions">
                                     <svg viewBox="0 0 24 24" fill="currentColor" style="width:14px;height:14px">
                                         <circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>
                                     </svg>
                                 </button>
                                 <div class="cp-act-menu">
-                                    @if($course->isPendingReview())
-                                        <form method="POST" action="{{ route('admin.courses.approve', $course) }}">
-                                            @csrf
-                                            <button type="submit" class="cp-act-menu-item">
-                                                <svg viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg>
-                                                Approve
-                                            </button>
-                                        </form>
-                                        <button type="button" class="cp-act-menu-item danger"
-                                                onclick="openReject({{ $course->id }}, @js($course->title))">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg>
-                                            Reject
-                                        </button>
-                                    @endif
+                                    <a href="{{ $viewUrl($course) }}" class="cp-act-menu-item">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7Z"/></svg>
+                                        View
+                                    </a>
+                                    @unless($course->isPendingReview())
+                                    <a href="{{ $editUrl($course) }}" class="cp-act-menu-item">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487z"/></svg>
+                                        Edit
+                                    </a>
+                                    @endunless
                                     @if($course->isPublished())
                                         <form method="POST" action="{{ route('admin.courses.archive', $course) }}">
                                             @csrf
@@ -456,13 +459,12 @@ html:not(.dark) .cp {
                                     @endif
                                 </div>
                             </div>
-                            @endif
                         </div>
                     </td>
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="10">
+                    <td colspan="9">
                         <div class="cp-empty">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"/>

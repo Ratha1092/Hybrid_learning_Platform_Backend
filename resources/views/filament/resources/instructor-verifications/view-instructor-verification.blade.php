@@ -126,7 +126,7 @@ html:not(.dark) .iv {
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
                 </svg>
-                All Verifications
+                Back to Verifications
             </a>
             <div class="iv-header-title">
                 <h1>Instructor Verification #{{ $v->id }}</h1>

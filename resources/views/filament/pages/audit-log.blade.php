@@ -12,7 +12,9 @@
         'email_verified'   => ['bg' => 'rgba(6,182,212,.13)',   'color' => '#06b6d4', 'icon' => 'email'],
         '2fa_enabled'      => ['bg' => 'rgba(139,92,246,.13)',  'color' => '#8b5cf6', 'icon' => '2fa'],
         '2fa_disabled'     => ['bg' => 'rgba(236,72,153,.13)',  'color' => '#ec4899', 'icon' => '2fa'],
-        default            => ['bg' => 'rgba(148,163,184,.1)',   'color' => '#94a3b8', 'icon' => 'default'],
+        default            => str_starts_with($act, 'settings.')
+            ? ['bg' => 'rgba(249,115,22,.12)', 'color' => '#fb923c', 'icon' => 'settings']
+            : ['bg' => 'rgba(148,163,184,.1)',  'color' => '#94a3b8', 'icon' => 'default'],
     };
 @endphp
 
@@ -281,20 +283,23 @@ html:not(.dark) .al {
                 <th>User Agent</th>
                 <th>Date & Time</th>
                 <th style="text-align:center">Data</th>
+                <th style="text-align:center">View</th>
             </tr>
         </thead>
         <tbody>
             @forelse ($logs as $log)
             @php
                 $as     = $actionStyle($log->action);
-                $label  = $actions[$log->action]['label'] ?? ucwords(str_replace('_', ' ', $log->action));
+                $label  = $actions[$log->action]['label'] ?? (str_starts_with($log->action, 'settings.')
+                    ? ucwords(str_replace('_', ' ', str_replace(['settings.', '_updated'], ['', ''], $log->action))) . ' Settings Updated'
+                    : ucwords(str_replace(['.', '_'], ' ', $log->action)));
                 $bgHex  = $log->user ? substr(md5($log->user->name ?? ''), 0, 6) : '64748b';
                 $avUrl  = $log->user
                     ? 'https://ui-avatars.com/api/?name=' . urlencode($log->user->name ?? '?') . '&background=' . $bgHex . '&color=fff&bold=true&size=64'
                     : null;
                 $hasData = !empty($log->data);
             @endphp
-            <tr>
+            <tr onclick="Livewire.navigate('{{ route('filament.admin.resources.audit-log-entries.view', $log) }}')" style="cursor:pointer">
                 {{-- Sequence --}}
                 <td><span class="al-seq">{{ $log->id }}</span></td>
 
@@ -345,7 +350,7 @@ html:not(.dark) .al {
                 </td>
 
                 {{-- Data button --}}
-                <td style="text-align:center">
+                <td style="text-align:center" onclick="event.stopPropagation()">
                     @if ($hasData)
                         <button
                             class="al-data-btn"
@@ -359,6 +364,19 @@ html:not(.dark) .al {
                     @else
                         <span style="color:var(--t3);font-size:12px">—</span>
                     @endif
+                </td>
+
+                {{-- View button --}}
+                <td style="text-align:center" onclick="event.stopPropagation()">
+                    <a href="{{ route('filament.admin.resources.audit-log-entries.view', $log) }}"
+                       wire:navigate
+                       class="al-data-btn"
+                       title="View full entry">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
+                        </svg>
+                    </a>
                 </td>
             </tr>
             @empty

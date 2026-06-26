@@ -256,7 +256,7 @@ html:not(.dark) .sl {
                             </span>
                         </td>
                         <td style="color:var(--t2)">{{ \Carbon\Carbon::parse($risky->last_seen)->diffForHumans() }}</td>
-                        <td><a href="{{ $url(['ip' => $risky->ip_address, 'action' => 'all', 'page' => 1]) }}" class="sl-btn" style="padding:4px 10px;font-size:11px">Filter</a></td>
+                        <td><a href="{{ $url(['ip' => $risky->ip_address, 'action' => 'all', 'page' => 1]) }}" wire:navigate class="sl-btn" style="padding:4px 10px;font-size:11px">Filter</a></td>
                     </tr>
                 @endforeach
             </tbody>

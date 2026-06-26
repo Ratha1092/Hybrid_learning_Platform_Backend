@@ -14,6 +14,27 @@
     <td class="kpi-cell"><div class="kpi-label">Outstanding Balance</div><div class="kpi-value">${{ number_format($kpis['totalOutstandingBalance'], 2) }}</div></td>
 </tr></table>
 
+@php
+    $stMax = max(1, collect($statusBreakdown)->max('amount'));
+    $stColors = ['approved'=>'#34d399','pending'=>'#fbbf24','rejected'=>'#f87171','processing'=>'#60a5fa'];
+@endphp
+<table class="charts-row">
+    <tr>
+        <td class="chart-card full" colspan="2">
+            <div class="chart-title">Payout Amount by Status</div>
+            <table class="bar-chart">
+                @foreach($statusBreakdown as $st => $row)
+                    <tr>
+                        <td class="bar-label">{{ ucfirst($st) }}</td>
+                        <td><div class="bar-bg"><div class="bar-fill" style="width:{{ $row['amount'] > 0 ? max(3, ($row['amount']/$stMax)*100) : 0 }}%;background:{{ $stColors[$st] ?? '#94a3b8' }};"></div></div></td>
+                        <td class="bar-value">${{ number_format($row['amount'], 0) }} ({{ $row['count'] }})</td>
+                    </tr>
+                @endforeach
+            </table>
+        </td>
+    </tr>
+</table>
+
 <table class="items">
     <thead>
         <tr><th>Instructor</th><th>Method</th><th>Status</th><th class="amount">Amount</th><th>Requested</th><th>Processed</th></tr>

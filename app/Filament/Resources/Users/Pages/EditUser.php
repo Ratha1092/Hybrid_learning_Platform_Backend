@@ -11,6 +11,8 @@ class EditUser extends EditRecord
 {
     protected static string $resource = UserResource::class;
 
+    protected string $view = 'filament.resources.users.edit-user';
+
     protected array $originalRoles = [];
 
     protected function getHeaderActions(): array

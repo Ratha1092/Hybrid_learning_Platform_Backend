@@ -2,29 +2,30 @@
 
 namespace App\Filament\Resources\Roles\Pages;
 
-use App\Domains\Auth\Services\ActivityLogService;
 use App\Filament\Resources\Roles\RoleResource;
-use Filament\Actions\Action;
 use Filament\Resources\Pages\CreateRecord;
+use Filament\Schemas\Schema;
+use Spatie\Permission\Models\Permission;
 
 class CreateRole extends CreateRecord
 {
     protected static string $resource = RoleResource::class;
+    protected string $view = 'filament.resources.roles.create-role';
 
-    protected function getHeaderActions(): array
+    public function form(Schema $schema): Schema
     {
-        return [
-            Action::make('back')
-                ->label('Back to Roles')
-                ->icon('heroicon-o-arrow-left')
-                ->color('gray')
-                ->url(route('filament.admin.pages.roles')),
-        ];
+        return $schema->components([]);
     }
 
-    protected function afterCreate(): void
+    protected function getViewData(): array
     {
-        ActivityLogService::logChange('role.created', $this->record, [], $this->record->only(['name']));
+        $grouped = Permission::orderBy('name')->get()
+            ->groupBy(fn ($p) => explode('.', $p->name)[0]);
+
+        return [
+            'grouped'          => $grouped,
+            'totalPermissions' => Permission::count(),
+        ];
     }
 
     protected function getRedirectUrl(): string

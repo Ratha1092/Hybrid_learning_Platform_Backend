@@ -90,6 +90,7 @@ class RevenueReport extends Page implements Schedulable
             'title' => 'Revenue Report',
             'filtersSummary' => static::filtersSummary($filters),
             'kpis' => $data['kpis'],
+            'revenueTrend' => $data['revenueTrend'],
             'topCoupons' => $data['topCoupons'],
             'orders' => $data['orders']->take(200),
         ];

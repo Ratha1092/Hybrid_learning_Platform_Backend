@@ -526,11 +526,13 @@ html.dark .st{
         if (g) activateGroup(g);
     });
 
-    document.addEventListener('DOMContentLoaded', function () {
+    // Run immediately — script is placed after all DOM content so elements exist.
+    // DOMContentLoaded would never fire on Livewire SPA navigation, so we init here.
+    (function init() {
         const g = groupFromHash();
         const activeItem = document.querySelector('.st-nav-item.active');
         setActiveForm(g || (activeItem ? activeItem.dataset.group : null));
         if (g) activateGroup(g);
-    });
+    })();
 })();
 </script>

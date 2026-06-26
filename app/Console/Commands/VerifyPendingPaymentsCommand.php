@@ -14,16 +14,10 @@ class VerifyPendingPaymentsCommand extends Command
 
     public function handle(BakongKhqrService $service): int
     {
-        // Include pending + processing, and payments expired within the last 30 min
-        // (user may have paid just before expiry)
         $payments = Payment::query()
             ->whereIn('status', ['pending', 'processing'])
             ->where('payment_gateway', 'bakong')
-            ->where(function ($q) {
-                $q->whereNull('expires_at')
-                  ->orWhere('expires_at', '>', now()->subMinutes(30));
-            })
-            ->orderBy('last_verified_at', 'asc')   // oldest check first
+            ->orderBy('last_verified_at', 'asc')
             ->limit((int) $this->option('limit'))
             ->get();
 

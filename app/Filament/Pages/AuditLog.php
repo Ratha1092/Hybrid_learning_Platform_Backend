@@ -47,10 +47,12 @@ class AuditLog extends Page
         'payout.approved'  => ['label' => 'Payout Approved',  'color' => '#34d399'],
         'payout.rejected'  => ['label' => 'Payout Rejected',  'color' => '#f87171'],
         // Settings & other
-        'settings.updated' => ['label' => 'Settings Updated', 'color' => '#fb923c'],
+        'settings.updated'         => ['label' => 'Settings Updated',         'color' => '#fb923c'],
         'settings.finance_updated' => ['label' => 'Finance Settings Updated', 'color' => '#fb923c'],
         'coupon.created'   => ['label' => 'Coupon Created',   'color' => '#6366f1'],
         'coupon.updated'   => ['label' => 'Coupon Updated',   'color' => '#6366f1'],
+        // Admin resets
+        'record.reset'     => ['label' => 'Record Reset',     'color' => '#ef4444'],
     ];
 
     public static function canAccess(): bool
@@ -66,9 +68,7 @@ class AuditLog extends Page
     public function exportCsv(): void
     {
         $query = static::buildQuery($this->currentFilters());
-
         $header = ['User', 'Email', 'Action', 'Subject Type', 'Subject ID', 'IP Address', 'User Agent', 'Created At'];
-
         $rows = $query->get()->map(fn (ActivityLog $log) => [
             $log->user?->name ?? '',
             $log->user?->email ?? '',
@@ -104,6 +104,7 @@ class AuditLog extends Page
         $to = $filters['to'] ?? '';
 
         $query = ActivityLog::with('user')->latest();
+        $query->orderBy('id', 'desc');
 
         if ($action !== 'all' && array_key_exists($action, self::ACTIONS)) {
             $query->where('action', $action);

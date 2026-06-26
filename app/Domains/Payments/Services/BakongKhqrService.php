@@ -164,6 +164,14 @@ use RuntimeException;
                 return $payment->refresh();
             }
 
+            if ($payment->isFailed() || $payment->isExpired()) {
+                return $payment->refresh();
+            }
+
+            if ($payment->expires_at !== null && $payment->expires_at->isPast()) {
+                return $this->expirePayment($payment);
+            }
+
             $payment = $this->markVerificationStarted($payment);
 
             try {

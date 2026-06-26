@@ -26,7 +26,7 @@ class NewInstructorVerificationNotification extends BaseNotification
 
         return [
             'title'    => 'New Instructor Verification',
-            'body'     => "{$this->userName} submitted a verification request.",
+            'message'  => "{$this->userName} submitted a verification request.",
             'format'   => 'filament',
             'duration' => 'persistent',
             'type'     => NotificationType::INSTRUCTOR_VERIFICATION->value,

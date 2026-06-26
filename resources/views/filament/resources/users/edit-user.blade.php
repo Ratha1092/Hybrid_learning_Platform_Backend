@@ -107,7 +107,12 @@ html.dark .uv{
 .uv-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(124,58,237,.12)}
 .uv-input::placeholder{color:var(--t3)}
 html.dark .uv-input{background:rgba(255,255,255,.04);border-color:var(--bd2)}
+html.dark .uv-input:hover{border-color:var(--accent)}
 html.dark .uv-input:focus{background:rgba(255,255,255,.06)}
+html.dark .uv-role-chip:hover .uv-role-label{background:rgba(124,58,237,.12)}
+[x-cloak]{display:none!important}
+.uv-dd-enter{transition:opacity .1s ease,transform .1s ease;transform-origin:top}
+.uv-dd-leave{transition:opacity .1s ease,transform .1s ease;transform-origin:top}
 select.uv-input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19.5 8.25l-7.5 7.5-7.5-7.5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;background-size:14px;padding-right:34px;cursor:pointer}
 .uv-error{font-size:11.5px;color:#dc2626;font-weight:500;display:flex;align-items:center;gap:4px}
 .uv-error::before{content:'!';display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;background:#dc2626;color:#fff;font-size:9px;font-weight:800;flex-shrink:0}
@@ -124,7 +129,27 @@ select.uv-input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg 
 .uv-role-chip{display:inline-flex;align-items:center;cursor:pointer}
 .uv-role-check{position:absolute;opacity:0;width:0;height:0;pointer-events:none}
 .uv-role-label{padding:5px 13px;border-radius:20px;font-size:12px;font-weight:700;border:1.5px solid var(--bd2);color:var(--t2);background:var(--p2);transition:all .15s;user-select:none}
+.uv-role-chip:hover .uv-role-label{border-color:var(--accent);color:var(--accent)}
 .uv-role-check:checked+.uv-role-label{background:var(--accent);color:#fff;border-color:var(--accent)}
+.uv-role-check:checked+.uv-role-label:hover{background:#6d28d9;border-color:#6d28d9}
+
+/* ── Custom select ── */
+.uv-custom-select{position:relative}
+.uv-select-trigger{width:100%;display:flex;align-items:center;gap:8px;padding:9px 13px;border-radius:8px;border:1px solid var(--bd2);background:var(--p2);color:var(--t1);font-size:13px;font-family:inherit;cursor:pointer;outline:none;transition:border-color .15s,box-shadow .15s;text-align:left}
+.uv-select-trigger:hover{border-color:var(--accent)}
+.uv-select-trigger:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(124,58,237,.12)}
+html.dark .uv-select-trigger{background:rgba(255,255,255,.04)}
+html.dark .uv-select-trigger:hover{background:rgba(255,255,255,.06)}
+.uv-select-trigger-text{flex:1}
+.uv-select-chevron{width:14px;height:14px;color:var(--t2);flex-shrink:0;transition:transform .15s}
+.uv-select-trigger[aria-expanded="true"] .uv-select-chevron{transform:rotate(180deg)}
+.uv-select-menu{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--p1);border:1px solid var(--bd2);border-radius:9px;box-shadow:0 8px 24px rgba(0,0,0,.15);z-index:50;overflow:hidden}
+html.dark .uv-select-menu{box-shadow:0 8px 32px rgba(0,0,0,.4)}
+.uv-select-option{width:100%;display:flex;align-items:center;gap:8px;padding:9px 13px;font-size:13px;font-family:inherit;background:none;border:none;cursor:pointer;color:var(--t1);text-align:left;transition:background .12s}
+.uv-select-option:hover{background:var(--p2)}
+html.dark .uv-select-option:hover{background:rgba(255,255,255,.06)}
+.uv-select-option.active-opt{color:var(--accent);font-weight:600}
+.uv-status-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
 
 /* ── Save bar ── */
 .uv-save-bar{display:flex;align-items:center;gap:10px}
@@ -263,11 +288,29 @@ select.uv-input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg 
             </div>
 
             <div class="uv-field-group">
-                <label class="uv-label" for="eu-status">Account Status</label>
-                <select id="eu-status" class="uv-input" wire:model="data.status">
-                    <option value="active">Active</option>
-                    <option value="suspended">Suspended</option>
-                </select>
+                <label class="uv-label">Account Status</label>
+                <div class="uv-custom-select" x-data="{ open: false, val: @entangle('data.status') }" @click.outside="open = false">
+                    <button type="button"
+                        class="uv-select-trigger"
+                        :aria-expanded="open ? 'true' : 'false'"
+                        @click="open = !open">
+                        <span class="uv-status-dot"
+                            :style="val === 'suspended' ? 'background:#f87171' : 'background:#34d399'"></span>
+                        <span class="uv-select-trigger-text"
+                            x-text="val === 'suspended' ? 'Suspended' : 'Active'"></span>
+                        <svg class="uv-select-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M6 9l6 6 6-6"/>
+                        </svg>
+                    </button>
+                    <div class="uv-select-menu" x-show="open" x-transition:enter="uv-dd-enter" x-transition:leave="uv-dd-leave" style="display:none">
+                        <button type="button" class="uv-select-option" :class="val === 'active' ? 'active-opt' : ''" @click="val = 'active'; open = false">
+                            <span class="uv-status-dot" style="background:#34d399"></span> Active
+                        </button>
+                        <button type="button" class="uv-select-option" :class="val === 'suspended' ? 'active-opt' : ''" @click="val = 'suspended'; open = false">
+                            <span class="uv-status-dot" style="background:#f87171"></span> Suspended
+                        </button>
+                    </div>
+                </div>
                 @error('data.status') <span class="uv-error">{{ $message }}</span> @enderror
             </div>
         </div>

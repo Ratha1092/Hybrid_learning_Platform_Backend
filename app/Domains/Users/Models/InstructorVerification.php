@@ -21,6 +21,7 @@ class InstructorVerification extends Model
         'completion_year',
         'certificate_file',
         'identity_file',
+        'identity_id',
         'portfolio_url',
         'status',
         'rejection_reason',

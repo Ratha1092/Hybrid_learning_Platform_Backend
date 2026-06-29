@@ -25,7 +25,6 @@ return new class extends Migration
             $table->string('pdf_path')->nullable();
             $table->timestamp('issued_at')->nullable();
             $table->timestamps();
-
             $table->index('order_id');
             $table->index('invoice_number');
             $table->index('type');

@@ -181,6 +181,10 @@ html:not(.dark) .iv {
                     <span class="iv-value">#{{ $v->user_id }}</span>
                 </div>
                 <div class="iv-field">
+                    <span class="iv-label">Identity ID</span>
+                    <span class="iv-value">{{ $v->identity_id ?? '—' }}</span>
+                </div>
+                <div class="iv-field">
                     <span class="iv-label">Applied</span>
                     <span class="iv-value">{{ $v->created_at?->format('M d, Y') ?? '—' }}</span>
                 </div>

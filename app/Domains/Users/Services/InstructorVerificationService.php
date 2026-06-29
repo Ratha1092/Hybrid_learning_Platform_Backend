@@ -47,6 +47,7 @@ class InstructorVerificationService
                 'portfolio_url' => $data['portfolio_url'] ?? null,
                 'certificate_file' => $certificatePath,
                 'identity_file' => $identityPath,
+                'identity_id' => $data['identity_id'],
                 'status' => 'pending',
             ]);
 

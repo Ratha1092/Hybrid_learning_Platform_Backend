@@ -5,6 +5,7 @@ namespace App\Domains\Payments\Services;
 use App\Domains\Learning\Services\EnrollmentService;
 use App\Domains\Orders\Enums\OrderPaymentStatus;
 use App\Domains\Orders\Enums\OrderStatus;
+
 use App\Domains\Orders\Models\Order;
 use App\Domains\Payments\Enums\PaymentGateway;
 use App\Domains\Payments\Enums\PaymentStatus;
@@ -281,6 +282,7 @@ use RuntimeException;
             ]);
 
             $payment->order()->update([
+                'status'         => OrderStatus::Cancelled,
                 'payment_status' => OrderPaymentStatus::Expired,
             ]);
 

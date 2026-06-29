@@ -12,13 +12,14 @@ use BackedEnum;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Support\Number;
+
 class Courses extends Page
 {
     protected string $view = 'filament.pages.courses';
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-academic-cap';
     protected static ?string $navigationLabel = 'Courses';
     protected static string|\UnitEnum|null $navigationGroup = 'Learning';
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 2;
     protected static ?string $slug = 'courses';
 
     public static function canAccess(): bool
@@ -30,6 +31,11 @@ class Courses extends Page
     public string $search      = '';
     public int    $currentPage = 1;
     public int    $perPage     = 10;
+
+    // Reject modal state
+    public ?int   $rejectingCourseId    = null;
+    public string $rejectingCourseTitle = '';
+    public string $rejectReason         = '';
 
     public function mount(): void
     {
@@ -79,10 +85,34 @@ class Courses extends Page
         $this->currentPage = $page;
     }
 
-    public function setPerPage(int $perPage): void
+    public function setPerPage(string|int $perPage): void
     {
-        $this->perPage     = $perPage;
+        $this->perPage     = in_array((int) $perPage, [10, 25, 50]) ? (int) $perPage : 10;
         $this->currentPage = 1;
+    }
+
+    public function openRejectModal(int $id): void
+    {
+        $course = Course::withoutGlobalScopes()->find($id);
+        $this->rejectingCourseId    = $id;
+        $this->rejectingCourseTitle = $course?->title ?? '';
+        $this->rejectReason         = '';
+        $this->dispatch('open-reject-modal');
+    }
+
+    public function closeRejectModal(): void
+    {
+        $this->rejectingCourseId    = null;
+        $this->rejectingCourseTitle = '';
+        $this->rejectReason         = '';
+        $this->dispatch('close-reject-modal');
+    }
+
+    public function submitRejectModal(): void
+    {
+        if (!$this->rejectingCourseId) return;
+        $this->rejectCourse($this->rejectingCourseId, $this->rejectReason);
+        $this->closeRejectModal();
     }
 
     public function approveCourse(int $id): void

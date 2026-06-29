@@ -113,9 +113,21 @@ html:not(.dark) .lp {
 .lp-date { font-size:12px; color:var(--t2); white-space:nowrap; }
 
 .lp-actions { display:flex; align-items:center; gap:4px; justify-content:flex-end; }
-.lp-act-btn { display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; border-radius:7px; background:none; border:1px solid transparent; cursor:pointer; color:var(--t2); text-decoration:none; transition:background .15s, border-color .15s, color .15s; }
+.lp-act-btn { display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; border-radius:7px; background:none; border:1px solid transparent; cursor:pointer; color:var(--t2); text-decoration:none; transition:background .15s, border-color .15s, color .15s; font-family:inherit; }
 .lp-act-btn:hover { background:var(--p2); border-color:var(--bd2); color:var(--t1); }
 .lp-act-btn svg { width:14px; height:14px; }
+
+/* ── Dropdown menu ── */
+.lp-menu-wrap { position:relative; }
+.lp-menu { position:absolute; right:0; top:34px; z-index:50; background:var(--p1); border:1px solid var(--bd2); border-radius:10px; box-shadow:0 8px 32px rgba(0,0,0,.3); min-width:162px; overflow:hidden; }
+html:not(.dark) .lp-menu { box-shadow:0 4px 20px rgba(15,23,42,.18); }
+.lp-menu-item { display:flex; align-items:center; gap:9px; width:100%; padding:9px 14px; font-size:12.5px; font-weight:600; color:var(--t1); background:none; border:none; cursor:pointer; font-family:inherit; transition:background .12s; text-align:left; white-space:nowrap; text-decoration:none; }
+.lp-menu-item svg { width:14px; height:14px; flex-shrink:0; }
+.lp-menu-item:hover { background:var(--p2); }
+.lp-menu-item.warn  { color:#f59e0b; } .lp-menu-item.warn:hover  { background:rgba(245,158,11,.08); }
+.lp-menu-item.ok    { color:#34d399; } .lp-menu-item.ok:hover    { background:rgba(52,211,153,.08); }
+.lp-menu-item.danger{ color:#f87171; } .lp-menu-item.danger:hover{ background:rgba(248,113,113,.08); }
+.lp-menu-div { height:1px; background:var(--bd); margin:4px 0; }
 
 .lp-empty { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:56px 24px; gap:10px; color:var(--t2); }
 .lp-empty svg { width:40px; height:40px; opacity:.35; }
@@ -210,6 +222,8 @@ html:not(.dark) .lp {
                     $ss   = $statusStyle($user->status);
                     $bgHex = substr(md5($user->name ?? ''), 0, 6);
                     $avUrl = 'https://ui-avatars.com/api/?name=' . urlencode($user->name ?? '?') . '&background=' . $bgHex . '&color=fff&bold=true&size=64';
+                    $isSelf = $user->id === auth()->id();
+                    $isSuspended = $user->status === 'suspended';
                 @endphp
                 <tr class="lp-row-link" onclick="window.location='{{ $viewUrl($user) }}'">
                     <td><span class="lp-id">{{ $user->id }}</span></td>
@@ -240,16 +254,58 @@ html:not(.dark) .lp {
 
                     <td onclick="event.stopPropagation()">
                         <div class="lp-actions">
-                            <a href="{{ $viewUrl($user) }}" class="lp-act-btn" title="View">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><circle cx="12" cy="12" r="3"/>
-                                </svg>
-                            </a>
-                            <a href="{{ $editUrl($user) }}" class="lp-act-btn" title="Edit">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487z"/>
-                                </svg>
-                            </a>
+                            <div class="lp-menu-wrap" x-data="{ open: false }" @click.outside="open = false">
+                                <button type="button" class="lp-act-btn" @click.stop="open = !open" title="Actions">
+                                    <svg viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M4.5 12a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0zm6 0a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0zm6 0a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0z" clip-rule="evenodd"/></svg>
+                                </button>
+
+                                <div class="lp-menu" x-show="open"
+                                     x-transition:enter="transition ease-out duration-100"
+                                     x-transition:enter-start="opacity-0 scale-95"
+                                     x-transition:enter-end="opacity-100 scale-100"
+                                     x-transition:leave="transition ease-in duration-75"
+                                     x-transition:leave-start="opacity-100 scale-100"
+                                     x-transition:leave-end="opacity-0 scale-95"
+                                     style="display:none">
+
+                                    <a href="{{ $viewUrl($user) }}" class="lp-menu-item">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><circle cx="12" cy="12" r="3"/></svg>
+                                        View
+                                    </a>
+                                    <a href="{{ $editUrl($user) }}" class="lp-menu-item">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487z"/></svg>
+                                        Edit
+                                    </a>
+
+                                    @if(!$isSelf)
+                                    <div class="lp-menu-div"></div>
+
+                                    @if($isSuspended)
+                                    <button type="button" class="lp-menu-item ok"
+                                        @click="open=false"
+                                        wire:click="unsuspendUser({{ $user->id }})">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg>
+                                        Unsuspend
+                                    </button>
+                                    @else
+                                    <button type="button" class="lp-menu-item warn"
+                                        @click="open=false"
+                                        wire:click="suspendUser({{ $user->id }})">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+                                        Suspend
+                                    </button>
+                                    @endif
+
+                                    <button type="button" class="lp-menu-item danger"
+                                        @click="open=false"
+                                        wire:click="removeUser({{ $user->id }})"
+                                        wire:confirm="Remove {{ $user->name }}? This will soft-delete their account.">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/></svg>
+                                        Remove
+                                    </button>
+                                    @endif
+                                </div>
+                            </div>
                         </div>
                     </td>
                 </tr>

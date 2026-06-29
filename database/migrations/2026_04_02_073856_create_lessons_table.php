@@ -14,12 +14,16 @@ return new class extends Migration
                 ->constrained()
                 ->cascadeOnDelete();
             $table->string('title');
+            $table->text('description')->nullable();
             $table->text('content')->nullable();
-            $table->enum('type', ['video', 'article', 'quiz'])
+            $table->enum('type', ['video', 'article', 'quiz', 'file', 'live', 'assignment'])
                 ->default('video');
             $table->boolean('is_preview')->default(false);
-            $table->string('video_url')->nullable(); // youtube
-            $table->string('video_path')->nullable(); // uploaded file
+            $table->string('video_url')->nullable();
+            $table->string('video_path')->nullable();
+            $table->string('video_provider')->nullable();
+            $table->string('attachment')->nullable();
+            $table->string('attachment_name')->nullable();
             $table->json('quiz_data')->nullable();
             $table->integer('duration')->nullable();
             $table->integer('order')->default(0);

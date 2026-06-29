@@ -817,6 +817,27 @@ body,
     .hl-brand-lockup {
         padding-inline: 0.25rem !important;
     }
+
+    /* Hide commission pill on mobile */
+    .hl-commission-pill { display: none !important; }
+    /* Search: fill available space but never push bell/SA off screen */
+    .fi-topbar .fi-global-search-ctn {
+        flex: 1 1 0% !important;
+        width: auto !important;
+        min-width: 0 !important;
+        max-width: 200px !important;
+        margin-inline: 0.5rem !important;
+    }
+    /* End section (bell + avatar) must never shrink */
+    .fi-topbar-end {
+        flex-shrink: 0 !important;
+    }
+
+    /* Cap the mobile sidebar drawer so it doesn't eat half the screen */
+    .fi-sidebar {
+        width: 260px !important;
+        max-width: 260px !important;
+    }
 }
 
 /*

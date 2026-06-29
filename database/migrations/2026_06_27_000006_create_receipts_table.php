@@ -18,7 +18,6 @@ return new class extends Migration
             $table->timestamp('paid_at');
             $table->string('pdf_path')->nullable();
             $table->timestamps();
-
             $table->index('order_id');
         });
     }

@@ -6,6 +6,7 @@ use App\Domains\Users\Models\User;
 use App\Support\NavBadge;
 use App\Support\PanelAccess;
 use BackedEnum;
+use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Number;
@@ -51,6 +52,64 @@ class Users extends Page
     public function getHeading(): string|\Illuminate\Contracts\Support\Htmlable
     {
         return '';
+    }
+
+    public function suspendUser(int $id): void
+    {
+        $user = User::withoutTrashed()->findOrFail($id);
+
+        if ($user->id === auth()->id()) {
+            Notification::make()->title('Cannot suspend yourself')->danger()->send();
+            return;
+        }
+
+        if ($user->hasRole('super-admin') && ! auth()->user()?->hasRole('super-admin')) {
+            Notification::make()->title('Insufficient permissions')->danger()->send();
+            return;
+        }
+
+        $user->update(['status' => 'suspended']);
+
+        Notification::make()
+            ->title('User suspended')
+            ->body("{$user->name} has been suspended.")
+            ->warning()
+            ->send();
+    }
+
+    public function unsuspendUser(int $id): void
+    {
+        $user = User::withoutTrashed()->findOrFail($id);
+        $user->update(['status' => 'active']);
+
+        Notification::make()
+            ->title('User restored')
+            ->body("{$user->name}'s account is active again.")
+            ->success()
+            ->send();
+    }
+
+    public function removeUser(int $id): void
+    {
+        $user = User::withoutTrashed()->findOrFail($id);
+
+        if ($user->id === auth()->id()) {
+            Notification::make()->title('Cannot remove yourself')->danger()->send();
+            return;
+        }
+
+        if ($user->hasRole('super-admin') && ! auth()->user()?->hasRole('super-admin')) {
+            Notification::make()->title('Insufficient permissions')->danger()->send();
+            return;
+        }
+
+        $user->delete();
+
+        Notification::make()
+            ->title('User removed')
+            ->body("{$user->name} has been removed.")
+            ->danger()
+            ->send();
     }
 
     protected function getViewData(): array

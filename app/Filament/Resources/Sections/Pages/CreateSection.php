@@ -2,22 +2,26 @@
 
 namespace App\Filament\Resources\Sections\Pages;
 
+use App\Domains\Courses\Models\Course;
 use App\Filament\Resources\Sections\SectionResource;
-use Filament\Actions\Action;
 use Filament\Resources\Pages\CreateRecord;
 
 class CreateSection extends CreateRecord
 {
     protected static string $resource = SectionResource::class;
 
+    protected string $view = 'filament.resources.sections.create-section';
+
     protected function getHeaderActions(): array
     {
+        return [];
+    }
+
+    protected function getViewData(): array
+    {
         return [
-            Action::make('back')
-                ->label('Back to Sections')
-                ->icon('heroicon-o-arrow-left')
-                ->color('gray')
-                ->url(route('filament.admin.pages.sections')),
+            'backUrl' => route('filament.admin.pages.sections'),
+            'courses' => Course::orderBy('title')->pluck('title', 'id'),
         ];
     }
 

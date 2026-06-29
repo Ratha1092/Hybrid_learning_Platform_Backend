@@ -22,23 +22,28 @@
         default => ['bg' => 'rgba(148,163,184,.1)', 'color' => '#94a3b8', 'label' => '—'],
     };
 
-    $statusStyle = fn($s) => match(true) {
-        $s instanceof \App\Domains\Payments\Enums\PaymentStatus => match($s) {
+    $statusStyle = fn($payment) => match(true) {
+        // If the QR TTL has passed but status hasn't been updated yet by the scheduler,
+        // show Expired immediately so the admin isn't misled by a stale "Pending" badge.
+        $payment->hasExpired() && in_array(
+            $payment->status?->value ?? $payment->status, ['pending', 'processing']
+        ) => ['bg' => 'rgba(248,113,113,.12)', 'color' => '#f87171', 'label' => 'Expired'],
+        $payment->status instanceof \App\Domains\Payments\Enums\PaymentStatus => match($payment->status) {
             \App\Domains\Payments\Enums\PaymentStatus::Paid,
-            \App\Domains\Payments\Enums\PaymentStatus::Completed  => ['bg' => 'rgba(52,211,153,.12)',  'color' => '#34d399', 'label' => $s === \App\Domains\Payments\Enums\PaymentStatus::Paid ? 'Paid' : 'Completed'],
+            \App\Domains\Payments\Enums\PaymentStatus::Completed  => ['bg' => 'rgba(52,211,153,.12)',  'color' => '#34d399', 'label' => $payment->status === \App\Domains\Payments\Enums\PaymentStatus::Paid ? 'Paid' : 'Completed'],
             \App\Domains\Payments\Enums\PaymentStatus::Pending,
-            \App\Domains\Payments\Enums\PaymentStatus::Processing => ['bg' => 'rgba(251,191,36,.12)',  'color' => '#fbbf24', 'label' => $s === \App\Domains\Payments\Enums\PaymentStatus::Pending ? 'Pending' : 'Processing'],
+            \App\Domains\Payments\Enums\PaymentStatus::Processing => ['bg' => 'rgba(251,191,36,.12)',  'color' => '#fbbf24', 'label' => $payment->status === \App\Domains\Payments\Enums\PaymentStatus::Pending ? 'Pending' : 'Processing'],
             \App\Domains\Payments\Enums\PaymentStatus::Failed      => ['bg' => 'rgba(248,113,113,.12)', 'color' => '#f87171', 'label' => 'Failed'],
             \App\Domains\Payments\Enums\PaymentStatus::Expired     => ['bg' => 'rgba(248,113,113,.12)', 'color' => '#f87171', 'label' => 'Expired'],
             \App\Domains\Payments\Enums\PaymentStatus::Cancelled   => ['bg' => 'rgba(248,113,113,.12)', 'color' => '#f87171', 'label' => 'Cancelled'],
-            \App\Domains\Payments\Enums\PaymentStatus::Refunded   => ['bg' => 'rgba(167,139,250,.12)', 'color' => '#a78bfa', 'label' => 'Refunded'],
+            \App\Domains\Payments\Enums\PaymentStatus::Refunded    => ['bg' => 'rgba(167,139,250,.12)', 'color' => '#a78bfa', 'label' => 'Refunded'],
         },
-        is_string($s) => match($s) {
-            'paid', 'completed' => ['bg' => 'rgba(52,211,153,.12)',  'color' => '#34d399', 'label' => ucfirst($s)],
-            'pending', 'processing' => ['bg' => 'rgba(251,191,36,.12)',  'color' => '#fbbf24', 'label' => ucfirst($s)],
-            'failed', 'expired', 'cancelled' => ['bg' => 'rgba(248,113,113,.12)', 'color' => '#f87171', 'label' => ucfirst($s)],
-            'refunded' => ['bg' => 'rgba(167,139,250,.12)', 'color' => '#a78bfa', 'label' => 'Refunded'],
-            default    => ['bg' => 'rgba(148,163,184,.1)',  'color' => '#94a3b8', 'label' => ucfirst($s)],
+        is_string($payment->status) => match($payment->status) {
+            'paid', 'completed'            => ['bg' => 'rgba(52,211,153,.12)',  'color' => '#34d399', 'label' => ucfirst($payment->status)],
+            'pending', 'processing'        => ['bg' => 'rgba(251,191,36,.12)',  'color' => '#fbbf24', 'label' => ucfirst($payment->status)],
+            'failed', 'expired', 'cancelled' => ['bg' => 'rgba(248,113,113,.12)', 'color' => '#f87171', 'label' => ucfirst($payment->status)],
+            'refunded'                     => ['bg' => 'rgba(167,139,250,.12)', 'color' => '#a78bfa', 'label' => 'Refunded'],
+            default                        => ['bg' => 'rgba(148,163,184,.1)',  'color' => '#94a3b8', 'label' => ucfirst($payment->status)],
         },
         default => ['bg' => 'rgba(148,163,184,.1)', 'color' => '#94a3b8', 'label' => '—'],
     };
@@ -206,7 +211,7 @@ html:not(.dark) .lp {
                 @forelse ($payments as $payment)
                 @php
                     $gs  = $gatewayStyle($payment->payment_gateway);
-                    $ss  = $statusStyle($payment->status);
+                    $ss  = $statusStyle($payment);
                     $customer = $payment->order?->user?->name ?? '—';
                     $bgHex = substr(md5($customer), 0, 6);
                     $avUrl = 'https://ui-avatars.com/api/?name=' . urlencode($customer) . '&background=' . $bgHex . '&color=fff&bold=true&size=64';

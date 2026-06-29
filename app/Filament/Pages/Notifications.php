@@ -26,6 +26,11 @@ class Notifications extends Page
         return 'danger';
     }
 
+    public function mount(): void
+    {
+        auth()->user()?->unreadNotifications()->update(['read_at' => now()]);
+    }
+
     public function getHeading(): string|\Illuminate\Contracts\Support\Htmlable
     {
         return '';

@@ -1,264 +1,413 @@
 @php
     /** @var \App\Domains\Courses\Models\Lesson $record */
-    $lesson = $record;
-    $lesson->loadMissing(['section', 'section.course']);
+    $les = $record;
+    $les->loadMissing(['section', 'section.course']);
 
-    $typeColors = [
-        'video'      => ['bg'=>'rgba(96,165,250,.12)',  'color'=>'#60a5fa',  'label'=>'Video'],
-        'article'    => ['bg'=>'rgba(52,211,153,.12)',  'color'=>'#34d399',  'label'=>'Article'],
-        'quiz'       => ['bg'=>'rgba(251,191,36,.12)',  'color'=>'#fbbf24',  'label'=>'Quiz'],
-        'live'       => ['bg'=>'rgba(248,113,113,.12)', 'color'=>'#f87171',  'label'=>'Live'],
-        'assignment' => ['bg'=>'rgba(167,139,250,.12)', 'color'=>'#a78bfa',  'label'=>'Assignment'],
+    $typeMap = [
+        'video'   => ['bg'=>'rgba(96,165,250,.12)',  'color'=>'#60a5fa',  'label'=>'Video'],
+        'article' => ['bg'=>'rgba(52,211,153,.12)',  'color'=>'#34d399',  'label'=>'Article'],
+        'quiz'    => ['bg'=>'rgba(251,191,36,.12)',  'color'=>'#fbbf24',  'label'=>'Quiz'],
+        'file'    => ['bg'=>'rgba(248,113,113,.12)', 'color'=>'#f87171',  'label'=>'File / Document'],
+        'live'    => ['bg'=>'rgba(167,139,250,.12)', 'color'=>'#a78bfa',  'label'=>'Live'],
+        'assignment' => ['bg'=>'rgba(148,163,184,.1)','color'=>'#94a3b8','label'=>'Assignment'],
     ];
-    $tc = $typeColors[$lesson->type] ?? ['bg'=>'rgba(148,163,184,.1)','color'=>'#94a3b8','label'=>ucfirst($lesson->type ?? '')];
-    $hasVideo  = $lesson->video_path || $lesson->video_url;
-    $hasContent = !empty(strip_tags($lesson->content ?? ''));
+    $tc = $typeMap[$les->type] ?? ['bg'=>'rgba(148,163,184,.1)','color'=>'#94a3b8','label'=>ucfirst($les->type ?? '—')];
+
+    $typeIcons = [
+        'video'   => 'M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z',
+        'article' => 'M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25H12',
+        'quiz'    => 'M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0zm-9 5.25h.008v.008H12v-.008z',
+        'file'    => 'M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9z',
+    ];
+    $typeIcon = $typeIcons[$les->type] ?? 'M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9z';
+
+    $attachmentUrl = $les->attachment
+        ? \Illuminate\Support\Facades\Storage::disk('public')->url($les->attachment)
+        : null;
+
+    $videoUrl = $les->video_url ?? ($les->video_path
+        ? \Illuminate\Support\Facades\Storage::disk(config('filament.default_filesystem_disk'))->url($les->video_path)
+        : null);
 @endphp
 
 <style>
-.lv, .lv *, .lv *::before, .lv *::after { box-sizing:border-box; margin:0; padding:0; }
+.lv, .lv *, .lv *::before, .lv *::after { box-sizing: border-box; margin: 0; padding: 0; }
 .lv {
     font-family: Inter, ui-sans-serif, system-ui, sans-serif;
-    font-size:13px; line-height:1.5;
-    display:grid; gap:20px; padding-bottom:48px;
-    --p1:#1e293b; --p2:#263245;
-    --bd:rgba(255,255,255,.07); --bd2:rgba(255,255,255,.13);
-    --t1:#e2e8f0; --t2:#64748b; --t3:#334155;
-    --sh:0 4px 24px rgba(0,0,0,.3);
-    --accent:#7c3aed;
-    color:var(--t1);
+    font-size: 13px; line-height: 1.5;
+    display: grid; gap: 20px; padding-bottom: 48px;
+    --p1: #1e293b; --p2: #263245;
+    --bd: rgba(255,255,255,.07); --bd2: rgba(255,255,255,.13);
+    --t1: #e2e8f0; --t2: #64748b;
+    --sh: 0 4px 24px rgba(0,0,0,.3);
+    --accent: #8b5cf6;
+    color: var(--t1);
 }
 html:not(.dark) .lv {
-    --p1:#fff; --p2:#f8fafc;
-    --bd:rgba(15,23,42,.08); --bd2:rgba(15,23,42,.14);
-    --t1:#0f172a; --t2:#64748b; --t3:#cbd5e1;
-    --sh:0 2px 16px rgba(15,23,42,.1);
+    --p1: #fff; --p2: #f8fafc;
+    --bd: rgba(15,23,42,.08); --bd2: rgba(15,23,42,.14);
+    --t1: #0f172a; --t2: #64748b;
+    --sh: 0 2px 16px rgba(15,23,42,.1);
 }
 
-/* Topbar */
+/* topbar */
 .lv-topbar { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; padding-bottom:20px; border-bottom:1px solid var(--bd); }
 .lv-topbar-left { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
 .lv-topbar-right { display:flex; align-items:center; gap:8px; }
-.lv-btn { display:inline-flex; align-items:center; gap:6px; padding:8px 16px; border-radius:9px; font-size:12px; font-weight:700; text-decoration:none; border:none; cursor:pointer; transition:all .15s; white-space:nowrap; }
+.lv-btn { display:inline-flex; align-items:center; gap:6px; padding:8px 16px; border-radius:9px; font-size:12px; font-weight:700; text-decoration:none; border:none; cursor:pointer; transition:all .15s; white-space:nowrap; font-family:inherit; }
 .lv-btn svg { width:14px; height:14px; flex-shrink:0; }
 .lv-btn-gray { background:var(--p2); border:1px solid var(--bd2); color:var(--t2); }
 .lv-btn-gray:hover { color:var(--t1); border-color:var(--accent); }
 .lv-btn-primary { background:var(--accent); color:#fff; border:1px solid transparent; }
 .lv-btn-primary:hover { opacity:.88; }
 
-/* Card */
+/* cards */
 .lv-card { background:var(--p1); border:1px solid var(--bd); border-radius:14px; overflow:hidden; box-shadow:var(--sh); }
-.lv-card-header { padding:14px 20px; border-bottom:1px solid var(--bd); display:flex; align-items:center; gap:8px; }
-.lv-card-icon { width:30px; height:30px; border-radius:8px; display:flex; align-items:center; justify-content:center; background:rgba(124,58,237,.12); flex-shrink:0; }
-.lv-card-icon svg { width:15px; height:15px; color:var(--accent); }
+.lv-card-header { padding:16px 20px; border-bottom:1px solid var(--bd); display:flex; align-items:center; gap:10px; }
+.lv-card-icon { width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; background:rgba(139,92,246,.12); flex-shrink:0; }
+.lv-card-icon svg { width:16px; height:16px; color:var(--accent); }
 .lv-card-title { font-size:13px; font-weight:750; color:var(--t1); }
+.lv-card-sub { font-size:11.5px; color:var(--t2); margin-top:1px; }
 .lv-card-body { padding:20px; }
 
-/* Hero */
-.lv-hero { display:flex; flex-direction:column; gap:10px; padding:22px 24px; }
-.lv-title { font-size:clamp(20px,2.2vw,26px); font-weight:800; color:var(--t1); letter-spacing:-.02em; line-height:1.2; }
-.lv-badges { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
-.lv-badge { display:inline-flex; align-items:center; gap:4px; padding:4px 10px; border-radius:7px; font-size:11.5px; font-weight:700; }
-.lv-meta { display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
-.lv-meta-item { display:flex; align-items:center; gap:5px; font-size:12px; color:var(--t2); }
-.lv-meta-item svg { width:13px; height:13px; }
+/* hero inside card */
+.lv-hero-row { display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
+.lv-hero-icon { width:56px; height:56px; border-radius:14px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.lv-hero-icon svg { width:26px; height:26px; }
+.lv-hero-body { flex:1; min-width:0; }
+.lv-hero-title { font-size:clamp(17px,2vw,22px); font-weight:800; color:var(--t1); letter-spacing:-.018em; }
+.lv-hero-meta { display:flex; align-items:center; gap:12px; margin-top:7px; flex-wrap:wrap; }
+.lv-hero-meta-item { display:flex; align-items:center; gap:5px; font-size:12px; color:var(--t2); }
+.lv-hero-meta-item svg { width:13px; height:13px; flex-shrink:0; }
+.lv-hero-desc { font-size:12.5px; color:var(--t2); margin-top:8px; line-height:1.65; }
+.lv-badge { display:inline-flex; align-items:center; padding:3px 9px; border-radius:6px; font-size:11px; font-weight:700; }
 
-/* Video player */
-.lv-video-wrap { position:relative; background:#000; border-radius:0 0 14px 14px; overflow:hidden; aspect-ratio:16/9; }
-.lv-video-wrap video { display:block; width:100%; height:100%; object-fit:contain; }
-.lv-video-url { display:inline-flex; align-items:center; gap:6px; padding:10px 16px; background:rgba(124,58,237,.1); border:1px solid rgba(124,58,237,.25); border-radius:9px; color:var(--accent); font-size:13px; font-weight:600; text-decoration:none; }
-.lv-video-url:hover { background:rgba(124,58,237,.18); }
-.lv-video-url svg { width:14px; height:14px; flex-shrink:0; }
+/* stats */
+.lv-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+@media(max-width:560px){ .lv-stats { grid-template-columns:1fr 1fr; } }
+.lv-stat { background:var(--p1); border:1px solid var(--bd); border-radius:10px; padding:14px 16px; box-shadow:var(--sh); }
+.lv-stat-val { font-size:22px; font-weight:800; color:var(--t1); }
+.lv-stat-label { font-size:11px; font-weight:600; color:var(--t2); text-transform:uppercase; letter-spacing:.05em; margin-top:2px; }
 
-/* Grid */
+/* fields grid */
 .lv-grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
-@media(max-width:768px) { .lv-grid-2 { grid-template-columns:1fr; } }
+.lv-grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; }
+@media(max-width:640px){ .lv-grid-2, .lv-grid-3 { grid-template-columns:1fr; } }
+.lv-field { display:flex; flex-direction:column; gap:4px; }
+.lv-label { font-size:10.5px; font-weight:800; letter-spacing:.07em; text-transform:uppercase; color:var(--t2); }
+.lv-value { font-size:13px; color:var(--t1); word-break:break-word; }
+.lv-value-muted { font-size:13px; color:var(--t2); font-style:italic; }
+.lv-value a { color:var(--accent); text-decoration:none; }
+.lv-value a:hover { text-decoration:underline; }
 
-/* Fields */
-.lv-field { padding:11px 0; border-bottom:1px solid var(--bd); }
-.lv-field:last-child { border-bottom:none; padding-bottom:0; }
-.lv-field-label { font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--t2); margin-bottom:4px; }
-.lv-field-value { font-size:13px; color:var(--t1); font-weight:500; }
-.lv-field-value.muted { color:var(--t2); font-style:italic; }
-.lv-field-value a { color:var(--accent); text-decoration:none; }
-.lv-field-value a:hover { text-decoration:underline; }
-.lv-content-box { background:var(--p2); border:1px solid var(--bd); border-radius:8px; padding:14px 16px; font-size:13px; color:var(--t1); line-height:1.75; }
+/* video embed */
+.lv-video-wrap { position:relative; width:100%; padding-bottom:56.25%; border-radius:10px; overflow:hidden; background:#000; }
+.lv-video-wrap iframe, .lv-video-wrap video { position:absolute; inset:0; width:100%; height:100%; border:none; }
 
-/* Attachment download */
-.lv-download { display:inline-flex; align-items:center; gap:8px; padding:10px 14px; background:var(--p2); border:1px solid var(--bd2); border-radius:9px; color:var(--t1); font-size:13px; font-weight:600; text-decoration:none; margin-top:4px; transition:border-color .15s; }
-.lv-download:hover { border-color:var(--accent); color:var(--accent); }
-.lv-download svg { width:15px; height:15px; flex-shrink:0; color:var(--accent); }
+/* quiz */
+.lv-quiz-list { display:grid; gap:12px; }
+.lv-quiz-q { background:var(--p2); border:1px solid var(--bd2); border-radius:10px; padding:16px 18px; display:grid; gap:10px; }
+.lv-quiz-num { font-size:10.5px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--t2); }
+.lv-quiz-question { font-size:14px; font-weight:700; color:var(--t1); }
+.lv-quiz-options { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+@media(max-width:500px){ .lv-quiz-options { grid-template-columns:1fr; } }
+.lv-quiz-opt { display:flex; align-items:center; gap:8px; padding:8px 12px; border-radius:8px; font-size:12.5px; border:1px solid var(--bd2); background:var(--p1); color:var(--t1); }
+.lv-quiz-opt.correct { background:rgba(52,211,153,.08); border-color:rgba(52,211,153,.3); color:#34d399; }
+.lv-quiz-opt-letter { width:20px; height:20px; border-radius:50%; display:grid; place-items:center; font-size:10px; font-weight:800; flex-shrink:0; background:var(--bd2); color:var(--t2); }
+.lv-quiz-opt.correct .lv-quiz-opt-letter { background:rgba(52,211,153,.2); color:#34d399; }
+.lv-quiz-explanation { font-size:12px; color:var(--t2); padding:8px 12px; border-radius:8px; background:rgba(139,92,246,.06); border:1px solid rgba(139,92,246,.15); }
 
-/* Empty state */
-.lv-empty { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; padding:32px 20px; color:var(--t2); text-align:center; }
-.lv-empty svg { width:32px; height:32px; opacity:.35; }
-.lv-empty span { font-size:12.5px; }
+/* file download */
+.lv-file-box { display:flex; align-items:center; gap:16px; padding:16px 18px; border:1px solid var(--bd2); border-radius:10px; background:var(--p2); }
+.lv-file-icon { width:44px; height:44px; border-radius:10px; display:grid; place-items:center; flex-shrink:0; background:rgba(248,113,113,.1); color:#f87171; }
+.lv-file-icon svg { width:20px; height:20px; }
+.lv-file-info { flex:1; min-width:0; }
+.lv-file-name { font-size:13.5px; font-weight:700; color:var(--t1); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.lv-file-ext { font-size:11.5px; color:var(--t2); margin-top:2px; }
+.lv-file-dl { display:inline-flex; align-items:center; gap:6px; padding:7px 14px; border-radius:8px; font-size:12px; font-weight:700; background:rgba(248,113,113,.1); color:#f87171; border:1px solid rgba(248,113,113,.25); text-decoration:none; transition:opacity .15s; flex-shrink:0; }
+.lv-file-dl:hover { opacity:.8; }
+.lv-file-dl svg { width:13px; height:13px; }
 </style>
 
 <div class="lv">
 
-    {{-- Topbar --}}
+    {{-- ── Topbar ── --}}
     <div class="lv-topbar">
         <div class="lv-topbar-left">
-            <a href="{{ route('filament.admin.pages.lessons') }}" class="lv-btn lv-btn-gray">
+            <a href="{{ $backUrl }}" class="lv-btn lv-btn-gray">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
                 Back to Lessons
             </a>
-            @if($lesson->section)
-            <a href="{{ route('filament.admin.resources.sections.view', $lesson->section) }}" class="lv-btn lv-btn-gray">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 0 1 0 3.75H5.625a1.875 1.875 0 0 1 0-3.75z"/></svg>
-                {{ $lesson->section->title }}
-            </a>
-            @endif
-            @if($lesson->section?->course)
-            <a href="{{ url('/admin/courses/' . $lesson->section->course->id) }}" class="lv-btn lv-btn-gray">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"/></svg>
-                {{ $lesson->section->course->title }}
+            @if($les->section?->course)
+            <a href="{{ url('/admin/courses/'.$les->section->course->id) }}" class="lv-btn lv-btn-gray">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 3.741-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5"/></svg>
+                {{ $les->section->course->title }}
             </a>
             @endif
         </div>
         <div class="lv-topbar-right">
-            <a href="{{ route('filament.admin.resources.lessons.edit', $lesson) }}" class="lv-btn lv-btn-primary">
+            <a href="{{ route('filament.admin.resources.lessons.edit', $les) }}" class="lv-btn lv-btn-primary">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487z"/></svg>
                 Edit
             </a>
         </div>
     </div>
 
-    {{-- Hero card --}}
+    {{-- ── Hero card ── --}}
     <div class="lv-card">
-        <div class="lv-hero">
-            <div class="lv-title">{{ $lesson->title }}</div>
-            <div class="lv-badges">
-                <span class="lv-badge" style="background:{{ $tc['bg'] }};color:{{ $tc['color'] }}">{{ $tc['label'] }}</span>
-                <span class="lv-badge" style="background:{{ $lesson->is_preview ? 'rgba(52,211,153,.12)' : 'rgba(148,163,184,.1)' }};color:{{ $lesson->is_preview ? '#34d399' : '#94a3b8' }}">
-                    {{ $lesson->is_preview ? 'Free Preview' : 'Premium' }}
-                </span>
-            </div>
-            <div class="lv-meta">
-                <div class="lv-meta-item">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7.5 7.5 3m0 0L12 7.5M7.5 3v13.5m9 3L12 21m4.5 0L21 16.5M16.5 21V7.5"/></svg>
-                    Order {{ $lesson->order }}
+        <div class="lv-card-body">
+            <div class="lv-hero-row">
+                <div class="lv-hero-icon" style="background:{{ $tc['bg'] }};color:{{ $tc['color'] }}">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="{{ $typeIcon }}"/>
+                    </svg>
                 </div>
-                @if($lesson->duration)
-                <div class="lv-meta-item">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg>
-                    {{ $lesson->duration }} min
-                </div>
-                @endif
-                @if($lesson->section)
-                <div class="lv-meta-item">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 0 1 0 3.75H5.625a1.875 1.875 0 0 1 0-3.75z"/></svg>
-                    {{ $lesson->section->title }}
-                </div>
-                @endif
-                <div class="lv-meta-item">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5"/></svg>
-                    {{ $lesson->created_at?->format('M d, Y') }}
+                <div class="lv-hero-body">
+                    <div class="lv-hero-title">{{ $les->title }}</div>
+                    <div class="lv-hero-meta">
+                        <div class="lv-hero-meta-item">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0z"/></svg>
+                            {{ $sectionTitle }}
+                        </div>
+                        <div class="lv-hero-meta-item">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7.5 7.5 3m0 0L12 7.5M7.5 3v13.5m13.5 0L16.5 21m0 0L12 16.5m4.5 4.5V7.5"/></svg>
+                            Order {{ $les->order ?? 1 }}
+                        </div>
+                        <div class="lv-hero-meta-item">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25"/></svg>
+                            {{ $les->created_at?->format('M d, Y') }}
+                        </div>
+                        <span class="lv-badge" style="background:{{ $tc['bg'] }};color:{{ $tc['color'] }}">{{ $tc['label'] }}</span>
+                        @if($les->is_preview)
+                            <span class="lv-badge" style="background:rgba(245,158,11,.1);color:#d97706">Free Preview</span>
+                        @endif
+                    </div>
+                    @if($les->description)
+                        <div class="lv-hero-desc">{{ $les->description }}</div>
+                    @endif
                 </div>
             </div>
         </div>
-
-        {{-- Inline video player if uploaded file --}}
-        @if($lesson->video_path)
-        <div class="lv-video-wrap">
-            <video controls>
-                <source src="{{ $lesson->video_source }}">
-                Your browser does not support the video tag.
-            </video>
-        </div>
-        @endif
     </div>
 
-    {{-- External video URL (YouTube/Vimeo etc.) --}}
-    @if($lesson->video_url)
+    {{-- ── Stats ── --}}
+    <div class="lv-stats">
+        <div class="lv-stat">
+            <div class="lv-stat-val">{{ $les->duration ? $les->duration.' min' : '—' }}</div>
+            <div class="lv-stat-label">Duration</div>
+        </div>
+        <div class="lv-stat">
+            <div class="lv-stat-val">{{ $progressCount }}</div>
+            <div class="lv-stat-label">Completions</div>
+        </div>
+        <div class="lv-stat">
+            <div class="lv-stat-val">{{ $les->order ?? 1 }}</div>
+            <div class="lv-stat-label">Sort Order</div>
+        </div>
+    </div>
+
+    {{-- ── VIDEO ── --}}
+    @if($les->type === 'video')
     <div class="lv-card">
         <div class="lv-card-header">
-            <div class="lv-card-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653z"/></svg>
+            <div class="lv-card-icon" style="background:rgba(96,165,250,.12)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="1.75"><path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z"/></svg>
             </div>
-            <span class="lv-card-title">Video URL</span>
-            @if($lesson->video_provider)
-            <span style="margin-left:auto;font-size:11px;font-weight:600;color:var(--t2);background:var(--p2);border:1px solid var(--bd2);padding:2px 8px;border-radius:5px">{{ ucfirst($lesson->video_provider) }}</span>
+            <div>
+                <div class="lv-card-title">Video</div>
+                <div class="lv-card-sub">{{ $les->video_provider ? ucfirst($les->video_provider).' · ' : '' }}{{ $videoUrl ? 'Source available' : 'No video source' }}</div>
+            </div>
+        </div>
+        <div class="lv-card-body">
+            @if($videoUrl)
+                @php
+                    $embedUrl = null;
+                    if ($les->video_provider === 'youtube' || str_contains($videoUrl, 'youtube.com') || str_contains($videoUrl, 'youtu.be')) {
+                        preg_match('/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/', $videoUrl, $m);
+                        $embedUrl = isset($m[1]) ? 'https://www.youtube.com/embed/'.$m[1] : null;
+                    } elseif ($les->video_provider === 'vimeo' || str_contains($videoUrl, 'vimeo.com')) {
+                        preg_match('/vimeo\.com\/(\d+)/', $videoUrl, $m);
+                        $embedUrl = isset($m[1]) ? 'https://player.vimeo.com/video/'.$m[1] : null;
+                    }
+                @endphp
+                @if($embedUrl)
+                    <div class="lv-video-wrap">
+                        <iframe src="{{ $embedUrl }}" allowfullscreen allow="autoplay; encrypted-media"></iframe>
+                    </div>
+                @elseif($les->video_path)
+                    <div class="lv-video-wrap">
+                        <video controls src="{{ $videoUrl }}"></video>
+                    </div>
+                @else
+                    <div class="lv-field">
+                        <span class="lv-label">Video URL</span>
+                        <span class="lv-value"><a href="{{ $videoUrl }}" target="_blank" rel="noopener">{{ $videoUrl }}</a></span>
+                    </div>
+                @endif
+            @else
+                <span class="lv-value-muted">No video source uploaded yet.</span>
             @endif
         </div>
+    </div>
+    @endif
+
+    {{-- ── ARTICLE ── --}}
+    @if($les->type === 'article' && $les->content)
+    <div class="lv-card">
+        <div class="lv-card-header">
+            <div class="lv-card-icon" style="background:rgba(52,211,153,.12)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="1.75"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25H12"/></svg>
+            </div>
+            <div>
+                <div class="lv-card-title">Article Content</div>
+                <div class="lv-card-sub">Written lesson material</div>
+            </div>
+        </div>
         <div class="lv-card-body">
-            <a href="{{ $lesson->video_url }}" target="_blank" class="lv-video-url">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/></svg>
-                {{ $lesson->video_url }}
-            </a>
+            <div style="font-size:13.5px;line-height:1.8;color:var(--t1)">{!! $les->content !!}</div>
         </div>
     </div>
     @endif
 
-    {{-- Content + Attachment row --}}
-    <div class="lv-grid-2">
+    {{-- ── QUIZ ── --}}
+    @if($les->type === 'quiz' && $les->quiz_data)
+    <div class="lv-card">
+        <div class="lv-card-header">
+            <div class="lv-card-icon" style="background:rgba(251,191,36,.12)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="1.75"><path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0zm-9 5.25h.008v.008H12v-.008z"/></svg>
+            </div>
+            <div>
+                <div class="lv-card-title">Quiz Questions</div>
+                <div class="lv-card-sub">{{ count($les->quiz_data) }} {{ Str::plural('question', count($les->quiz_data)) }}</div>
+            </div>
+        </div>
+        <div class="lv-card-body">
+            <div class="lv-quiz-list">
+                @foreach($les->quiz_data as $i => $q)
+                <div class="lv-quiz-q">
+                    <div class="lv-quiz-num">Question {{ $i + 1 }}</div>
+                    <div class="lv-quiz-question">{{ $q['question'] ?? '—' }}</div>
+                    <div class="lv-quiz-options">
+                        @foreach(['a','b','c','d'] as $letter)
+                            @if(!empty($q['option_'.$letter]))
+                            <div class="lv-quiz-opt {{ ($q['correct'] ?? '') === $letter ? 'correct' : '' }}">
+                                <span class="lv-quiz-opt-letter">{{ strtoupper($letter) }}</span>
+                                {{ $q['option_'.$letter] }}
+                            </div>
+                            @endif
+                        @endforeach
+                    </div>
+                    @if(!empty($q['explanation']))
+                    <div class="lv-quiz-explanation">
+                        <strong style="color:var(--t1)">Explanation:</strong> {{ $q['explanation'] }}
+                    </div>
+                    @endif
+                </div>
+                @endforeach
+            </div>
+        </div>
+    </div>
+    @endif
 
-        {{-- Content --}}
-        <div class="lv-card">
-            <div class="lv-card-header">
-                <div class="lv-card-icon">
+    {{-- ── FILE / DOCUMENT ── --}}
+    @if($les->type === 'file')
+    <div class="lv-card">
+        <div class="lv-card-header">
+            <div class="lv-card-icon" style="background:rgba(248,113,113,.12)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="1.75"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9z"/></svg>
+            </div>
+            <div>
+                <div class="lv-card-title">Document File</div>
+                <div class="lv-card-sub">Downloadable file for students</div>
+            </div>
+        </div>
+        <div class="lv-card-body">
+            @if($attachmentUrl)
+            <div class="lv-file-box">
+                <div class="lv-file-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9z"/></svg>
                 </div>
-                <span class="lv-card-title">Content</span>
-            </div>
-            <div class="lv-card-body">
-                @if($hasContent)
-                    <div class="lv-content-box">{!! strip_tags($lesson->content, '<p><br><b><strong><i><em><u><s><ul><ol><li><h2><h3><h4><blockquote><pre><code><a><img><table><thead><tbody><tr><th><td>') !!}</div>
-                @else
-                    <div class="lv-empty">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m6.75 12H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9z"/></svg>
-                        <span>No content added</span>
-                    </div>
-                @endif
-            </div>
-        </div>
-
-        {{-- Attachment --}}
-        <div class="lv-card">
-            <div class="lv-card-header">
-                <div class="lv-card-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path stroke-linecap="round" stroke-linejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 0 1-6.364-6.364l10.94-10.94A3 3 0 1 1 19.5 7.372L8.552 18.32m.009-.01-.01.01m5.699-9.941-7.81 7.81a1.5 1.5 0 0 0 2.112 2.13"/></svg>
+                <div class="lv-file-info">
+                    <div class="lv-file-name">{{ $les->attachment_name ?: basename($les->attachment) }}</div>
+                    <div class="lv-file-ext">{{ strtoupper(pathinfo($les->attachment, PATHINFO_EXTENSION)) }} file</div>
                 </div>
-                <span class="lv-card-title">Attachment</span>
+                <a href="{{ $attachmentUrl }}" target="_blank" rel="noopener" class="lv-file-dl">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+                    Download
+                </a>
             </div>
-            <div class="lv-card-body">
-                @if($lesson->attachment)
-                    <div class="lv-field" style="padding-top:0">
-                        <div class="lv-field-label">File Name</div>
-                        <div class="lv-field-value">{{ $lesson->attachment_name ?: basename($lesson->attachment) }}</div>
-                    </div>
-                    <div class="lv-field">
-                        <div class="lv-field-label">Download</div>
-                        <a href="{{ $lesson->attachment_url }}" target="_blank" download class="lv-download">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
-                            {{ $lesson->attachment_name ?: basename($lesson->attachment) }}
-                        </a>
-                    </div>
-                @else
-                    <div class="lv-empty">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 0 1-6.364-6.364l10.94-10.94A3 3 0 1 1 19.5 7.372L8.552 18.32m.009-.01-.01.01m5.699-9.941-7.81 7.81a1.5 1.5 0 0 0 2.112 2.13"/></svg>
-                        <span>No attachment uploaded</span>
-                    </div>
-                @endif
-            </div>
+            @else
+                <span class="lv-value-muted">No document uploaded yet.</span>
+            @endif
         </div>
-
     </div>
+    @endif
 
-    {{-- Description (if present) --}}
-    @if($lesson->description)
+    {{-- ── Optional Attachment (video / article) ── --}}
+    @if(in_array($les->type, ['video','article']) && $attachmentUrl)
     <div class="lv-card">
         <div class="lv-card-header">
             <div class="lv-card-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.501 48.172 48.172 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
             </div>
-            <span class="lv-card-title">Description</span>
+            <div>
+                <div class="lv-card-title">Attachment</div>
+                <div class="lv-card-sub">Supplemental download for students</div>
+            </div>
         </div>
         <div class="lv-card-body">
-            <p style="font-size:13px;color:var(--t1);line-height:1.75">{{ $lesson->description }}</p>
+            <div class="lv-file-box">
+                <div class="lv-file-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9z"/></svg>
+                </div>
+                <div class="lv-file-info">
+                    <div class="lv-file-name">{{ $les->attachment_name ?: basename($les->attachment) }}</div>
+                    <div class="lv-file-ext">{{ strtoupper(pathinfo($les->attachment, PATHINFO_EXTENSION)) }} file</div>
+                </div>
+                <a href="{{ $attachmentUrl }}" target="_blank" rel="noopener" class="lv-file-dl">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+                    Download
+                </a>
+            </div>
         </div>
     </div>
     @endif
+
+    {{-- ── Info ── --}}
+    <div class="lv-card">
+        <div class="lv-card-header">
+            <div class="lv-card-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0zm-9-3.75h.008v.008H12V8.25z"/></svg>
+            </div>
+            <div>
+                <div class="lv-card-title">Lesson Info</div>
+                <div class="lv-card-sub">Section, course, and metadata</div>
+            </div>
+        </div>
+        <div class="lv-card-body">
+            <div class="lv-grid-3">
+                <div class="lv-field">
+                    <span class="lv-label">Section</span>
+                    <span class="lv-value">{{ $sectionTitle }}</span>
+                </div>
+                <div class="lv-field">
+                    <span class="lv-label">Course</span>
+                    <span class="lv-value">{{ $courseTitle }}</span>
+                </div>
+                <div class="lv-field">
+                    <span class="lv-label">Free Preview</span>
+                    <span class="lv-value">{{ $les->is_preview ? 'Yes' : 'No' }}</span>
+                </div>
+                <div class="lv-field">
+                    <span class="lv-label">Created</span>
+                    <span class="lv-value">{{ $les->created_at?->format('M d, Y H:i') ?? '—' }}</span>
+                </div>
+                <div class="lv-field">
+                    <span class="lv-label">Last Updated</span>
+                    <span class="lv-value">{{ $les->updated_at?->format('M d, Y H:i') ?? '—' }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
 
 </div>

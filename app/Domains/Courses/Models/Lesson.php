@@ -19,6 +19,7 @@ class Lesson extends Model
     public const TYPE_VIDEO = 'video';
     public const TYPE_ARTICLE = 'article';
     public const TYPE_QUIZ = 'quiz';
+    public const TYPE_FILE = 'file';
     public const TYPE_LIVE = 'live';
     public const TYPE_ASSIGNMENT = 'assignment';
 
@@ -26,6 +27,7 @@ class Lesson extends Model
         'section_id',
         'title',
         'type',
+        'description',
         'content',
         'video_url',
         'video_path',

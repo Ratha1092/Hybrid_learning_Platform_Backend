@@ -299,9 +299,22 @@ select.cr-input{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://ww
         </div>
         <div class="cr-grid-3">
             <div>
-                <label class="cr-label" for="cr-price">Price <span>*</span></label>
-                <input id="cr-price" type="number" class="cr-input" wire:model="data.price" placeholder="0.00" min="0" step="0.01">
-                @error('data.price') <span class="cr-error">{{ $message }}</span> @enderror
+                <label class="cr-label" for="cr-price">
+                    Price <span>*</span>
+                    @if(!$canEditPrice)
+                    <span style="margin-left:6px;font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#f59e0b;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.2);border-radius:4px;padding:1px 6px">Admin only</span>
+                    @endif
+                </label>
+                @if($canEditPrice)
+                    <input id="cr-price" type="number" class="cr-input" wire:model="data.price" placeholder="0.00" min="0" step="0.01">
+                    @error('data.price') <span class="cr-error">{{ $message }}</span> @enderror
+                @else
+                    <div style="display:flex;align-items:center;gap:10px;background:var(--p2);border:1px solid var(--bd2);border-radius:9px;padding:10px 13px">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" style="width:15px;height:15px;flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25z"/></svg>
+                        <span style="font-size:15px;font-weight:700;color:var(--t1)">${{ number_format($crs->price ?? 0, 2) }}</span>
+                        <span style="font-size:11px;color:var(--t2);margin-left:auto">Contact admin to change</span>
+                    </div>
+                @endif
             </div>
             <div>
                 <label class="cr-label" for="cr-duration">Duration (minutes)</label>
@@ -428,9 +441,21 @@ select.cr-input{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://ww
     </div>
     <div class="cr-card-body">
         <div>
-            <label class="cr-label" for="cr-commission">Commission Percentage</label>
-            <input id="cr-commission" type="number" class="cr-input" wire:model="data.commission_percentage" placeholder="20" min="0" max="100" step="0.1" style="max-width:200px">
-            @error('data.commission_percentage') <span class="cr-error">{{ $message }}</span> @enderror
+            <label class="cr-label" for="cr-commission">
+                Commission Percentage
+                @if(!$canEditPrice)
+                <span style="margin-left:6px;font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#f59e0b;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.2);border-radius:4px;padding:1px 6px">Admin only</span>
+                @endif
+            </label>
+            @if($canEditPrice)
+                <input id="cr-commission" type="number" class="cr-input" wire:model="data.commission_percentage" placeholder="20" min="0" max="100" step="0.1" style="max-width:200px">
+                @error('data.commission_percentage') <span class="cr-error">{{ $message }}</span> @enderror
+            @else
+                <div style="display:flex;align-items:center;gap:10px;background:var(--p2);border:1px solid var(--bd2);border-radius:9px;padding:10px 13px;max-width:200px">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" style="width:15px;height:15px;flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25z"/></svg>
+                    <span style="font-size:15px;font-weight:700;color:var(--t1)">{{ $crs->commission_percentage ?? 20 }}%</span>
+                </div>
+            @endif
         </div>
         <div>
             <label class="cr-label" for="cr-rejection">Rejection Reason</label>

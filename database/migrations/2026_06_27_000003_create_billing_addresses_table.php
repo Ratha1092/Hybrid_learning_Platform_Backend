@@ -19,7 +19,6 @@ return new class extends Migration
             $table->string('tax_id')->nullable();
             $table->boolean('is_default')->default(false);
             $table->timestamps();
-
             $table->index('user_id');
         });
     }

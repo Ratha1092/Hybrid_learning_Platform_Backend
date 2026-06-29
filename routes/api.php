@@ -18,7 +18,6 @@ Route::prefix('v1')->group(function () {
         require $route;
     }
     Route::middleware('auth:sanctum')->group(function () {
-        // Get current authenticated user
         Route::get('/me', function () {
             $user = auth()->user();
             if (!$user) {

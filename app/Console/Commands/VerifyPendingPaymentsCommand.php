@@ -14,19 +14,43 @@ class VerifyPendingPaymentsCommand extends Command
 
     public function handle(BakongKhqrService $service): int
     {
+        // Pass 1: expire all payments whose QR TTL has passed without calling Bakong.
+        // These need no API call — the window is closed, just write the status.
+        $stale = Payment::query()
+            ->whereIn('status', ['pending', 'processing'])
+            ->where('payment_gateway', 'bakong')
+            ->where('expires_at', '<', now())
+            ->get();
+
+        $expired = 0;
+        foreach ($stale as $payment) {
+            try {
+                $service->expirePayment($payment);
+                ++$expired;
+                $this->line(sprintf('  #%d  expired  (TTL passed)', $payment->id));
+            } catch (\Throwable $e) {
+                Log::error('Auto-expire failed', ['payment_id' => $payment->id, 'error' => $e->getMessage()]);
+                $this->error("  #{$payment->id}: {$e->getMessage()}");
+            }
+        }
+
+        // Pass 2: verify payments still within their TTL window via the Bakong API.
         $payments = Payment::query()
             ->whereIn('status', ['pending', 'processing'])
             ->where('payment_gateway', 'bakong')
+            ->where(fn ($q) => $q->whereNull('expires_at')->orWhere('expires_at', '>=', now()))
             ->orderBy('last_verified_at', 'asc')
             ->limit((int) $this->option('limit'))
             ->get();
 
-        if ($payments->isEmpty()) {
-            $this->info('No payments to verify.');
+        if ($payments->isEmpty() && $stale->isEmpty()) {
+            $this->info('No payments to process.');
             return self::SUCCESS;
         }
 
-        $this->info("Verifying {$payments->count()} payment(s)...");
+        if ($payments->isNotEmpty()) {
+            $this->info("Verifying {$payments->count()} live payment(s) via Bakong...");
+        }
 
         $paid = $failed = $pending = 0;
 
@@ -35,9 +59,9 @@ class VerifyPendingPaymentsCommand extends Command
                 $result = $service->forceVerifyPayment($payment);
 
                 match (true) {
-                    $result->isPaid() => ++$paid,
+                    $result->isPaid()   => ++$paid,
                     $result->isFailed() => ++$failed,
-                    default => ++$pending,
+                    default             => ++$pending,
                 };
 
                 $this->line(sprintf(
@@ -60,7 +84,7 @@ class VerifyPendingPaymentsCommand extends Command
             usleep(300_000); // 300ms between each call
         }
 
-        $this->info("Done — paid: {$paid}, still pending: {$pending}, failed: {$failed}");
+        $this->info("Done — expired: {$expired}, paid: {$paid}, still pending: {$pending}, failed: {$failed}");
 
         return self::SUCCESS;
     }

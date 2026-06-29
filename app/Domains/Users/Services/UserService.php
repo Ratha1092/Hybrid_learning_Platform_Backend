@@ -3,6 +3,8 @@
 namespace App\Domains\Users\Services;
 
 use App\Domains\Users\Models\User;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
 class UserService
 {
@@ -64,6 +66,18 @@ class UserService
         }
 
         return $this->getProfile($user);
+    }
+
+    public function updateAvatar(User $user, UploadedFile $file): User
+    {
+        if ($user->avatar && !str_starts_with($user->avatar, 'http')) {
+            Storage::disk('public')->delete($user->avatar);
+        }
+
+        $path = $file->store('avatars', 'public');
+        $user->update(['avatar' => $path]);
+
+        return $user->refresh();
     }
 
     private function onlyPresent(array $data, array $keys): array

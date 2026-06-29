@@ -18,6 +18,7 @@ return new class extends Migration
             $table->year('completion_year')->nullable();
             $table->string('certificate_file')->nullable();
             $table->string('identity_file')->nullable();
+            $table->string('identity_id')->nullable()->unique();
             $table->string('portfolio_url')->nullable();
             $table->string('status')->default('pending');
             $table->text('rejection_reason')->nullable();

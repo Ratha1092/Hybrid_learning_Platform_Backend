@@ -1,6 +1,4 @@
 @php
-    $url = fn(array $p) => url()->current() . '?' . http_build_query(array_merge(request()->query(), $p));
-
     $catPalette = [
         ['bg' => 'rgba(167,139,250,.15)', 'color' => '#a78bfa'],
         ['bg' => 'rgba(52,211,153,.15)',  'color' => '#34d399'],
@@ -24,6 +22,7 @@
     $editUrl   = fn($c) => route('filament.admin.resources.courses.edit', ['record' => $c->id]);
 @endphp
 
+<div>  {{-- single Livewire root — wire:click requires exactly one root element --}}
 <style>
 .cp,  .cp *, .cp *::before, .cp *::after { box-sizing: border-box; margin: 0; padding: 0; }
 .cp {
@@ -262,9 +261,23 @@ html:not(.dark) .cp {
 }
 .cp-modal textarea:focus { border-color: #6d28d9; }
 .cp-modal-btns { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
-</style>
 
-<div>
+/* ── Mobile responsive ── */
+@media (max-width: 640px) {
+    .cp-header { flex-direction: column; align-items: flex-start; gap: 10px; padding-bottom: 14px; }
+    .cp-header-btns { width: 100%; }
+    .cp-btn { flex: 1; justify-content: center; }
+    .cp-toolbar { flex-direction: column; align-items: stretch; gap: 8px; padding: 10px 12px; }
+    /* 3 tabs per row, 2 rows = all 6 tabs always visible */
+    .cp-tabs { flex-wrap: wrap; gap: 4px; }
+    .cp-tab { flex: 0 0 calc(33.33% - 3px); justify-content: center; font-size: 11px; padding: 5px 6px; }
+    .cp-tab-badge { min-width: 16px; height: 16px; font-size: 9px; }
+    .cp-search-box { width: 100%; }
+    .cp-search-box input { flex: 1; width: auto; }
+    .cp-footer { flex-direction: column; align-items: flex-start; gap: 8px; }
+    .cp-footer > div { width: 100%; justify-content: space-between; }
+}
+</style>
 <div class="cp" id="cp-root">
 
     {{-- ── Header ── --}}
@@ -297,19 +310,20 @@ html:not(.dark) .cp {
             <div class="cp-tabs">
                 @foreach ($tabs as $t)
                 @php
-                    $isActive  = $tab === $t['key'];
-                    $tabColor  = $t['color'] ?? '#6d28d9';
-                    $tabStyle  = $isActive
+                    $isActive   = $tab === $t['key'];
+                    $tabColor   = $t['color'] ?? '#6d28d9';
+                    $tabStyle   = $isActive
                         ? "background:{$tabColor}1a;color:{$tabColor};border-color:{$tabColor}55;font-weight:700;"
                         : '';
                     $badgeStyle = "background:{$tabColor}20;color:{$tabColor};";
                 @endphp
-                <a href="{{ $url(['tab' => $t['key'], 'page' => 1]) }}"
-                   class="cp-tab"
-                   style="{{ $tabStyle }}">
+                <button type="button"
+                        wire:click="setTab('{{ $t['key'] }}')"
+                        class="cp-tab"
+                        style="{{ $tabStyle }}">
                     {{ $t['label'] }}
                     <span class="cp-tab-badge" style="{{ $badgeStyle }}">{{ $t['count'] }}</span>
-                </a>
+                </button>
                 @endforeach
             </div>
 
@@ -317,14 +331,11 @@ html:not(.dark) .cp {
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607z"/>
                 </svg>
-                <input type="text" name="search" form="cp-search-form" value="{{ $search }}" placeholder="Filter courses..." onchange="document.getElementById('cp-search-form').submit()">
+                <input type="text"
+                       wire:model.live.debounce.350ms="search"
+                       placeholder="Filter courses...">
             </div>
         </div>
-
-        <form id="cp-search-form" method="GET" action="{{ url()->current() }}" style="display:none">
-            <input type="hidden" name="tab" value="{{ $tab }}">
-            <input type="hidden" name="per_page" value="{{ $perPage }}">
-        </form>
 
         {{-- Table --}}
         <div style="overflow-x:auto">
@@ -411,13 +422,10 @@ html:not(.dark) .cp {
                     <td onclick="event.stopPropagation()">
                         <div class="cp-actions">
                             @if($course->isPendingReview())
-                                <form method="POST" action="{{ route('admin.courses.approve', $course) }}">
-                                    @csrf
-                                    <button type="submit" class="cp-act-btn cp-act-btn-success" title="Approve">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg>
-                                    </button>
-                                </form>
-                                <button type="button" class="cp-act-btn cp-act-btn-danger" title="Reject" onclick="openReject({{ $course->id }}, @js($course->title))">
+                                <button type="button" wire:click="approveCourse({{ $course->id }})" class="cp-act-btn cp-act-btn-success" title="Approve">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg>
+                                </button>
+                                <button type="button" class="cp-act-btn cp-act-btn-danger" title="Reject" wire:click="openRejectModal({{ $course->id }})" onclick="event.stopPropagation()">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg>
                                 </button>
                             @endif
@@ -440,22 +448,16 @@ html:not(.dark) .cp {
                                     </a>
                                     @endunless
                                     @if($course->isPublished())
-                                        <form method="POST" action="{{ route('admin.courses.archive', $course) }}">
-                                            @csrf
-                                            <button type="submit" class="cp-act-menu-item">
-                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5M10 11.25h4"/></svg>
-                                                Archive
-                                            </button>
-                                        </form>
+                                        <button type="button" wire:click="archiveCourse({{ $course->id }})" class="cp-act-menu-item">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5M10 11.25h4"/></svg>
+                                            Archive
+                                        </button>
                                     @endif
                                     @if(!$course->isDraft())
-                                        <form method="POST" action="{{ route('admin.courses.return-to-draft', $course) }}">
-                                            @csrf
-                                            <button type="submit" class="cp-act-menu-item">
-                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"/></svg>
-                                                Return to Draft
-                                            </button>
-                                        </form>
+                                        <button type="button" wire:click="returnToDraft({{ $course->id }})" class="cp-act-menu-item">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"/></svg>
+                                            Return to Draft
+                                        </button>
                                     @endif
                                 </div>
                             </div>
@@ -490,7 +492,7 @@ html:not(.dark) .cp {
             <div style="display:flex;align-items:center;gap:16px">
                 <div class="cp-per-page">
                     Per page
-                    <select onchange="window.location.href='{{ $url([]) }}&per_page='+this.value+'&page=1'">
+                    <select wire:change="setPerPage($event.target.value)">
                         @foreach([10, 25, 50] as $n)
                             <option value="{{ $n }}" {{ $perPage == $n ? 'selected' : '' }}>{{ $n }}</option>
                         @endforeach
@@ -498,18 +500,20 @@ html:not(.dark) .cp {
                 </div>
                 @if($totalPages > 1)
                 <div class="cp-pages">
-                    <a href="{{ $url(['page' => max(1, $curPage - 1)]) }}"
-                       class="cp-page-btn {{ $curPage === 1 ? 'disabled' : '' }}">
+                    <button type="button" wire:click="setPage({{ max(1, $curPage - 1) }})"
+                            class="cp-page-btn {{ $curPage === 1 ? 'disabled' : '' }}"
+                            {{ $curPage === 1 ? 'disabled' : '' }}>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:12px;height:12px"><path d="M15 19l-7-7 7-7"/></svg>
-                    </a>
+                    </button>
                     @for($p = max(1, $curPage - 2); $p <= min($totalPages, $curPage + 2); $p++)
-                        <a href="{{ $url(['page' => $p]) }}"
-                           class="cp-page-btn {{ $curPage === $p ? 'active' : '' }}">{{ $p }}</a>
+                        <button type="button" wire:click="setPage({{ $p }})"
+                                class="cp-page-btn {{ $curPage === $p ? 'active' : '' }}">{{ $p }}</button>
                     @endfor
-                    <a href="{{ $url(['page' => min($totalPages, $curPage + 1)]) }}"
-                       class="cp-page-btn {{ $curPage === $totalPages ? 'disabled' : '' }}">
+                    <button type="button" wire:click="setPage({{ min($totalPages, $curPage + 1) }})"
+                            class="cp-page-btn {{ $curPage === $totalPages ? 'disabled' : '' }}"
+                            {{ $curPage === $totalPages ? 'disabled' : '' }}>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:12px;height:12px"><path d="M9 5l7 7-7 7"/></svg>
-                    </a>
+                    </button>
                 </div>
                 @endif
             </div>
@@ -517,48 +521,32 @@ html:not(.dark) .cp {
     </div>
 </div>
 
-{{-- Reject modal --}}
-<div class="cp-modal-overlay" id="cpRejectModal">
+{{-- Reject modal — fully Livewire-driven, no raw JS needed --}}
+<div class="cp-modal-overlay"
+     x-data="{ open: false }"
+     x-show="open"
+     x-on:open-reject-modal.window="open = true"
+     x-on:close-reject-modal.window="open = false"
+     x-on:click.self="$wire.closeRejectModal()"
+     style="display:none">
     <div class="cp-modal">
         <h3>Reject Course</h3>
-        <p style="font-size:12px;color:var(--t2);margin-bottom:12px" id="cpRejectTitle"></p>
-        <textarea id="cpRejectReason" rows="4" placeholder="Explain why this course is being rejected…"></textarea>
+        @if($rejectingCourseTitle)
+            <p style="font-size:12px;color:var(--t2);margin-bottom:12px">"{{ $rejectingCourseTitle }}"</p>
+        @endif
+        <textarea wire:model="rejectReason" rows="4" placeholder="Explain why this course is being rejected…"></textarea>
         <div class="cp-modal-btns">
-            <button class="cp-btn cp-btn-gray" onclick="closeReject()">Cancel</button>
-            <button class="cp-btn" style="background:#dc2626;color:#fff" onclick="submitReject()">Reject Course</button>
+            <button class="cp-btn cp-btn-gray" wire:click="closeRejectModal()">Cancel</button>
+            <button class="cp-btn" style="background:#dc2626;color:#fff"
+                    wire:click="submitRejectModal()"
+                    wire:loading.attr="disabled">
+                Reject Course
+            </button>
         </div>
     </div>
 </div>
 
 <script>
-    let rejectCourseId = null;
-
-    function openReject(id, title) {
-        rejectCourseId = id;
-        document.getElementById('cpRejectTitle').textContent = '"' + title + '"';
-        document.getElementById('cpRejectReason').value = '';
-        document.getElementById('cpRejectModal').classList.add('open');
-    }
-    function closeReject() {
-        document.getElementById('cpRejectModal').classList.remove('open');
-        rejectCourseId = null;
-    }
-    function submitReject() {
-        const reason = document.getElementById('cpRejectReason').value.trim();
-        if (!reason) { alert('Please provide a rejection reason.'); return; }
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = '/admin/courses/' + rejectCourseId + '/reject';
-        form.innerHTML = '<input type="hidden" name="_token" value="{{ csrf_token() }}">'
-                       + '<input type="hidden" name="reason" value="">';
-        form.querySelector('[name="reason"]').value = reason;
-        document.body.appendChild(form);
-        form.submit();
-    }
-    document.getElementById('cpRejectModal').addEventListener('click', function(e) {
-        if (e.target === this) closeReject();
-    });
-
     window.addEventListener('download-csv', function(e) {
         const a = document.createElement('a');
         a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(e.detail.content);

@@ -21,7 +21,7 @@ class LessonForm
         return $schema
             ->components([
 
-                // ── Basic Info (always visible) ───────────────────────────
+                // ── Basic Info ────────────────────────────────────────────
                 Section::make('Basic Information')
                     ->description('Lesson title, section assignment and type')
                     ->icon('heroicon-o-document-text')
@@ -39,6 +39,7 @@ class LessonForm
                                 'video'   => 'Video',
                                 'article' => 'Article',
                                 'quiz'    => 'Quiz',
+                                'file'    => 'File / Document',
                             ])
                             ->default('video')
                             ->required()
@@ -49,7 +50,7 @@ class LessonForm
                     ])
                     ->columns(3),
 
-                // ── VIDEO: file upload + external URL ────────────────────
+                // ── VIDEO ─────────────────────────────────────────────────
                 Section::make('Video')
                     ->description('Upload a video file or link to YouTube, Vimeo, etc.')
                     ->icon('heroicon-o-play-circle')
@@ -76,7 +77,7 @@ class LessonForm
                     ])
                     ->columns(2),
 
-                // ── ARTICLE: rich text content ────────────────────────────
+                // ── ARTICLE ───────────────────────────────────────────────
                 Section::make('Content')
                     ->description('Write the article content for this lesson')
                     ->icon('heroicon-o-pencil-square')
@@ -86,7 +87,7 @@ class LessonForm
                             ->columnSpanFull(),
                     ]),
 
-                // ── QUIZ: question builder ────────────────────────────────
+                // ── QUIZ ──────────────────────────────────────────────────
                 Section::make('Quiz Questions')
                     ->description('Add multiple-choice questions for this quiz')
                     ->icon('heroicon-o-question-mark-circle')
@@ -122,14 +123,49 @@ class LessonForm
                             ->columnSpanFull(),
                     ]),
 
-                // ── ATTACHMENT: video + article only ─────────────────────
+                // ── FILE / DOCUMENT ───────────────────────────────────────
+                Section::make('File / Document')
+                    ->description('Upload a PDF, PowerPoint, Word, or other document for students')
+                    ->icon('heroicon-o-paper-clip')
+                    ->hidden(fn (Get $get): bool => $get('type') !== 'file')
+                    ->schema([
+                        FileUpload::make('attachment')
+                            ->label('Document File')
+                            ->directory('lessons/documents')
+                            ->acceptedFileTypes([
+                                'application/pdf',
+                                'application/vnd.ms-powerpoint',
+                                'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+                                'application/msword',
+                                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                                'application/vnd.ms-excel',
+                                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                            ])
+                            ->maxSize(50 * 1024)
+                            ->columnSpanFull(),
+                        TextInput::make('attachment_name')
+                            ->label('Display Name')
+                            ->placeholder('e.g. Lecture Slides, Course Notes...')
+                            ->maxLength(255),
+                    ])
+                    ->columns(2),
+
+                // ── ATTACHMENT: video + article optional download ─────────
                 Section::make('Attachment')
                     ->description('Optional downloadable file for students')
-                    ->icon('heroicon-o-paper-clip')
+                    ->icon('heroicon-o-arrow-down-tray')
                     ->hidden(fn (Get $get): bool => !in_array($get('type'), ['video', 'article']))
                     ->schema([
                         FileUpload::make('attachment')
-                            ->directory('lessons/attachments'),
+                            ->directory('lessons/attachments')
+                            ->acceptedFileTypes([
+                                'application/pdf',
+                                'application/vnd.ms-powerpoint',
+                                'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+                                'application/msword',
+                                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                            ])
+                            ->maxSize(50 * 1024),
                         TextInput::make('attachment_name')
                             ->label('Attachment Display Name')
                             ->placeholder('e.g. Course Notes, Cheat Sheet...')
@@ -137,7 +173,7 @@ class LessonForm
                     ])
                     ->columns(2),
 
-                // ── SETTINGS (always visible) ─────────────────────────────
+                // ── SETTINGS ──────────────────────────────────────────────
                 Section::make('Settings')
                     ->description('Duration, ordering and preview access')
                     ->icon('heroicon-o-cog-6-tooth')

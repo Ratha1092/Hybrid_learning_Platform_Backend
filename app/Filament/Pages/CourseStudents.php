@@ -5,8 +5,8 @@ namespace App\Filament\Pages;
 use App\Domains\Courses\Models\Course;
 use App\Domains\Learning\Models\Enrollment;
 use App\Support\PanelAccess;
-use BackedEnum;
 use Filament\Pages\Page;
+use Filament\Notifications\Notification;
 
 class CourseStudents extends Page
 {
@@ -22,6 +22,42 @@ class CourseStudents extends Page
     public function getHeading(): string|\Illuminate\Contracts\Support\Htmlable
     {
         return '';
+    }
+
+    public function suspendEnrollment(int $id): void
+    {
+        $enrollment = Enrollment::withoutGlobalScopes()->findOrFail($id);
+        $enrollment->update(['status' => 'suspended']);
+
+        Notification::make()
+            ->title('Student suspended')
+            ->body('The student has been suspended from this course.')
+            ->warning()
+            ->send();
+    }
+
+    public function unsuspendEnrollment(int $id): void
+    {
+        $enrollment = Enrollment::withoutGlobalScopes()->findOrFail($id);
+        $enrollment->update(['status' => 'active']);
+
+        Notification::make()
+            ->title('Student restored')
+            ->body('The student\'s enrollment has been restored to active.')
+            ->success()
+            ->send();
+    }
+
+    public function removeEnrollment(int $id): void
+    {
+        $enrollment = Enrollment::withoutGlobalScopes()->findOrFail($id);
+        $enrollment->delete();
+
+        Notification::make()
+            ->title('Student removed')
+            ->body('The student has been removed from this course.')
+            ->danger()
+            ->send();
     }
 
     protected function getViewData(): array

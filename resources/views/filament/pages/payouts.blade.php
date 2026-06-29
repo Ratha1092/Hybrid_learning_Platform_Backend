@@ -340,5 +340,20 @@ html:not(.dark) .po {
         closeRejectModal();
         @this.call('reject', id, reason);
     }
+
+    // Ensure Filament sidebar is collapsed on small screens so this page matches other Filament pages on mobile.
+    (function(){
+        function ensureMobileSidebar() {
+            try {
+                if (window.innerWidth <= 768) {
+                    document.body.classList.remove('fi-sidebar-open');
+                }
+            } catch (e) { /* ignore */ }
+        }
+        // Run on load and after a short delay to allow Filament JS to initialize
+        ensureMobileSidebar();
+        setTimeout(ensureMobileSidebar, 250);
+        window.addEventListener('resize', ensureMobileSidebar);
+    })();
 </script>
 </div>

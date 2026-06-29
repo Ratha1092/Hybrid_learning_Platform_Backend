@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict PhqGGhwE4MvVatmPQBTPJWnFgtDyAxh7O0v0zpNhkSk5bCA3lN6iuJFR6hlcRnf
+\restrict XXdnLNHMQ2gQbvo7gztN65eIGzGjfHxSRJzeAdpf02SCkSlgPn3wfnaXpUeyK6Z
 
 -- Dumped from database version 16.14 (Ubuntu 16.14-0ubuntu0.24.04.1)
 -- Dumped by pg_dump version 16.14 (Ubuntu 16.14-0ubuntu0.24.04.1)
@@ -72,6 +72,44 @@ CREATE SEQUENCE public.activity_logs_id_seq
 --
 
 ALTER SEQUENCE public.activity_logs_id_seq OWNED BY public.activity_logs.id;
+
+
+--
+-- Name: billing_addresses; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.billing_addresses (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    name character varying(255) NOT NULL,
+    line1 character varying(255) NOT NULL,
+    line2 character varying(255),
+    city character varying(255) NOT NULL,
+    country character varying(255) NOT NULL,
+    tax_id character varying(255),
+    is_default boolean DEFAULT false NOT NULL,
+    created_at timestamp(0) without time zone,
+    updated_at timestamp(0) without time zone
+);
+
+
+--
+-- Name: billing_addresses_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.billing_addresses_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: billing_addresses_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.billing_addresses_id_seq OWNED BY public.billing_addresses.id;
 
 
 --
@@ -363,6 +401,16 @@ ALTER SEQUENCE public.daily_metrics_id_seq OWNED BY public.daily_metrics.id;
 
 
 --
+-- Name: document_sequences; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.document_sequences (
+    type character varying(255) NOT NULL,
+    last_number integer DEFAULT 0 NOT NULL
+);
+
+
+--
 -- Name: email_verification_tokens; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -522,6 +570,7 @@ CREATE TABLE public.instructor_verifications (
     completion_year integer,
     certificate_file character varying(255),
     identity_file character varying(255),
+    identity_id character varying(255),
     portfolio_url character varying(255),
     status character varying(255) DEFAULT 'pending'::character varying NOT NULL,
     rejection_reason text,
@@ -584,6 +633,85 @@ CREATE SEQUENCE public.instructor_wallets_id_seq
 --
 
 ALTER SEQUENCE public.instructor_wallets_id_seq OWNED BY public.instructor_wallets.id;
+
+
+--
+-- Name: invoice_items; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.invoice_items (
+    id bigint NOT NULL,
+    invoice_id bigint NOT NULL,
+    course_title character varying(255) NOT NULL,
+    unit_price numeric(12,2) NOT NULL,
+    discount numeric(12,2) DEFAULT '0'::numeric NOT NULL,
+    amount numeric(12,2) NOT NULL,
+    created_at timestamp(0) without time zone,
+    updated_at timestamp(0) without time zone
+);
+
+
+--
+-- Name: invoice_items_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.invoice_items_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: invoice_items_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.invoice_items_id_seq OWNED BY public.invoice_items.id;
+
+
+--
+-- Name: invoices; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.invoices (
+    id bigint NOT NULL,
+    order_id bigint NOT NULL,
+    type character varying(255) DEFAULT 'invoice'::character varying NOT NULL,
+    original_invoice_id bigint,
+    invoice_number character varying(255) NOT NULL,
+    billing_address_id bigint,
+    subtotal numeric(12,2) NOT NULL,
+    discount numeric(12,2) DEFAULT '0'::numeric NOT NULL,
+    tax_rate numeric(5,2) DEFAULT '0'::numeric NOT NULL,
+    tax_amount numeric(12,2) DEFAULT '0'::numeric NOT NULL,
+    total numeric(12,2) NOT NULL,
+    currency character varying(10) DEFAULT 'USD'::character varying NOT NULL,
+    status character varying(255) DEFAULT 'issued'::character varying NOT NULL,
+    pdf_path character varying(255),
+    issued_at timestamp(0) without time zone,
+    created_at timestamp(0) without time zone,
+    updated_at timestamp(0) without time zone
+);
+
+
+--
+-- Name: invoices_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.invoices_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: invoices_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.invoices_id_seq OWNED BY public.invoices.id;
 
 
 --
@@ -877,7 +1005,9 @@ CREATE TABLE public.orders (
     created_at timestamp(0) without time zone,
     updated_at timestamp(0) without time zone,
     deleted_at timestamp(0) without time zone,
-    payment_method character varying(255)
+    payment_method character varying(255),
+    tax_amount numeric(12,2) DEFAULT '0'::numeric NOT NULL,
+    invoice_number character varying(255)
 );
 
 
@@ -1119,6 +1249,43 @@ CREATE SEQUENCE public.personal_access_tokens_id_seq
 --
 
 ALTER SEQUENCE public.personal_access_tokens_id_seq OWNED BY public.personal_access_tokens.id;
+
+
+--
+-- Name: receipts; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.receipts (
+    id bigint NOT NULL,
+    order_id bigint NOT NULL,
+    receipt_number character varying(255) NOT NULL,
+    amount numeric(12,2) NOT NULL,
+    currency character varying(10) DEFAULT 'USD'::character varying NOT NULL,
+    payment_gateway character varying(255) DEFAULT 'unknown'::character varying NOT NULL,
+    paid_at timestamp(0) without time zone NOT NULL,
+    pdf_path character varying(255),
+    created_at timestamp(0) without time zone,
+    updated_at timestamp(0) without time zone
+);
+
+
+--
+-- Name: receipts_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.receipts_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: receipts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.receipts_id_seq OWNED BY public.receipts.id;
 
 
 --
@@ -1674,6 +1841,13 @@ ALTER TABLE ONLY public.activity_logs ALTER COLUMN id SET DEFAULT nextval('publi
 
 
 --
+-- Name: billing_addresses id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.billing_addresses ALTER COLUMN id SET DEFAULT nextval('public.billing_addresses_id_seq'::regclass);
+
+
+--
 -- Name: blocked_ips id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -1765,6 +1939,20 @@ ALTER TABLE ONLY public.instructor_wallets ALTER COLUMN id SET DEFAULT nextval('
 
 
 --
+-- Name: invoice_items id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.invoice_items ALTER COLUMN id SET DEFAULT nextval('public.invoice_items_id_seq'::regclass);
+
+
+--
+-- Name: invoices id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.invoices ALTER COLUMN id SET DEFAULT nextval('public.invoices_id_seq'::regclass);
+
+
+--
 -- Name: lesson_progress id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -1853,6 +2041,13 @@ ALTER TABLE ONLY public.permissions ALTER COLUMN id SET DEFAULT nextval('public.
 --
 
 ALTER TABLE ONLY public.personal_access_tokens ALTER COLUMN id SET DEFAULT nextval('public.personal_access_tokens_id_seq'::regclass);
+
+
+--
+-- Name: receipts id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.receipts ALTER COLUMN id SET DEFAULT nextval('public.receipts_id_seq'::regclass);
 
 
 --
@@ -1966,6 +2161,14 @@ ALTER TABLE ONLY public.wishlists ALTER COLUMN id SET DEFAULT nextval('public.wi
 
 ALTER TABLE ONLY public.activity_logs
     ADD CONSTRAINT activity_logs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: billing_addresses billing_addresses_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.billing_addresses
+    ADD CONSTRAINT billing_addresses_pkey PRIMARY KEY (id);
 
 
 --
@@ -2089,6 +2292,14 @@ ALTER TABLE ONLY public.daily_metrics
 
 
 --
+-- Name: document_sequences document_sequences_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.document_sequences
+    ADD CONSTRAINT document_sequences_pkey PRIMARY KEY (type);
+
+
+--
 -- Name: email_verification_tokens email_verification_tokens_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2174,6 +2385,30 @@ ALTER TABLE ONLY public.instructor_wallets
 
 ALTER TABLE ONLY public.instructor_wallets
     ADD CONSTRAINT instructor_wallets_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: invoice_items invoice_items_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.invoice_items
+    ADD CONSTRAINT invoice_items_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: invoices invoices_invoice_number_unique; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.invoices
+    ADD CONSTRAINT invoices_invoice_number_unique UNIQUE (invoice_number);
+
+
+--
+-- Name: invoices invoices_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.invoices
+    ADD CONSTRAINT invoices_pkey PRIMARY KEY (id);
 
 
 --
@@ -2281,6 +2516,14 @@ ALTER TABLE ONLY public.order_items
 
 
 --
+-- Name: orders orders_invoice_number_unique; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.orders
+    ADD CONSTRAINT orders_invoice_number_unique UNIQUE (invoice_number);
+
+
+--
 -- Name: orders orders_order_number_unique; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2382,6 +2625,30 @@ ALTER TABLE ONLY public.personal_access_tokens
 
 ALTER TABLE ONLY public.personal_access_tokens
     ADD CONSTRAINT personal_access_tokens_token_unique UNIQUE (token);
+
+
+--
+-- Name: receipts receipts_order_id_unique; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.receipts
+    ADD CONSTRAINT receipts_order_id_unique UNIQUE (order_id);
+
+
+--
+-- Name: receipts receipts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.receipts
+    ADD CONSTRAINT receipts_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: receipts receipts_receipt_number_unique; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.receipts
+    ADD CONSTRAINT receipts_receipt_number_unique UNIQUE (receipt_number);
 
 
 --
@@ -2597,6 +2864,13 @@ CREATE INDEX activity_logs_user_id_index ON public.activity_logs USING btree (us
 
 
 --
+-- Name: billing_addresses_user_id_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX billing_addresses_user_id_index ON public.billing_addresses USING btree (user_id);
+
+
+--
 -- Name: cache_expiration_index; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -2656,6 +2930,8 @@ CREATE INDEX email_verification_tokens_user_id_index ON public.email_verificatio
 -- Name: instructor_verifications_status_index; Type: INDEX; Schema: public; Owner: -
 --
 
+CREATE UNIQUE INDEX instructor_verifications_identity_id_unique ON public.instructor_verifications USING btree (identity_id);
+
 CREATE INDEX instructor_verifications_status_index ON public.instructor_verifications USING btree (status);
 
 
@@ -2664,6 +2940,27 @@ CREATE INDEX instructor_verifications_status_index ON public.instructor_verifica
 --
 
 CREATE INDEX instructor_verifications_user_id_index ON public.instructor_verifications USING btree (user_id);
+
+
+--
+-- Name: invoices_invoice_number_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX invoices_invoice_number_index ON public.invoices USING btree (invoice_number);
+
+
+--
+-- Name: invoices_order_id_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX invoices_order_id_index ON public.invoices USING btree (order_id);
+
+
+--
+-- Name: invoices_type_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX invoices_type_index ON public.invoices USING btree (type);
 
 
 --
@@ -2793,6 +3090,13 @@ CREATE INDEX personal_access_tokens_tokenable_type_tokenable_id_index ON public.
 
 
 --
+-- Name: receipts_order_id_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX receipts_order_id_index ON public.receipts USING btree (order_id);
+
+
+--
 -- Name: scheduled_reports_next_run_at_index; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -2847,6 +3151,14 @@ CREATE INDEX wishlists_user_id_index ON public.wishlists USING btree (user_id);
 
 ALTER TABLE ONLY public.activity_logs
     ADD CONSTRAINT activity_logs_user_id_foreign FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE SET NULL;
+
+
+--
+-- Name: billing_addresses billing_addresses_user_id_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.billing_addresses
+    ADD CONSTRAINT billing_addresses_user_id_foreign FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
 
 
 --
@@ -2986,6 +3298,38 @@ ALTER TABLE ONLY public.instructor_wallets
 
 
 --
+-- Name: invoice_items invoice_items_invoice_id_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.invoice_items
+    ADD CONSTRAINT invoice_items_invoice_id_foreign FOREIGN KEY (invoice_id) REFERENCES public.invoices(id) ON DELETE CASCADE;
+
+
+--
+-- Name: invoices invoices_billing_address_id_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.invoices
+    ADD CONSTRAINT invoices_billing_address_id_foreign FOREIGN KEY (billing_address_id) REFERENCES public.billing_addresses(id) ON DELETE SET NULL;
+
+
+--
+-- Name: invoices invoices_order_id_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.invoices
+    ADD CONSTRAINT invoices_order_id_foreign FOREIGN KEY (order_id) REFERENCES public.orders(id) ON DELETE CASCADE;
+
+
+--
+-- Name: invoices invoices_original_invoice_id_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.invoices
+    ADD CONSTRAINT invoices_original_invoice_id_foreign FOREIGN KEY (original_invoice_id) REFERENCES public.invoices(id) ON DELETE SET NULL;
+
+
+--
 -- Name: lesson_progress lesson_progress_course_id_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3119,6 +3463,14 @@ ALTER TABLE ONLY public.payout_requests
 
 ALTER TABLE ONLY public.payout_requests
     ADD CONSTRAINT payout_requests_processed_by_foreign FOREIGN KEY (processed_by) REFERENCES public.users(id) ON DELETE SET NULL;
+
+
+--
+-- Name: receipts receipts_order_id_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.receipts
+    ADD CONSTRAINT receipts_order_id_foreign FOREIGN KEY (order_id) REFERENCES public.orders(id) ON DELETE CASCADE;
 
 
 --
@@ -3285,13 +3637,13 @@ ALTER TABLE ONLY public.wishlists
 -- PostgreSQL database dump complete
 --
 
-\unrestrict PhqGGhwE4MvVatmPQBTPJWnFgtDyAxh7O0v0zpNhkSk5bCA3lN6iuJFR6hlcRnf
+\unrestrict XXdnLNHMQ2gQbvo7gztN65eIGzGjfHxSRJzeAdpf02SCkSlgPn3wfnaXpUeyK6Z
 
 --
 -- PostgreSQL database dump
 --
 
-\restrict aXRnvh4VcwCiGt3RwWvY16qqunUBhDbUv8oYTjkqMgKcr12IjyF8AxiLRTZxl5K
+\restrict rheTgjoLHPZNbKhpcAMRVlA1dnJSyz359EL8FsSK3XM1ZiBEifOPaaYUczCEbDQ
 
 -- Dumped from database version 16.14 (Ubuntu 16.14-0ubuntu0.24.04.1)
 -- Dumped by pg_dump version 16.14 (Ubuntu 16.14-0ubuntu0.24.04.1)
@@ -3363,6 +3715,12 @@ COPY public.migrations (id, migration, batch) FROM stdin;
 49	2026_06_20_084657_create_refunds_table	2
 50	2026_06_21_000001_create_scheduled_reports_table	3
 51	2026_06_24_141134_create_blocked_ips_table	4
+52	2026_06_27_000001_add_tax_and_invoice_number_to_orders	5
+53	2026_06_27_000002_create_document_sequences_table	6
+54	2026_06_27_000003_create_billing_addresses_table	7
+55	2026_06_27_000004_create_invoices_table	8
+56	2026_06_27_000005_create_invoice_items_table	9
+57	2026_06_27_000006_create_receipts_table	10
 \.
 
 
@@ -3370,12 +3728,12 @@ COPY public.migrations (id, migration, batch) FROM stdin;
 -- Name: migrations_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.migrations_id_seq', 51, true);
+SELECT pg_catalog.setval('public.migrations_id_seq', 57, true);
 
 
 --
 -- PostgreSQL database dump complete
 --
 
-\unrestrict aXRnvh4VcwCiGt3RwWvY16qqunUBhDbUv8oYTjkqMgKcr12IjyF8AxiLRTZxl5K
+\unrestrict rheTgjoLHPZNbKhpcAMRVlA1dnJSyz359EL8FsSK3XM1ZiBEifOPaaYUczCEbDQ
 

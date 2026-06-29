@@ -14,8 +14,8 @@ class Instructors extends Page
     protected string $view = 'filament.pages.instructors';
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-user-group';
     protected static ?string $navigationLabel = 'Instructors';
-    protected static string|\UnitEnum|null $navigationGroup = 'Learning';
-    protected static ?int $navigationSort = 3;
+    protected static string|\UnitEnum|null $navigationGroup = 'People';
+    protected static ?int $navigationSort = 2;
     protected static ?string $slug = 'instructors';
 
     public static function canAccess(): bool

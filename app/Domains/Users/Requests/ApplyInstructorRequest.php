@@ -21,6 +21,7 @@ class ApplyInstructorRequest extends FormRequest
             'completion_year' => ['required','integer','min:1950','max:' . now()->year,],
             'portfolio_url' => ['nullable','url','max:500',],
             'certificate_file' => ['required','file','mimes:pdf,jpg,jpeg,png','mimetypes:application/pdf,image/jpeg,image/png','max:10240',],
+            'identity_id'   => ['required','string','max:100','unique:instructor_verifications,identity_id',],
             'identity_file' => ['required','file','mimes:pdf,jpg,jpeg,png','mimetypes:application/pdf,image/jpeg,image/png','max:10240',],
         ];
     }
@@ -33,6 +34,8 @@ class ApplyInstructorRequest extends FormRequest
             'completion_year.max' =>'Completion year cannot be in the future.',
             'certificate_file.max' =>'Certificate file size must not exceed 10MB.',
             'certificate_file.mimetypes' =>'Certificate file must be a PDF, JPG, JPEG, or PNG file.',
+            'identity_id.required'  => 'Identity ID number is required.',
+            'identity_id.unique'    => 'This identity ID number has already been used in another application.',
             'identity_file.max' =>'Identity file size must not exceed 10MB.',
             'identity_file.mimetypes' =>'Identity file must be a PDF, JPG, JPEG, or PNG file.',
         ];

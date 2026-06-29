@@ -26,6 +26,10 @@ class Orders extends Page
     public function mount(): void
     {
         NavBadge::markSeen('orders');
+
+        auth()->user()?->unreadNotifications()
+            ->whereJsonContains('data->type', 'order')
+            ->update(['read_at' => now()]);
     }
 
     public static function getNavigationBadge(): ?string

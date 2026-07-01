@@ -25,7 +25,12 @@ class OAuthService
                 ->first();
 
             if ($oauthAccount) {
-                return $this->loginUser($oauthAccount->user);
+                $user = $oauthAccount->user;
+                // Backfill avatar onto the user row if it was never saved there.
+                if (!$user->avatar && $oauthAccount->avatar) {
+                    $user->update(['avatar' => $oauthAccount->avatar]);
+                }
+                return $this->loginUser($user);
             }
 
             $user = User::where('email', $data['email'])->first();
@@ -36,9 +41,13 @@ class OAuthService
                     'email' => $data['email'],
                     'password' => Hash::make(Str::random(32)),
                     'email_verified_at' => now(),
+                    'avatar' => $data['avatar'] ?? null,
                 ]);
 
                 $user->assignRole('student');
+            } elseif (!$user->avatar && !empty($data['avatar'])) {
+                // Existing email account linking Google for the first time.
+                $user->update(['avatar' => $data['avatar']]);
             }
 
             OAuthAccount::create([
@@ -147,6 +156,10 @@ class OAuthService
 
     private function loginUser($user, bool $isNew = false)
     {
+        if ($user->status === 'suspended') {
+            throw new RuntimeException('Your account has been suspended. Please contact support.');
+        }
+
         $token = $user->createToken('api-token')->plainTextToken;
 
         ActivityLogService::log('login', $user);

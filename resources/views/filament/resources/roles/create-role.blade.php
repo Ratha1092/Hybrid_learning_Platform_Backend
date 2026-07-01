@@ -98,7 +98,7 @@ html:not(.dark) .re{
             <p>Define a new role and choose the permissions it grants.</p>
         </div>
         <div class="re-header-btns">
-            <a href="{{ $backUrl }}" class="re-btn re-btn-gray">
+            <a href="{{ $backUrl }}" wire:navigate class="re-btn re-btn-gray">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/></svg>
                 Back to Roles
             </a>

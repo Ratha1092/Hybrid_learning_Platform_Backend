@@ -127,7 +127,7 @@ textarea.ec-input{resize:vertical;min-height:88px}
 <div class="ec-header eca ec1">
     <h1 class="ec-page-title">Edit Category</h1>
     <div class="ec-header-actions">
-        <a href="{{ $backUrl }}" class="ec-btn ec-btn-gray">
+        <a href="{{ $backUrl }}" wire:navigate class="ec-btn ec-btn-gray">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
             Back to categories
         </a>
@@ -336,7 +336,7 @@ textarea.ec-input{resize:vertical;min-height:88px}
         </span>
         Save changes
     </button>
-    <a href="{{ $backUrl }}" class="ec-btn ec-btn-gray">Cancel</a>
+    <a href="{{ $backUrl }}" wire:navigate class="ec-btn ec-btn-gray">Cancel</a>
 </div>
 
 </div>

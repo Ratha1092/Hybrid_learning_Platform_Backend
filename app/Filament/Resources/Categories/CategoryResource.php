@@ -26,6 +26,18 @@ class CategoryResource extends Resource
     protected static ?string $recordTitleAttribute = 'name';
     protected static bool $shouldRegisterNavigation = false;
 
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['name', 'description'];
+    }
+
+    public static function getGlobalSearchResultDetails(\Illuminate\Database\Eloquent\Model $record): array
+    {
+        return [
+            'Courses' => $record->courses()->count() . ' courses',
+        ];
+    }
+
     public static function form(Schema $schema): Schema
     {
         return CategoryForm::configure($schema);

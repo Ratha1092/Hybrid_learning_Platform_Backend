@@ -4,22 +4,17 @@ namespace App\Filament\Resources\Coupons\Pages;
 
 use App\Domains\Auth\Services\ActivityLogService;
 use App\Filament\Resources\Coupons\CouponResource;
-use Filament\Actions\Action;
 use Filament\Resources\Pages\CreateRecord;
 
 class CreateCoupon extends CreateRecord
 {
     protected static string $resource = CouponResource::class;
 
+    protected string $view = 'filament.resources.coupons.create-coupon';
+
     protected function getHeaderActions(): array
     {
-        return [
-            Action::make('back')
-                ->label('Back to Coupons')
-                ->icon('heroicon-o-arrow-left')
-                ->color('gray')
-                ->url(route('filament.admin.pages.coupons')),
-        ];
+        return [];
     }
 
     protected function mutateFormDataBeforeCreate(array $data): array

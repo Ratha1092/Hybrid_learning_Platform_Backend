@@ -122,7 +122,7 @@ html:not(.dark) .iv {
     {{-- Header --}}
     <div class="iv-header iva iv1">
         <div class="iv-header-left" style="flex-direction:column;align-items:flex-start;gap:10px">
-            <a href="{{ $listUrl }}" class="iv-back">
+            <a href="{{ $listUrl }}" wire:navigate class="iv-back">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
                 </svg>

@@ -1,6 +1,4 @@
 @php
-    $url = fn(array $p) => url()->current() . '?' . http_build_query(array_merge(request()->query(), $p));
-
     $accent = '#ea580c';
 
     $statusStyle = fn($status) => match($status) {
@@ -10,6 +8,9 @@
         default    => ['bg' => 'rgba(148,163,184,.1)',  'color' => '#94a3b8', 'label' => ucfirst($status ?? '—')],
     };
 @endphp
+
+<div wire:poll.30s>
+<div class="po" id="po-payouts" style="--accent:{{ $accent }};">
 
 <style>
 .po, .po *, .po *::before, .po *::after { box-sizing:border-box; margin:0; padding:0; }
@@ -41,7 +42,7 @@ html:not(.dark) .po {
 .po-card { background:var(--p1); border:1px solid var(--bd); border-radius:12px; overflow:hidden; box-shadow:var(--sh); }
 .po-toolbar { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 16px; border-bottom:1px solid var(--bd); flex-wrap:wrap; }
 .po-tabs { display:flex; align-items:center; gap:4px; flex-wrap:wrap; }
-.po-tab { display:inline-flex; align-items:center; gap:6px; padding:6px 13px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; text-decoration:none; color:var(--t2); border:1px solid transparent; transition:background .15s, color .15s, border-color .15s; }
+.po-tab { display:inline-flex; align-items:center; gap:6px; padding:6px 13px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; text-decoration:none; color:var(--t2); background:none; font-family:inherit; border:1px solid transparent; transition:background .15s, color .15s, border-color .15s; }
 .po-tab:hover { background:var(--p2); color:var(--t1); }
 .po-tab-badge { display:inline-flex; align-items:center; justify-content:center; min-width:18px; height:18px; padding:0 5px; border-radius:5px; font-size:10px; font-weight:800; }
 .po-search-box { display:flex; align-items:center; gap:6px; background:var(--p2); border:1px solid var(--bd2); border-radius:8px; padding:6px 12px; }
@@ -96,16 +97,14 @@ html:not(.dark) .po {
 .po-footer { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-top:1px solid var(--bd); flex-wrap:wrap; gap:10px; }
 .po-footer-info { font-size:12px; color:var(--t2); }
 .po-pages { display:flex; align-items:center; gap:6px; }
-.po-page-btn { display:inline-flex; align-items:center; justify-content:center; min-width:30px; height:30px; padding:0 8px; border-radius:7px; font-size:12px; font-weight:700; text-decoration:none; color:var(--t2); background:none; border:1px solid transparent; transition:background .15s, border-color .15s, color .15s; }
+.po-page-btn { display:inline-flex; align-items:center; justify-content:center; min-width:30px; height:30px; padding:0 8px; border-radius:7px; font-size:12px; font-weight:700; text-decoration:none; color:var(--t2); background:none; font-family:inherit; cursor:pointer; border:1px solid transparent; transition:background .15s, border-color .15s, color .15s; }
+.po-loading{opacity:.45;pointer-events:none;transition:opacity .1s}
 .po-page-btn:not(.disabled):hover { background:var(--p2); border-color:var(--bd2); color:var(--t1); }
 .po-page-btn.active { background:var(--accent); color:#fff; border-color:transparent; }
 .po-page-btn.disabled { opacity:.35; pointer-events:none; }
 .po-per-page { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--t2); }
 .po-per-page select { appearance:none; background:var(--p2); border:1px solid var(--bd2); border-radius:7px; padding:4px 22px 4px 9px; font-size:12px; font-weight:700; color:var(--t1); font-family:inherit; cursor:pointer; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 6px center; outline:none; }
 </style>
-
-<div wire:poll.5s>
-<div class="po" id="po-payouts" style="--accent:{{ $accent }};">
 
     {{-- Header --}}
     <div class="po-header poa po1">
@@ -128,30 +127,23 @@ html:not(.dark) .po {
                     $tabStyle   = $isActive ? "background:{$tabColor}1a;color:{$tabColor};border-color:{$tabColor}55;font-weight:700;" : '';
                     $badgeStyle = "background:{$tabColor}20;color:{$tabColor};";
                 @endphp
-                <a href="{{ $url(['tab' => $t['key'], 'page' => 1]) }}" class="po-tab" style="{{ $tabStyle }}">
+                <button type="button" wire:click="selectTab('{{ $t['key'] }}')" class="po-tab" style="{{ $tabStyle }}">
                     {{ $t['label'] }}
                     <span class="po-tab-badge" style="{{ $badgeStyle }}">{{ $t['count'] }}</span>
-                </a>
+                </button>
                 @endforeach
             </div>
 
-            <form method="GET" action="{{ url()->current() }}" style="display:flex;align-items:center;gap:0">
-                @foreach(request()->except(['search', 'page']) as $k => $v)
-                    @if(is_scalar($v))
-                    <input type="hidden" name="{{ $k }}" value="{{ $v }}">
-                    @endif
-                @endforeach
-                <div class="po-search-box">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607z"/>
-                    </svg>
-                    <input type="text" name="search" value="{{ $search }}" placeholder="Search instructor...">
-                </div>
-            </form>
+            <div class="po-search-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607z"/>
+                </svg>
+                <input type="text" wire:model.live.debounce.500ms="search" placeholder="Search instructor...">
+            </div>
         </div>
 
         {{-- Table --}}
-        <div style="overflow-x:auto">
+        <div style="overflow-x:auto" wire:loading.class="po-loading" wire:target="selectTab,gotoPage,search,perPage">
         <table class="po-table">
             <thead>
                 <tr>
@@ -243,7 +235,7 @@ html:not(.dark) .po {
             <div style="display:flex;align-items:center;gap:16px">
                 <div class="po-per-page">
                     Per page
-                    <select onchange="window.location.href='{{ $url([]) }}&per_page=' + this.value + '&page=1'">
+                    <select wire:model.live="perPage">
                         @foreach([10, 25, 50] as $n)
                             <option value="{{ $n }}" {{ $perPage == $n ? 'selected' : '' }}>{{ $n }}</option>
                         @endforeach
@@ -251,20 +243,20 @@ html:not(.dark) .po {
                 </div>
                 @if($totalPages > 1)
                 <div class="po-pages">
-                    <a href="{{ $url(['page' => max(1, $curPage - 1)]) }}"
-                       class="po-page-btn {{ $curPage === 1 ? 'disabled' : '' }}">
+                    <button type="button" wire:click="gotoPage({{ max(1, $curPage - 1) }})"
+                       class="po-page-btn {{ $curPage === 1 ? 'disabled' : '' }}" @disabled($curPage === 1)>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:12px;height:12px"><path d="M15 19l-7-7 7-7"/></svg>
-                    </a>
+                    </button>
                     @for($p = max(1, $curPage - 2); $p <= min($totalPages, $curPage + 2); $p++)
-                        <a href="{{ $url(['page' => $p]) }}"
+                        <button type="button" wire:click="gotoPage({{ $p }})"
                            class="po-page-btn {{ $curPage === $p ? 'active' : '' }}">
                             {{ $p }}
-                        </a>
+                        </button>
                     @endfor
-                    <a href="{{ $url(['page' => min($totalPages, $curPage + 1)]) }}"
-                       class="po-page-btn {{ $curPage === $totalPages ? 'disabled' : '' }}">
+                    <button type="button" wire:click="gotoPage({{ min($totalPages, $curPage + 1) }})"
+                       class="po-page-btn {{ $curPage === $totalPages ? 'disabled' : '' }}" @disabled($curPage === $totalPages)>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:12px;height:12px"><path d="M9 5l7 7-7 7"/></svg>
-                    </a>
+                    </button>
                 </div>
                 @endif
             </div>
@@ -301,7 +293,7 @@ html:not(.dark) .po {
 </div>
 
 <script>
-    let approveId = null;
+    var approveId = null;
     function openApproveModal(id, name) {
         approveId = id;
         document.getElementById('po-approve-name-text').textContent = 'Are you sure you want to approve ' + name + '\'s payout request?';
@@ -318,7 +310,7 @@ html:not(.dark) .po {
         @this.call('approve', id);
     }
 
-    let rejectId = null;
+    var rejectId = null;
     function openRejectModal(id, name) {
         rejectId = id;
         document.getElementById('po-reject-name-text').textContent = 'Explain why ' + name + '\'s payout is being rejected. Funds will be returned to their wallet.';

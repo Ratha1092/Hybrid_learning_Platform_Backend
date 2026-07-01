@@ -243,7 +243,7 @@ html:not(.dark) .av{
         <div class="av-field">
             <div class="av-field-label">Profile</div>
             <div class="av-field-value">
-                <a href="{{ route('filament.admin.resources.users.edit', $log->user) }}" wire:navigate
+                <a href="{{ route('filament.admin.resources.users.view', $log->user) }}" wire:navigate
                    style="color:var(--accent);text-decoration:none;font-size:12px;font-weight:600">
                     View user profile →
                 </a>

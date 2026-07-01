@@ -1,8 +1,8 @@
 @php
-    $url = fn(array $p) => url()->current() . '?' . http_build_query(array_merge(request()->query(), $p));
     $accent = '#ea580c';
 @endphp
 
+<div>
 <style>
 .rf, .rf *, .rf *::before, .rf *::after { box-sizing:border-box; margin:0; padding:0; }
 .rf {
@@ -33,7 +33,7 @@ html:not(.dark) .rf {
 .rf-card { background:var(--p1); border:1px solid var(--bd); border-radius:12px; overflow:hidden; box-shadow:var(--sh); }
 .rf-toolbar { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 16px; border-bottom:1px solid var(--bd); flex-wrap:wrap; }
 .rf-tabs { display:flex; align-items:center; gap:4px; flex-wrap:wrap; }
-.rf-tab { display:inline-flex; align-items:center; gap:6px; padding:6px 13px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; text-decoration:none; color:var(--t2); border:1px solid transparent; transition:background .15s, color .15s, border-color .15s; }
+.rf-tab { display:inline-flex; align-items:center; gap:6px; padding:6px 13px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; text-decoration:none; color:var(--t2); background:none; font-family:inherit; border:1px solid transparent; transition:background .15s, color .15s, border-color .15s; }
 .rf-tab:hover { background:var(--p2); color:var(--t1); }
 .rf-tab-badge { display:inline-flex; align-items:center; justify-content:center; min-width:18px; height:18px; padding:0 5px; border-radius:5px; font-size:10px; font-weight:800; }
 .rf-search-box { display:flex; align-items:center; gap:6px; background:var(--p2); border:1px solid var(--bd2); border-radius:8px; padding:6px 12px; }
@@ -47,6 +47,7 @@ html:not(.dark) .rf {
 .rf-table tbody tr { border-bottom:1px solid var(--bd); transition:background .12s; }
 .rf-table tbody tr:last-child { border-bottom:none; }
 .rf-table tbody tr:hover { background:var(--p2); }
+.rf-row-link { cursor:pointer; }
 .rf-table td { padding:12px 12px; vertical-align:middle; }
 
 .rf-id { font-size:11.5px; font-weight:700; color:var(--t2); white-space:nowrap; }
@@ -82,7 +83,8 @@ html:not(.dark) .rf {
 .rf-footer { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-top:1px solid var(--bd); flex-wrap:wrap; gap:10px; }
 .rf-footer-info { font-size:12px; color:var(--t2); }
 .rf-pages { display:flex; align-items:center; gap:6px; }
-.rf-page-btn { display:inline-flex; align-items:center; justify-content:center; min-width:30px; height:30px; padding:0 8px; border-radius:7px; font-size:12px; font-weight:700; text-decoration:none; color:var(--t2); background:none; border:1px solid transparent; transition:background .15s, border-color .15s, color .15s; }
+.rf-page-btn { display:inline-flex; align-items:center; justify-content:center; min-width:30px; height:30px; padding:0 8px; border-radius:7px; font-size:12px; font-weight:700; text-decoration:none; color:var(--t2); background:none; font-family:inherit; cursor:pointer; border:1px solid transparent; transition:background .15s, border-color .15s, color .15s; }
+.rf-loading{opacity:.45;pointer-events:none;transition:opacity .1s}
 .rf-page-btn:not(.disabled):hover { background:var(--p2); border-color:var(--bd2); color:var(--t1); }
 .rf-page-btn.active { background:var(--accent); color:#fff; border-color:transparent; }
 .rf-page-btn.disabled { opacity:.35; pointer-events:none; }
@@ -113,30 +115,23 @@ html:not(.dark) .rf {
                     $tabStyle   = $isActive ? "background:{$tabColor}1a;color:{$tabColor};border-color:{$tabColor}55;font-weight:700;" : '';
                     $badgeStyle = "background:{$tabColor}20;color:{$tabColor};";
                 @endphp
-                <a href="{{ $url(['tab' => $t['key'], 'page' => 1]) }}" class="rf-tab" style="{{ $tabStyle }}">
+                <button type="button" wire:click="selectTab('{{ $t['key'] }}')" class="rf-tab" style="{{ $tabStyle }}">
                     {{ $t['label'] }}
                     <span class="rf-tab-badge" style="{{ $badgeStyle }}">{{ $t['count'] }}</span>
-                </a>
+                </button>
                 @endforeach
             </div>
 
-            <form method="GET" action="{{ url()->current() }}" style="display:flex;align-items:center;gap:0">
-                @foreach(request()->except(['search', 'page']) as $k => $v)
-                    @if(is_scalar($v))
-                    <input type="hidden" name="{{ $k }}" value="{{ $v }}">
-                    @endif
-                @endforeach
-                <div class="rf-search-box">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607z"/>
-                    </svg>
-                    <input type="text" name="search" value="{{ $search }}" placeholder="Search order # or customer...">
-                </div>
-            </form>
+            <div class="rf-search-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607z"/>
+                </svg>
+                <input type="text" wire:model.live.debounce.500ms="search" placeholder="Search order # or customer...">
+            </div>
         </div>
 
         {{-- Table --}}
-        <div style="overflow-x:auto">
+        <div style="overflow-x:auto" wire:loading.class="rf-loading" wire:target="selectTab,gotoPage,search,setPerPage">
         <table class="rf-table">
             <thead>
                 <tr>
@@ -151,7 +146,12 @@ html:not(.dark) .rf {
             <tbody>
                 @forelse ($orders as $order)
                 @php $refund = $reasons->get($order->id); @endphp
-                <tr>
+                <tr
+                    @if($tab === 'refunded' && $refund)
+                        class="rf-row-link"
+                        onclick="Livewire.navigate('{{ url('/admin/refunds/' . $refund->id) }}')"
+                    @endif
+                >
                     <td><span class="rf-id">{{ $order->order_number }}</span></td>
 
                     <td>
@@ -210,7 +210,7 @@ html:not(.dark) .rf {
             <div style="display:flex;align-items:center;gap:16px">
                 <div class="rf-per-page">
                     Per page
-                    <select onchange="window.location.href='{{ $url([]) }}&per_page=' + this.value + '&page=1'">
+                    <select wire:change="setPerPage($event.target.value)">
                         @foreach([10, 25, 50] as $n)
                             <option value="{{ $n }}" {{ $perPage == $n ? 'selected' : '' }}>{{ $n }}</option>
                         @endforeach
@@ -218,20 +218,20 @@ html:not(.dark) .rf {
                 </div>
                 @if($totalPages > 1)
                 <div class="rf-pages">
-                    <a href="{{ $url(['page' => max(1, $curPage - 1)]) }}"
-                       class="rf-page-btn {{ $curPage === 1 ? 'disabled' : '' }}">
+                    <button type="button" wire:click="gotoPage({{ max(1, $curPage - 1) }})"
+                       class="rf-page-btn {{ $curPage === 1 ? 'disabled' : '' }}" @disabled($curPage === 1)>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:12px;height:12px"><path d="M15 19l-7-7 7-7"/></svg>
-                    </a>
+                    </button>
                     @for($p = max(1, $curPage - 2); $p <= min($totalPages, $curPage + 2); $p++)
-                        <a href="{{ $url(['page' => $p]) }}"
+                        <button type="button" wire:click="gotoPage({{ $p }})"
                            class="rf-page-btn {{ $curPage === $p ? 'active' : '' }}">
                             {{ $p }}
-                        </a>
+                        </button>
                     @endfor
-                    <a href="{{ $url(['page' => min($totalPages, $curPage + 1)]) }}"
-                       class="rf-page-btn {{ $curPage === $totalPages ? 'disabled' : '' }}">
+                    <button type="button" wire:click="gotoPage({{ min($totalPages, $curPage + 1) }})"
+                       class="rf-page-btn {{ $curPage === $totalPages ? 'disabled' : '' }}" @disabled($curPage === $totalPages)>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:12px;height:12px"><path d="M9 5l7 7-7 7"/></svg>
-                    </a>
+                    </button>
                 </div>
                 @endif
             </div>
@@ -256,7 +256,7 @@ html:not(.dark) .rf {
 </div>
 
 <script>
-    let refundId = null;
+    var refundId = null;
     function openRefundModal(id, orderNumber) {
         refundId = id;
         document.getElementById('rf-refund-name-text').textContent = 'Explain why order ' + orderNumber + ' is being refunded. This will mark the order, payment, and items as refunded.';

@@ -104,12 +104,12 @@ html:not(.dark) .rv{
         <p>Role details, granted permissions, and assigned users.</p>
     </div>
     <div class="rv-header-btns">
-        <a href="{{ $backUrl }}" class="rv-btn rv-btn-gray">
+        <a href="{{ $backUrl }}" wire:navigate class="rv-btn rv-btn-gray">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/></svg>
             Back to Roles
         </a>
         @if($canUpdate)
-        <a href="{{ $editUrl }}" class="rv-btn rv-btn-primary">
+        <a href="{{ $editUrl }}" wire:navigate class="rv-btn rv-btn-primary">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487z"/></svg>
             Edit Role
         </a>
@@ -230,7 +230,7 @@ html:not(.dark) .rv{
                     $removeUrl = route('admin.roles.users.remove', ['role' => $role->id, 'user' => $u->id]);
                 @endphp
                 <div class="rv-user-row" style="display:flex;align-items:center;gap:10px;padding:8px;border-radius:8px">
-                    <a href="{{ route('filament.admin.resources.users.view', ['record' => $u->id]) }}" style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;text-decoration:none;color:inherit">
+                    <a href="{{ route('filament.admin.resources.users.view', ['record' => $u->id]) }}" wire:navigate style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;text-decoration:none;color:inherit">
                         <img src="{{ $avUrl }}" class="rv-user-avatar" alt="">
                         <div style="min-width:0">
                             <div class="rv-user-name" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ $u->name }}</div>

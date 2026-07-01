@@ -4,7 +4,6 @@
     $order->loadMissing(['user', 'items.course', 'items.instructor', 'payments']);
 
     $backUrl = route('filament.admin.pages.orders');
-    $editUrl = url('/admin/orders/' . $order->id . '/edit');
 
     $statusVal = $order->status?->value ?? $order->status;
     $statusStyle = match ($statusVal) {
@@ -174,13 +173,9 @@ html.dark .ov{
         <p class="ov-subtitle">Placed on {{ $order->created_at?->format('M d, Y') }} at {{ $order->created_at?->format('H:i') }}</p>
     </div>
     <div class="ov-header-actions">
-        <a href="{{ $backUrl }}" class="ov-btn ov-btn-gray">
+        <a href="{{ $backUrl }}" wire:navigate class="ov-btn ov-btn-gray">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
             Back to Orders
-        </a>
-        <a href="{{ $editUrl }}" class="ov-btn ov-btn-amber">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487z"/></svg>
-            Edit Order
         </a>
     </div>
 </div>
@@ -484,7 +479,7 @@ html.dark .ov{
     </div>
     @if($order->payments->count() > 1)
         <div class="ov-payments-footer">
-            <a href="{{ $backUrl }}?order={{ $order->id }}" class="ov-btn-link">
+            <a href="{{ $backUrl }}?order={{ $order->id }}" wire:navigate class="ov-btn-link">
                 View Full History
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"/></svg>
             </a>

@@ -53,14 +53,39 @@ class Coupons extends Page
         return '';
     }
 
+    public string $search = '';
+    public string $status = 'all';
+    public int $page = 1;
+    public int $perPage = 10;
+
+    public function updatedSearch(): void
+    {
+        $this->page = 1;
+    }
+
+    public function selectStatus(string $status): void
+    {
+        $this->status = $status;
+        $this->page = 1;
+    }
+
+    public function setPerPage(int $perPage): void
+    {
+        $this->perPage = in_array($perPage, [10, 25, 50], true) ? $perPage : 10;
+        $this->page = 1;
+    }
+
+    public function gotoPage(int $page): void
+    {
+        $this->page = max(1, $page);
+    }
+
     protected function getViewData(): array
     {
-        $search  = request('search', '');
-        $status  = request('status', 'all');
-        $page    = max(1, (int) request('page', 1));
-        $perPage = (int) request('per_page', 10);
-
-        if (!in_array($perPage, [10, 25, 50])) $perPage = 10;
+        $search  = $this->search;
+        $status  = $this->status;
+        $page    = max(1, $this->page);
+        $perPage = in_array($this->perPage, [10, 25, 50], true) ? $this->perPage : 10;
 
         $base = fn () => Coupon::query();
 

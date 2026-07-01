@@ -106,12 +106,12 @@ html:not(.dark) .cv{
         <p>Discount rules, usage limits, and redemption history.</p>
     </div>
     <div class="cv-header-btns">
-        <a href="{{ $backUrl }}" class="cv-btn cv-btn-gray">
+        <a href="{{ $backUrl }}" wire:navigate class="cv-btn cv-btn-gray">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/></svg>
             Back to Coupons
         </a>
         @if($canUpdate)
-        <a href="{{ $editUrl }}" class="cv-btn cv-btn-primary">
+        <a href="{{ $editUrl }}" wire:navigate class="cv-btn cv-btn-primary">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487z"/></svg>
             Edit Coupon
         </a>
@@ -221,7 +221,7 @@ html:not(.dark) .cv{
                     $bgHex = substr(md5($orderUser->name ?? ''), 0, 6);
                     $avUrl = $orderUser?->avatar_url ?? ('https://ui-avatars.com/api/?name=' . urlencode($orderUser->name ?? '?') . '&background=' . $bgHex . '&color=fff&bold=true&size=64');
                 @endphp
-                <a href="{{ route('filament.admin.resources.orders.view', ['record' => $order->id]) }}" class="cv-order-row">
+                <a href="{{ route('filament.admin.resources.orders.view', ['record' => $order->id]) }}" wire:navigate class="cv-order-row">
                     <img src="{{ $avUrl }}" class="cv-order-avatar" alt="">
                     <div>
                         <div class="cv-order-name">{{ $orderUser->name ?? 'Unknown' }}</div>

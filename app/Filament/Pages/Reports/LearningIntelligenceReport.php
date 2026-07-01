@@ -23,7 +23,7 @@ class LearningIntelligenceReport extends Page implements Schedulable
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-presentation-chart-line';
     protected static ?string $navigationLabel = 'Learning Intelligence';
     protected static string|\UnitEnum|null $navigationGroup = 'Reports';
-    protected static ?int $navigationSort = 6;
+    protected static ?int $navigationSort = 7;
     protected static ?string $slug = 'reports/learning-intelligence';
 
     public static function canAccess(): bool

@@ -23,7 +23,7 @@ class UserReport extends Page implements Schedulable
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-users';
     protected static ?string $navigationLabel = 'User Report';
     protected static string|\UnitEnum|null $navigationGroup = 'Reports';
-    protected static ?int $navigationSort = 6;
+    protected static ?int $navigationSort = 1;
     protected static ?string $slug = 'reports/users';
 
     public static function canAccess(): bool

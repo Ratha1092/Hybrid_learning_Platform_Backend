@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict XXdnLNHMQ2gQbvo7gztN65eIGzGjfHxSRJzeAdpf02SCkSlgPn3wfnaXpUeyK6Z
+\restrict julkKNlEfqJodJGNjamgxFiPbOZFy4u0D9i4Ynlna3BBYJxajBGpNhv9LZ3Gthu
 
 -- Dumped from database version 16.14 (Ubuntu 16.14-0ubuntu0.24.04.1)
 -- Dumped by pg_dump version 16.14 (Ubuntu 16.14-0ubuntu0.24.04.1)
@@ -1486,7 +1486,7 @@ ALTER SEQUENCE public.scheduled_reports_id_seq OWNED BY public.scheduled_reports
 
 CREATE TABLE public.sections (
     id bigint NOT NULL,
-    course_id bigint NOT NULL,
+    course_id bigint,
     title character varying(255) NOT NULL,
     "order" integer DEFAULT 0 NOT NULL,
     created_at timestamp(0) without time zone,
@@ -2927,10 +2927,15 @@ CREATE INDEX email_verification_tokens_user_id_index ON public.email_verificatio
 
 
 --
--- Name: instructor_verifications_status_index; Type: INDEX; Schema: public; Owner: -
+-- Name: instructor_verifications_identity_id_unique; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE UNIQUE INDEX instructor_verifications_identity_id_unique ON public.instructor_verifications USING btree (identity_id);
+
+
+--
+-- Name: instructor_verifications_status_index; Type: INDEX; Schema: public; Owner: -
+--
 
 CREATE INDEX instructor_verifications_status_index ON public.instructor_verifications USING btree (status);
 
@@ -3558,7 +3563,7 @@ ALTER TABLE ONLY public.scheduled_reports
 --
 
 ALTER TABLE ONLY public.sections
-    ADD CONSTRAINT sections_course_id_foreign FOREIGN KEY (course_id) REFERENCES public.courses(id) ON DELETE CASCADE;
+    ADD CONSTRAINT sections_course_id_foreign FOREIGN KEY (course_id) REFERENCES public.courses(id) ON DELETE SET NULL;
 
 
 --
@@ -3637,13 +3642,13 @@ ALTER TABLE ONLY public.wishlists
 -- PostgreSQL database dump complete
 --
 
-\unrestrict XXdnLNHMQ2gQbvo7gztN65eIGzGjfHxSRJzeAdpf02SCkSlgPn3wfnaXpUeyK6Z
+\unrestrict julkKNlEfqJodJGNjamgxFiPbOZFy4u0D9i4Ynlna3BBYJxajBGpNhv9LZ3Gthu
 
 --
 -- PostgreSQL database dump
 --
 
-\restrict rheTgjoLHPZNbKhpcAMRVlA1dnJSyz359EL8FsSK3XM1ZiBEifOPaaYUczCEbDQ
+\restrict MTeO5b2en86sEXUWF28r72PtroFMMrGPbfTMzLfgfUioUdOTkzfMeWTiG8dpriC
 
 -- Dumped from database version 16.14 (Ubuntu 16.14-0ubuntu0.24.04.1)
 -- Dumped by pg_dump version 16.14 (Ubuntu 16.14-0ubuntu0.24.04.1)
@@ -3721,6 +3726,7 @@ COPY public.migrations (id, migration, batch) FROM stdin;
 55	2026_06_27_000004_create_invoices_table	8
 56	2026_06_27_000005_create_invoice_items_table	9
 57	2026_06_27_000006_create_receipts_table	10
+58	2026_06_30_031742_make_course_id_nullable_on_sections_table	11
 \.
 
 
@@ -3728,12 +3734,12 @@ COPY public.migrations (id, migration, batch) FROM stdin;
 -- Name: migrations_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.migrations_id_seq', 57, true);
+SELECT pg_catalog.setval('public.migrations_id_seq', 58, true);
 
 
 --
 -- PostgreSQL database dump complete
 --
 
-\unrestrict rheTgjoLHPZNbKhpcAMRVlA1dnJSyz359EL8FsSK3XM1ZiBEifOPaaYUczCEbDQ
+\unrestrict MTeO5b2en86sEXUWF28r72PtroFMMrGPbfTMzLfgfUioUdOTkzfMeWTiG8dpriC
 

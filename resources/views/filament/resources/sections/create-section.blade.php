@@ -76,7 +76,7 @@ select.cs-input{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://ww
 <div class="cs-header csa cs1">
     <h1 class="cs-page-title">Create Section</h1>
     <div class="cs-header-actions">
-        <a href="{{ $backUrl }}" class="cs-btn cs-btn-gray">
+        <a href="{{ $backUrl }}" wire:navigate class="cs-btn cs-btn-gray">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
             Back to sections
         </a>
@@ -92,11 +92,11 @@ select.cs-input{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://ww
     </div>
     <div class="cs-intro-body">
         <div class="cs-intro-title">New Section</div>
-        <div class="cs-intro-desc">Sections group lessons inside a course. Assign this section to a course, give it a clear title, and set its sort order so students see it in the right sequence.</div>
+        <div class="cs-intro-desc">Sections group lessons inside a course. You can assign a course now, or leave it blank to create a standalone section and attach it to a course later during course creation.</div>
         <div class="cs-intro-steps">
-            <span class="cs-step"><span class="cs-step-num">1</span> Select course</span>
-            <span class="cs-step"><span class="cs-step-num">2</span> Name the section</span>
-            <span class="cs-step"><span class="cs-step-num">3</span> Set sort order</span>
+            <span class="cs-step"><span class="cs-step-num">1</span> Name the section</span>
+            <span class="cs-step"><span class="cs-step-num">2</span> Set sort order</span>
+            <span class="cs-step"><span class="cs-step-num">3</span> Attach to course (optional)</span>
         </div>
     </div>
 </div>
@@ -114,11 +114,11 @@ select.cs-input{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://ww
     </div>
     <div class="cs-card-body">
 
-        {{-- Course --}}
+        {{-- Course (optional) --}}
         <div>
-            <label class="cs-label" for="cs-course">Course <span>*</span></label>
+            <label class="cs-label" for="cs-course">Course <span style="font-size:10px;font-weight:500;color:var(--t2);text-transform:none;letter-spacing:0">(optional — can attach later)</span></label>
             <select id="cs-course" class="cs-input" wire:model="data.course_id">
-                <option value="">— Select a course —</option>
+                <option value="">— Standalone (no course yet) —</option>
                 @foreach ($courses as $id => $title)
                     <option value="{{ $id }}">{{ $title }}</option>
                 @endforeach
@@ -161,7 +161,7 @@ select.cs-input{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://ww
         </span>
         Create Section
     </button>
-    <a href="{{ $backUrl }}" class="cs-btn cs-btn-gray">Cancel</a>
+    <a href="{{ $backUrl }}" wire:navigate class="cs-btn cs-btn-gray">Cancel</a>
 </div>
 
 </div>

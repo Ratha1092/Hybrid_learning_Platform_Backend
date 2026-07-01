@@ -24,6 +24,25 @@ class CourseStudents extends Page
         return '';
     }
 
+    public int $courseId;
+    public string $search = '';
+    public int $page = 1;
+
+    public function mount(): void
+    {
+        $this->courseId = (int) request()->route('course');
+    }
+
+    public function updatedSearch(): void
+    {
+        $this->page = 1;
+    }
+
+    public function gotoPage(int $page): void
+    {
+        $this->page = max(1, $page);
+    }
+
     public function suspendEnrollment(int $id): void
     {
         $enrollment = Enrollment::withoutGlobalScopes()->findOrFail($id);
@@ -62,11 +81,10 @@ class CourseStudents extends Page
 
     protected function getViewData(): array
     {
-        $courseId = request()->route('course');
-        $course   = Course::withoutGlobalScopes()->findOrFail($courseId);
+        $course   = Course::withoutGlobalScopes()->findOrFail($this->courseId);
 
-        $search  = request('search', '');
-        $page    = max(1, (int) request('page', 1));
+        $search  = $this->search;
+        $page    = max(1, $this->page);
         $perPage = 15;
 
         $query = Enrollment::with('user:id,name,email,avatar')

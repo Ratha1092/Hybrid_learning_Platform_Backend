@@ -12,7 +12,19 @@
         default     => ['bg' => 'rgba(148,163,184,.1)', 'color' => '#64748b', 'dot' => '#94a3b8', 'label' => ucfirst($statusVal)],
     };
 
-    $role = $user->getRoleNames()->first() ?? '';
+    $availableRoles = \Spatie\Permission\Models\Role::orderBy('name')->get();
+    $selectedRoles  = (array) ($selectedRoleIds ?? []);
+
+    // Derive role badge from live form state so it updates as checkboxes change
+    $role = '';
+    if (!empty($selectedRoles)) {
+        $firstRole = $availableRoles->firstWhere('id', (int) $selectedRoles[0]);
+        $role = $firstRole?->name ?? '';
+    }
+    if (!$role) {
+        $role = $user->getRoleNames()->first() ?? '';
+    }
+
     $roleStyle = match ($role) {
         'super-admin'      => ['bg' => 'rgba(220,38,38,.1)',   'color' => '#dc2626', 'label' => 'Super Admin'],
         'admin'            => ['bg' => 'rgba(124,58,237,.1)',  'color' => '#7c3aed', 'label' => 'Admin'],
@@ -30,9 +42,6 @@
     $initials  = strtoupper(substr($nameParts[0] ?? '', 0, 1) . substr(end($nameParts), 0, 1));
     $avatarBg  = '#' . substr(md5($user->name ?? ''), 0, 6);
     $avatarUrl = $user->avatar_url ?? null;
-
-    $availableRoles = \Spatie\Permission\Models\Role::orderBy('name')->get();
-    $selectedRoles  = (array) ($data['roles'] ?? []);
 
     $isSelf    = $user->id === auth()->id();
     $isSuspended = ($data['status'] ?? $user->status) === 'suspended';
@@ -174,11 +183,11 @@ html.dark .uv-select-option:hover{background:rgba(255,255,255,.06)}
 <div class="uv-header uva uv1">
     <h1 class="uv-page-title">Edit user</h1>
     <div class="uv-header-actions">
-        <a href="{{ $backUrl }}" class="uv-btn uv-btn-gray">
+        <a href="{{ $backUrl }}" wire:navigate class="uv-btn uv-btn-gray">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
             Back to users
         </a>
-        <a href="{{ $viewUrl }}" class="uv-btn uv-btn-outline">
+        <a href="{{ $viewUrl }}" wire:navigate class="uv-btn uv-btn-outline">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.641 0-8.573-3.007-9.963-7.178z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/></svg>
             View profile
         </a>
@@ -307,7 +316,7 @@ html.dark .uv-select-option:hover{background:rgba(255,255,255,.06)}
                 <div class="uv-roles-grid">
                     @foreach($availableRoles as $r)
                         <label class="uv-role-chip">
-                            <input type="checkbox" class="uv-role-check" wire:model="data.roles" value="{{ $r->id }}">
+                            <input type="checkbox" class="uv-role-check" wire:model="selectedRoleIds" value="{{ $r->id }}">
                             <span class="uv-role-label">{{ ucfirst(str_replace('-', ' ', $r->name)) }}</span>
                         </label>
                     @endforeach
@@ -388,7 +397,7 @@ html.dark .uv-select-option:hover{background:rgba(255,255,255,.06)}
         </span>
         Save changes
     </button>
-    <a href="{{ $backUrl }}" class="uv-btn uv-btn-gray">Cancel</a>
+    <a href="{{ $backUrl }}" wire:navigate class="uv-btn uv-btn-gray">Cancel</a>
 </div>
 
 </div>

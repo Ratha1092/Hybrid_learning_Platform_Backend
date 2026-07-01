@@ -136,7 +136,7 @@ html:not(.dark) .cv {
     {{-- Top bar --}}
     <div class="cv-topbar">
         <div class="cv-topbar-left">
-            <a href="{{ $backUrl }}" class="cv-btn cv-btn-gray">
+            <a href="{{ $backUrl }}" wire:navigate class="cv-btn cv-btn-gray">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
                 Back to Courses
             </a>
@@ -162,7 +162,7 @@ html:not(.dark) .cv {
             </button>
             @endif
             @unless($course->isPendingReview())
-            <a href="{{ $editUrl }}" class="cv-btn cv-btn-primary">
+            <a href="{{ $editUrl }}" wire:navigate class="cv-btn cv-btn-primary">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487z"/></svg>
                 Edit
             </a>
@@ -236,19 +236,19 @@ html:not(.dark) .cv {
 
     {{-- Stats --}}
     <div class="cv-stats">
-        <a href="{{ $studentsUrl }}" class="cv-stat cv-stat-link" title="View enrolled students">
+        <a href="{{ $studentsUrl }}" wire:navigate class="cv-stat cv-stat-link" title="View enrolled students">
             <div class="cv-stat-val">{{ number_format($enrollmentCount) }}</div>
             <div class="cv-stat-label">Students</div>
         </a>
-        <a href="{{ route('filament.admin.pages.sections', ['course_id' => $course->id]) }}" class="cv-stat cv-stat-link" title="View sections">
+        <a href="{{ route('filament.admin.pages.sections', ['course_id' => $course->id]) }}" wire:navigate class="cv-stat cv-stat-link" title="View sections">
             <div class="cv-stat-val">{{ number_format($sectionsCount) }}</div>
             <div class="cv-stat-label">Sections</div>
         </a>
-        <a href="{{ route('filament.admin.pages.lessons', ['course_id' => $course->id]) }}" class="cv-stat cv-stat-link" title="View lessons">
+        <a href="{{ route('filament.admin.pages.lessons', ['course_id' => $course->id]) }}" wire:navigate class="cv-stat cv-stat-link" title="View lessons">
             <div class="cv-stat-val">{{ number_format($lessonsCount) }}</div>
             <div class="cv-stat-label">Lessons</div>
         </a>
-        <a href="{{ route('filament.admin.pages.reviews', ['course_id' => $course->id]) }}" class="cv-stat cv-stat-link" title="View reviews">
+        <a href="{{ route('filament.admin.pages.reviews', ['course_id' => $course->id]) }}" wire:navigate class="cv-stat cv-stat-link" title="View reviews">
             <div class="cv-stat-val">{{ number_format($reviewCount) }}</div>
             <div class="cv-stat-label">Reviews</div>
         </a>

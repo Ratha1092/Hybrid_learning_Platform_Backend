@@ -33,6 +33,20 @@ class LessonResource extends Resource
     protected static ?int $navigationSort = 5;
     protected static ?string $recordTitleAttribute ='title';
     protected static bool $shouldRegisterNavigation = false;
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['title', 'section.course.title'];
+    }
+
+    public static function getGlobalSearchResultDetails(\Illuminate\Database\Eloquent\Model $record): array
+    {
+        return [
+            'Course'  => $record->section?->course?->title ?? '—',
+            'Section' => $record->section?->title ?? '—',
+        ];
+    }
+
     public static function form(Schema $schema): Schema
     {
         return LessonForm::configure($schema);

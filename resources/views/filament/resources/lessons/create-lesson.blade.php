@@ -118,7 +118,7 @@ select.cl-input{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://ww
 <div class="cl-header cla cl1">
     <h1 class="cl-page-title">Create Lesson</h1>
     <div class="cl-header-actions">
-        <a href="{{ $backUrl }}" class="cl-btn cl-btn-gray">
+        <a href="{{ $backUrl }}" wire:navigate class="cl-btn cl-btn-gray">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
             Back to lessons
         </a>
@@ -329,7 +329,7 @@ select.cl-input{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://ww
         </span>
         Create Lesson
     </button>
-    <a href="{{ $backUrl }}" class="cl-btn cl-btn-gray">Cancel</a>
+    <a href="{{ $backUrl }}" wire:navigate class="cl-btn cl-btn-gray">Cancel</a>
 </div>
 
 </div>

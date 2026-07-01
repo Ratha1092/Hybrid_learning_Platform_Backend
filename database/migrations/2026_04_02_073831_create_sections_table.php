@@ -10,7 +10,8 @@ return new class extends Migration
     {
         Schema::create('sections', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('course_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('course_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('instructor_id')->nullable()->constrained('users')->nullOnDelete();
             $table->string('title');
             $table->integer('order')->default(0);
             $table->timestamps();
@@ -21,4 +22,4 @@ return new class extends Migration
     {
         Schema::dropIfExists('sections');
     }
-};  
+};

@@ -1,5 +1,4 @@
 @php
-    $url = fn(array $p) => url()->current() . '?' . http_build_query(array_merge(request()->query(), $p));
     $activeTab = collect($tabs ?? [])->firstWhere('active', true) ?? ($tabs[0] ?? ['key' => 'all', 'label' => 'All', 'color' => '#6366f1']);
 
     $accent = '#6366f1';
@@ -17,6 +16,9 @@
             : ['bg' => 'rgba(148,163,184,.1)',  'color' => '#94a3b8', 'icon' => 'default'],
     };
 @endphp
+
+<div>
+<div class="al" id="al-wrap" style="--accent:{{ $accent }}">
 
 <style>
 .al, .al *, .al *::before, .al *::after { box-sizing:border-box; margin:0; padding:0; }
@@ -153,16 +155,14 @@ html:not(.dark) .al {
 .al-footer { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-top:1px solid var(--bd); flex-wrap:wrap; gap:10px; }
 .al-footer-info { font-size:12px; color:var(--t2); }
 .al-pages { display:flex; align-items:center; gap:5px; }
-.al-page-btn { display:inline-flex; align-items:center; justify-content:center; min-width:30px; height:30px; padding:0 8px; border-radius:7px; font-size:12px; font-weight:700; text-decoration:none; color:var(--t2); background:none; border:1px solid transparent; transition:background .15s, border-color .15s, color .15s; }
+.al-page-btn { display:inline-flex; align-items:center; justify-content:center; min-width:30px; height:30px; padding:0 8px; border-radius:7px; font-size:12px; font-weight:700; text-decoration:none; color:var(--t2); background:none; font-family:inherit; cursor:pointer; border:1px solid transparent; transition:background .15s, border-color .15s, color .15s; }
+.al-loading{opacity:.45;pointer-events:none;transition:opacity .1s}
 .al-page-btn:not(.disabled):hover { background:var(--p2); border-color:var(--bd2); color:var(--t1); }
 .al-page-btn.active { color:#fff; border-color:transparent; }
 .al-page-btn.disabled { opacity:.35; pointer-events:none; }
 .al-per-page { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--t2); }
 .al-per-page select { appearance:none; background:var(--p2); border:1px solid var(--bd2); border-radius:7px; padding:4px 22px 4px 9px; font-size:12px; font-weight:700; color:var(--t1); font-family:inherit; cursor:pointer; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 6px center; outline:none; }
 </style>
-
-<div>
-<div class="al" id="al-wrap" style="--accent:{{ $accent }}">
 
 {{-- ── Header ──────────────────────────────────────────────── --}}
 <div class="al-header ala al1">
@@ -225,54 +225,45 @@ html:not(.dark) .al {
             </button>
             <div class="al-role-filter-menu">
                 @foreach ($tabs as $t)
-                <a href="{{ $url(['action' => $t['key'], 'page' => 1]) }}" class="al-role-filter-item {{ $t['active'] ? 'active' : '' }}">
+                <button type="button" wire:click="selectAction('{{ $t['key'] }}')" @click="$el.blur()" class="al-role-filter-item {{ $t['active'] ? 'active' : '' }}" style="width:100%;background:none;border:none;cursor:pointer;font-family:inherit;text-align:left">
                     <span class="al-role-filter-dot" style="background:{{ $t['color'] }}"></span>
                     <span class="al-role-filter-item-label">{{ $t['label'] }}</span>
                     @if ($t['key'] === 'failed_login')
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0zm-9 3.75h.008v.008H12v-.008z"/></svg>
                     @endif
-                </a>
+                </button>
                 @endforeach
             </div>
         </div>
     </div>
 
     {{-- Search + date filters --}}
-    <form method="GET" action="{{ url()->current() }}">
-        <input type="hidden" name="action" value="{{ $action }}">
-        <input type="hidden" name="page"   value="1">
-        <div class="al-filters">
-            <div class="al-search-box">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607z"/>
-                </svg>
-                <input type="text" name="search" value="{{ $search }}" placeholder="Search user, email, IP…">
-            </div>
-
-            <div class="al-date-box">
-                <label>From</label>
-                <input type="date" name="from" value="{{ $from }}" class="al-date-input">
-            </div>
-            <div class="al-date-box">
-                <label>To</label>
-                <input type="date" name="to" value="{{ $to }}" class="al-date-input">
-            </div>
-
-            <button type="submit" class="al-filter-btn" style="background:{{ $accent }};color:#fff;">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:12px;height:12px"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75"/></svg>
-                Filter
-            </button>
-
-            @if ($search || $from || $to)
-                <a href="{{ $url(['search' => '', 'from' => '', 'to' => '', 'page' => 1]) }}" class="al-clear-link">
-                    Clear filters
-                </a>
-            @endif
+    <div class="al-filters">
+        <div class="al-search-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607z"/>
+            </svg>
+            <input type="text" wire:model.live.debounce.500ms="search" placeholder="Search user, email, IP…">
         </div>
-    </form>
+
+        <div class="al-date-box">
+            <label>From</label>
+            <input type="date" wire:model.live="from" class="al-date-input">
+        </div>
+        <div class="al-date-box">
+            <label>To</label>
+            <input type="date" wire:model.live="to" class="al-date-input">
+        </div>
+
+        @if ($search || $from || $to)
+            <button type="button" wire:click="clearFilters" class="al-clear-link" style="border:none;cursor:pointer;background:none;font-family:inherit">
+                Clear filters
+            </button>
+        @endif
+    </div>
 
     {{-- Table --}}
-    <div style="overflow-x:auto;border-radius:0 0 12px 12px;">
+    <div style="overflow-x:auto;border-radius:0 0 12px 12px;" wire:loading.class="al-loading" wire:target="selectAction,gotoPage,search,from,to,setPerPage,clearFilters">
     <table class="al-table">
         <thead>
             <tr>
@@ -407,7 +398,7 @@ html:not(.dark) .al {
         <div style="display:flex;align-items:center;gap:16px">
             <div class="al-per-page">
                 Per page
-                <select onchange="window.location.href='{{ $url([]) }}&per_page=' + this.value + '&page=1'">
+                <select wire:change="setPerPage($event.target.value)">
                     @foreach([25, 50, 100] as $n)
                         <option value="{{ $n }}" {{ $perPage == $n ? 'selected' : '' }}>{{ $n }}</option>
                     @endforeach
@@ -415,21 +406,21 @@ html:not(.dark) .al {
             </div>
             @if ($totalPages > 1)
             <div class="al-pages">
-                <a href="{{ $url(['page' => max(1, $curPage - 1)]) }}"
-                   class="al-page-btn {{ $curPage === 1 ? 'disabled' : '' }}">
+                <button type="button" wire:click="gotoPage({{ max(1, $curPage - 1) }})"
+                   class="al-page-btn {{ $curPage === 1 ? 'disabled' : '' }}" @disabled($curPage === 1)>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:12px;height:12px"><path d="M15 19l-7-7 7-7"/></svg>
-                </a>
+                </button>
                 @for ($p = max(1, $curPage - 2); $p <= min($totalPages, $curPage + 2); $p++)
-                    <a href="{{ $url(['page' => $p]) }}"
+                    <button type="button" wire:click="gotoPage({{ $p }})"
                        class="al-page-btn {{ $curPage === $p ? 'active' : '' }}"
                        style="{{ $curPage === $p ? 'background:' . $accent : '' }}">
                         {{ $p }}
-                    </a>
+                    </button>
                 @endfor
-                <a href="{{ $url(['page' => min($totalPages, $curPage + 1)]) }}"
-                   class="al-page-btn {{ $curPage === $totalPages ? 'disabled' : '' }}">
+                <button type="button" wire:click="gotoPage({{ min($totalPages, $curPage + 1) }})"
+                   class="al-page-btn {{ $curPage === $totalPages ? 'disabled' : '' }}" @disabled($curPage === $totalPages)>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:12px;height:12px"><path d="M9 5l7 7-7 7"/></svg>
-                </a>
+                </button>
             </div>
             @endif
         </div>
@@ -468,4 +459,5 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') alCloseModal
 
 @include('filament.pages.partials._csv-download-script')
 
+</div>
 </div>{{-- single root closes here --}}

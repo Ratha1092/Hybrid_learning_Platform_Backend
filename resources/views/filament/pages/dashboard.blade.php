@@ -1,817 +1,1008 @@
-{{-- resources/views/filament/pages/dashboard.blade.php --}}
-
-@php
-    $paidPayments        = max((int)  $completedPayments,  0);
-    $pendingCount        = max((int)  $pendingPayments,     0);
-    $failedCount         = max((int)  $failedPayments,      0);
-    $allPayments         = max($paidPayments + $pendingCount + $failedCount, 1);
-    $successRate         = round(($paidPayments / $allPayments) * 100);
-
-    $gtTotal  = max(collect($paymentGatewayBreakdown)->sum(), 1);
-    $gwRows   = collect($paymentGatewayBreakdown)
-        ->map(fn($v,$k) => [
-            'name'    => str($k)->headline()->toString(),
-            'amount'  => (float) $v,
-            'percent' => round(((float)$v / $gtTotal) * 100, 1),
-        ])
-        ->sortByDesc('amount')->values();
-
-    $pts     = collect($revenueTrend)->values();
-    $maxRev  = max((float)$pts->max('revenue'), 1);
-    $maxOrd  = max((int)$pts->max('orders'),    1);
-    $ptCount = max($pts->count(), 1);
-
-    // SVG helpers
-    $W = 616; $H = 160;
-    $lineCoords = $pts->map(function($p,$i) use ($ptCount,$W,$H,$maxRev) {
-        $x = $ptCount===1 ? 32 : 32 + ($i/($ptCount-1))*($W-32);
-        $y = ($H-20) - ((float)$p['revenue']/$maxRev)*($H-44);
-        return round($x,1).','.round($y,1);
-    })->implode(' ');
-    $areaCoords = '32,'.($H-20).' '.$lineCoords.' '.($W).','.($H-20);
-
-    $latestTx = $recentPayments->take(6);
-
-    // Donut
-    $donutColors = ['#2f8cff','#53d3cd','#8b5cf6','#21c77a','#e3b83f'];
-    $r = 52; $circ = 2 * M_PI * $r;
-    $dOffset = 0;
-    $donutSegs = $gwRows->map(function($row,$i) use (&$dOffset,$donutColors,$circ,$r) {
-        $dash = ($row['percent']/100) * $circ;
-        $seg  = ['color'=>$donutColors[$i%5],'dash'=>round($dash,2),'gap'=>round($circ-$dash,2),'off'=>round($dOffset,2)];
-        $dOffset += $dash;
-        return $seg;
-    });
-
-    $hour = now()->hour;
-    $greeting = $hour < 12 ? 'morning' : ($hour < 18 ? 'afternoon' : 'evening');
-    $userName = auth()->user()->name ?? 'Admin';
-@endphp
-
-{{-- Sidebar styling is handled in the Filament theme CSS --}}
-
-{{-- DASHBOARD CSS --}}
+<x-filament-panels::page>
 <style>
-.rb,
-.rb *, .rb *::before, .rb *::after { box-sizing: border-box; margin: 0; padding: 0; }
-.rb {
-    font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-    font-size: 13px;
-    line-height: 1.5;
-    padding: 0 0 44px;
-    display: grid;
-    gap: 16px;
-
-    --bg:     #111d32;
-    --p1:     #172540;
-    --p2:     #1c2d4c;
-    --p3:     #1f3358;
-    --bd:     rgba(255,255,255,.07);
-    --bd2:    rgba(255,255,255,.13);
-    --t1:     #cee0f4;
-    --t2:     #5a7a9a;
-    --t3:     #2e4a68;
-    --blue:   #2f8cff;
-    --cyan:   #53d3cd;
-    --green:  #21c77a;
-    --amber:  #e3b83f;
-    --red:    #ef5b63;
-    --purple: #8b5cf6;
-    --sh:     0 8px 28px rgba(0,0,0,.28);
-    color: var(--t1);
+/* ── Light mode tokens ─────────────────────────────────────────── */
+:root {
+    --db-bg:       #F1F5F9;
+    --db-card:     #FFFFFF;
+    --db-border:   #E2E8F0;
+    --db-t1:       #0F172A;
+    --db-t2:       #334155;
+    --db-t3:       #64748B;
+    --db-t4:       #94A3B8;
+    --db-blue:     #3B82F6;
+    --db-blue-d:   #1E40AF;
+    --db-blue-l:   #EFF6FF;
+    --db-blue-2:   #DBEAFE;
+    --db-green:    #10B981;
+    --db-green-l:  #ECFDF5;
+    --db-amber:    #F59E0B;
+    --db-amber-l:  #FFFBEB;
+    --db-red:      #EF4444;
+    --db-red-l:    #FEF2F2;
+    --db-purple:   #8B5CF6;
+    --db-purple-l: #F5F3FF;
+    --db-teal:     #14B8A6;
+    --db-sh:       0 1px 3px 0 rgb(0 0 0/.07), 0 1px 2px -1px rgb(0 0 0/.05);
+    --db-sh-md:    0 4px 6px -1px rgb(0 0 0/.08), 0 2px 4px -2px rgb(0 0 0/.05);
+    --db-input-bg: #F8FAFC;
 }
-html:not(.dark) .rb {
-    --bg: #edf1f8; --p1: #ffffff; --p2: #f5f8fc; --p3: #eef2f9;
-    --bd: rgba(15,23,42,.13); --bd2: rgba(15,23,42,.20);
-    --t1: #0e1e34; --t2: #5070a0; --t3: #9ab0cc;
-    --sh: 0 4px 18px rgba(15,23,42,.1);
-    color: var(--t1);
-}
-
-/* ── animations ── */
-@keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:none} }
-@keyframes blink  { 0%,100%{opacity:1} 50%{opacity:.3} }
-.a  { opacity:0; animation:fadeUp .55s cubic-bezier(.16,1,.3,1) forwards; }
-.d1{animation-delay:.03s} .d2{animation-delay:.08s} .d3{animation-delay:.13s}
-.d4{animation-delay:.18s} .d5{animation-delay:.23s} .d6{animation-delay:.28s}
-.d7{animation-delay:.33s} .d8{animation-delay:.38s} .d9{animation-delay:.43s}
-.d10{animation-delay:.48s}
-
-/* ────────── GREETING HEADER ────────── */
-.rb-greet {
-    display: flex; align-items: flex-end; justify-content: space-between;
-    flex-wrap: wrap; gap: 12px;
-    padding-bottom: 20px; border-bottom: 1px solid var(--bd);
-}
-.rb-greet-text h1 {
-    font-size: clamp(22px,2.8vw,32px); font-weight: 780;
-    letter-spacing: -.015em; color: var(--t1); line-height: 1.1;
-}
-.rb-greet-text h1 em {
-    font-style: normal;
-    background: linear-gradient(100deg,#5bc8ff,#2f8cff);
-    -webkit-background-clip: text; background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-.rb-greet-text p { font-size:12px; color:var(--t2); margin-top:5px; font-weight:400; }
-.rb-live {
-    display: flex; align-items: center; gap: 8px;
-    background: var(--p1); border: 1px solid var(--bd2);
-    border-radius: 100px; padding: 7px 16px 7px 11px;
-    font-size: 11.5px; font-weight: 600; color: var(--blue);
-    letter-spacing: .03em; white-space: nowrap;
-}
-.rb-live-dot {
-    width: 7px; height: 7px; border-radius: 50%;
-    background: var(--green); box-shadow: 0 0 8px var(--green);
-    animation: blink 2.2s ease-in-out infinite; flex-shrink: 0;
+/* ── Dark mode tokens ──────────────────────────────────────────── */
+html.dark {
+    --db-bg:       #0F172A;
+    --db-card:     #1E293B;
+    --db-border:   #334155;
+    --db-t1:       #F1F5F9;
+    --db-t2:       #CBD5E1;
+    --db-t3:       #94A3B8;
+    --db-t4:       #64748B;
+    --db-blue:     #60A5FA;
+    --db-blue-d:   #93C5FD;
+    --db-blue-l:   #1E3A5F;
+    --db-blue-2:   #1E3A5F;
+    --db-green:    #34D399;
+    --db-green-l:  #064E3B;
+    --db-amber:    #FBBF24;
+    --db-amber-l:  #451A03;
+    --db-red:      #F87171;
+    --db-red-l:    #450A0A;
+    --db-purple:   #A78BFA;
+    --db-purple-l: #2E1065;
+    --db-sh:       0 1px 3px 0 rgb(0 0 0/.3), 0 1px 2px -1px rgb(0 0 0/.2);
+    --db-sh-md:    0 4px 6px -1px rgb(0 0 0/.35), 0 2px 4px -2px rgb(0 0 0/.25);
+    --db-input-bg: #0F172A;
 }
 
-/* ────────── SUBHEAD + INLINE FILTER ROW ────────── */
-.rb-subhead {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 10px;
-}
-.rb-title {
-    font-size: 20px;
-    font-weight: 750;
-    letter-spacing: -.01em;
-    color: var(--t1);
-    white-space: nowrap;
-}
-.rb-filters {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    flex-wrap: wrap;
-}
-.rb-filter-group {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
-.rb-filter-lbl {
-    font-size: 10px;
-    font-weight: 800;
-    letter-spacing: .1em;
-    text-transform: uppercase;
-    color: var(--t2);
-    white-space: nowrap;
-}
-.rb-select {
-    appearance: none;
-    -webkit-appearance: none;
-    background-color: var(--p1);
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11' viewBox='0 0 24 24' fill='none' stroke='%235a7a9a' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 7px center;
-    border: 1px solid var(--bd2);
-    border-radius: 7px;
-    padding: 5px 24px 5px 9px;
-    font-size: 11px;
-    font-weight: 700;
-    color: var(--t1);
-    cursor: pointer;
-    outline: none;
-    transition: border-color .18s, box-shadow .18s;
-    font-family: inherit;
-}
-.rb-select:hover  { border-color: rgba(47,140,255,.4); }
-.rb-select:focus  { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(47,140,255,.12); }
-html:not(.dark) .rb-select { background-color: #fff; color: #0e1e34; }
-.rb-select option { background: #172540; color: #cee0f4; }
-html:not(.dark) .rb-select option { background: #fff; color: #0e1e34; }
+/* Strip Filament's outer padding on dashboard pages only */
+.fi-main:has(.db-wrap)                  { padding-inline: 0 !important; }
+.fi-page-header-main-ctn:has(.db-wrap) { padding-block: 0 !important; row-gap: 0 !important; }
+.fi-page-content:has(.db-wrap)          { row-gap: 0 !important; }
 
-.rb-fdivider {
-    width: 1px; height: 18px;
-    background: var(--bd2);
-    flex-shrink: 0;
-    margin: 0 2px;
-}
-.rb-apply-btn {
-    background: var(--blue);
-    color: #fff;
-    border: none;
-    border-radius: 7px;
-    padding: 6px 14px;
-    font-size: 11px;
-    font-weight: 800;
-    letter-spacing: .04em;
-    cursor: pointer;
-    transition: opacity .18s, transform .15s;
-    white-space: nowrap;
-    font-family: inherit;
-}
-.rb-apply-btn:hover  { opacity: .85; transform: translateY(-1px); }
-.rb-apply-btn:active { transform: translateY(0); opacity: 1; }
+.db-wrap { background:var(--db-bg); min-height:100vh; padding:1rem 1.25rem; font-family:'Inter',system-ui,sans-serif; color:var(--db-t1); }
 
-/* ────────── KPI CARDS ────────── */
-.rb-kpis { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; }
-@media(max-width:1080px){.rb-kpis{grid-template-columns:repeat(2,1fr);}}
-@media(max-width:520px) {.rb-kpis{grid-template-columns:1fr;}}
+/* ── Card ─────────────────────────────────────────────────────── */
+.db-card { background:var(--db-card); border:1px solid var(--db-border); border-radius:.75rem; box-shadow:var(--db-sh); overflow:hidden; }
+.db-card-header { display:flex; align-items:center; justify-content:space-between; padding:.875rem 1.125rem .75rem; border-bottom:1px solid var(--db-border); }
+.db-card-title  { font-size:.875rem; font-weight:600; color:var(--db-t1); display:flex; align-items:center; gap:.4rem; }
+.db-card-body   { padding:1rem 1.125rem; }
 
-.rb-kpi {
-    position: relative; overflow: hidden;
-    background: var(--p1); border: 1px solid var(--bd);
-    border-radius: 10px; padding: 18px 18px 16px;
-    box-shadow: var(--sh);
-    transition: transform .2s, border-color .25s;
-    --ic: var(--blue);
-}
-.rb-kpi:hover { transform: translateY(-2px); border-color: var(--bd2); }
-a.rb-kpi:hover { border-color: color-mix(in srgb, var(--ic) 40%, transparent); box-shadow: var(--sh), 0 0 0 1px color-mix(in srgb, var(--ic) 20%, transparent); }
-.rb-kpi-row { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
-.rb-kpi-val { font-size:22px; font-weight:780; letter-spacing:-.01em; line-height:1; color:var(--t1); }
-.rb-kpi-lbl { font-size:11.5px; font-weight:600; color:var(--t2); margin-top:7px; }
-.rb-kpi-ico {
-    width:52px; height:52px; border-radius:50%; flex-shrink:0;
-    display:grid; place-items:center;
-    color: var(--ic);
-    background: color-mix(in srgb, var(--ic) 15%, transparent);
-}
-.rb-kpi-ico svg { width:22px; height:22px; }
-.rb-kpi::after {
-    content:''; position:absolute; right:-18px; bottom:-18px;
-    width:88px; height:88px; border-radius:50%; pointer-events:none;
-    background: color-mix(in srgb, var(--ic) 18%, transparent);
-    filter: blur(30px); opacity:.4;
-}
-.rb-tag {
-    display:inline-flex; align-items:center; gap:4px;
-    margin-top:13px; border-radius:5px; padding:3px 8px;
-    font-size:10px; font-weight:800;
-    background:rgba(33,199,122,.14); color:var(--green);
-}
-.rb-tag.warn { background:rgba(239,91,99,.14);  color:var(--red); }
-.rb-tag.neu  { background:rgba(47,140,255,.13);  color:var(--blue); }
-.rb-tag.mute { background:rgba(227,184,63,.12);  color:var(--amber); }
+/* ── Top bar ──────────────────────────────────────────────────── */
+.db-topbar { display:flex; align-items:center; justify-content:space-between; margin-bottom:1.25rem; flex-wrap:wrap; gap:.75rem; }
+.db-topbar-left h1 { font-size:1.75rem; font-weight:700; color:var(--db-t1); margin:0; }
+.db-topbar-left p  { font-size:.8125rem; color:var(--db-t3); margin:.1rem 0 0; }
+.db-topbar-right   { display:flex; align-items:center; gap:.5rem; flex-wrap:wrap; }
 
-/* ────────── GRIDS ────────── */
-.rb-g2  { display:grid; grid-template-columns:1fr .86fr; gap:14px; }
-.rb-g2b { display:grid; grid-template-columns:1.45fr .7fr;  gap:14px; }
-@media(max-width:1080px){.rb-g2,.rb-g2b{grid-template-columns:1fr;}}
-
-/* ────────── PANEL ────────── */
-.rb-panel { background:var(--p1); border:1px solid var(--bd); border-radius:10px; overflow:hidden; box-shadow:var(--sh); }
-.rb-ph {
-    display:flex; align-items:center; justify-content:space-between;
-    gap:12px; padding:12px 16px 11px; border-bottom:1px solid var(--bd); min-height:46px;
+/* ── Date filter ──────────────────────────────────────────────── */
+.db-filter-form { display:flex; align-items:center; gap:.5rem; flex-wrap:wrap; }
+.db-select {
+    background:var(--db-card); border:1px solid var(--db-border); border-radius:.5rem;
+    padding:.35rem .75rem; font-size:.8125rem; color:var(--db-t2); cursor:pointer;
+    outline:none; transition:border-color .15s;
+    -webkit-appearance:none; appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right .5rem center; padding-right:1.75rem;
 }
-.rb-ph-title { font-size:13px; font-weight:750; color:var(--t1); }
-.rb-tabs { display:flex; gap:4px; }
-.rb-tab {
-    border:1px solid var(--bd); border-radius:5px; padding:4px 9px;
-    font-size:10.5px; font-weight:700; color:var(--t2); background:transparent; cursor:pointer;
+.db-select:focus { border-color:var(--db-blue); }
+.db-date-input {
+    background:var(--db-card); border:1px solid var(--db-border); border-radius:.5rem;
+    padding:.35rem .65rem; font-size:.8125rem; color:var(--db-t2); outline:none; transition:border-color .15s;
+    colorscheme:light dark;
 }
-.rb-tab.on { color:var(--blue); background:rgba(47,140,255,.14); border-color:rgba(47,140,255,.22); }
-.rb-ph-link {
-    font-size:11px; font-weight:700; color:var(--blue); text-decoration:none;
-    background:rgba(47,140,255,.12); border:1px solid rgba(47,140,255,.2);
-    border-radius:5px; padding:4px 10px; transition:opacity .18s;
+.db-date-input:focus { border-color:var(--db-blue); }
+.db-filter-btn {
+    background:var(--db-blue); color:#fff; border:none; border-radius:.5rem;
+    padding:.375rem .875rem; font-size:.8125rem; font-weight:600; cursor:pointer; transition:opacity .15s;
 }
-.rb-ph-link:hover { opacity:.75; }
-
-/* ────────── CHARTS ────────── */
-.rb-chart-wrap { padding:14px 14px 2px; }
-.rb-chart-wrap svg { display:block; width:100%; }
-.rb-months {
-    display:flex; justify-content:space-between;
-    padding:6px 16px 12px; font-size:10.5px; font-weight:700; color:var(--t3);
+.db-filter-btn:hover { opacity:.88; }
+.db-filter-btn-ghost {
+    background:var(--db-card); color:var(--db-t3); border:1px solid var(--db-border); border-radius:.5rem;
+    padding:.35rem .75rem; font-size:.8125rem; cursor:pointer; text-decoration:none; transition:border-color .15s;
 }
-.rb-bars-wrap { display:flex; align-items:flex-end; justify-content:space-around; padding:20px 16px 6px; min-height:185px; }
-.rb-bar-col { display:flex; flex-direction:column; align-items:center; gap:8px; flex:1; }
-.rb-bar-pair { display:flex; align-items:flex-end; gap:5px; }
-.rb-b { width:9px; border-radius:999px; background:var(--blue); box-shadow:0 0 14px rgba(47,140,255,.2); }
-.rb-b.alt { background:var(--cyan); box-shadow:0 0 14px rgba(83,211,205,.18); }
-.rb-bar-lbl { font-size:10px; font-weight:700; color:var(--t3); }
-.rb-bar-legend { display:flex; gap:16px; padding:10px 16px 14px; border-top:1px solid var(--bd); }
-.rb-leg { display:flex; align-items:center; gap:6px; }
-.rb-leg-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
-.rb-leg-lbl { font-size:10.5px; font-weight:600; color:var(--t2); }
+.db-filter-btn-ghost:hover { border-color:var(--db-blue); color:var(--db-blue); }
 
-/* ────────── TABLE ────────── */
-.rb-tscroll { overflow-x:auto; }
-.rb-table { width:100%; border-collapse:collapse; }
-.rb-table th { background:var(--p2); padding:11px 14px; font-size:11px; font-weight:750; color:var(--t2); text-align:left; white-space:nowrap; }
-.rb-table td { padding:11px 14px; border-top:1px solid var(--bd); font-size:11.5px; font-weight:600; color:var(--t2); vertical-align:middle; }
-.rb-table tr:hover td { background:rgba(47,140,255,.04); }
-.rb-person { display:flex; align-items:center; gap:10px; }
-.rb-av { width:30px; height:30px; border-radius:50%; flex-shrink:0; display:grid; place-items:center; background:linear-gradient(135deg,#46d2c8,#2f8cff); font-size:11px; font-weight:900; color:#fff; }
-.rb-name { font-size:12px; font-weight:750; color:var(--t1); }
-.rb-meta { font-size:10.5px; color:var(--t2); }
-.rb-st { display:inline-flex; align-items:center; border-radius:5px; padding:3px 8px; font-size:10px; font-weight:850; white-space:nowrap; }
-.rb-st.ok  { color:var(--green);  background:rgba(33,199,122,.13); }
-.rb-st.pnd { color:var(--amber);  background:rgba(227,184,63,.13); }
-.rb-st.err { color:var(--red);    background:rgba(239,91,99,.13); }
-.rb-empty  { padding:24px 16px; color:var(--t2); font-size:12px; }
+/* ── Badges ───────────────────────────────────────────────────── */
+.db-badge { display:inline-flex; align-items:center; gap:.2rem; font-size:.6875rem; font-weight:600; padding:.2rem .45rem; border-radius:9999px; white-space:nowrap; }
+.db-badge-green  { background:var(--db-green-l);  color:#065F46; }
+.db-badge-red    { background:var(--db-red-l);    color:#991B1B; }
+.db-badge-amber  { background:var(--db-amber-l);  color:#92400E; }
+.db-badge-blue   { background:var(--db-blue-2);   color:var(--db-blue-d); }
+.db-badge-gray   { background:var(--db-border);   color:var(--db-t3); }
+.db-badge-purple { background:var(--db-purple-l); color:#5B21B6; }
+html.dark .db-badge-green  { color:#A7F3D0; }
+html.dark .db-badge-red    { color:#FCA5A5; }
+html.dark .db-badge-amber  { color:#FDE68A; }
+html.dark .db-badge-blue   { color:var(--db-blue-d); }
+html.dark .db-badge-purple { color:#DDD6FE; }
 
-/* ────────── DONUT ────────── */
-.rb-donut-wrap { display:flex; flex-direction:column; align-items:center; padding:18px 16px 8px; }
-.rb-donut-c { position:relative; display:grid; place-items:center; }
-.rb-donut-lbl { position:absolute; text-align:center; pointer-events:none; }
-.rb-donut-lbl span { display:block; font-size:11px; font-weight:700; color:var(--t2); }
-.rb-donut-lbl strong { display:block; font-size:18px; font-weight:800; color:var(--t1); margin-top:2px; }
-.rb-src-table { width:100%; border-collapse:collapse; }
-.rb-src-table th,.rb-src-table td { padding:8px 16px; border-top:1px solid var(--bd); font-size:11px; font-weight:700; text-align:left; color:var(--t2); }
-.rb-src-table th { background:var(--p2); border-top:none; font-size:10.5px; color:var(--t3); }
+/* ── Status dot ───────────────────────────────────────────────── */
+.db-dot { width:.5rem; height:.5rem; border-radius:9999px; display:inline-block; flex-shrink:0; }
+.db-dot-green { background:var(--db-green); box-shadow:0 0 0 2px var(--db-green-l); }
+.db-dot-red   { background:var(--db-red);   box-shadow:0 0 0 2px var(--db-red-l); }
+.db-dot-amber { background:var(--db-amber); box-shadow:0 0 0 2px var(--db-amber-l); }
 
-/* ────────── VERIFY LIST ────────── */
-.rb-vrow { display:flex; align-items:center; gap:11px; padding:12px 16px; border-top:1px solid var(--bd); transition:background .18s; }
-.rb-vrow:hover { background:rgba(47,140,255,.04); }
+/* ── KPI grid ─────────────────────────────────────────────────── */
+.db-kpi-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; margin-bottom:1rem; }
+@media(max-width:1024px){ .db-kpi-grid{ grid-template-columns:repeat(2,1fr); } }
+@media(max-width:640px) { .db-kpi-grid{ grid-template-columns:1fr; } }
+.db-kpi { background:var(--db-card); border:1px solid var(--db-border); border-radius:.75rem; padding:1.125rem 1.25rem; box-shadow:var(--db-sh); display:flex; flex-direction:column; gap:.625rem; transition:box-shadow .15s; }
+.db-kpi:hover { box-shadow:var(--db-sh-md); }
+.db-kpi-top   { display:flex; align-items:flex-start; justify-content:space-between; gap:.5rem; }
+.db-kpi-icon  { width:2.5rem; height:2.5rem; border-radius:.625rem; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.db-kpi-icon svg { width:1.25rem; height:1.25rem; }
+.db-kpi-value { font-size:1.75rem; font-weight:700; color:var(--db-t1); line-height:1; letter-spacing:-.025em; font-variant-numeric:tabular-nums; }
+.db-kpi-label { font-size:.6875rem; font-weight:600; color:var(--db-t3); text-transform:uppercase; letter-spacing:.05em; margin-bottom:.25rem; }
 
-/* ────────── RESPONSIVE FILTER ────────── */
-@media(max-width:900px) {
-    .rb-subhead { flex-direction: column; align-items: flex-start; }
-    .rb-filters { width: 100%; }
+/* ── Action Required cards ────────────────────────────────────── */
+.db-action-card {
+    background:var(--db-card); border:1px solid var(--db-border); border-radius:.75rem;
+    padding:.875rem 1rem; box-shadow:var(--db-sh); margin-bottom:1rem;
 }
-@media(max-width:600px) {
-    .rb-filters { gap: 8px; }
-    .rb-fdivider { display: none; }
-    .rb-filter-group { flex: 1; min-width: 0; }
-    .rb-select { width: 100%; }
+.db-action-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:.875rem; }
+.db-action-title  { font-size:.9375rem; font-weight:700; color:var(--db-t1); }
+.db-action-grid   { display:grid; grid-template-columns:repeat(5,1fr); gap:.75rem; }
+@media(max-width:1100px){ .db-action-grid{ grid-template-columns:repeat(3,1fr); } }
+@media(max-width:640px) { .db-action-grid{ grid-template-columns:repeat(2,1fr); } }
+.db-action-item {
+    display:flex; align-items:center; gap:.75rem; padding:.75rem .875rem;
+    border-radius:.625rem; border:1px solid var(--db-border); background:var(--db-bg);
+    text-decoration:none; transition:box-shadow .15s;
+    cursor:pointer;
 }
+.db-action-item:hover { box-shadow:var(--db-sh-md); }
+.db-action-icon  { width:2.25rem; height:2.25rem; border-radius:.5rem; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.db-action-icon svg { width:1.125rem; height:1.125rem; }
+.db-action-num   { font-size:1.25rem; font-weight:700; color:var(--db-t1); line-height:1; }
+.db-action-lbl   { font-size:.6875rem; color:var(--db-t3); margin-top:.1rem; line-height:1.3; }
+
+/* ── Revenue chart ────────────────────────────────────────────── */
+.db-rev-grid { display:grid; grid-template-columns:1fr 264px; gap:1rem; margin-bottom:1rem; }
+@media(max-width:1100px){ .db-rev-grid{ grid-template-columns:1fr; } }
+.db-period-tabs { display:flex; gap:.2rem; background:var(--db-bg); border-radius:.5rem; padding:.2rem; border:1px solid var(--db-border); }
+.db-period-tab  { padding:.275rem .65rem; border-radius:.375rem; font-size:.75rem; font-weight:600; color:var(--db-t3); cursor:pointer; border:none; background:none; transition:all .15s; }
+.db-period-tab.active { background:var(--db-card); color:var(--db-blue-d); box-shadow:0 1px 3px rgb(0 0 0/.12); }
+html.dark .db-period-tab.active { color:var(--db-blue); }
+.db-chart-wrap { padding:.75rem 1.125rem 0; overflow:hidden; }
+.db-chart-area { width:100%; display:block; }
+.db-rev-legend { display:flex; align-items:center; gap:1rem; padding:.5rem 1.125rem .875rem; flex-wrap:wrap; }
+.db-legend-item { display:flex; align-items:center; gap:.375rem; font-size:.75rem; color:var(--db-t3); }
+.db-legend-dot  { width:.5rem; height:.5rem; border-radius:9999px; flex-shrink:0; }
+
+.db-rev-stats { display:flex; flex-direction:column; gap:.625rem; }
+.db-rev-stat  { background:var(--db-card); border:1px solid var(--db-border); border-radius:.75rem; padding:.75rem .875rem; box-shadow:var(--db-sh); flex:1; }
+.db-rev-stat-lbl { font-size:.625rem; font-weight:600; color:var(--db-t3); text-transform:uppercase; letter-spacing:.05em; }
+.db-rev-stat-val { font-size:1.125rem; font-weight:700; color:var(--db-t1); font-variant-numeric:tabular-nums; margin:.1rem 0 .2rem; }
+.db-rev-stat-sub { font-size:.6875rem; color:var(--db-t3); display:flex; align-items:center; gap:.35rem; flex-wrap:wrap; }
+
+/* ── Mini stats ───────────────────────────────────────────────── */
+.db-mini-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; margin-bottom:1rem; }
+@media(max-width:768px){ .db-mini-grid{ grid-template-columns:1fr; } }
+.db-mini { background:var(--db-card); border:1px solid var(--db-border); border-radius:.75rem; padding:1rem 1.25rem; box-shadow:var(--db-sh); display:flex; align-items:center; gap:.875rem; }
+.db-mini-icon  { width:2.5rem; height:2.5rem; border-radius:.625rem; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.db-mini-icon svg { width:1.25rem; height:1.25rem; }
+.db-mini-lbl   { font-size:.75rem; color:var(--db-t3); font-weight:500; }
+.db-mini-val   { font-size:1.5rem; font-weight:700; color:var(--db-t1); line-height:1.15; font-variant-numeric:tabular-nums; }
+.db-mini-sub   { font-size:.6875rem; color:var(--db-t3); margin-top:.15rem; display:flex; align-items:center; gap:.3rem; }
+
+/* ── Tables ───────────────────────────────────────────────────── */
+.db-table { width:100%; border-collapse:collapse; }
+.db-table th { padding:.5rem .75rem; font-size:.6875rem; font-weight:600; text-transform:uppercase; letter-spacing:.04em; color:var(--db-t3); text-align:left; border-bottom:1px solid var(--db-border); background:var(--db-bg); white-space:nowrap; }
+.db-table td { padding:.6rem .75rem; font-size:.8125rem; color:var(--db-t2); border-bottom:1px solid var(--db-border); vertical-align:middle; }
+.db-table tr:last-child td { border-bottom:none; }
+.db-table tbody tr:hover td { background:var(--db-bg); }
+.db-rank { width:1.5rem; height:1.5rem; border-radius:9999px; display:flex; align-items:center; justify-content:center; font-size:.6875rem; font-weight:700; }
+.db-rank-1 { background:#FEF3C7; color:#92400E; }
+.db-rank-2 { background:var(--db-border); color:var(--db-t2); }
+.db-rank-3 { background:var(--db-red-l); color:#991B1B; }
+.db-rank-n { background:var(--db-border); color:var(--db-t3); }
+html.dark .db-rank-1 { color:#FDE68A; }
+html.dark .db-rank-3 { color:#FCA5A5; }
+.db-avatar { width:2rem; height:2rem; border-radius:9999px; background:var(--db-blue-2); color:var(--db-blue-d); display:flex; align-items:center; justify-content:center; font-size:.6875rem; font-weight:700; flex-shrink:0; }
+html.dark .db-avatar { color:var(--db-blue); }
+.db-avatar-row { display:flex; align-items:center; gap:.5rem; }
+.db-name { font-weight:500; color:var(--db-t1); }
+.db-sub  { font-size:.6875rem; color:var(--db-t3); }
+
+/* ── Two-col ──────────────────────────────────────────────────── */
+.db-two-col { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem; }
+@media(max-width:900px){ .db-two-col{ grid-template-columns:1fr; } }
+/* ── Orders/refunds wide row ──────────────────────────────────── */
+.db-orders-row { display:grid; grid-template-columns:3fr 2fr; gap:1rem; margin-bottom:1rem; }
+@media(max-width:960px){ .db-orders-row{ grid-template-columns:1fr; } }
+
+/* ── Three-col ────────────────────────────────────────────────── */
+.db-three-col { display:grid; grid-template-columns:1fr 1fr 1fr; gap:1rem; margin-bottom:1rem; }
+@media(max-width:1100px){ .db-three-col{ grid-template-columns:1fr 1fr; } }
+@media(max-width:700px) { .db-three-col{ grid-template-columns:1fr; } }
+
+/* ── Course list ──────────────────────────────────────────────── */
+.db-course-row { display:flex; align-items:center; gap:.75rem; padding:.6rem 0; border-bottom:1px solid var(--db-border); }
+.db-course-row:last-child { border-bottom:none; }
+.db-course-thumb { width:2.5rem; height:2.5rem; border-radius:.375rem; display:flex; align-items:center; justify-content:center; font-size:.75rem; font-weight:700; flex-shrink:0; }
+.db-course-info { flex:1; min-width:0; }
+.db-course-name { font-size:.8125rem; font-weight:500; color:var(--db-t1); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.db-course-meta { font-size:.6875rem; color:var(--db-t3); }
+.db-stars { display:flex; align-items:center; gap:.1rem; }
+.db-star { width:.8125rem; height:.8125rem; }
+
+/* ── System Health ────────────────────────────────────────────── */
+.db-health-list { padding:.25rem 0; }
+.db-health-row  { display:flex; align-items:center; justify-content:space-between; padding:.6rem 1.125rem; border-bottom:1px solid var(--db-border); gap:.5rem; }
+.db-health-row:last-child { border-bottom:none; }
+.db-health-lbl  { display:flex; align-items:center; gap:.5rem; font-size:.8125rem; color:var(--db-t2); }
+.db-health-lbl svg { width:1rem; height:1rem; flex-shrink:0; }
+.db-health-val  { font-size:.8125rem; font-weight:600; color:var(--db-t1); text-align:right; }
+.db-progress-bar  { height:.375rem; background:var(--db-border); border-radius:9999px; overflow:hidden; margin-top:.375rem; }
+.db-progress-fill { height:100%; border-radius:9999px; }
+
+/* ── Utility ──────────────────────────────────────────────────── */
+.db-trunc  { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.db-mono   { font-variant-numeric:tabular-nums; }
+.db-view-all { font-size:.75rem; font-weight:500; color:var(--db-blue); text-decoration:none; white-space:nowrap; }
+.db-view-all:hover { text-decoration:underline; }
+.db-empty  { text-align:center; color:var(--db-t3); font-size:.8125rem; padding:2rem 0; }
+.db-link   { color:var(--db-blue); text-decoration:none; font-weight:500; }
+.db-link:hover { text-decoration:underline; }
 </style>
 
-<div class="rb">
-
-    {{-- GREETING --}}
-    <div class="rb-greet a d1">
-        <div class="rb-greet-text">
-            <h1>Good {{ $greeting }}, <em>{{ $userName }}</em> 👋</h1>
-            <p>Here's what's happening on your platform today.</p>
-        </div>
-        <div class="rb-live">
-            <div class="rb-live-dot"></div>
-            {{ now()->format('l, F j, Y') }}
-        </div>
-    </div>
-
-    {{-- ADMIN DASHBOARD TITLE + INLINE FILTERS --}}
-    <div class="rb-subhead a d2">
-        <h2 class="rb-title">Admin Dashboard</h2>
-
-        <div class="rb-filters">
-
-            {{-- Period --}}
-            <div class="rb-filter-group">
-                <span class="rb-filter-lbl">Period</span>
-                <select class="rb-select" id="rbf-preset">
-                    @foreach([
-                        'today'        => 'Today',
-                        'yesterday'    => 'Yesterday',
-                        'this_week'    => 'This Week',
-                        'last_week'    => 'Last Week',
-                        'last_30'      => 'Last 30d',
-                        'last_6m'      => 'Last 6M',
-                        'this_month'   => 'This Month',
-                        'last_month'   => 'Last Month',
-                        'this_quarter' => 'Quarter',
-                        'this_year'    => 'This Year',
-                        'all_time'     => 'All Time',
-                    ] as $val => $label)
-                        <option value="{{ $val }}" @selected(($activePreset ?? 'this_month') === $val)>{{ $label }}</option>
-                    @endforeach
-                </select>
-            </div>
-
-            <div class="rb-fdivider"></div>
-
-            {{-- Gateway --}}
-            <div class="rb-filter-group">
-                <span class="rb-filter-lbl">Gateway</span>
-                <select class="rb-select" id="rbf-gateway">
-                    <option value="all" @selected(($activeGateway ?? 'all') === 'all')>All Gateways</option>
-                    @foreach(\App\Domains\Payments\Enums\PaymentGateway::cases() as $gw)
-                        <option value="{{ $gw->value }}" @selected(($activeGateway ?? 'all') === $gw->value)>
-                            {{ str($gw->value)->headline() }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
-
-            <div class="rb-fdivider"></div>
-
-            {{-- Status --}}
-            <div class="rb-filter-group">
-                <span class="rb-filter-lbl">Status</span>
-                <select class="rb-select" id="rbf-status">
-                    <option value="all" @selected(($activeStatus ?? 'all') === 'all')>All Statuses</option>
-                    @foreach(\App\Domains\Payments\Enums\PaymentStatus::cases() as $st)
-                        <option value="{{ $st->value }}" @selected(($activeStatus ?? 'all') === $st->value)>
-                            {{ str($st->value)->headline() }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
-
-            <div class="rb-fdivider"></div>
-
-            {{-- Courses --}}
-            <div class="rb-filter-group">
-                <span class="rb-filter-lbl">Courses</span>
-                <select class="rb-select" id="rbf-course">
-                    <option value="all"         @selected(($activeCourseStatus ?? 'all') === 'all')>All Courses</option>
-                    <option value="published"   @selected(($activeCourseStatus ?? 'all') === 'published')>Published</option>
-                    <option value="unpublished" @selected(($activeCourseStatus ?? 'all') === 'unpublished')>Unpublished</option>
-                </select>
-            </div>
-
-            <button class="rb-apply-btn" onclick="rbApplyFilters()">Apply</button>
-
-            @if(\App\Support\PanelAccess::can('reports.view_executive'))
-                <a href="{{ route('admin.reports.csv', ['type' => 'executive'] + request()->query()) }}" class="rb-apply-btn" style="background:transparent;border:1px solid var(--bd2, rgba(255,255,255,.13));color:inherit;text-decoration:none;display:inline-flex;align-items:center;">Export CSV</a>
-                <a href="{{ route('admin.reports.pdf', ['type' => 'executive'] + request()->query()) }}" class="rb-apply-btn" style="background:transparent;border:1px solid var(--bd2, rgba(255,255,255,.13));color:inherit;text-decoration:none;display:inline-flex;align-items:center;">Export PDF</a>
-                @if(\App\Support\PanelAccess::can('reports.schedule'))
-                    <button type="button" onclick="window.dispatchEvent(new CustomEvent('open-schedule-modal'))" class="rb-apply-btn">Schedule</button>
-                @endif
-            @endif
-
-        </div>
-    </div>
-
-    {{-- TOP KPI CARDS --}}
-    <div class="rb-kpis">
-
-        <div class="rb-kpi a d3" style="--ic:var(--cyan)">
-            <div class="rb-kpi-row">
-                <div>
-                    <div class="rb-kpi-val">${{ number_format($totalRevenue, 1) }}</div>
-                    <div class="rb-kpi-lbl">Wallet Balance</div>
-                </div>
-                <div class="rb-kpi-ico">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7H4a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2Z"/><path d="M16 11h4v4h-4a2 2 0 0 1 0-4Z"/><path d="M18 7V5a2 2 0 0 0-2-2H5"/></svg>
-                </div>
-            </div>
-            <div class="rb-tag">{{ $successRate }}% success rate</div>
-        </div>
-
-        <div class="rb-kpi a d4" style="--ic:var(--blue)">
-            <div class="rb-kpi-row">
-                <div>
-                    <div class="rb-kpi-val">${{ number_format($revenueThisMonth, 1) }}</div>
-                    <div class="rb-kpi-lbl">Total Income</div>
-                </div>
-                <div class="rb-kpi-ico">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l8-4 6 4v14"/><path d="M9 9h1"/><path d="M14 9h1"/><path d="M9 13h1"/><path d="M14 13h1"/></svg>
-                </div>
-            </div>
-            <div class="rb-tag neu">{{ number_format($ordersThisMonth) }} orders{{ ($activePreset ?? 'this_month') === 'this_month' ? ' this month' : ' in period' }}</div>
-        </div>
-
-        <div class="rb-kpi a d5" style="--ic:var(--indigo,#6366f1)">
-            <div class="rb-kpi-row">
-                <div>
-                    <div class="rb-kpi-val">{{ number_format($totalInstructors) }}</div>
-                    <div class="rb-kpi-lbl">Total Instructors</div>
-                </div>
-                <div class="rb-kpi-ico">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                </div>
-            </div>
-            <div class="rb-tag neu">{{ number_format($pendingVerifications) }} pending verification</div>
-        </div>
-
-        <div class="rb-kpi a d6" style="--ic:var(--amber)">
-            <div class="rb-kpi-row">
-                <div>
-                    <div class="rb-kpi-val">{{ number_format($totalCourses) }}</div>
-                    <div class="rb-kpi-lbl">Courses</div>
-                </div>
-                <div class="rb-kpi-ico">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
-                </div>
-            </div>
-            <div class="rb-tag {{ $pendingCourseReviews > 0 ? 'warn' : '' }}">
-                {{ $pendingCourseReviews > 0 ? '⚠ '.$pendingCourseReviews.' pending reviews' : '✓ All reviewed' }}
-            </div>
-        </div>
-
-    </div>
-    {{-- SECOND KPI ROW — Learning stats (all clickable) --}}
-    <div class="rb-kpis a d8">
-
-        <a href="{{ route('filament.admin.pages.users') }}" class="rb-kpi" style="--ic:var(--green); text-decoration:none; cursor:pointer;">
-            <div class="rb-kpi-row">
-                <div>
-                    <div class="rb-kpi-val">{{ number_format($totalStudents) }}</div>
-                    <div class="rb-kpi-lbl">Students</div>
-                </div>
-                <div class="rb-kpi-ico">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                </div>
-            </div>
-            <div class="rb-tag">↑ {{ number_format($newStudentsThisMonth) }} new this month</div>
-        </a>
-
-        <a href="{{ route('filament.admin.pages.sections') }}" class="rb-kpi" style="--ic:var(--blue); text-decoration:none; cursor:pointer;">
-            <div class="rb-kpi-row">
-                <div>
-                    <div class="rb-kpi-val">{{ number_format($totalSections) }}</div>
-                    <div class="rb-kpi-lbl">Sections</div>
-                </div>
-                <div class="rb-kpi-ico">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 0 1 0 3.75H5.625a1.875 1.875 0 0 1 0-3.75z"/></svg>
-                </div>
-            </div>
-            <div class="rb-tag neu">Across {{ number_format($totalCourses) }} courses</div>
-        </a>
-
-        <a href="{{ route('filament.admin.pages.lessons') }}" class="rb-kpi" style="--ic:var(--purple); text-decoration:none; cursor:pointer;">
-            <div class="rb-kpi-row">
-                <div>
-                    <div class="rb-kpi-val">{{ number_format($totalLessons) }}</div>
-                    <div class="rb-kpi-lbl">Lessons</div>
-                </div>
-                <div class="rb-kpi-ico">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m10 8 6 4-6 4V8z"/></svg>
-                </div>
-            </div>
-            <div class="rb-tag mute">{{ number_format($totalSections) }} sections total</div>
-        </a>
-
-        <a href="{{ route('filament.admin.pages.reviews') }}" class="rb-kpi" style="--ic:var(--amber); text-decoration:none; cursor:pointer;">
-            <div class="rb-kpi-row">
-                <div>
-                    <div class="rb-kpi-val">{{ number_format($totalReviews ?? \App\Domains\Learning\Models\Review::count()) }}</div>
-                    <div class="rb-kpi-lbl">Reviews</div>
-                </div>
-                <div class="rb-kpi-ico">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5z"/></svg>
-                </div>
-            </div>
-            <div class="rb-tag mute">From enrolled students</div>
-        </a>
-
-    </div>
-
-    {{-- REVENUE CHART + ACTIVITY BARS --}}
-    <div class="rb-g2 a d6">
-
-        <div class="rb-panel">
-            <div class="rb-ph">
-                <div class="rb-ph-title">Revenue</div>
-                @php $ap = $activePreset ?? 'this_month'; @endphp
-                <div class="rb-tabs">
-                    <span class="rb-tab {{ $ap === 'all_time' ? 'on' : '' }}" onclick="rbSetPreset('all_time')" style="cursor:pointer;">ALL</span>
-                    <span class="rb-tab {{ $ap === 'this_month' ? 'on' : '' }}" onclick="rbSetPreset('this_month')" style="cursor:pointer;">1M</span>
-                    <span class="rb-tab {{ $ap === 'last_6m' ? 'on' : '' }}" onclick="rbSetPreset('last_6m')" style="cursor:pointer;">6M</span>
-                    <span class="rb-tab {{ $ap === 'this_year' ? 'on' : '' }}" onclick="rbSetPreset('this_year')" style="cursor:pointer;">1Y</span>
-                </div>
-            </div>
-            <div class="rb-chart-wrap">
-                <svg viewBox="0 0 648 170" style="height:170px;">
-                    <defs>
-                        <linearGradient id="rg" x1="0" x2="0" y1="0" y2="1">
-                            <stop offset="0%"   stop-color="#8b5cf6" stop-opacity=".36"/>
-                            <stop offset="100%" stop-color="#8b5cf6" stop-opacity="0"/>
-                        </linearGradient>
-                    </defs>
-                    @foreach([1, 0.75, 0.5, 0.25] as $frac)
-                    @php
-                        $gy     = round(148 - $frac * 130);
-                        $revVal = $maxRev * $frac;
-                        $lbl    = $revVal >= 1000000
-                            ? number_format($revVal / 1000000, 1) . 'M'
-                            : ($revVal >= 1000 ? number_format($revVal / 1000, 1) . 'k' : number_format($revVal, 0));
-                    @endphp
-                    <line x1="30" y1="{{ $gy }}" x2="640" y2="{{ $gy }}" stroke="rgba(148,163,184,.09)" stroke-dasharray="3 7"/>
-                    <text x="0" y="{{ $gy+4 }}" fill="#2e4a68" font-size="9">{{ $lbl }}</text>
-                    @endforeach
-                    @foreach($pts->values() as $i => $p)
-                    @php
-                        $x1o = $ptCount===1 ? 32 : 32+($i/($ptCount-1))*606;
-                        $y1o = 148 - max(8, round(((int)$p['orders']/$maxOrd)*78));
-                    @endphp
-                    @if($i < $ptCount-1)
-                    @php
-                        $x2o = 32+(($i+1)/($ptCount-1))*606;
-                        $y2o = 148 - max(8, round(((int)$pts[$i+1]['orders']/$maxOrd)*78));
-                    @endphp
-                    <line x1="{{ round($x1o,1) }}" y1="{{ round($y1o,1) }}" x2="{{ round($x2o,1) }}" y2="{{ round($y2o,1) }}"
-                          stroke="#21c77a" stroke-width="2" stroke-dasharray="5 4" stroke-linecap="round"/>
-                    @endif
-                    @endforeach
-                    <polygon points="{{ $areaCoords }}" fill="url(#rg)"/>
-                    <polyline points="{{ $lineCoords }}" fill="none" stroke="#8b5cf6" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/>
-                    @foreach($pts->values() as $i => $p)
-                    @php $cx2 = $ptCount===1?32:32+($i/($ptCount-1))*606; $cy2 = 148-((float)$p['revenue']/$maxRev)*130; @endphp
-                    <circle cx="{{ round($cx2,1) }}" cy="{{ round($cy2,1) }}" r="3" fill="#8b5cf6" stroke="var(--p1)" stroke-width="2"/>
-                    @endforeach
-                </svg>
-            </div>
-            <div class="rb-months">
-                @foreach($pts as $p)<span>{{ $p['month'] }}</span>@endforeach
-            </div>
-        </div>
-
-        <div class="rb-panel">
-            <div class="rb-ph">
-                <div class="rb-ph-title">Activity</div>
-                <div class="rb-tabs">
-                    <span class="rb-tab {{ $ap === 'all_time' ? 'on' : '' }}" onclick="rbSetPreset('all_time')" style="cursor:pointer;">ALL</span>
-                    <span class="rb-tab {{ $ap === 'this_month' ? 'on' : '' }}" onclick="rbSetPreset('this_month')" style="cursor:pointer;">1M</span>
-                    <span class="rb-tab {{ $ap === 'last_6m' ? 'on' : '' }}" onclick="rbSetPreset('last_6m')" style="cursor:pointer;">6M</span>
-                    <span class="rb-tab {{ $ap === 'this_year' ? 'on' : '' }}" onclick="rbSetPreset('this_year')" style="cursor:pointer;">1Y</span>
-                </div>
-            </div>
-            <div class="rb-bars-wrap">
-                @foreach($pts as $p)
-                @php
-                    $oh = max(22, round(((int)$p['orders']/$maxOrd)*128));
-                    $rh = max(14, round(((float)$p['revenue']/$maxRev)*100));
-                @endphp
-                <div class="rb-bar-col">
-                    <div class="rb-bar-pair">
-                        <div class="rb-b"     style="height:{{ $oh }}px;"></div>
-                        <div class="rb-b alt" style="height:{{ $rh }}px;"></div>
-                    </div>
-                    <span class="rb-bar-lbl">{{ $p['month'] }}</span>
-                </div>
-                @endforeach
-            </div>
-            <div class="rb-bar-legend">
-                <div class="rb-leg"><div class="rb-leg-dot" style="background:var(--blue);"></div><span class="rb-leg-lbl">Orders</span></div>
-                <div class="rb-leg"><div class="rb-leg-dot" style="background:var(--cyan);"></div><span class="rb-leg-lbl">Revenue</span></div>
-            </div>
-        </div>
-
-    </div>
-
-    {{-- TRANSACTIONS + REVENUE SOURCES --}}
-    <div class="rb-g2b a d7">
-
-        <div class="rb-panel">
-            <div class="rb-ph">
-                <div class="rb-ph-title">Transactions</div>
-                <div class="rb-tabs"><span class="rb-tab on">All</span></div>
-            </div>
-            <div class="rb-tscroll">
-                <table class="rb-table">
-                    <thead>
-                        <tr><th>Name</th><th>Description</th><th>Amount</th><th>Timestamp</th><th>Status</th></tr>
-                    </thead>
-                    <tbody>
-                    @forelse($latestTx as $pay)
-                    @php
-                        $st  = $pay->status?->value ?? $pay->status ?? 'pending';
-                        $gw  = $pay->payment_gateway?->value ?? $pay->payment_gateway ?? 'payment';
-                        $nm  = $pay->order?->user?->name ?? $pay->order?->customer_name ?? 'Customer';
-                        $cls = in_array($st,['paid','completed']) ? 'ok' : ($st==='pending' ? 'pnd' : 'err');
-                    @endphp
-                    <tr>
-                        <td>
-                            <div class="rb-person">
-                                <div class="rb-av">{{ strtoupper(substr($nm,0,1)) }}</div>
-                                <div>
-                                    <div class="rb-name">{{ $nm }}</div>
-                                    <div class="rb-meta">{{ $pay->order?->order_number ?? '' }}</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td>{{ str($gw)->headline() }} payment</td>
-                        <td style="white-space:nowrap;">${{ number_format((float)$pay->amount,2) }}</td>
-                        <td style="white-space:nowrap;">{{ $pay->created_at?->format('d M, y H:i') }}</td>
-                        <td><span class="rb-st {{ $cls }}">{{ str($st)->headline() }}</span></td>
-                    </tr>
-                    @empty
-                    <tr><td colspan="5" class="rb-empty">No recent transactions.</td></tr>
-                    @endforelse
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <div class="rb-panel">
-            <div class="rb-ph">
-                <div class="rb-ph-title">Revenue Sources</div>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--t2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
-            </div>
-            <div class="rb-donut-wrap">
-                <div class="rb-donut-c">
-                    <svg width="140" height="140" viewBox="0 0 140 140">
-                        <circle cx="70" cy="70" r="52" fill="none" stroke="rgba(255,255,255,.05)" stroke-width="22"/>
-                        @foreach($donutSegs as $seg)
-                        <circle cx="70" cy="70" r="52" fill="none"
-                            stroke="{{ $seg['color'] }}" stroke-width="22"
-                            stroke-dasharray="{{ $seg['dash'] }} {{ $seg['gap'] }}"
-                            stroke-dashoffset="{{ -$seg['off'] }}"
-                            transform="rotate(-90 70 70)"/>
-                        @endforeach
-                        <circle cx="70" cy="70" r="41" fill="var(--p1)"/>
-                    </svg>
-                    <div class="rb-donut-lbl">
-                        <span>Total</span>
-                        <strong>{{ number_format($gtTotal, 0) }}</strong>
-                    </div>
-                </div>
-            </div>
-            <table class="rb-src-table">
-                <thead><tr><th>Source</th><th>Revenue</th><th>%</th></tr></thead>
-                <tbody>
-                @forelse($gwRows as $i => $row)
-                <tr>
-                    <td style="display:flex;align-items:center;gap:7px;">
-                        <span style="width:8px;height:8px;border-radius:50%;background:{{ $donutColors[$i%5] }};display:inline-block;flex-shrink:0;"></span>
-                        {{ $row['name'] }}
-                    </td>
-                    <td>${{ number_format($row['amount'],0) }}</td>
-                    <td>{{ $row['percent'] }}%</td>
-                </tr>
-                @empty
-                <tr><td colspan="3" class="rb-empty">No data.</td></tr>
-                @endforelse
-                </tbody>
-            </table>
-        </div>
-
-    </div>
-
-    
-
-    {{-- RECENT COURSES + PENDING VERIFICATIONS --}}
-    <div class="rb-g2b a d9">
-
-        <div class="rb-panel">
-            <div class="rb-ph">
-                <div class="rb-ph-title">Recent Courses</div>
-                <a href="{{ route('filament.admin.pages.courses') }}" class="rb-ph-link">View all</a>
-            </div>
-            <div class="rb-tscroll">
-                <table class="rb-table">
-                    <thead>
-                        <tr><th>Course</th><th>Instructor</th><th>Category</th><th>Status</th></tr>
-                    </thead>
-                    <tbody>
-                    @forelse($recentCourses->take(6) as $course)
-                    @php $cs = $course->is_published ? 'ok' : ($course->status==='pending_review' ? 'pnd' : 'err'); @endphp
-                    <tr>
-                        <td>
-                            <div class="rb-person">
-                                <div class="rb-av">{{ strtoupper(substr($course->title ?? 'C',0,1)) }}</div>
-                                <div>
-                                    <div class="rb-name">{{ str($course->title ?? 'Untitled')->limit(32) }}</div>
-                                    <div class="rb-meta">{{ $course->created_at?->diffForHumans() }}</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td>{{ $course->instructor?->name ?? 'Unassigned' }}</td>
-                        <td>{{ $course->category?->name ?? 'General' }}</td>
-                        <td><span class="rb-st {{ $cs }}">{{ str($course->status ?? 'Draft')->headline() }}</span></td>
-                    </tr>
-                    @empty
-                    <tr><td colspan="4" class="rb-empty">No courses found.</td></tr>
-                    @endforelse
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <div class="rb-panel">
-            <div class="rb-ph">
-                <div class="rb-ph-title">Pending Verifications</div>
-                <a href="{{ route('filament.admin.pages.instructor-verifications') }}" class="rb-ph-link">Review</a>
-            </div>
-            @forelse($pendingInstructors as $inst)
-            <div class="rb-vrow">
-                <div class="rb-av">{{ strtoupper(substr($inst->name ?? 'I',0,1)) }}</div>
-                <div style="flex:1;min-width:0;">
-                    <div class="rb-name">{{ $inst->name }}</div>
-                    <div class="rb-meta">{{ $inst->email }}</div>
-                </div>
-                <span class="rb-st pnd">Pending</span>
-            </div>
-            @empty
-            <div class="rb-empty" style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:32px 16px;text-align:center;">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="opacity:.55;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                <span style="color:var(--t2);font-size:12px;">All instructors verified</span>
-            </div>
-            @endforelse
-        </div>
-
-    </div>
-
-    @if(\App\Support\PanelAccess::can('reports.schedule'))
-        @include('filament.pages.partials._schedule-modal', ['reportLabel' => 'Executive Dashboard'])
-    @endif
-
-
-</div>
-
 <script>
-function rbApplyFilters() {
-    const p = new URLSearchParams(window.location.search);
-    p.set('preset',        document.getElementById('rbf-preset').value);
-    p.set('gateway',       document.getElementById('rbf-gateway').value);
-    p.set('status',        document.getElementById('rbf-status').value);
-    p.set('course_status', document.getElementById('rbf-course').value);
-    window.location.search = p.toString();
-}
+function dbChart() {
+    return {
+        period: '30d',
+        data: @json($revenueChartData),
+        get cur() { return this.data[this.period]; },
+        fmtMoney(v) {
+            if (v >= 1000000) return '$'+(v/1000000).toFixed(1)+'M';
+            if (v >= 1000)    return '$'+(v/1000).toFixed(1)+'K';
+            return '$'+Number(v).toFixed(0);
+        },
+        path(vals, W, H, pL, pR, pT, pB) {
+            if (!vals || vals.length < 2) return '';
+            const max = Math.max(...vals, 1);
+            const cW = W - pL - pR, cH = H - pT - pB;
+            const pts = vals.map((v,i) => [pL + i*(cW/(vals.length-1)), pT + cH - (v/max)*cH]);
+            let d = `M${pts[0][0]} ${pts[0][1]}`;
+            for (let i=1;i<pts.length;i++){
+                const cx=(pts[i-1][0]+pts[i][0])/2;
+                d+=` C${cx} ${pts[i-1][1]} ${cx} ${pts[i][1]} ${pts[i][0]} ${pts[i][1]}`;
+            }
+            return d;
+        },
+        area(vals, W, H, pL, pR, pT, pB) {
+            const p = this.path(vals, W, H, pL, pR, pT, pB);
+            if (!p) return '';
+            const cH = H - pT - pB;
+            return `${p} L${W-pR} ${pT+cH} L${pL} ${pT+cH} Z`;
+        },
+        dots(vals, W, H, pL, pR, pT, pB) {
+            if (!vals || vals.length < 2) return [];
+            const max = Math.max(...vals, 1);
+            const cW = W - pL - pR, cH = H - pT - pB;
+            return vals.map((v,i) => ({
+                x: pL + i*(cW/(vals.length-1)),
+                y: pT + cH - (v/max)*cH,
+                v,
+            }));
+        },
+        render() {
+            const svg = document.getElementById('db-chart-svg');
+            if (!svg) return;
+            const rect = svg.getBoundingClientRect();
+            const W = rect.width > 10 ? rect.width : (svg.parentElement?.clientWidth || 620);
+            const H = 200, pL = 58, pR = 12, pT = 14, pB = 26;
+            svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
 
-function rbSetPreset(val) {
-    document.getElementById('rbf-preset').value = val;
-    rbApplyFilters();
+            const gross = this.cur.gross || [], plat = this.cur.platform || [], inst = this.cur.instructor || [];
+            const max = Math.max(...gross, 1);
+
+            // Y-axis ticks
+            const yEl = document.getElementById('db-chart-yaxis');
+            if (yEl) {
+                const ticks = 5;
+                let html = '';
+                for (let i=0;i<=ticks;i++) {
+                    const val = (max/ticks)*(ticks-i);
+                    const y = pT + ((H-pT-pB)/ticks)*i;
+                    const label = val>=1000 ? '$'+(val/1000).toFixed(0)+'K' : '$'+Math.round(val);
+                    html += `<text x="${pL-10}" y="${y+4}" text-anchor="end" font-size="9" fill="var(--db-t4)">${label}</text>`;
+                    html += `<line x1="${pL}" y1="${y}" x2="${W-pR}" y2="${y}" stroke="var(--db-border)" stroke-width="1" stroke-dasharray="4,3"/>`;
+                }
+                yEl.innerHTML = html;
+            }
+
+            // X-axis labels
+            const labels = this.cur.labels || [];
+            const xEl = document.getElementById('db-chart-xaxis');
+            if (xEl && labels.length) {
+                const step = (W - pL - pR) / (labels.length - 1);
+                const stride = Math.max(1, Math.ceil(labels.length / 8));
+                let html = '';
+                labels.forEach((lbl, i) => {
+                    if (i % stride !== 0 && i !== labels.length-1) return;
+                    const x = pL + i * step;
+                    html += `<text x="${x}" y="${H-4}" text-anchor="middle" font-size="9" fill="var(--db-t4)">${lbl}</text>`;
+                });
+                xEl.innerHTML = html;
+            }
+
+            // Paths
+            const set = (id, d) => { const el=document.getElementById(id); if(el) el.setAttribute('d',d); };
+            set('db-p-gross-area', this.area(gross, W, H, pL, pR, pT, pB));
+            set('db-p-plat-area',  this.area(plat,  W, H, pL, pR, pT, pB));
+            set('db-p-inst-area',  this.area(inst,  W, H, pL, pR, pT, pB));
+            set('db-p-gross', this.path(gross, W, H, pL, pR, pT, pB));
+            set('db-p-plat',  this.path(plat,  W, H, pL, pR, pT, pB));
+            set('db-p-inst',  this.path(inst,  W, H, pL, pR, pT, pB));
+
+            // Dots
+            const renderDots = (id, vals, color) => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.innerHTML = this.dots(vals, W, H, pL, pR, pT, pB)
+                    .map(d => `<circle cx="${d.x}" cy="${d.y}" r="3.5" fill="${color}" stroke="var(--db-card)" stroke-width="2"/>`)
+                    .join('');
+            };
+            renderDots('db-dots-gross', gross, '#3B82F6');
+            renderDots('db-dots-plat',  plat,  '#10B981');
+            renderDots('db-dots-inst',  inst,  '#F59E0B');
+        },
+    }
+}
+function dbCustomDate() {
+    return {
+        preset: '{{ $activePreset }}',
+        show: false,
+        toggle() { this.show = this.preset === 'custom'; },
+        init() { this.show = this.preset === 'custom'; },
+        applyFilter(form) {
+            const params = new URLSearchParams();
+            params.set('preset', this.preset);
+            if (this.show) {
+                const from = form.querySelector('[name="date_from"]')?.value;
+                const to   = form.querySelector('[name="date_to"]')?.value;
+                if (from) params.set('date_from', from);
+                if (to)   params.set('date_to', to);
+            }
+            const url = window.location.pathname + '?' + params.toString();
+            if (typeof Livewire !== 'undefined' && Livewire.navigate) {
+                Livewire.navigate(url);
+            } else {
+                window.location.href = url;
+            }
+        },
+    }
 }
 </script>
+
+<div class="db-wrap">
+
+{{-- ── Top bar ──────────────────────────────────────────────────── --}}
+<div class="db-topbar">
+    <div class="db-topbar-left">
+        @php
+            $hour = now()->hour;
+            $greeting = $hour < 12 ? 'morning' : ($hour < 18 ? 'afternoon' : 'evening');
+            $userName = auth()->user()->name ?? 'Admin';
+        @endphp
+        <h1>Good {{ $greeting }}, <span style="color:var(--db-blue);">{{ $userName }}</span> 👋</h1>
+        <p>Here's what's happening on your platform today.</p>
+    </div>
+    <div class="db-topbar-right">
+        {{-- Date range filter --}}
+        <div x-data="dbCustomDate()" x-init="init()">
+            <form class="db-filter-form" @submit.prevent="applyFilter($el)">
+                <div style="display:flex;align-items:center;gap:.375rem;background:var(--db-card);border:1px solid var(--db-border);border-radius:.5rem;padding:.25rem .25rem .25rem .65rem;box-shadow:var(--db-sh);">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--db-t3)" stroke-width="2" style="flex-shrink:0;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    <select name="preset" class="db-select" style="border:none;background:transparent;padding:.2rem .1rem;padding-right:1.5rem;"
+                        x-model="preset" @change="toggle()">
+                        @foreach(\App\Support\Concerns\HasDateRangePresets::dateRangePresetOptions() as $key => $label)
+                            <option value="{{ $key }}" {{ $activePreset === $key ? 'selected' : '' }}>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div x-show="show" x-transition style="display:flex;align-items:center;gap:.375rem;flex-wrap:wrap;">
+                    <input type="date" name="date_from" class="db-date-input" value="{{ $activeDateFrom }}" placeholder="From">
+                    <span style="color:var(--db-t3);font-size:.8125rem;">—</span>
+                    <input type="date" name="date_to"   class="db-date-input" value="{{ $activeDateTo }}"   placeholder="To">
+                </div>
+                <button type="submit" class="db-filter-btn">Apply</button>
+                @if($activePreset !== 'this_month')
+                    <a href="{{ request()->url() }}" class="db-filter-btn-ghost">Reset</a>
+                @endif
+            </form>
+        </div>
+    </div>
+</div>
+
+{{-- ── Row 1: KPI cards ─────────────────────────────────────────── --}}
+<div class="db-kpi-grid">
+    @php $revGrowth = $revenueChartData['30d']['gross_growth'] ?? 0; @endphp
+    <div class="db-kpi">
+        <div class="db-kpi-top">
+            <div>
+                <div class="db-kpi-label">Total Revenue</div>
+                <div class="db-kpi-value db-mono">${{ number_format($totalRevenue, 2) }}</div>
+            </div>
+            <div class="db-kpi-icon" style="background:var(--db-green-l);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="var(--db-green)" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;">
+            <span class="db-badge {{ $revGrowth >= 0 ? 'db-badge-green' : 'db-badge-red' }}">
+                {{ $revGrowth >= 0 ? '↑' : '↓' }} {{ abs($revGrowth) }}%
+            </span>
+            <span style="font-size:.75rem;color:var(--db-t3);">from last 30 days</span>
+        </div>
+    </div>
+    <div class="db-kpi">
+        <div class="db-kpi-top">
+            <div>
+                <div class="db-kpi-label">Total Orders</div>
+                <div class="db-kpi-value">{{ number_format($totalOrders) }}</div>
+            </div>
+            <div class="db-kpi-icon" style="background:var(--db-purple-l);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="var(--db-purple)" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+            </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;">
+            <span class="db-badge db-badge-blue">+{{ $newOrdersToday }} today</span>
+            <span style="font-size:.75rem;color:var(--db-t3);">{{ $completedPayments }} paid</span>
+        </div>
+    </div>
+    <div class="db-kpi">
+        <div class="db-kpi-top">
+            <div>
+                <div class="db-kpi-label">Total Students</div>
+                <div class="db-kpi-value">{{ number_format($totalStudents) }}</div>
+            </div>
+            <div class="db-kpi-icon" style="background:var(--db-blue-l);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="var(--db-blue)" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;">
+            <span class="db-badge db-badge-blue">+{{ $newStudentsToday }} today</span>
+            @if($enrollmentGrowth >= 0)
+                <span class="db-badge db-badge-green">↑ {{ $enrollmentGrowth }}% enrollments</span>
+            @else
+                <span class="db-badge db-badge-red">↓ {{ abs($enrollmentGrowth) }}% enrollments</span>
+            @endif
+        </div>
+    </div>
+    <div class="db-kpi">
+        <div class="db-kpi-top">
+            <div>
+                <div class="db-kpi-label">Total Instructors</div>
+                <div class="db-kpi-value">{{ number_format($totalInstructors) }}</div>
+            </div>
+            <div class="db-kpi-icon" style="background:var(--db-amber-l);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="var(--db-amber)" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+            </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;">
+            @if($pendingVerifications > 0)
+                <span class="db-badge db-badge-amber">{{ $pendingVerifications }} pending verification</span>
+            @else
+                <span class="db-badge db-badge-green">All verified</span>
+            @endif
+        </div>
+    </div>
+</div>
+
+{{-- ── Row 2: Action Required ───────────────────────────────────── --}}
+<div class="db-action-card">
+    <div class="db-action-header">
+        <div class="db-action-title">Action Required</div>
+        <a href="{{ route('filament.admin.pages.payments') }}" wire:navigate class="db-view-all">View All Alerts &rsaquo;</a>
+    </div>
+    <div class="db-action-grid">
+        <a href="{{ route('filament.admin.pages.instructor-verifications') }}" wire:navigate class="db-action-item">
+            <div class="db-action-icon" style="background:var(--db-red-l);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="var(--db-red)" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
+            <div>
+                <div class="db-action-num">{{ $pendingVerifications }}</div>
+                <div class="db-action-lbl">Instructor Verifications<br>Pending</div>
+            </div>
+        </a>
+        <a href="{{ route('filament.admin.pages.refunds') }}" wire:navigate class="db-action-item">
+            <div class="db-action-icon" style="background:var(--db-amber-l);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="var(--db-amber)" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>
+            </div>
+            <div>
+                <div class="db-action-num">{{ $refundsThisMonth }}</div>
+                <div class="db-action-lbl">Refunds<br>This Month</div>
+            </div>
+        </a>
+        <a href="{{ route('filament.admin.pages.courses') }}" wire:navigate class="db-action-item">
+            <div class="db-action-icon" style="background:var(--db-amber-l);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="var(--db-amber)" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+            </div>
+            <div>
+                <div class="db-action-num">{{ $pendingCourseReviews }}</div>
+                <div class="db-action-lbl">Courses<br>Awaiting Review</div>
+            </div>
+        </a>
+        <a href="{{ route('filament.admin.pages.payouts') }}" wire:navigate class="db-action-item">
+            <div class="db-action-icon" style="background:var(--db-purple-l);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="var(--db-purple)" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            </div>
+            <div>
+                <div class="db-action-num">{{ $pendingPayoutsCount }}</div>
+                <div class="db-action-lbl">Failed Payouts<br>Requires Attention</div>
+            </div>
+        </a>
+        <a href="{{ route('filament.admin.pages.payments') }}" wire:navigate class="db-action-item">
+            <div class="db-action-icon" style="background:var(--db-blue-l);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="var(--db-blue)" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            </div>
+            <div>
+                <div class="db-action-num">{{ $failedPaymentsToday }}</div>
+                <div class="db-action-lbl">Payment Failures<br>Today</div>
+            </div>
+        </a>
+    </div>
+</div>
+
+{{-- ── Row 3: Revenue chart + sidebar ──────────────────────────── --}}
+<div class="db-rev-grid">
+    <div class="db-card" x-data="dbChart()" x-init="setTimeout(()=>{ render(); const ro=new ResizeObserver(()=>render()); ro.observe($el); }, 80)">
+        <div class="db-card-header">
+            <span class="db-card-title">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--db-blue)" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                Revenue Overview
+            </span>
+            <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
+                <div class="db-rev-legend">
+                    <div class="db-legend-item"><span class="db-legend-dot" style="background:#3B82F6;"></span>Gross Revenue</div>
+                    <div class="db-legend-item"><span class="db-legend-dot" style="background:#10B981;border:1px dashed #10B981;border-radius:0;width:.75rem;height:0;"></span>Platform Revenue</div>
+                    <div class="db-legend-item"><span class="db-legend-dot" style="background:#F59E0B;width:.75rem;height:0;border-top:2px dotted #F59E0B;border-radius:0;"></span>Instructor Revenue</div>
+                </div>
+                <div class="db-period-tabs">
+                    <button class="db-period-tab" :class="{active:period==='7d'}"  @click="period='7d';  $nextTick(()=>render())" type="button">7D</button>
+                    <button class="db-period-tab" :class="{active:period==='30d'}" @click="period='30d'; $nextTick(()=>render())" type="button">30D</button>
+                    <button class="db-period-tab" :class="{active:period==='6m'}"  @click="period='6m';  $nextTick(()=>render())" type="button">6M</button>
+                    <button class="db-period-tab" :class="{active:period==='12m'}" @click="period='12m'; $nextTick(()=>render())" type="button">12M</button>
+                </div>
+            </div>
+        </div>
+        <div class="db-chart-wrap">
+            <svg id="db-chart-svg" class="db-chart-area" viewBox="0 0 620 200" height="200" preserveAspectRatio="none">
+                <defs>
+                    <linearGradient id="dg-gross" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#3B82F6" stop-opacity=".15"/><stop offset="100%" stop-color="#3B82F6" stop-opacity="0"/></linearGradient>
+                    <linearGradient id="dg-plat"  x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#10B981" stop-opacity=".12"/><stop offset="100%" stop-color="#10B981" stop-opacity="0"/></linearGradient>
+                    <linearGradient id="dg-inst"  x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#F59E0B" stop-opacity=".12"/><stop offset="100%" stop-color="#F59E0B" stop-opacity="0"/></linearGradient>
+                </defs>
+                <g id="db-chart-yaxis"></g>
+                <path id="db-p-inst-area"  d="" fill="url(#dg-inst)"  stroke="none"/>
+                <path id="db-p-plat-area"  d="" fill="url(#dg-plat)"  stroke="none"/>
+                <path id="db-p-gross-area" d="" fill="url(#dg-gross)" stroke="none"/>
+                <path id="db-p-inst"  d="" fill="none" stroke="#F59E0B" stroke-width="1.5" stroke-dasharray="4,3" stroke-linecap="round"/>
+                <path id="db-p-plat"  d="" fill="none" stroke="#10B981" stroke-width="1.5" stroke-dasharray="6,2" stroke-linecap="round"/>
+                <path id="db-p-gross" d="" fill="none" stroke="#3B82F6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <g id="db-dots-inst"></g>
+                <g id="db-dots-plat"></g>
+                <g id="db-dots-gross"></g>
+                <g id="db-chart-xaxis"></g>
+            </svg>
+        </div>
+    </div>
+
+    <div class="db-rev-stats">
+        @php
+            $g30       = $revenueChartData['30d']['gross_growth']      ?? 0;
+            $platGrowth = $revenueChartData['30d']['platform_growth']   ?? 0;
+            $instGrowth = $revenueChartData['30d']['instructor_growth'] ?? 0;
+            $gross30    = $revenueChartData['30d']['total_gross']       ?? 0;
+            $plat30     = $revenueChartData['30d']['total_platform']    ?? 0;
+            $inst30     = $revenueChartData['30d']['total_instructor']  ?? 0;
+        @endphp
+        <div class="db-rev-stat">
+            <div class="db-rev-stat-lbl">Gross Revenue</div>
+            <div class="db-rev-stat-val db-mono">${{ number_format($gross30, 2) }}</div>
+            <div class="db-rev-stat-sub">
+                <span class="db-badge {{ $g30 >= 0 ? 'db-badge-green' : 'db-badge-red' }}" style="font-size:.625rem;">
+                    {{ $g30 >= 0 ? '↑' : '↓' }} {{ abs($g30) }}%
+                </span>
+            </div>
+        </div>
+        <div class="db-rev-stat">
+            <div class="db-rev-stat-lbl">Platform Revenue</div>
+            <div class="db-rev-stat-val db-mono">${{ number_format($plat30, 2) }}</div>
+            <div class="db-rev-stat-sub">
+                <span class="db-badge {{ $platGrowth >= 0 ? 'db-badge-green' : 'db-badge-red' }}" style="font-size:.625rem;">
+                    {{ $platGrowth >= 0 ? '↑' : '↓' }} {{ abs($platGrowth) }}%
+                </span>
+            </div>
+        </div>
+        <div class="db-rev-stat">
+            <div class="db-rev-stat-lbl">Instructor Revenue</div>
+            <div class="db-rev-stat-val db-mono">${{ number_format($inst30, 2) }}</div>
+            <div class="db-rev-stat-sub">
+                <span class="db-badge {{ $instGrowth >= 0 ? 'db-badge-green' : 'db-badge-red' }}" style="font-size:.625rem;">
+                    {{ $instGrowth >= 0 ? '↑' : '↓' }} {{ abs($instGrowth) }}%
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- ── Row 4: Mini stats ────────────────────────────────────────── --}}
+<div class="db-mini-grid">
+    <div class="db-mini">
+        <div class="db-mini-icon" style="background:var(--db-green-l);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--db-green)" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+        </div>
+        <div>
+            <div class="db-mini-lbl">Published Courses</div>
+            <div class="db-mini-val">{{ number_format($publishedCoursesCount) }}</div>
+            <div class="db-mini-sub">
+                <span class="db-badge db-badge-green" style="font-size:.625rem;">+{{ $newCoursesThisMonth }} this month</span>
+            </div>
+        </div>
+    </div>
+    <div class="db-mini">
+        <div class="db-mini-icon" style="background:var(--db-blue-l);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--db-blue)" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+        </div>
+        <div>
+            <div class="db-mini-lbl">Enrollments (This Month)</div>
+            <div class="db-mini-val">{{ number_format($enrollmentsThisMonth) }}</div>
+            <div class="db-mini-sub">
+                @if($enrollmentGrowth >= 0)
+                    <span class="db-badge db-badge-green" style="font-size:.625rem;">↑ {{ $enrollmentGrowth }}% this month</span>
+                @else
+                    <span class="db-badge db-badge-red" style="font-size:.625rem;">↓ {{ abs($enrollmentGrowth) }}% this month</span>
+                @endif
+            </div>
+        </div>
+    </div>
+    <div class="db-mini">
+        <div class="db-mini-icon" style="background:var(--db-amber-l);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--db-amber)" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        </div>
+        <div>
+            <div class="db-mini-lbl">Average Completion Rate</div>
+            <div class="db-mini-val">{{ $avgCompletionRate }}%</div>
+            <div class="db-mini-sub">
+                @if($completionRateGrowth > 0)
+                    <span class="db-badge db-badge-green" style="font-size:.625rem;">↑ {{ $completionRateGrowth }}% from last month</span>
+                @elseif($completionRateGrowth < 0)
+                    <span class="db-badge db-badge-red" style="font-size:.625rem;">↓ {{ abs($completionRateGrowth) }}% from last month</span>
+                @else
+                    <span class="db-badge db-badge-gray" style="font-size:.625rem;">No change</span>
+                @endif
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- ── Row 5: Top Instructors ───────────────────────────────────── --}}
+<div class="db-card" style="margin-bottom:1rem;">
+    <div class="db-card-header">
+        <span class="db-card-title">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--db-amber)" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            Top Instructors By Revenue
+        </span>
+        <a href="{{ route('filament.admin.pages.instructors') }}" class="db-view-all">View All &rsaquo;</a>
+    </div>
+    <table class="db-table">
+        <thead><tr>
+            <th style="width:2.25rem;">#</th>
+            <th>Instructor</th>
+            <th>Students</th>
+            <th>Courses</th>
+            <th>Revenue</th>
+            <th>Growth</th>
+        </tr></thead>
+        <tbody>
+            @forelse($topInstructors as $idx => $inst)
+            @php
+                $words    = array_filter(explode(' ', $inst['name'] ?? 'U'));
+                $initials = strtoupper(implode('', array_map(fn($w)=>$w[0], array_slice($words,0,2))));
+                $growth   = $inst['growth'] ?? 0;
+                $rankCls  = match($idx){ 0=>'db-rank-1', 1=>'db-rank-2', 2=>'db-rank-3', default=>'db-rank-n' };
+            @endphp
+            <tr>
+                <td><span class="db-rank {{ $rankCls }}">{{ $idx+1 }}</span></td>
+                <td>
+                    <div class="db-avatar-row">
+                        <div class="db-avatar">{{ $initials }}</div>
+                        <div>
+                            <div class="db-name db-trunc" style="max-width:200px;">{{ $inst['name'] }}</div>
+                            <div class="db-sub db-trunc" style="max-width:200px;">{{ $inst['email'] }}</div>
+                        </div>
+                    </div>
+                </td>
+                <td>{{ number_format($inst['students']) }}</td>
+                <td>{{ number_format($inst['courses']) }}</td>
+                <td class="db-mono" style="font-weight:600;color:var(--db-t1);">${{ number_format($inst['revenue'], 2) }}</td>
+                <td><span class="db-badge {{ $growth >= 0 ? 'db-badge-green' : 'db-badge-red' }}">{{ $growth >= 0 ? '↑' : '↓' }} {{ abs($growth) }}%</span></td>
+            </tr>
+            @empty
+            <tr><td colspan="6" class="db-empty">No revenue data yet.</td></tr>
+            @endforelse
+        </tbody>
+    </table>
+</div>
+
+{{-- ── Row 6: Most Popular Courses (full-width) ────────────────── --}}
+<div class="db-card" style="margin-bottom:1rem;">
+    <div class="db-card-header">
+        <span class="db-card-title">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--db-green)" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+            Most Popular Courses
+        </span>
+        <a href="{{ route('filament.admin.pages.moderation') }}" class="db-view-all">View All &rsaquo;</a>
+    </div>
+    <table class="db-table">
+        <thead><tr>
+            <th>Course</th>
+            <th>Instructor</th>
+            <th>Enrollments</th>
+            <th>Revenue</th>
+        </tr></thead>
+        <tbody>
+            @forelse($popularCourses as $course)
+            <tr>
+                <td>
+                    <div style="display:flex;align-items:center;gap:.625rem;">
+                        <div class="db-course-thumb" style="background:var(--db-blue-2);color:var(--db-blue-d);width:2.25rem;height:2.25rem;">
+                            {{ strtoupper(substr($course->title ?? 'C', 0, 2)) }}
+                        </div>
+                        <div>
+                            <div class="db-name">{{ $course->title }}</div>
+                            @if($course->category)
+                                <div class="db-sub">{{ $course->category->name ?? '' }}</div>
+                            @endif
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <div class="db-avatar-row">
+                        @php
+                            $iWords = array_filter(explode(' ', optional($course->instructor)->name ?? 'U'));
+                            $iInit  = strtoupper(implode('', array_map(fn($w)=>$w[0], array_slice($iWords,0,2))));
+                        @endphp
+                        <div class="db-avatar" style="width:1.75rem;height:1.75rem;font-size:.625rem;">{{ $iInit }}</div>
+                        <span class="db-sub">{{ optional($course->instructor)->name ?? '—' }}</span>
+                    </div>
+                </td>
+                <td>
+                    <div style="display:flex;align-items:center;gap:.5rem;">
+                        <span class="db-mono" style="font-weight:600;">{{ number_format($course->enrollments_count) }}</span>
+                        <span class="db-badge db-badge-blue" style="font-size:.625rem;">students</span>
+                    </div>
+                </td>
+                <td class="db-mono" style="font-weight:700;color:var(--db-green);">${{ number_format($course->course_revenue ?? 0, 2) }}</td>
+            </tr>
+            @empty
+            <tr><td colspan="4" class="db-empty">No published courses yet.</td></tr>
+            @endforelse
+        </tbody>
+    </table>
+</div>
+
+{{-- ── Row 7: Recent Orders (wide) + Recent Refunds ────────────── --}}
+<div class="db-orders-row">
+    {{-- Recent Orders --}}
+    <div class="db-card">
+        <div class="db-card-header">
+            <span class="db-card-title">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--db-blue)" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg>
+                Recent Orders
+            </span>
+            <a href="{{ route('filament.admin.pages.orders') }}" class="db-view-all">View All &rsaquo;</a>
+        </div>
+        <table class="db-table" style="table-layout:fixed;width:100%;">
+            <colgroup>
+                <col style="width:16%">{{-- Order # --}}
+                <col style="width:18%">{{-- Student --}}
+                <col style="width:28%">{{-- Course --}}
+                <col style="width:13%">{{-- Amount --}}
+                <col style="width:14%">{{-- Status --}}
+                <col style="width:11%">{{-- Gateway --}}
+            </colgroup>
+            <thead><tr>
+                <th>Order #</th>
+                <th>Student</th>
+                <th>Course</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Gateway</th>
+            </tr></thead>
+            <tbody>
+                @forelse($recentOrders as $order)
+                @php
+                    $payStatus = $order->payment_status?->value ?? 'pending';
+                    [$bc, $lbl] = match($payStatus) {
+                        'paid'        => ['db-badge-green',  'Paid'],
+                        'completed'   => ['db-badge-green',  'Completed'],
+                        'processing'  => ['db-badge-blue',   'Processing'],
+                        'pending'     => ['db-badge-amber',  'Pending'],
+                        'failed'      => ['db-badge-red',    'Failed'],
+                        'expired'     => ['db-badge-gray',   'Expired'],
+                        'cancelled'   => ['db-badge-gray',   'Cancelled'],
+                        'refunded'    => ['db-badge-purple', 'Refunded'],
+                        default       => ['db-badge-gray',   ucfirst($payStatus)],
+                    };
+                    $gw          = optional($order->payment)->payment_gateway?->value ?? '—';
+                    $firstCourse = optional($order->items->first())->course?->title ?? '—';
+                @endphp
+                <tr>
+                    <td class="db-trunc"><span class="db-link" style="font-size:.75rem;">ORD-{{ str_pad($order->id, 4, '0', STR_PAD_LEFT) }}</span></td>
+                    <td class="db-trunc db-name">{{ optional($order->user)->name ?? 'Guest' }}</td>
+                    <td class="db-trunc db-sub" title="{{ $firstCourse }}">{{ $firstCourse }}</td>
+                    <td class="db-mono db-trunc" style="font-weight:600;">${{ number_format($order->total_amount ?? 0, 2) }}</td>
+                    <td><span class="db-badge {{ $bc }}">{{ $lbl }}</span></td>
+                    <td class="db-trunc" style="color:var(--db-t3);font-size:.75rem;">{{ strtoupper($gw) }}</td>
+                </tr>
+                @empty
+                <tr><td colspan="6" class="db-empty">No orders yet.</td></tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+
+    {{-- Recent Refunds --}}
+    <div class="db-card">
+        <div class="db-card-header">
+            <span class="db-card-title">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--db-red)" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>
+                Recent Refund Requests
+            </span>
+            <a href="{{ route('filament.admin.pages.refunds') }}" class="db-view-all">View All &rsaquo;</a>
+        </div>
+        <table class="db-table" style="table-layout:fixed;width:100%;">
+            <colgroup>
+                <col style="width:22%">{{-- Refund # --}}
+                <col style="width:24%">{{-- Student --}}
+                <col style="width:18%">{{-- Amount --}}
+                <col style="width:22%">{{-- Reason --}}
+                <col style="width:14%">{{-- Status --}}
+            </colgroup>
+                <thead><tr>
+                    <th>Refund #</th>
+                    <th>Student</th>
+                    <th>Amount</th>
+                    <th>Reason</th>
+                    <th>Status</th>
+                </tr></thead>
+                <tbody>
+                    @forelse($recentRefunds as $refund)
+                    @php
+                        $orderStatus = optional($refund->order)->status?->value ?? 'refunded';
+                        [$rbc, $rlbl] = match($orderStatus) {
+                            'refunded'  => ['db-badge-purple', 'Refunded'],
+                            'completed' => ['db-badge-green',  'Completed'],
+                            'cancelled' => ['db-badge-gray',   'Cancelled'],
+                            default     => ['db-badge-green',  'Processed'],
+                        };
+                    @endphp
+                    <tr>
+                        <td class="db-trunc"><span class="db-link" style="font-size:.75rem;">REF-{{ str_pad($refund->id, 4, '0', STR_PAD_LEFT) }}</span></td>
+                        <td class="db-trunc db-name">{{ optional(optional($refund->order)->user)->name ?? '—' }}</td>
+                        <td class="db-mono db-trunc" style="font-weight:600;color:var(--db-red);">${{ number_format($refund->amount, 2) }}</td>
+                        <td class="db-sub db-trunc" title="{{ $refund->reason }}">{{ $refund->reason ?? '—' }}</td>
+                        <td><span class="db-badge {{ $rbc }}">{{ $rlbl }}</span></td>
+                    </tr>
+                    @empty
+                    <tr><td colspan="5" class="db-empty">No refunds yet.</td></tr>
+                    @endforelse
+                </tbody>
+        </table>
+    </div>
+</div>
+{{-- ── Row 8: Low Rated Courses + System Health ────────────────── --}}
+<div class="db-two-col">
+    {{-- Low Rated --}}
+    <div class="db-card">
+        <div class="db-card-header">
+            <span class="db-card-title">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--db-red)" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                Low Rated Courses
+                <span class="db-badge db-badge-red" style="font-size:.6rem;">&lt; 3 stars</span>
+            </span>
+            <a href="{{ route('filament.admin.pages.reviews') }}" class="db-view-all">View All &rsaquo;</a>
+        </div>
+        <table class="db-table">
+            <thead><tr>
+                <th>Course</th>
+                <th>Instructor</th>
+                <th>Rating</th>
+                <th>Reviews</th>
+            </tr></thead>
+            <tbody>
+                @forelse($lowRatedCourses as $course)
+                @php $rating = round($course->reviews_avg_rating ?? 0, 1); @endphp
+                <tr>
+                    <td>
+                        <div style="display:flex;align-items:center;gap:.625rem;">
+                            <div class="db-course-thumb" style="background:var(--db-red-l);color:var(--db-red);width:2.25rem;height:2.25rem;">
+                                {{ strtoupper(substr($course->title ?? 'C', 0, 2)) }}
+                            </div>
+                            <div class="db-name db-trunc" style="max-width:200px;" title="{{ $course->title }}">{{ $course->title }}</div>
+                        </div>
+                    </td>
+                    <td><div class="db-sub db-trunc" style="max-width:120px;">{{ optional($course->instructor)->name ?? '—' }}</div></td>
+                    <td>
+                        <div style="display:flex;align-items:center;gap:.375rem;">
+                            <span class="db-badge db-badge-red">{{ $rating }}</span>
+                            <span style="color:var(--db-t4);font-size:.6875rem;">/ 5</span>
+                        </div>
+                    </td>
+                    <td class="db-sub">{{ number_format($course->reviews_count) }}</td>
+                </tr>
+                @empty
+                <tr><td colspan="4" class="db-empty" style="color:var(--db-green);padding:2rem 0;">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:block;margin:0 auto .5rem;"><polyline points="20 6 9 17 4 12"/></svg>
+                    All courses are rated 3 stars or above
+                </td></tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+
+    {{-- System Health --}}
+    <div class="db-card">
+        <div class="db-card-header">
+            <span class="db-card-title">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--db-teal)" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                System Health
+            </span>
+            <span class="db-badge {{ $failedJobsCount === 0 ? 'db-badge-green' : 'db-badge-amber' }}">
+                <span class="db-dot {{ $failedJobsCount === 0 ? 'db-dot-green' : 'db-dot-amber' }}" style="margin-right:.25rem;"></span>
+                {{ $failedJobsCount === 0 ? 'Healthy' : 'Attention' }}
+            </span>
+        </div>
+        <div class="db-health-list">
+            <div class="db-health-row">
+                <div class="db-health-lbl">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="var(--db-t3)" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    Queue Jobs Pending
+                </div>
+                <div class="db-health-val" style="{{ $queueJobsPending > 50 ? 'color:var(--db-amber);' : '' }}">{{ number_format($queueJobsPending) }}</div>
+            </div>
+            <div class="db-health-row">
+                <div class="db-health-lbl">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="var(--db-t3)" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+                    Failed Jobs
+                </div>
+                <div class="db-health-val" style="{{ $failedJobsCount > 0 ? 'color:var(--db-red);' : 'color:var(--db-green);' }}">{{ number_format($failedJobsCount) }}</div>
+            </div>
+            <div class="db-health-row">
+                <div class="db-health-lbl">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="var(--db-t3)" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+                    Redis Status
+                </div>
+                <div class="db-health-val" style="{{ $redisStatus === 'connected' ? 'color:var(--db-green);' : 'color:var(--db-red);' }}">{{ ucfirst($redisStatus) }}</div>
+            </div>
+            <div class="db-health-row">
+                <div class="db-health-lbl">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="var(--db-t3)" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+                    Storage Used
+                </div>
+                <div style="text-align:right;">
+                    <div class="db-health-val" style="font-size:.8125rem;">{{ $diskUsedGb }}GB / {{ $diskTotalGb }}GB ({{ $diskPercent }}%)</div>
+                    <div class="db-progress-bar" style="width:160px;margin-top:.3rem;">
+                        <div class="db-progress-fill" style="width:{{ $diskPercent }}%;background:{{ $diskPercent > 85 ? 'var(--db-red)' : ($diskPercent > 65 ? 'var(--db-amber)' : 'var(--db-blue)') }};"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="db-health-row">
+                <div class="db-health-lbl">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="var(--db-t3)" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                    New Users Today
+                </div>
+                <div class="db-health-val">{{ number_format($newUsersToday) }}</div>
+            </div>
+            <div class="db-health-row">
+                <div class="db-health-lbl">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="var(--db-t3)" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                    Server Uptime
+                </div>
+                <div class="db-health-val" style="color:var(--db-green);">{{ $serverUptime }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</div>{{-- end .db-wrap --}}
+</x-filament-panels::page>

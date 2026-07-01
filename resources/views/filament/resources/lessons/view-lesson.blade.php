@@ -134,19 +134,19 @@ html:not(.dark) .lv {
     {{-- ── Topbar ── --}}
     <div class="lv-topbar">
         <div class="lv-topbar-left">
-            <a href="{{ $backUrl }}" class="lv-btn lv-btn-gray">
+            <a href="{{ $backUrl }}" wire:navigate class="lv-btn lv-btn-gray">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
                 Back to Lessons
             </a>
             @if($les->section?->course)
-            <a href="{{ url('/admin/courses/'.$les->section->course->id) }}" class="lv-btn lv-btn-gray">
+            <a href="{{ url('/admin/courses/'.$les->section->course->id) }}" wire:navigate class="lv-btn lv-btn-gray">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 3.741-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5"/></svg>
                 {{ $les->section->course->title }}
             </a>
             @endif
         </div>
         <div class="lv-topbar-right">
-            <a href="{{ route('filament.admin.resources.lessons.edit', $les) }}" class="lv-btn lv-btn-primary">
+            <a href="{{ route('filament.admin.resources.lessons.edit', $les) }}" wire:navigate class="lv-btn lv-btn-primary">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487z"/></svg>
                 Edit
             </a>

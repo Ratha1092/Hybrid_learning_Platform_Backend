@@ -21,6 +21,19 @@ class ReviewResource extends Resource
     protected static ?int $navigationSort = 6;
     protected static bool $shouldRegisterNavigation = false;
 
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['comment', 'course.title', 'user.name'];
+    }
+
+    public static function getGlobalSearchResultDetails(\Illuminate\Database\Eloquent\Model $record): array
+    {
+        return [
+            'Course' => $record->course?->title ?? '—',
+            'Rating' => $record->rating . '/5',
+        ];
+    }
+
     public static function table(Table $table): Table
     {
         return $table

@@ -26,9 +26,7 @@ class PaymentResource extends Resource
     public static function getPages(): array
     {
         return [
-            'create' => Pages\CreatePayment::route('/create'),
             'view' => Pages\ViewPayment::route('/{record}'),
-            'edit' => Pages\EditPayment::route('/{record}/edit'),
         ];
     }
 

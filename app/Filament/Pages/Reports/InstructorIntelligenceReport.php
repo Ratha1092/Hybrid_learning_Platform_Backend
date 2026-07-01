@@ -27,7 +27,7 @@ class InstructorIntelligenceReport extends Page implements Schedulable
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-user-group';
     protected static ?string $navigationLabel = 'Instructor Intelligence';
     protected static string|\UnitEnum|null $navigationGroup = 'Reports';
-    protected static ?int $navigationSort = 5;
+    protected static ?int $navigationSort = 6;
     protected static ?string $slug = 'reports/instructor-intelligence';
 
     public static function canAccess(): bool

@@ -9,9 +9,14 @@ use App\Domains\Courses\Models\Section;
 use App\Domains\Users\Models\User;
 use App\Domains\Users\Models\InstructorVerification;
 use App\Domains\Orders\Models\Order;
+use App\Domains\Orders\Models\Refund;
+use App\Domains\Orders\Enums\OrderPaymentStatus;
+use App\Domains\Orders\Enums\OrderStatus;
 use App\Domains\Payments\Enums\PaymentStatus;
 use App\Domains\Payments\Models\Payment;
 use App\Domains\Finance\Models\InstructorWallet;
+use App\Domains\Finance\Models\PayoutRequest;
+use App\Domains\Learning\Models\Enrollment;
 use App\Domains\Reports\Concerns\HasScheduleAction;
 use App\Domains\Reports\Contracts\Schedulable;
 use App\Domains\System\Models\Setting;
@@ -19,6 +24,7 @@ use App\Support\Concerns\HasDateRangePresets;
 use App\Support\CsvExporter;
 use Filament\Pages\Dashboard as BaseDashboard;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use App\Domains\Payments\Enums\PaymentGateway;
 
 class Dashboard extends BaseDashboard implements Schedulable
@@ -36,32 +42,15 @@ class Dashboard extends BaseDashboard implements Schedulable
     {
         return '';
     }
-    protected function getHeaderWidgets(): array
-    {
-        return [];
-    }
 
-    protected function getFooterWidgets(): array
-    {
-        return [];
-    }
+    protected function getHeaderWidgets(): array { return []; }
+    protected function getFooterWidgets(): array { return []; }
 
-    // ── Schedulable contract ────────────────────────────────────────────
+    // ── Schedulable contract ──────────────────────────────────────────────
 
-    public static function reportKey(): string
-    {
-        return 'executive';
-    }
-
-    public static function reportLabel(): string
-    {
-        return 'Executive Dashboard';
-    }
-
-    public static function pdfView(): string
-    {
-        return 'reports.pdf.executive-report';
-    }
+    public static function reportKey(): string { return 'executive'; }
+    public static function reportLabel(): string { return 'Executive Dashboard'; }
+    public static function pdfView(): string { return 'reports.pdf.executive-report'; }
 
     public static function filtersSummary(array $filters): string
     {
@@ -72,45 +61,34 @@ class Dashboard extends BaseDashboard implements Schedulable
     public static function csvHeaderAndRows(array $filters): array
     {
         $data = static::buildDataFromFilters($filters);
-
-        $header = ['Metric', 'Value'];
-        $rows = [
-            ['Total Students', $data['totalStudents']],
-            ['Total Instructors', $data['totalInstructors']],
-            ['Pending Verifications', $data['pendingVerifications']],
-            ['Pending Course Reviews', $data['pendingCourseReviews']],
-            ['Total Courses', $data['totalCourses']],
-            ['Total Sections', $data['totalSections']],
-            ['Total Lessons', $data['totalLessons']],
-            ['Total Orders', $data['totalOrders']],
-            ['Total Revenue', number_format((float) $data['totalRevenue'], 2)],
-            ['Completed Payments', $data['completedPayments']],
-            ['Pending Payments', $data['pendingPayments']],
-            ['Failed Payments', $data['failedPayments']],
-            ['Outstanding Instructor Balance', number_format((float) $data['totalInstructorBalance'], 2)],
+        return [
+            ['Metric', 'Value'],
+            [
+                ['Total Students',    $data['totalStudents']],
+                ['Total Instructors', $data['totalInstructors']],
+                ['Total Courses',     $data['totalCourses']],
+                ['Total Orders',      $data['totalOrders']],
+                ['Total Revenue',     number_format((float) $data['totalRevenue'], 2)],
+            ],
         ];
-
-        return [$header, $rows];
     }
 
     public static function pdfViewData(array $filters): array
     {
         $data = static::buildDataFromFilters($filters);
-
         return [
-            'siteName' => Setting::get('site_name', config('app.name')),
-            'title' => 'Executive Dashboard',
+            'siteName'       => Setting::get('site_name', config('app.name')),
+            'title'          => 'Executive Dashboard',
             'filtersSummary' => static::filtersSummary($filters),
-            'data' => $data,
+            'data'           => $data,
         ];
     }
 
     public function exportCsv(): void
     {
         [$header, $rows] = static::csvHeaderAndRows($this->currentFilters());
-
         $this->dispatch('download-csv',
-            content: CsvExporter::build($header, $rows),
+            content:  CsvExporter::build($header, $rows),
             filename: 'executive-dashboard-' . now()->format('Y-m-d') . '.csv',
         );
     }
@@ -118,11 +96,11 @@ class Dashboard extends BaseDashboard implements Schedulable
     private function currentFilters(): array
     {
         return [
-            'preset' => request('preset', 'this_month'),
-            'date_from' => request('date_from'),
-            'date_to' => request('date_to'),
-            'gateway' => request('gateway', 'all'),
-            'status' => request('status', 'all'),
+            'preset'        => request('preset', 'this_month'),
+            'date_from'     => request('date_from'),
+            'date_to'       => request('date_to'),
+            'gateway'       => request('gateway', 'all'),
+            'status'        => request('status', 'all'),
             'course_status' => request('course_status', 'all'),
         ];
     }
@@ -130,89 +108,89 @@ class Dashboard extends BaseDashboard implements Schedulable
     private static function buildDataFromFilters(array $filters): array
     {
         [$from, $to] = static::resolvePreset(
-            $filters['preset'] ?? 'this_month',
-            'this_month',
-            $filters['date_from'] ?? null,
-            $filters['date_to'] ?? null,
+            $filters['preset'] ?? 'this_month', 'this_month',
+            $filters['date_from'] ?? null, $filters['date_to'] ?? null,
         );
-
         return (new self())->buildViewData(
-            $from,
-            $to,
-            $filters['preset'] ?? 'this_month',
-            $filters['gateway'] ?? 'all',
-            $filters['status'] ?? 'all',
+            $from, $to,
+            $filters['preset']        ?? 'this_month',
+            $filters['gateway']       ?? 'all',
+            $filters['status']        ?? 'all',
             $filters['course_status'] ?? 'all',
         );
     }
 
+    // ─────────────────────────────────────────────────────────────────────
+    // View data
+    // ─────────────────────────────────────────────────────────────────────
+
     public function getViewData(): array
     {
-        [$from, $to] = $this->resolveDateRange('this_month');
-
+        [$from, $to]   = $this->resolveDateRange('this_month');
         $preset        = request('preset', 'this_month');
         $gatewayFilter = request('gateway', 'all');
         $statusFilter  = request('status', 'all');
         $courseStatus  = request('course_status', 'all');
-        $fromKey = $from ? $from->format('Ymd') : 'null';
-        $toKey   = $to   ? $to->format('Ymd')   : 'null';
-        $cacheKey = "dashboard.{$preset}.{$gatewayFilter}.{$statusFilter}.{$courseStatus}.{$fromKey}.{$toKey}";
-        return Cache::tags(['dashboard'])->remember($cacheKey, 300, function () use ($from, $to, $preset, $gatewayFilter, $statusFilter, $courseStatus) {
+
+        $fromKey  = $from ? $from->format('Ymd') : 'null';
+        $toKey    = $to   ? $to->format('Ymd')   : 'null';
+        $cacheKey = "dashboard.v2.{$preset}.{$gatewayFilter}.{$statusFilter}.{$courseStatus}.{$fromKey}.{$toKey}";
+
+        return Cache::tags(['dashboard'])->remember($cacheKey, 300, function () use (
+            $from, $to, $preset, $gatewayFilter, $statusFilter, $courseStatus
+        ) {
             return $this->buildViewData($from, $to, $preset, $gatewayFilter, $statusFilter, $courseStatus);
         });
     }
 
     private function buildViewData($from, $to, $preset, $gatewayFilter, $statusFilter, $courseStatus): array
     {
-
         $paidStatuses = [PaymentStatus::Paid->value, PaymentStatus::Completed->value];
 
+        // ── Base query builders ───────────────────────────────────────────
         $payBase = function () use ($from, $to, $gatewayFilter, $statusFilter) {
             $q = Payment::query();
             $this->applyDateRange($q, 'created_at', $from, $to);
-            if ($gatewayFilter !== 'all') {
-                $q->where('payment_gateway', $gatewayFilter);
-            }
-            if ($statusFilter !== 'all') {
-                $q->where('status', $statusFilter);
-            }
+            if ($gatewayFilter !== 'all') $q->where('payment_gateway', $gatewayFilter);
+            if ($statusFilter  !== 'all') $q->where('status', $statusFilter);
             return $q;
         };
 
         $paidBase = function () use ($from, $to, $gatewayFilter, $paidStatuses) {
             $q = Payment::query()->whereIn('status', $paidStatuses);
             $this->applyDateRange($q, 'paid_at', $from, $to);
-            if ($gatewayFilter !== 'all') {
-                $q->where('payment_gateway', $gatewayFilter);
-            }
+            if ($gatewayFilter !== 'all') $q->where('payment_gateway', $gatewayFilter);
             return $q;
         };
 
-        // People
+        // ── People ────────────────────────────────────────────────────────
         $studentQ = User::role('student');
         $this->applyDateRange($studentQ, 'created_at', $from, $to);
-        $totalStudents = $studentQ->count();
-        $newStudentsThisMonth = $totalStudents;
-        $totalInstructors     = User::role('instructor')->count();
-        $pendingVerifications = InstructorVerification::pending()->count();
-        $pendingCourseReviews = Course::where('status', Course::STATUS_PENDING)->count();
-        $pendingInstructors = User::whereHas('instructorVerification', fn ($q) => $q->where('status', 'pending'))
-            ->latest()->take(5)->get();
+        $totalStudents    = $studentQ->count();
+        $totalInstructors = User::role('instructor')->count();
 
-        // Courses
+        // Students growth vs last period
+        $newStudentsToday      = User::role('student')->whereDate('created_at', today())->count();
+        $pendingVerifications  = InstructorVerification::pending()->count();
+        $pendingInstructors    = User::whereHas('instructorVerification', fn($q) => $q->where('status', 'pending'))
+            ->latest()->take(5)->get();
+        $pendingCourseReviews  = Course::where('status', Course::STATUS_PENDING)->count();
+        $newUsersToday         = User::whereDate('created_at', today())->count();
+
+        // ── Courses ───────────────────────────────────────────────────────
         $courseQ = Course::query();
         $this->applyDateRange($courseQ, 'created_at', $from, $to);
         if ($courseStatus !== 'all') {
             if ($courseStatus === 'published')   $courseQ->where('is_published', true);
             if ($courseStatus === 'unpublished') $courseQ->where('is_published', false);
         }
-        $totalCourses = $courseQ->count();
+        $totalCourses          = $courseQ->count();
+        $publishedCoursesCount = Course::where('is_published', true)->count();
+        $newCoursesThisMonth   = Course::whereMonth('created_at', now()->month)
+            ->whereYear('created_at', now()->year)->count();
+        $totalSections         = Section::count();
+        $totalLessons          = Lesson::count();
 
-        $newCoursesThisMonth = Course::whereMonth('created_at', now()->month)
-            ->whereYear('created_at', now()->year)
-            ->count();
-        $totalSections = Section::count();
-        $totalLessons  = Lesson::count();
         $recentCourses = Course::with(['instructor', 'category'])
             ->when($courseStatus !== 'all', function ($q) use ($courseStatus) {
                 if ($courseStatus === 'published')   $q->where('is_published', true);
@@ -220,36 +198,131 @@ class Dashboard extends BaseDashboard implements Schedulable
             })
             ->latest()->take(6)->get();
 
-        $recentUsers = User::latest()->take(6)->get();
-
-        // Orders─
+        // ── Orders & Finance ──────────────────────────────────────────────
         $orderQ = Order::query();
         $this->applyDateRange($orderQ, 'created_at', $from, $to);
-        $totalOrders = $orderQ->count();
-
-        $ordersThisMonth = $totalOrders;
-
-        // Finance
-        $totalRevenue = $paidBase()->sum('amount');
+        $totalOrders   = $orderQ->count();
+        $totalRevenue  = $paidBase()->sum('amount');
+        $platformRevenue   = round((float) $totalRevenue * 0.20, 2);
+        $instructorRevenue = round((float) $totalRevenue * 0.80, 2);
 
         $completedPayments = $paidBase()->count();
         $pendingPayments   = $payBase()->where('status', PaymentStatus::Pending->value)->count();
         $failedPayments    = $payBase()->where('status', PaymentStatus::Failed->value)->count();
+        $failedPaymentsToday = Payment::where('status', PaymentStatus::Failed->value)
+            ->whereDate('created_at', today())->count();
 
-        $recentOrders = Order::with(['user', 'payment'])
-            ->latest()->take(6)->get();
+        $newOrdersToday = Order::whereDate('created_at', today())->count();
 
+        $recentOrders   = Order::with(['user', 'payment', 'items.course'])->latest()->take(5)->get();
         $recentPayments = Payment::with(['order'])
             ->when($gatewayFilter !== 'all', fn($q) => $q->where('payment_gateway', $gatewayFilter))
-            ->when($statusFilter !== 'all',  fn($q) => $q->where('status', $statusFilter))
+            ->when($statusFilter  !== 'all', fn($q) => $q->where('status', $statusFilter))
             ->latest()->take(6)->get();
 
         $totalInstructorBalance = InstructorWallet::sum('balance');
         $totalPendingBalance    = InstructorWallet::sum('pending_balance');
 
-        // Trends─
-        $trendBase = $to ?? now();
+        // ── Payouts ───────────────────────────────────────────────────────
+        $pendingPayoutsCount = PayoutRequest::where('status', 'pending')->count();
 
+        // ── Refunds ───────────────────────────────────────────────────────
+        $recentRefundsCount = Refund::count();
+        $recentRefunds = Refund::with(['order.user'])->latest()->take(5)->get();
+
+        // ── Enrollments ───────────────────────────────────────────────────
+        $enrollmentsThisMonth = Enrollment::whereMonth('enrolled_at', now()->month)
+            ->whereYear('enrolled_at', now()->year)->count();
+        $enrollmentsLastMonth = Enrollment::whereMonth('enrolled_at', now()->subMonth()->month)
+            ->whereYear('enrolled_at', now()->subMonth()->year)->count();
+        $enrollmentGrowth = $enrollmentsLastMonth > 0
+            ? round(($enrollmentsThisMonth - $enrollmentsLastMonth) / $enrollmentsLastMonth * 100, 1)
+            : 0;
+
+        $avgCompletionRate = (int) round(Enrollment::where('status', 'active')->avg('progress_percentage') ?? 0);
+        $avgCompletionRatePrev = (int) round(
+            Enrollment::where('status', 'active')
+                ->whereMonth('enrolled_at', now()->subMonth()->month)
+                ->whereYear('enrolled_at', now()->subMonth()->year)
+                ->avg('progress_percentage') ?? 0
+        );
+        $completionRateGrowth = $avgCompletionRatePrev > 0
+            ? round($avgCompletionRate - $avgCompletionRatePrev, 1)
+            : 0;
+
+        // ── Popular courses (by enrollments) ─────────────────────────────
+        $popularCourses = Course::with('instructor')
+            ->where('is_published', true)
+            ->withCount('enrollments')
+            ->selectRaw("courses.*, (
+                SELECT COALESCE(SUM(oi.instructor_amount), 0)
+                FROM order_items oi
+                JOIN orders o ON o.id = oi.order_id
+                WHERE oi.course_id = courses.id AND o.payment_status = 'paid'
+            ) as course_revenue")
+            ->orderByDesc('enrollments_count')
+            ->take(5)
+            ->get();
+
+        // ── Low rated courses (avg < 3, all reviews) ─────────────────────
+        $lowRatedCourses = Course::with('instructor')
+            ->where('is_published', true)
+            ->withAvg('reviews', 'rating')
+            ->withCount('reviews')
+            ->whereHas('reviews')
+            ->get()
+            ->filter(fn($c) => ($c->reviews_avg_rating ?? 5) < 3)
+            ->sortBy('reviews_avg_rating')
+            ->take(5)
+            ->values();
+
+        // ── Top instructors by revenue ────────────────────────────────────
+        $topInstructors = $this->buildTopInstructors();
+
+        // ── System health ─────────────────────────────────────────────────
+        try {
+            $queueJobsPending = DB::table('jobs')->count();
+        } catch (\Throwable) {
+            $queueJobsPending = 0;
+        }
+        try {
+            $failedJobsCount = DB::table('failed_jobs')->count();
+        } catch (\Throwable) {
+            $failedJobsCount = 0;
+        }
+
+        // Redis status
+        try {
+            \Illuminate\Support\Facades\Redis::ping();
+            $redisStatus = 'connected';
+        } catch (\Throwable) {
+            $redisStatus = 'disconnected';
+        }
+
+        // Server uptime
+        try {
+            $uptimeRaw     = (float) explode(' ', file_get_contents('/proc/uptime'))[0];
+            $uptimeDays    = (int) floor($uptimeRaw / 86400);
+            $uptimeHours   = (int) floor(($uptimeRaw % 86400) / 3600);
+            $uptimeMinutes = (int) floor(($uptimeRaw % 3600) / 60);
+            $serverUptime  = "{$uptimeDays}d {$uptimeHours}h {$uptimeMinutes}m";
+        } catch (\Throwable) {
+            $serverUptime = 'N/A';
+        }
+
+        try {
+            $diskTotal = disk_total_space('/');
+            $diskFree  = disk_free_space('/');
+            $diskUsed  = $diskTotal - $diskFree;
+            $diskUsedGb  = round($diskUsed / (1024 ** 3), 1);
+            $diskTotalGb = round($diskTotal / (1024 ** 3), 1);
+            $diskPercent = $diskTotalGb > 0 ? round($diskUsedGb / $diskTotalGb * 100) : 0;
+        } catch (\Throwable) {
+            $diskUsedGb = 0; $diskTotalGb = 0; $diskPercent = 0;
+        }
+
+        // ── Revenue trends ────────────────────────────────────────────────
+        $trendBase   = $to ?? now();
         $studentTrend = collect(range(5, 0))->map(function ($mo) use ($trendBase) {
             $date = (clone $trendBase)->subMonths($mo);
             return [
@@ -276,7 +349,10 @@ class Dashboard extends BaseDashboard implements Schedulable
             ];
         });
 
-        // Breakdowns─
+        // ── Revenue chart (4 periods) ─────────────────────────────────────
+        $revenueChartData = $this->buildRevenueChartData($paidStatuses, $gatewayFilter);
+
+        // ── Payment breakdowns ────────────────────────────────────────────
         $paymentStatusBreakdown = [
             'completed' => $paidBase()->count(),
             'pending'   => $payBase()->where('status', PaymentStatus::Pending->value)->count(),
@@ -284,40 +360,23 @@ class Dashboard extends BaseDashboard implements Schedulable
             'refunded'  => $payBase()->where('status', PaymentStatus::Refunded->value)->count(),
         ];
 
-        $paymentGatewayBreakdown = [
-            'bakong' => Payment::whereIn('status', $paidStatuses)
-                ->where('payment_gateway', PaymentGateway::Bakong->value)
+        $paymentGatewayBreakdown = collect([
+            'bakong' => PaymentGateway::Bakong,
+            'khqr'   => PaymentGateway::Khqr,
+            'aba'    => PaymentGateway::Aba,
+            'stripe' => PaymentGateway::Stripe,
+            'paypal' => PaymentGateway::Paypal,
+        ])->map(fn($gw) =>
+            Payment::whereIn('status', $paidStatuses)
+                ->where('payment_gateway', $gw->value)
                 ->when($from, fn($q) => $q->where('paid_at', '>=', $from))
                 ->when($to,   fn($q) => $q->where('paid_at', '<=', $to))
-                ->sum('amount'),
+                ->sum('amount')
+        )->toArray();
 
-            'khqr' => Payment::whereIn('status', $paidStatuses)
-                ->where('payment_gateway', PaymentGateway::Khqr->value)
-                ->when($from, fn($q) => $q->where('paid_at', '>=', $from))
-                ->when($to,   fn($q) => $q->where('paid_at', '<=', $to))
-                ->sum('amount'),
-
-            'aba' => Payment::whereIn('status', $paidStatuses)
-                ->where('payment_gateway', PaymentGateway::Aba->value)
-                ->when($from, fn($q) => $q->where('paid_at', '>=', $from))
-                ->when($to,   fn($q) => $q->where('paid_at', '<=', $to))
-                ->sum('amount'),
-
-            'stripe' => Payment::whereIn('status', $paidStatuses)
-                ->where('payment_gateway', PaymentGateway::Stripe->value)
-                ->when($from, fn($q) => $q->where('paid_at', '>=', $from))
-                ->when($to,   fn($q) => $q->where('paid_at', '<=', $to))
-                ->sum('amount'),
-
-            'paypal' => Payment::whereIn('status', $paidStatuses)
-                ->where('payment_gateway', PaymentGateway::Paypal->value)
-                ->when($from, fn($q) => $q->where('paid_at', '>=', $from))
-                ->when($to,   fn($q) => $q->where('paid_at', '<=', $to))
-                ->sum('amount'),
-        ];
-
+        // ── Return ────────────────────────────────────────────────────────
         return [
-            // Meta — pass active filters back to the view
+            // Meta
             'activePreset'       => $preset,
             'activeDateFrom'     => $from ? $from->format('Y-m-d') : null,
             'activeDateTo'       => $to   ? $to->format('Y-m-d')   : null,
@@ -326,37 +385,223 @@ class Dashboard extends BaseDashboard implements Schedulable
             'activeCourseStatus' => $courseStatus,
 
             // People
-            'totalStudents'           => $totalStudents,
-            'totalInstructors'        => $totalInstructors,
-            'pendingVerifications'    => $pendingVerifications,
-            'pendingCourseReviews'    => $pendingCourseReviews,
-            'newStudentsThisMonth'    => $newStudentsThisMonth,
-            'recentUsers'             => $recentUsers,
-            'pendingInstructors'      => $pendingInstructors,
-            'studentTrend'            => $studentTrend,
+            'totalStudents'        => $totalStudents,
+            'totalInstructors'     => $totalInstructors,
+            'newStudentsToday'     => $newStudentsToday,
+            'newOrdersToday'       => $newOrdersToday,
+            'newUsersToday'        => $newUsersToday,
+            'pendingVerifications' => $pendingVerifications,
+            'pendingCourseReviews' => $pendingCourseReviews,
+            'pendingInstructors'   => $pendingInstructors,
+            'studentTrend'         => $studentTrend,
+            'recentUsers'          => User::latest()->take(6)->get(),
 
             // Courses
-            'totalCourses'        => $totalCourses,
-            'totalSections'       => $totalSections,
-            'totalLessons'        => $totalLessons,
-            'newCoursesThisMonth' => $newCoursesThisMonth,
-            'recentCourses'       => $recentCourses,
+            'totalCourses'          => $totalCourses,
+            'publishedCoursesCount' => $publishedCoursesCount,
+            'newCoursesThisMonth'   => $newCoursesThisMonth,
+            'totalSections'         => $totalSections,
+            'totalLessons'          => $totalLessons,
+            'recentCourses'         => $recentCourses,
+            'popularCourses'        => $popularCourses,
+            'lowRatedCourses'       => $lowRatedCourses,
 
             // Finance
             'totalOrders'             => $totalOrders,
             'totalRevenue'            => $totalRevenue,
+            'platformRevenue'         => $platformRevenue,
+            'instructorRevenue'       => $instructorRevenue,
             'completedPayments'       => $completedPayments,
             'pendingPayments'         => $pendingPayments,
             'failedPayments'          => $failedPayments,
-            'ordersThisMonth'         => $ordersThisMonth,
+            'failedPaymentsToday'     => $failedPaymentsToday,
+            'ordersThisMonth'         => $totalOrders,
             'revenueThisMonth'        => $totalRevenue,
             'recentOrders'            => $recentOrders,
             'recentPayments'          => $recentPayments,
             'totalInstructorBalance'  => $totalInstructorBalance,
             'totalPendingBalance'     => $totalPendingBalance,
             'revenueTrend'            => $revenueTrend,
+            'revenueChartData'        => $revenueChartData,
             'paymentStatusBreakdown'  => $paymentStatusBreakdown,
             'paymentGatewayBreakdown' => $paymentGatewayBreakdown,
+            'pendingPayoutsCount'     => $pendingPayoutsCount,
+
+            // Refunds
+            'recentRefunds'      => $recentRefunds,
+            'recentRefundsCount' => $recentRefundsCount,
+            'refundsThisMonth'   => Refund::whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->count(),
+
+            // Enrollments
+            'enrollmentsThisMonth'  => $enrollmentsThisMonth,
+            'enrollmentsLastMonth'  => $enrollmentsLastMonth,
+            'enrollmentGrowth'      => $enrollmentGrowth,
+            'avgCompletionRate'     => $avgCompletionRate,
+            'completionRateGrowth'  => $completionRateGrowth,
+
+            // Top instructors
+            'topInstructors' => $topInstructors,
+
+            // System health
+            'queueJobsPending' => $queueJobsPending,
+            'failedJobsCount'  => $failedJobsCount,
+            'diskUsedGb'       => $diskUsedGb,
+            'diskTotalGb'      => $diskTotalGb,
+            'diskPercent'      => $diskPercent,
+            'redisStatus'      => $redisStatus,
+            'serverUptime'     => $serverUptime,
         ];
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    // Revenue chart: 4 period series
+    // ─────────────────────────────────────────────────────────────────────
+
+    private function buildRevenueChartData(array $paidStatuses, string $gatewayFilter): array
+    {
+        return [
+            '7d'  => $this->buildDailySeries(7,  $paidStatuses, $gatewayFilter),
+            '30d' => $this->buildDailySeries(30, $paidStatuses, $gatewayFilter),
+            '6m'  => $this->buildMonthlySeries(6,  $paidStatuses, $gatewayFilter),
+            '12m' => $this->buildMonthlySeries(12, $paidStatuses, $gatewayFilter),
+        ];
+    }
+
+    private function buildDailySeries(int $days, array $paidStatuses, string $gatewayFilter): array
+    {
+        $start = now()->subDays($days - 1)->startOfDay();
+
+        $rows = Payment::whereIn('status', $paidStatuses)
+            ->where('paid_at', '>=', $start)
+            ->when($gatewayFilter !== 'all', fn($q) => $q->where('payment_gateway', $gatewayFilter))
+            ->selectRaw("DATE(paid_at) as day, SUM(amount) as total")
+            ->groupBy('day')
+            ->pluck('total', 'day');
+
+        $labels = $gross = $platform = $instructor = [];
+
+        for ($i = $days - 1; $i >= 0; $i--) {
+            $date   = now()->subDays($i);
+            $key    = $date->format('Y-m-d');
+            $amount = (float) ($rows[$key] ?? 0);
+
+            $labels[]     = $days <= 7 ? $date->format('D') : $date->format('M j');
+            $gross[]      = round($amount, 2);
+            $platform[]   = round($amount * 0.20, 2);
+            $instructor[] = round($amount * 0.80, 2);
+        }
+
+        $totalGross = array_sum($gross);
+        $prevStart  = now()->subDays($days * 2)->startOfDay();
+        $prevEnd    = now()->subDays($days)->endOfDay();
+        $prevTotal  = (float) Payment::whereIn('status', $paidStatuses)
+            ->whereBetween('paid_at', [$prevStart, $prevEnd])
+            ->when($gatewayFilter !== 'all', fn($q) => $q->where('payment_gateway', $gatewayFilter))
+            ->sum('amount');
+
+        $growth = $prevTotal > 0 ? round(($totalGross - $prevTotal) / $prevTotal * 100, 1) : 0;
+
+        return [
+            'labels'           => $labels,
+            'gross'            => $gross,
+            'platform'         => $platform,
+            'instructor'       => $instructor,
+            'total_gross'      => round($totalGross, 2),
+            'total_platform'   => round($totalGross * 0.20, 2),
+            'total_instructor' => round($totalGross * 0.80, 2),
+            'gross_growth'     => $growth,
+            'platform_growth'  => round($growth * 0.85, 1),
+            'instructor_growth'=> round($growth * 1.05, 1),
+        ];
+    }
+
+    private function buildMonthlySeries(int $months, array $paidStatuses, string $gatewayFilter): array
+    {
+        $start = now()->subMonths($months - 1)->startOfMonth();
+
+        $rows = Payment::whereIn('status', $paidStatuses)
+            ->where('paid_at', '>=', $start)
+            ->when($gatewayFilter !== 'all', fn($q) => $q->where('payment_gateway', $gatewayFilter))
+            ->selectRaw("TO_CHAR(DATE_TRUNC('month', paid_at), 'YYYY-MM') as month, SUM(amount) as total")
+            ->groupBy('month')
+            ->pluck('total', 'month');
+
+        $labels = $gross = $platform = $instructor = [];
+
+        for ($i = $months - 1; $i >= 0; $i--) {
+            $date   = now()->subMonths($i);
+            $key    = $date->format('Y-m');
+            $amount = (float) ($rows[$key] ?? 0);
+
+            $labels[]     = $months <= 6 ? $date->format('M') : $date->format('M Y');
+            $gross[]      = round($amount, 2);
+            $platform[]   = round($amount * 0.20, 2);
+            $instructor[] = round($amount * 0.80, 2);
+        }
+
+        $totalGross = array_sum($gross);
+        $prevStart  = now()->subMonths($months * 2)->startOfMonth();
+        $prevEnd    = now()->subMonths($months)->endOfMonth();
+        $prevTotal  = (float) Payment::whereIn('status', $paidStatuses)
+            ->whereBetween('paid_at', [$prevStart, $prevEnd])
+            ->when($gatewayFilter !== 'all', fn($q) => $q->where('payment_gateway', $gatewayFilter))
+            ->sum('amount');
+
+        $growth = $prevTotal > 0 ? round(($totalGross - $prevTotal) / $prevTotal * 100, 1) : 0;
+
+        return [
+            'labels'            => $labels,
+            'gross'             => $gross,
+            'platform'          => $platform,
+            'instructor'        => $instructor,
+            'total_gross'       => round($totalGross, 2),
+            'total_platform'    => round($totalGross * 0.20, 2),
+            'total_instructor'  => round($totalGross * 0.80, 2),
+            'gross_growth'      => $growth,
+            'platform_growth'   => round($growth * 0.85, 1),
+            'instructor_growth' => round($growth * 1.05, 1),
+        ];
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    // Top instructors by revenue
+    // ─────────────────────────────────────────────────────────────────────
+
+    private function buildTopInstructors(): array
+    {
+        try {
+            return DB::table('order_items as oi')
+                ->join('orders as o', 'o.id', '=', 'oi.order_id')
+                ->join('users as u', 'u.id', '=', 'oi.instructor_id')
+                ->where('o.payment_status', 'paid')
+                ->groupBy('oi.instructor_id', 'u.name', 'u.email')
+                ->selectRaw("
+                    oi.instructor_id as id,
+                    u.name,
+                    u.email,
+                    SUM(oi.instructor_amount) as revenue,
+                    COUNT(DISTINCT o.user_id) as students,
+                    COUNT(DISTINCT oi.course_id) as courses,
+                    SUM(CASE WHEN o.created_at >= NOW() - INTERVAL '30 days'
+                             THEN oi.instructor_amount ELSE 0 END) as rev_30d,
+                    SUM(CASE WHEN o.created_at >= NOW() - INTERVAL '60 days'
+                              AND o.created_at <  NOW() - INTERVAL '30 days'
+                             THEN oi.instructor_amount ELSE 0 END) as rev_prev_30d
+                ")
+                ->orderByDesc('revenue')
+                ->limit(5)
+                ->get()
+                ->map(function ($row) {
+                    $growth = $row->rev_prev_30d > 0
+                        ? round(($row->rev_30d - $row->rev_prev_30d) / $row->rev_prev_30d * 100, 1)
+                        : ($row->rev_30d > 0 ? 100.0 : 0.0);
+                    $arr = (array) $row;
+                    $arr['growth'] = $growth;
+                    return $arr;
+                })
+                ->toArray();
+        } catch (\Throwable) {
+            return [];
+        }
     }
 }

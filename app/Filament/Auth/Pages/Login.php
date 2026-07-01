@@ -12,6 +12,12 @@ class Login extends BaseLogin
 {
     protected string $view = 'filament.auth.custom-login';
 
+    protected function throwFailureValidationException(): never
+    {
+        $this->form->fill(['password' => '']);
+        parent::throwFailureValidationException();
+    }
+
     protected function getViewData(): array
     {
         return [

@@ -69,19 +69,19 @@ html:not(.dark) .sv {
     {{-- Top bar --}}
     <div class="sv-topbar">
         <div class="sv-topbar-left">
-            <a href="{{ route('filament.admin.pages.sections') }}" class="sv-btn sv-btn-gray">
+            <a href="{{ route('filament.admin.pages.sections') }}" wire:navigate class="sv-btn sv-btn-gray">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
                 Back to Sections
             </a>
             @if($section->course)
-            <a href="{{ url('/admin/courses/' . $section->course->id) }}" class="sv-btn sv-btn-gray">
+            <a href="{{ url('/admin/courses/' . $section->course->id) }}" wire:navigate class="sv-btn sv-btn-gray">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"/></svg>
                 {{ $section->course->title }}
             </a>
             @endif
         </div>
         <div class="sv-topbar-right">
-            <a href="{{ route('filament.admin.resources.sections.edit', $section) }}" class="sv-btn sv-btn-primary">
+            <a href="{{ route('filament.admin.resources.sections.edit', $section) }}" wire:navigate class="sv-btn sv-btn-primary">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487z"/></svg>
                 Edit
             </a>
@@ -156,7 +156,7 @@ html:not(.dark) .sv {
             <span class="sv-type-badge" style="background:{{ $tc['bg'] }};color:{{ $tc['color'] }}">
                 {{ ucfirst($lesson->type) }}
             </span>
-            <a href="{{ route('filament.admin.resources.lessons.view', $lesson) }}" style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:7px;border:1px solid var(--bd2);color:var(--t2);text-decoration:none;transition:all .15s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--bd2)';this.style.color='var(--t2)'">
+            <a href="{{ route('filament.admin.resources.lessons.view', $lesson) }}" wire:navigate style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:7px;border:1px solid var(--bd2);color:var(--t2);text-decoration:none;transition:all .15s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--bd2)';this.style.color='var(--t2)'">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="width:13px;height:13px"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><circle cx="12" cy="12" r="3"/></svg>
             </a>
         </div>

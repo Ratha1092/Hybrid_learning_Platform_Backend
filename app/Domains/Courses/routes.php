@@ -4,11 +4,17 @@ use Illuminate\Support\Facades\Route;
 
 use App\Domains\Courses\Controllers\CourseController;
 use App\Domains\Courses\Controllers\CategoryController;
+use App\Domains\Courses\Controllers\SearchController;
 use App\Domains\Courses\Controllers\InstructorCourseController;
 use App\Domains\Courses\Controllers\InstructorSectionController;
 use App\Domains\Courses\Controllers\InstructorLessonController;
 use App\Domains\Courses\Controllers\InstructorDashboardController;
 use App\Domains\Courses\Controllers\InstructorLessonResourceController;
+use App\Domains\Courses\Controllers\InstructorStandaloneSectionController;
+
+// Global search
+Route::middleware('throttle:courses')
+    ->get('/search', SearchController::class);
 
 // Public Categories
 Route::middleware('throttle:courses')
@@ -33,6 +39,14 @@ Route::middleware(['auth:sanctum','verified_instructor','throttle:courses',])
         Route::get('/students', [InstructorDashboardController::class, 'students']);
     });
 
+// Instructor Standalone Sections
+Route::middleware(['auth:sanctum', 'verified_instructor', 'throttle:courses'])
+    ->prefix('instructor/sections')
+    ->group(function () {
+        Route::post('/', [InstructorStandaloneSectionController::class, 'store']);
+        Route::get('/standalone', [InstructorStandaloneSectionController::class, 'standalone']);
+    });
+
 //Instructor Course Management
 Route::middleware(['auth:sanctum','verified_instructor','throttle:courses',])
     ->prefix('instructor/courses')
@@ -47,6 +61,9 @@ Route::middleware(['auth:sanctum','verified_instructor','throttle:courses',])
 
         //Submit For Review
         Route::post('/{id}/submit-review',[InstructorCourseController::class, 'submitForReview']);
+
+        //Attach standalone sections to a course
+        Route::post('/{id}/attach-sections', [InstructorCourseController::class, 'attachSections']);
         Route::prefix('{courseId}/sections')->group(function () {
                 Route::get('/',[InstructorSectionController::class, 'index']);
                 Route::post('/',[InstructorSectionController::class, 'store']);

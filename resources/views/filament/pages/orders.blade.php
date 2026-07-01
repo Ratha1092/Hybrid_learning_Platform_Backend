@@ -1,6 +1,4 @@
 @php
-    $url = fn(array $p) => url()->current() . '?' . http_build_query(array_merge(request()->query(), $p));
-
     $accent = '#059669';
 
     $statusStyle = fn($status) => match(true) {
@@ -43,10 +41,11 @@
         default => ['bg' => 'rgba(148,163,184,.1)', 'color' => '#94a3b8', 'label' => '—'],
     };
 
-    $createUrl = route('filament.admin.resources.orders.create');
     $viewUrl   = fn($o) => route('filament.admin.resources.orders.view', ['record' => $o->id]);
-    $editUrl   = fn($o) => route('filament.admin.resources.orders.edit', ['record' => $o->id]);
 @endphp
+
+<div wire:poll.15s>
+<div class="lp" id="lp-orders" style="--accent:{{ $accent }}">
 
 <style>
 .lp, .lp *, .lp *::before, .lp *::after { box-sizing:border-box; margin:0; padding:0; }
@@ -83,7 +82,7 @@ html:not(.dark) .lp {
 .lp-card { background:var(--p1); border:1px solid var(--bd); border-radius:12px; overflow:hidden; box-shadow:var(--sh); }
 .lp-toolbar { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 16px; border-bottom:1px solid var(--bd); flex-wrap:wrap; }
 .lp-tabs { display:flex; align-items:center; gap:4px; flex-wrap:wrap; }
-.lp-tab { display:inline-flex; align-items:center; gap:6px; padding:6px 13px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; text-decoration:none; color:var(--t2); border:1px solid transparent; transition:background .15s, color .15s, border-color .15s; }
+.lp-tab { display:inline-flex; align-items:center; gap:6px; padding:6px 13px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; text-decoration:none; color:var(--t2); background:none; font-family:inherit; border:1px solid transparent; transition:background .15s, color .15s, border-color .15s; }
 .lp-tab:hover { background:var(--p2); color:var(--t1); }
 .lp-tab-badge { display:inline-flex; align-items:center; justify-content:center; min-width:18px; height:18px; padding:0 5px; border-radius:5px; font-size:10px; font-weight:800; }
 .lp-search-box { display:flex; align-items:center; gap:6px; background:var(--p2); border:1px solid var(--bd2); border-radius:8px; padding:6px 12px; }
@@ -122,7 +121,8 @@ html:not(.dark) .lp {
 .lp-footer { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-top:1px solid var(--bd); flex-wrap:wrap; gap:10px; }
 .lp-footer-info { font-size:12px; color:var(--t2); }
 .lp-pages { display:flex; align-items:center; gap:6px; }
-.lp-page-btn { display:inline-flex; align-items:center; justify-content:center; min-width:30px; height:30px; padding:0 8px; border-radius:7px; font-size:12px; font-weight:700; text-decoration:none; color:var(--t2); background:none; border:1px solid transparent; transition:background .15s, border-color .15s, color .15s; }
+.lp-page-btn { display:inline-flex; align-items:center; justify-content:center; min-width:30px; height:30px; padding:0 8px; border-radius:7px; font-size:12px; font-weight:700; text-decoration:none; color:var(--t2); background:none; font-family:inherit; cursor:pointer; border:1px solid transparent; transition:background .15s, border-color .15s, color .15s; }
+.lp-loading{opacity:.45;pointer-events:none;transition:opacity .1s}
 .lp-page-btn:not(.disabled):hover { background:var(--p2); border-color:var(--bd2); color:var(--t1); }
 .lp-page-btn.active { background:var(--accent); color:#fff; border-color:transparent; }
 .lp-page-btn.disabled { opacity:.35; pointer-events:none; }
@@ -130,22 +130,11 @@ html:not(.dark) .lp {
 .lp-per-page select { appearance:none; background:var(--p2); border:1px solid var(--bd2); border-radius:7px; padding:4px 22px 4px 9px; font-size:12px; font-weight:700; color:var(--t1); font-family:inherit; cursor:pointer; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 6px center; outline:none; }
 </style>
 
-<div wire:poll.1s>
-<div class="lp" id="lp-orders" style="--accent:{{ $accent }}">
-
     {{-- Header --}}
     <div class="lp-header lpa lp1">
         <div class="lp-header-text">
             <h1>Orders</h1>
             <p>Track and manage all customer orders across the platform.</p>
-        </div>
-        <div class="lp-header-btns">
-            <a href="{{ $createUrl }}" class="lp-btn lp-btn-primary" style="background:{{ $accent }}">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:13px;height:13px">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
-                </svg>
-                New Order
-            </a>
         </div>
     </div>
 
@@ -162,28 +151,23 @@ html:not(.dark) .lp {
                     $tabStyle   = $isActive ? "background:{$tabColor}1a;color:{$tabColor};border-color:{$tabColor}55;font-weight:700;" : '';
                     $badgeStyle = "background:{$tabColor}20;color:{$tabColor};";
                 @endphp
-                <a href="{{ $url(['tab' => $t['key'], 'page' => 1]) }}" class="lp-tab" style="{{ $tabStyle }}">
+                <button type="button" wire:click="selectTab('{{ $t['key'] }}')" class="lp-tab" style="{{ $tabStyle }}">
                     {{ $t['label'] }}
                     <span class="lp-tab-badge" style="{{ $badgeStyle }}">{{ $t['count'] }}</span>
-                </a>
+                </button>
                 @endforeach
             </div>
 
-            <form method="GET" action="{{ url()->current() }}" style="display:flex;align-items:center;gap:0">
-                @foreach(request()->except(['search', 'page']) as $k => $v)
-                    <input type="hidden" name="{{ $k }}" value="{{ $v }}">
-                @endforeach
-                <div class="lp-search-box">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607z"/>
-                    </svg>
-                    <input type="text" name="search" value="{{ $search }}" placeholder="Order number or customer...">
-                </div>
-            </form>
+            <div class="lp-search-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607z"/>
+                </svg>
+                <input type="text" wire:model.live.debounce.500ms="search" placeholder="Order number or customer...">
+            </div>
         </div>
 
         {{-- Table --}}
-        <div style="overflow-x:auto">
+        <div style="overflow-x:auto" wire:loading.class="lp-loading" wire:target="selectTab,gotoPage,search,perPage">
         <table class="lp-table">
             <thead>
                 <tr>
@@ -207,7 +191,7 @@ html:not(.dark) .lp {
                     $avUrl = 'https://ui-avatars.com/api/?name=' . urlencode($order->user?->name ?? '?') . '&background=' . $bgHex . '&color=fff&bold=true&size=64';
                     $amount = $order->final_amount ?? $order->total_amount ?? 0;
                 @endphp
-                <tr class="lp-row-link" onclick="window.location='{{ $viewUrl($order) }}'">
+                <tr class="lp-row-link" onclick="Livewire.navigate('{{ $viewUrl($order) }}')">
                     <td><span class="lp-id">{{ $order->id }}</span></td>
 
                     <td><span class="lp-order-num">{{ $order->order_number ?? '—' }}</span></td>
@@ -243,14 +227,9 @@ html:not(.dark) .lp {
 
                     <td onclick="event.stopPropagation()">
                         <div class="lp-actions">
-                            <a href="{{ $viewUrl($order) }}" class="lp-act-btn" title="View">
+                            <a href="{{ $viewUrl($order) }}" wire:navigate class="lp-act-btn" title="View">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><circle cx="12" cy="12" r="3"/>
-                                </svg>
-                            </a>
-                            <a href="{{ $editUrl($order) }}" class="lp-act-btn" title="Edit">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487z"/>
                                 </svg>
                             </a>
                         </div>
@@ -284,7 +263,7 @@ html:not(.dark) .lp {
             <div style="display:flex;align-items:center;gap:16px">
                 <div class="lp-per-page">
                     Per page
-                    <select onchange="window.location.href='{{ $url([]) }}&per_page=' + this.value + '&page=1'">
+                    <select wire:model.live="perPage">
                         @foreach([10, 25, 50] as $n)
                             <option value="{{ $n }}" {{ $perPage == $n ? 'selected' : '' }}>{{ $n }}</option>
                         @endforeach
@@ -292,20 +271,20 @@ html:not(.dark) .lp {
                 </div>
                 @if($totalPages > 1)
                 <div class="lp-pages">
-                    <a href="{{ $url(['page' => max(1, $curPage - 1)]) }}"
-                       class="lp-page-btn {{ $curPage === 1 ? 'disabled' : '' }}">
+                    <button type="button" wire:click="gotoPage({{ max(1, $curPage - 1) }})"
+                       class="lp-page-btn {{ $curPage === 1 ? 'disabled' : '' }}" @disabled($curPage === 1)>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:12px;height:12px"><path d="M15 19l-7-7 7-7"/></svg>
-                    </a>
+                    </button>
                     @for($p = max(1, $curPage - 2); $p <= min($totalPages, $curPage + 2); $p++)
-                        <a href="{{ $url(['page' => $p]) }}"
+                        <button type="button" wire:click="gotoPage({{ $p }})"
                            class="lp-page-btn {{ $curPage === $p ? 'active' : '' }}">
                             {{ $p }}
-                        </a>
+                        </button>
                     @endfor
-                    <a href="{{ $url(['page' => min($totalPages, $curPage + 1)]) }}"
-                       class="lp-page-btn {{ $curPage === $totalPages ? 'disabled' : '' }}">
+                    <button type="button" wire:click="gotoPage({{ min($totalPages, $curPage + 1) }})"
+                       class="lp-page-btn {{ $curPage === $totalPages ? 'disabled' : '' }}" @disabled($curPage === $totalPages)>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:12px;height:12px"><path d="M9 5l7 7-7 7"/></svg>
-                    </a>
+                    </button>
                 </div>
                 @endif
             </div>

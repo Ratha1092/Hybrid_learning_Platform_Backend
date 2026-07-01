@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Courses\Pages;
 
 use App\Domains\Courses\Models\Category;
+use App\Domains\Courses\Models\Section as SectionModel;
 use App\Domains\Users\Models\User;
 use App\Filament\Resources\Courses\CourseResource;
 use Filament\Forms\Components\FileUpload;
@@ -20,6 +21,8 @@ class CreateCourse extends CreateRecord
     protected static string $resource = CourseResource::class;
 
     protected string $view = 'filament.resources.courses.create-course';
+
+    public array $selectedSectionIds = [];
 
     public function form(Schema $form): Schema
     {
@@ -97,6 +100,15 @@ class CreateCourse extends CreateRecord
         return $data;
     }
 
+    protected function afterCreate(): void
+    {
+        if (!empty($this->selectedSectionIds)) {
+            SectionModel::whereIn('id', $this->selectedSectionIds)
+                ->whereNull('course_id')
+                ->update(['course_id' => $this->record->id]);
+        }
+    }
+
     protected function getHeaderActions(): array
     {
         return [];
@@ -105,9 +117,13 @@ class CreateCourse extends CreateRecord
     protected function getViewData(): array
     {
         return [
-            'backUrl'     => url('/admin/courses'),
-            'instructors' => User::role('instructor')->orderBy('name')->pluck('name', 'id'),
-            'categories'  => Category::orderBy('name')->pluck('name', 'id'),
+            'backUrl'             => url('/admin/courses'),
+            'instructors'         => User::role('instructor')->orderBy('name')->pluck('name', 'id'),
+            'categories'          => Category::orderBy('name')->pluck('name', 'id'),
+            'unattachedSections'  => SectionModel::whereNull('course_id')
+                ->withCount('lessons')
+                ->orderBy('title')
+                ->get(),
         ];
     }
 

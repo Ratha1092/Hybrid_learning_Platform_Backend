@@ -23,7 +23,7 @@ class CourseIntelligenceReport extends Page implements Schedulable
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-academic-cap';
     protected static ?string $navigationLabel = 'Course Intelligence';
     protected static string|\UnitEnum|null $navigationGroup = 'Reports';
-    protected static ?int $navigationSort = 4;
+    protected static ?int $navigationSort = 5;
     protected static ?string $slug = 'reports/course-intelligence';
 
     public static function canAccess(): bool

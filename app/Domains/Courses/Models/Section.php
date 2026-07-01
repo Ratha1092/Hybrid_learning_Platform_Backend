@@ -8,13 +8,19 @@ class Section extends Model
 {
     protected $fillable = [
         'course_id',
+        'instructor_id',
         'title',
-        'order'
+        'order',
     ];
 
     public function course()
     {
         return $this->belongsTo(Course::class);
+    }
+
+    public function instructor()
+    {
+        return $this->belongsTo(\App\Domains\Users\Models\User::class);
     }
 
     public function lessons()

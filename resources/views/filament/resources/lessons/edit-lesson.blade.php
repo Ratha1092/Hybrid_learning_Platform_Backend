@@ -95,7 +95,7 @@ html:not(.dark) .le{
 <div class="le-header lea le1">
     <h1 class="le-page-title">Edit Lesson</h1>
     <div class="le-header-actions">
-        <a href="{{ $backUrl }}" class="le-btn le-btn-gray">
+        <a href="{{ $backUrl }}" wire:navigate class="le-btn le-btn-gray">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
             Back to lessons
         </a>
@@ -161,7 +161,7 @@ html:not(.dark) .le{
         </span>
         Save changes
     </button>
-    <a href="{{ $backUrl }}" class="le-btn le-btn-gray">Cancel</a>
+    <a href="{{ $backUrl }}" wire:navigate class="le-btn le-btn-gray">Cancel</a>
 </div>
 
 </div>

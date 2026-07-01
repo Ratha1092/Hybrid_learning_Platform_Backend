@@ -1,4 +1,5 @@
 {{-- Filament page content (rendered by CourseStudents page class) --}}
+<div class="cs">
 <style>
 .cs, .cs *, .cs *::before, .cs *::after { box-sizing: border-box; margin: 0; padding: 0; }
 .cs {
@@ -80,15 +81,14 @@ html:not(.dark) .cs-menu { box-shadow: 0 4px 20px rgba(15,23,42,.18); }
 .cs-footer { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-top: 1px solid var(--bd); flex-wrap: wrap; gap: 10px; }
 .cs-footer-info { font-size: 12px; color: var(--t2); }
 .cs-pages { display: flex; align-items: center; gap: 6px; }
-.cs-page-btn { display: inline-flex; align-items: center; justify-content: center; min-width: 30px; height: 30px; padding: 0 8px; border-radius: 7px; font-size: 12px; font-weight: 700; text-decoration: none; color: var(--t2); background: none; border: 1px solid transparent; transition: background .15s, border-color .15s, color .15s; }
+.cs-page-btn { display: inline-flex; align-items: center; justify-content: center; min-width: 30px; height: 30px; padding: 0 8px; border-radius: 7px; font-size: 12px; font-weight: 700; text-decoration: none; color: var(--t2); background: none; font-family: inherit; cursor: pointer; border: 1px solid transparent; transition: background .15s, border-color .15s, color .15s; }
+.cs-loading{opacity:.45;pointer-events:none;transition:opacity .1s}
 .cs-page-btn:hover { background: var(--p2); border-color: var(--bd2); color: var(--t1); }
 .cs-page-btn.active { background: #7c3aed; color: #fff; border-color: transparent; }
 .cs-page-btn.disabled { opacity: .35; pointer-events: none; }
 </style>
 
 @php
-    $url = fn(array $p) => url()->current() . '?' . http_build_query(array_merge(request()->query(), $p));
-
     $statusStyle = fn($s) => match($s) {
         'active'    => ['bg' => 'rgba(52,211,153,.12)',  'color' => '#34d399', 'label' => 'Active'],
         'completed' => ['bg' => 'rgba(99,102,241,.12)',  'color' => '#818cf8', 'label' => 'Completed'],
@@ -98,12 +98,10 @@ html:not(.dark) .cs-menu { box-shadow: 0 4px 20px rgba(15,23,42,.18); }
     };
 @endphp
 
-<div class="cs">
-
     {{-- Header --}}
     <div class="cs-header">
         <div style="display:flex;flex-direction:column;gap:10px">
-            <a href="{{ url('/admin/courses?tab=published') }}" class="cs-back" style="width:fit-content">
+            <a href="{{ url('/admin/courses?tab=published') }}" wire:navigate class="cs-back" style="width:fit-content">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/>
                 </svg>
@@ -122,18 +120,16 @@ html:not(.dark) .cs-menu { box-shadow: 0 4px 20px rgba(15,23,42,.18); }
         {{-- Toolbar --}}
         <div class="cs-toolbar">
             <span class="cs-count">Showing <strong>{{ $total }}</strong> student{{ $total !== 1 ? 's' : '' }}</span>
-            <form method="GET" action="{{ url()->current() }}" style="display:flex;align-items:center">
-                <div class="cs-search">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607z"/>
-                    </svg>
-                    <input type="text" name="search" value="{{ $search }}" placeholder="Search by name or email...">
-                </div>
-            </form>
+            <div class="cs-search">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607z"/>
+                </svg>
+                <input type="text" wire:model.live.debounce.500ms="search" placeholder="Search by name or email...">
+            </div>
         </div>
 
         {{-- Table --}}
-        <div style="overflow-x:auto">
+        <div style="overflow-x:auto" wire:loading.class="cs-loading" wire:target="gotoPage,search">
         <table class="cs-table">
             <thead>
                 <tr>
@@ -159,7 +155,7 @@ html:not(.dark) .cs-menu { box-shadow: 0 4px 20px rgba(15,23,42,.18); }
                     $studentViewUrl = $user ? route('filament.admin.resources.users.view', ['record' => $user->id]) : null;
                     $isSuspended = $enrollment->status === 'suspended';
                 @endphp
-                <tr @if($studentViewUrl) class="cs-row-link" onclick="window.location='{{ $studentViewUrl }}'" @endif>
+                <tr @if($studentViewUrl) class="cs-row-link" onclick="Livewire.navigate('{{ $studentViewUrl }}')" @endif>
                     <td><span style="font-size:11.5px;color:var(--t2);font-weight:700">{{ ($curPage - 1) * $perPage + $i + 1 }}</span></td>
 
                     <td>
@@ -210,7 +206,7 @@ html:not(.dark) .cs-menu { box-shadow: 0 4px 20px rgba(15,23,42,.18); }
                             <div class="cs-menu" x-show="open" x-transition:enter="transition ease-out duration-100" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" x-transition:leave="transition ease-in duration-75" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95" style="display:none">
 
                                 @if($studentViewUrl)
-                                <button type="button" class="cs-menu-item" onclick="window.location='{{ $studentViewUrl }}'">
+                                <button type="button" class="cs-menu-item" onclick="Livewire.navigate('{{ $studentViewUrl }}')">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0zM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632z"/></svg>
                                     View Profile
                                 </button>
@@ -267,20 +263,20 @@ html:not(.dark) .cs-menu { box-shadow: 0 4px 20px rgba(15,23,42,.18); }
                 Showing {{ ($curPage - 1) * $perPage + 1 }} to {{ min($curPage * $perPage, $total) }} of {{ number_format($total) }} students
             </div>
             <div class="cs-pages">
-                <a href="{{ $url(['page' => max(1, $curPage - 1)]) }}"
-                   class="cs-page-btn {{ $curPage === 1 ? 'disabled' : '' }}">
+                <button type="button" wire:click="gotoPage({{ max(1, $curPage - 1) }})"
+                   class="cs-page-btn {{ $curPage === 1 ? 'disabled' : '' }}" @disabled($curPage === 1)>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:12px;height:12px"><path d="M15 19l-7-7 7-7"/></svg>
-                </a>
+                </button>
                 @for($p = max(1, $curPage - 2); $p <= min($totalPages, $curPage + 2); $p++)
-                    <a href="{{ $url(['page' => $p]) }}"
+                    <button type="button" wire:click="gotoPage({{ $p }})"
                        class="cs-page-btn {{ $curPage === $p ? 'active' : '' }}">
                         {{ $p }}
-                    </a>
+                    </button>
                 @endfor
-                <a href="{{ $url(['page' => min($totalPages, $curPage + 1)]) }}"
-                   class="cs-page-btn {{ $curPage === $totalPages ? 'disabled' : '' }}">
+                <button type="button" wire:click="gotoPage({{ min($totalPages, $curPage + 1) }})"
+                   class="cs-page-btn {{ $curPage === $totalPages ? 'disabled' : '' }}" @disabled($curPage === $totalPages)>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:12px;height:12px"><path d="M9 5l7 7-7 7"/></svg>
-                </a>
+                </button>
             </div>
         </div>
         @endif

@@ -25,6 +25,19 @@ class CouponResource extends Resource
     protected static ?string $recordTitleAttribute = 'code';
     protected static bool $shouldRegisterNavigation = false;
 
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['code', 'description'];
+    }
+
+    public static function getGlobalSearchResultDetails(\Illuminate\Database\Eloquent\Model $record): array
+    {
+        return [
+            'Discount' => $record->type === 'percentage' ? $record->value . '%' : '$' . number_format($record->value, 2),
+            'Status'   => $record->is_active ? 'Active' : 'Inactive',
+        ];
+    }
+
     public static function form(Schema $schema): Schema
     {
         return CouponForm::configure($schema);

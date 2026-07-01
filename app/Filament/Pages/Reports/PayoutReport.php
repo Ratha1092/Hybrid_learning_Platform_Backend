@@ -22,7 +22,7 @@ class PayoutReport extends Page implements Schedulable
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-arrow-up-on-square-stack';
     protected static ?string $navigationLabel = 'Payouts Report';
     protected static string|\UnitEnum|null $navigationGroup = 'Reports';
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 4;
     protected static ?string $slug = 'reports/payouts';
 
     public static function canAccess(): bool

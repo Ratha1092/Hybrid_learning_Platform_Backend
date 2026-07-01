@@ -1,7 +1,8 @@
 @php
-    $url = fn(array $p) => url()->current() . '?' . http_build_query(array_merge(request()->query(), $p));
     $accent = '#6366f1';
 @endphp
+
+<div class="iv" style="--accent:{{ $accent }};">
 
 <style>
 .iv, .iv *, .iv *::before, .iv *::after { box-sizing:border-box; margin:0; padding:0; }
@@ -72,15 +73,14 @@ html:not(.dark) .iv {
 .iv-footer { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-top:1px solid var(--bd); flex-wrap:wrap; gap:10px; }
 .iv-footer-info { font-size:12px; color:var(--t2); }
 .iv-pages { display:flex; align-items:center; gap:6px; }
-.iv-page-btn { display:inline-flex; align-items:center; justify-content:center; min-width:30px; height:30px; padding:0 8px; border-radius:7px; font-size:12px; font-weight:700; text-decoration:none; color:var(--t2); background:none; border:1px solid transparent; transition:background .15s, border-color .15s, color .15s; }
+.iv-page-btn { display:inline-flex; align-items:center; justify-content:center; min-width:30px; height:30px; padding:0 8px; border-radius:7px; font-size:12px; font-weight:700; text-decoration:none; color:var(--t2); background:none; font-family:inherit; cursor:pointer; border:1px solid transparent; transition:background .15s, border-color .15s, color .15s; }
+.iv-loading{opacity:.45;pointer-events:none;transition:opacity .1s}
 .iv-page-btn:not(.disabled):hover { background:var(--p2); border-color:var(--bd2); color:var(--t1); }
 .iv-page-btn.active { background:var(--accent); color:#fff; border-color:transparent; }
 .iv-page-btn.disabled { opacity:.35; pointer-events:none; }
 .iv-per-page { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--t2); }
 .iv-per-page select { appearance:none; background:var(--p2); border:1px solid var(--bd2); border-radius:7px; padding:4px 22px 4px 9px; font-size:12px; font-weight:700; color:var(--t1); font-family:inherit; cursor:pointer; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 6px center; outline:none; }
 </style>
-
-<div class="iv" style="--accent:{{ $accent }};">
 
     {{-- Header --}}
     <div class="iv-header iva iv1">
@@ -94,37 +94,29 @@ html:not(.dark) .iv {
     <div class="iv-card iva iv2">
 
         <div class="iv-toolbar">
-            <form method="GET" action="{{ url()->current() }}" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                @foreach(request()->except(['search','type','status','page']) as $k => $v)
-                    @if(is_scalar($v))
-                        <input type="hidden" name="{{ $k }}" value="{{ $v }}">
-                    @endif
-                @endforeach
-
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
                 <div class="iv-search-box">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607z"/>
                     </svg>
-                    <input type="text" name="search" value="{{ $search }}" placeholder="Invoice #, order #, customer…">
+                    <input type="text" wire:model.live.debounce.500ms="search" placeholder="Invoice #, order #, customer…">
                 </div>
 
-                <select name="type" class="iv-select" onchange="this.form.submit()">
+                <select wire:model.live="type" class="iv-select">
                     <option value="">All Types</option>
-                    <option value="invoice"     {{ $type === 'invoice'     ? 'selected' : '' }}>Invoice</option>
-                    <option value="credit_note" {{ $type === 'credit_note' ? 'selected' : '' }}>Credit Note</option>
+                    <option value="invoice">Invoice</option>
+                    <option value="credit_note">Credit Note</option>
                 </select>
 
-                <select name="status" class="iv-select" onchange="this.form.submit()">
+                <select wire:model.live="status" class="iv-select">
                     <option value="">All Statuses</option>
-                    <option value="issued" {{ $status === 'issued' ? 'selected' : '' }}>Issued</option>
-                    <option value="void"   {{ $status === 'void'   ? 'selected' : '' }}>Void</option>
+                    <option value="issued">Issued</option>
+                    <option value="void">Void</option>
                 </select>
-
-                <button type="submit" style="display:none"></button>
-            </form>
+            </div>
         </div>
 
-        <div style="overflow-x:auto">
+        <div style="overflow-x:auto" wire:loading.class="iv-loading" wire:target="gotoPage,search,type,status,setPerPage">
         <table class="iv-table">
             <thead>
                 <tr>
@@ -228,7 +220,7 @@ html:not(.dark) .iv {
             <div style="display:flex;align-items:center;gap:16px">
                 <div class="iv-per-page">
                     Per page
-                    <select onchange="window.location.href='{{ $url([]) }}&per_page=' + this.value + '&page=1'">
+                    <select wire:change="setPerPage($event.target.value)">
                         @foreach([10, 25, 50] as $n)
                             <option value="{{ $n }}" {{ $perPage == $n ? 'selected' : '' }}>{{ $n }}</option>
                         @endforeach
@@ -236,18 +228,18 @@ html:not(.dark) .iv {
                 </div>
                 @if($totalPages > 1)
                 <div class="iv-pages">
-                    <a href="{{ $url(['page' => max(1, $curPage - 1)]) }}"
-                       class="iv-page-btn {{ $curPage === 1 ? 'disabled' : '' }}">
+                    <button type="button" wire:click="gotoPage({{ max(1, $curPage - 1) }})"
+                       class="iv-page-btn {{ $curPage === 1 ? 'disabled' : '' }}" @disabled($curPage === 1)>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:12px;height:12px"><path d="M15 19l-7-7 7-7"/></svg>
-                    </a>
+                    </button>
                     @for($p = max(1, $curPage - 2); $p <= min($totalPages, $curPage + 2); $p++)
-                        <a href="{{ $url(['page' => $p]) }}"
-                           class="iv-page-btn {{ $curPage === $p ? 'active' : '' }}">{{ $p }}</a>
+                        <button type="button" wire:click="gotoPage({{ $p }})"
+                           class="iv-page-btn {{ $curPage === $p ? 'active' : '' }}">{{ $p }}</button>
                     @endfor
-                    <a href="{{ $url(['page' => min($totalPages, $curPage + 1)]) }}"
-                       class="iv-page-btn {{ $curPage === $totalPages ? 'disabled' : '' }}">
+                    <button type="button" wire:click="gotoPage({{ min($totalPages, $curPage + 1) }})"
+                       class="iv-page-btn {{ $curPage === $totalPages ? 'disabled' : '' }}" @disabled($curPage === $totalPages)>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:12px;height:12px"><path d="M9 5l7 7-7 7"/></svg>
-                    </a>
+                    </button>
                 </div>
                 @endif
             </div>

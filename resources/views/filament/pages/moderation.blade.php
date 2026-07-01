@@ -1,6 +1,4 @@
 @php
-    $url = fn(array $p) => url()->current() . '?' . http_build_query(array_merge(request()->query(), $p));
-
     $accent = '#ea580c';
 
     $activeTab = collect($tabs ?? [])->firstWhere('key', $tab) ?? ($tabs[0] ?? ['key' => 'all', 'label' => 'All', 'count' => 0, 'color' => '#ea580c']);
@@ -11,6 +9,8 @@
         default        => ['bg' => 'rgba(148,163,184,.1)',  'color' => '#94a3b8', 'dot' => '#94a3b8'],
     };
 @endphp
+
+<div class="md" id="md-moderation" style="--accent: {{ $accent }};">
 
 <style>
 .md, .md *, .md *::before, .md *::after {
@@ -257,9 +257,12 @@ html:not(.dark) .md {
     text-decoration: none;
     color: var(--t2);
     background: none;
+    font-family: inherit;
+    cursor: pointer;
     border: 1px solid transparent;
     transition: background .15s, border-color .15s, color .15s;
 }
+.md-loading{opacity:.45;pointer-events:none;transition:opacity .1s}
 .md-page-btn:not(.disabled):hover { background: var(--p2); border-color: var(--bd2); color: var(--t1); }
 .md-page-btn.active { background: var(--accent); color: #fff; border-color: transparent; }
 .md-page-btn.disabled { opacity: .35; pointer-events: none; }
@@ -281,8 +284,6 @@ html:not(.dark) .md {
     outline: none;
 }
 </style>
-
-<div class="md" id="md-moderation" style="--accent: {{ $accent }};">
 
     {{-- Header --}}
     <div class="md-header mda md1">
@@ -312,36 +313,29 @@ html:not(.dark) .md {
                 </button>
                 <div class="md-filter-menu">
                     @foreach ($tabs as $t)
-                    <a href="{{ $url(['tab' => $t['key'], 'page' => 1]) }}"
-                       class="md-filter-item {{ $tab === $t['key'] ? 'active' : '' }}">
+                    <button type="button" wire:click="selectTab('{{ $t['key'] }}')" @click="$el.blur()"
+                       class="md-filter-item {{ $tab === $t['key'] ? 'active' : '' }}" style="width:100%;background:none;border:none;cursor:pointer;font-family:inherit;text-align:left">
                         <span class="md-filter-dot" style="background: {{ $t['color'] }}"></span>
                         <span class="md-filter-item-label">{{ $t['label'] }}</span>
                         <span class="md-tab-badge" style="background: {{ $t['color'] }}20; color: {{ $t['color'] }}">
                             {{ $t['count'] }}
                         </span>
-                    </a>
+                    </button>
                     @endforeach
                 </div>
             </div>
 
             {{-- Search --}}
-            <form method="GET" action="{{ url()->current() }}">
-                @foreach(request()->except(['search', 'page']) as $k => $v)
-                    @if(is_scalar($v))
-                    <input type="hidden" name="{{ $k }}" value="{{ $v }}">
-                    @endif
-                @endforeach
-                <div class="md-search-box">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607z"/>
-                    </svg>
-                    <input type="text" name="search" value="{{ $search }}" placeholder="Search title or person...">
-                </div>
-            </form>
+            <div class="md-search-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607z"/>
+                </svg>
+                <input type="text" wire:model.live.debounce.500ms="search" placeholder="Search title or person...">
+            </div>
         </div>
 
         {{-- Table --}}
-        <div style="overflow-x: auto; border-radius: 0 0 12px 12px;">
+        <div style="overflow-x: auto; border-radius: 0 0 12px 12px;" wire:loading.class="md-loading" wire:target="selectTab,gotoPage,search,setPerPage">
         <table class="md-table">
             <thead>
                 <tr>
@@ -355,7 +349,7 @@ html:not(.dark) .md {
             <tbody>
                 @forelse ($items as $entry)
                 @php $ts = $typeStyle($entry['type']); @endphp
-                <tr onclick="window.location='{{ $entry['url'] }}'">
+                <tr onclick="Livewire.navigate('{{ $entry['url'] }}')">
                     <td>
                         <span class="md-badge" style="background: {{ $ts['bg'] }}; color: {{ $ts['color'] }}">
                             <span class="md-dot" style="background: {{ $ts['dot'] }}"></span>
@@ -395,7 +389,7 @@ html:not(.dark) .md {
             <div style="display: flex; align-items: center; gap: 16px;">
                 <div class="md-per-page">
                     Per page
-                    <select onchange="window.location.href='{{ $url([]) }}&per_page=' + this.value + '&page=1'">
+                    <select wire:change="setPerPage($event.target.value)">
                         @foreach([10, 25, 50] as $n)
                             <option value="{{ $n }}" {{ $perPage == $n ? 'selected' : '' }}>{{ $n }}</option>
                         @endforeach
@@ -403,24 +397,24 @@ html:not(.dark) .md {
                 </div>
                 @if($totalPages > 1)
                 <div class="md-pages">
-                    <a href="{{ $url(['page' => max(1, $curPage - 1)]) }}"
-                       class="md-page-btn {{ $curPage === 1 ? 'disabled' : '' }}">
+                    <button type="button" wire:click="gotoPage({{ max(1, $curPage - 1) }})"
+                       class="md-page-btn {{ $curPage === 1 ? 'disabled' : '' }}" @disabled($curPage === 1)>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width: 12px; height: 12px">
                             <path d="M15 19l-7-7 7-7"/>
                         </svg>
-                    </a>
+                    </button>
                     @for($p = max(1, $curPage - 2); $p <= min($totalPages, $curPage + 2); $p++)
-                        <a href="{{ $url(['page' => $p]) }}"
+                        <button type="button" wire:click="gotoPage({{ $p }})"
                            class="md-page-btn {{ $curPage === $p ? 'active' : '' }}">
                             {{ $p }}
-                        </a>
+                        </button>
                     @endfor
-                    <a href="{{ $url(['page' => min($totalPages, $curPage + 1)]) }}"
-                       class="md-page-btn {{ $curPage === $totalPages ? 'disabled' : '' }}">
+                    <button type="button" wire:click="gotoPage({{ min($totalPages, $curPage + 1) }})"
+                       class="md-page-btn {{ $curPage === $totalPages ? 'disabled' : '' }}" @disabled($curPage === $totalPages)>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width: 12px; height: 12px">
                             <path d="M9 5l7 7-7 7"/>
                         </svg>
-                    </a>
+                    </button>
                 </div>
                 @endif
             </div>

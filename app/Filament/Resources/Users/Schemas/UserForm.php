@@ -59,9 +59,7 @@ class UserForm
                                     ->multiple()
                                     ->preload()
                                     ->searchable()
-                                    ->required()
                                     ->prefixIcon('heroicon-o-identification'),
-
                                 Select::make('status')
                                     ->label('Account Status')
                                     ->options([

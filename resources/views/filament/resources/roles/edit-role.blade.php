@@ -109,11 +109,11 @@ html:not(.dark) .re{
             <p>Update the role name and the permissions it grants.</p>
         </div>
         <div class="re-header-btns">
-            <a href="{{ $backUrl }}" class="re-btn re-btn-gray">
+            <a href="{{ $backUrl }}" wire:navigate class="re-btn re-btn-gray">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/></svg>
                 Back to Roles
             </a>
-            <a href="{{ $viewUrl }}" class="re-btn re-btn-gray">
+            <a href="{{ $viewUrl }}" wire:navigate class="re-btn re-btn-gray">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><circle cx="12" cy="12" r="3"/></svg>
                 View Role
             </a>

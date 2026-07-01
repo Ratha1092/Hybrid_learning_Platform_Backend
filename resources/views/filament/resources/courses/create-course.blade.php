@@ -26,7 +26,7 @@ html:not(.dark) .cc{
 .cca{opacity:0;animation:ccUp .38s cubic-bezier(.16,1,.3,1) forwards}
 .cc1{animation-delay:.04s}.cc2{animation-delay:.09s}.cc3{animation-delay:.14s}
 .cc4{animation-delay:.19s}.cc5{animation-delay:.24s}.cc6{animation-delay:.28s}
-.cc7{animation-delay:.32s}.cc8{animation-delay:.36s}.cc9{animation-delay:.40s}
+.cc7{animation-delay:.32s}.cc8{animation-delay:.36s}.cc9{animation-delay:.40s}.cc10{animation-delay:.44s}
 
 /* ── Header ── */
 .cc-header{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding-bottom:20px;border-bottom:1px solid var(--bd)}
@@ -95,6 +95,18 @@ select.cc-input{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://ww
 .cc-thumb-wrap .fi-fo-field-wrp{width:100%!important}
 .cc-thumb-wrap .fi-fo-file-upload{border-color:var(--bd2)!important;border-radius:9px!important;background:var(--p2)!important}
 
+/* ── Section picker ── */
+.cc-section-grid{display:grid;gap:10px}
+.cc-section-item{display:flex;align-items:center;gap:14px;padding:13px 16px;border-radius:10px;border:1.5px solid var(--bd2);background:var(--p2);cursor:pointer;transition:border-color .15s,background .15s;user-select:none}
+.cc-section-item:hover{border-color:var(--accent);background:rgba(59,130,246,.04)}
+.cc-section-item input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);flex-shrink:0;cursor:pointer}
+.cc-section-item.selected{border-color:var(--accent);background:rgba(59,130,246,.07)}
+.cc-section-info{flex:1;min-width:0}
+.cc-section-name{font-size:13px;font-weight:650;color:var(--t1)}
+.cc-section-meta{font-size:11.5px;color:var(--t2);margin-top:2px}
+.cc-section-empty{text-align:center;padding:32px 16px;color:var(--t2);font-size:13px}
+.cc-section-empty svg{width:36px;height:36px;margin:0 auto 10px;opacity:.35;display:block}
+
 /* ── Save bar ── */
 .cc-save-bar{display:flex;align-items:center;gap:10px;padding-top:20px;border-top:1px solid var(--bd)}
 @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
@@ -104,7 +116,7 @@ select.cc-input{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://ww
 <div class="cc-header cca cc1">
     <h1 class="cc-page-title">Create Course</h1>
     <div class="cc-header-actions">
-        <a href="{{ $backUrl }}" class="cc-btn cc-btn-gray">
+        <a href="{{ $backUrl }}" wire:navigate class="cc-btn cc-btn-gray">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
             Back to courses
         </a>
@@ -125,6 +137,7 @@ select.cc-input{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://ww
             <span class="cc-step"><span class="cc-step-num">1</span> Basic info &amp; description</span>
             <span class="cc-step"><span class="cc-step-num">2</span> Instructor &amp; pricing</span>
             <span class="cc-step"><span class="cc-step-num">3</span> Publish settings</span>
+            <span class="cc-step"><span class="cc-step-num">4</span> Attach sections (optional)</span>
         </div>
     </div>
 </div>
@@ -352,8 +365,47 @@ select.cc-input{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://ww
     </div>
 </div>
 
+{{-- ── Attach Sections ── --}}
+<div class="cc-card cca cc9">
+    <div class="cc-card-head">
+        <div class="cc-card-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0z"/></svg>
+        </div>
+        <div>
+            <div class="cc-card-title">Attach Sections</div>
+            <div class="cc-card-sub">Pick standalone sections to include in this course — optional</div>
+        </div>
+    </div>
+    <div class="cc-card-body">
+        @if($unattachedSections->isEmpty())
+            <div class="cc-section-empty">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0z"/></svg>
+                No standalone sections yet. Create a section without a course first, then come back to attach it here.
+            </div>
+        @else
+            <div class="cc-section-grid">
+                @foreach($unattachedSections as $section)
+                    <label class="cc-section-item" x-bind:class="$wire.selectedSectionIds.includes({{ $section->id }}) ? 'selected' : ''">
+                        <input type="checkbox"
+                               wire:model="selectedSectionIds"
+                               value="{{ $section->id }}">
+                        <div class="cc-section-info">
+                            <div class="cc-section-name">{{ $section->title }}</div>
+                            <div class="cc-section-meta">
+                                {{ $section->lessons_count }} {{ Str::plural('lesson', $section->lessons_count) }}
+                                &nbsp;·&nbsp; Sort order: {{ $section->order }}
+                            </div>
+                        </div>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" style="width:16px;height:16px;color:var(--t2);flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0z"/></svg>
+                    </label>
+                @endforeach
+            </div>
+        @endif
+    </div>
+</div>
+
 {{-- ── Save bar ── --}}
-<div class="cc-save-bar cca cc9">
+<div class="cc-save-bar cca cc10">
     <button type="button" wire:click="create" wire:loading.attr="disabled" class="cc-btn cc-btn-blue">
         <span wire:loading.remove wire:target="create">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
@@ -363,7 +415,7 @@ select.cc-input{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://ww
         </span>
         Create Course
     </button>
-    <a href="{{ $backUrl }}" class="cc-btn cc-btn-gray">Cancel</a>
+    <a href="{{ $backUrl }}" wire:navigate class="cc-btn cc-btn-gray">Cancel</a>
 </div>
 
 </div>

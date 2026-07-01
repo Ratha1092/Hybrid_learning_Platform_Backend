@@ -74,7 +74,7 @@ select.se-input{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://ww
 <div class="se-header sea se1">
     <h1 class="se-page-title">Edit Section</h1>
     <div class="se-header-actions">
-        <a href="{{ $backUrl }}" class="se-btn se-btn-gray">
+        <a href="{{ $backUrl }}" wire:navigate class="se-btn se-btn-gray">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
             Back to sections
         </a>
@@ -166,7 +166,7 @@ select.se-input{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://ww
         </span>
         Save changes
     </button>
-    <a href="{{ $backUrl }}" class="se-btn se-btn-gray">Cancel</a>
+    <a href="{{ $backUrl }}" wire:navigate class="se-btn se-btn-gray">Cancel</a>
 </div>
 
 </div>

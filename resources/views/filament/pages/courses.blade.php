@@ -22,7 +22,7 @@
     $editUrl   = fn($c) => route('filament.admin.resources.courses.edit', ['record' => $c->id]);
 @endphp
 
-<div>  {{-- single Livewire root — wire:click requires exactly one root element --}}
+<div x-data="{ view: localStorage.getItem('cp-view') || 'table' }" x-init="$watch('view', v => localStorage.setItem('cp-view', v))">  {{-- single Livewire root — wire:click requires exactly one root element --}}
 <style>
 .cp,  .cp *, .cp *::before, .cp *::after { box-sizing: border-box; margin: 0; padding: 0; }
 .cp {
@@ -262,6 +262,74 @@ html:not(.dark) .cp {
 .cp-modal textarea:focus { border-color: #6d28d9; }
 .cp-modal-btns { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
 
+/* ── View toggle ── */
+.cp-view-toggle { display:flex; align-items:center; gap:2px; background:var(--p2); border:1px solid var(--bd2); border-radius:8px; padding:2px; }
+.cp-view-btn {
+    display:inline-flex; align-items:center; justify-content:center;
+    width:30px; height:30px; border-radius:6px; border:none;
+    background:none; color:var(--t2); cursor:pointer;
+    transition:background .15s, color .15s;
+}
+.cp-view-btn.active { background:var(--p1); color:#6d28d9; box-shadow:0 1px 3px rgba(0,0,0,.15); }
+.cp-view-btn svg { width:15px; height:15px; }
+
+/* ── Card grid ── */
+.cp-grid {
+    display:grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap:16px; padding:16px;
+}
+.cp-course-card {
+    background:var(--p1); border:1px solid var(--bd);
+    border-radius:12px; overflow:hidden;
+    display:flex; flex-direction:column;
+    transition:box-shadow .18s, transform .18s, border-color .18s;
+    cursor:pointer;
+}
+.cp-course-card:hover { box-shadow:0 8px 24px rgba(0,0,0,.18); transform:translateY(-2px); border-color:var(--bd2); }
+.cp-card-thumb {
+    position:relative; height:150px; overflow:hidden; flex-shrink:0;
+    background:var(--p2);
+}
+.cp-card-thumb img { width:100%; height:100%; object-fit:cover; }
+.cp-card-thumb-placeholder {
+    width:100%; height:100%; display:grid; place-items:center;
+}
+.cp-card-status {
+    position:absolute; top:8px; right:8px;
+    display:inline-flex; align-items:center; gap:4px;
+    padding:3px 8px; border-radius:5px;
+    font-size:10.5px; font-weight:700; white-space:nowrap;
+    backdrop-filter:blur(6px);
+}
+.cp-card-body { padding:12px 14px; flex:1; display:flex; flex-direction:column; gap:8px; }
+.cp-card-title { font-size:13.5px; font-weight:700; color:var(--t1); line-height:1.35;
+                  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.cp-card-meta { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.cp-card-instructor { display:flex; align-items:center; gap:6px; }
+.cp-card-avatar { width:22px; height:22px; border-radius:50%; object-fit:cover; flex-shrink:0; }
+.cp-card-instructor-name { font-size:11.5px; color:var(--t2); font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:120px; }
+.cp-card-cat { display:inline-flex; align-items:center; padding:2px 8px; border-radius:5px; font-size:11px; font-weight:700; white-space:nowrap; margin-left:auto; }
+.cp-card-footer { display:flex; align-items:center; justify-content:space-between; padding:10px 14px; border-top:1px solid var(--bd); gap:8px; margin-top:auto; }
+.cp-card-price { font-size:14px; font-weight:800; color:var(--t1); }
+.cp-card-price-free { font-size:12px; font-weight:700; color:#34d399; }
+.cp-card-students { display:flex; align-items:center; gap:4px; font-size:11.5px; color:var(--t2); }
+.cp-card-students svg { width:13px; height:13px; }
+.cp-card-actions { display:flex; align-items:center; gap:4px; }
+.cp-card-act {
+    display:inline-flex; align-items:center; justify-content:center;
+    width:28px; height:28px; border-radius:7px;
+    background:var(--p2); border:1px solid transparent;
+    cursor:pointer; color:var(--t2); text-decoration:none;
+    transition:background .15s, border-color .15s, color .15s;
+}
+.cp-card-act:hover { background:var(--p1); border-color:var(--bd2); color:var(--t1); }
+.cp-card-act svg { width:13px; height:13px; }
+.cp-card-act-success { background:rgba(52,211,153,.14); color:#16a34a; }
+.cp-card-act-success:hover { background:rgba(52,211,153,.22); }
+.cp-card-act-danger  { background:rgba(248,113,113,.14); color:#dc2626; }
+.cp-card-act-danger:hover { background:rgba(248,113,113,.2); }
+
 /* ── Mobile responsive ── */
 @media (max-width: 640px) {
     .cp-header { flex-direction: column; align-items: flex-start; gap: 10px; padding-bottom: 14px; }
@@ -276,6 +344,7 @@ html:not(.dark) .cp {
     .cp-search-box input { flex: 1; width: auto; }
     .cp-footer { flex-direction: column; align-items: flex-start; gap: 8px; }
     .cp-footer > div { width: 100%; justify-content: space-between; }
+    .cp-grid { grid-template-columns: 1fr; padding:12px; gap:12px; }
 }
 </style>
 <div class="cp" id="cp-root">
@@ -287,13 +356,21 @@ html:not(.dark) .cp {
             <p>Review, publish, and manage all your courses in one place.</p>
         </div>
         <div class="cp-header-btns">
+            <div class="cp-view-toggle">
+                <button type="button" class="cp-view-btn" :class="{active: view==='table'}" @click="view='table'" title="Table view">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 14h18M10 3v18M3 6.2A3.2 3.2 0 0 1 6.2 3h11.6A3.2 3.2 0 0 1 21 6.2v11.6a3.2 3.2 0 0 1-3.2 3.2H6.2A3.2 3.2 0 0 1 3 17.8V6.2z"/></svg>
+                </button>
+                <button type="button" class="cp-view-btn" :class="{active: view==='grid'}" @click="view='grid'" title="Card view">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+                </button>
+            </div>
             <a href="{{ route('admin.export.courses', ['tab' => $tab, 'search' => $search]) }}" class="cp-btn cp-btn-gray">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/>
                 </svg>
                 Export
             </a>
-            <a href="{{ $createUrl }}" class="cp-btn cp-btn-primary">
+            <a href="{{ $createUrl }}" wire:navigate class="cp-btn cp-btn-primary">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:13px;height:13px">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
                 </svg>
@@ -337,8 +414,8 @@ html:not(.dark) .cp {
             </div>
         </div>
 
-        {{-- Table --}}
-        <div style="overflow-x:auto">
+        {{-- Table view --}}
+        <div x-show="view==='table'" style="overflow-x:auto">
         <table class="cp-table">
             <thead>
                 <tr>
@@ -360,7 +437,7 @@ html:not(.dark) .cp {
                     $bgHex = substr(md5($course->instructor?->name ?? ''), 0, 6);
                     $avUrl = 'https://ui-avatars.com/api/?name=' . urlencode($course->instructor?->name ?? '?') . '&background=' . $bgHex . '&color=fff&bold=true&size=64';
                 @endphp
-                <tr class="cp-row-link" onclick="window.location='{{ $viewUrl($course) }}'">
+                <tr class="cp-row-link" onclick="Livewire.navigate('{{ $viewUrl($course) }}')">
 
                     <td><span class="cp-id">{{ $course->id }}</span></td>
 
@@ -411,7 +488,7 @@ html:not(.dark) .cp {
                     </td>
 
                     <td class="cp-students" onclick="event.stopPropagation()">
-                        <a href="{{ url('/admin/courses/' . $course->id . '/students') }}" class="cp-students-val" title="View enrolled students" style="text-decoration:none;cursor:pointer;transition:color .15s" onmouseover="this.style.color='#7c3aed'" onmouseout="this.style.color=''">
+                        <a href="{{ url('/admin/courses/' . $course->id . '/students') }}" wire:navigate onclick="event.stopPropagation()" class="cp-students-val" title="View enrolled students" style="text-decoration:none;cursor:pointer;transition:color .15s" onmouseover="this.style.color='#7c3aed'" onmouseout="this.style.color=''">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"/>
                             </svg>
@@ -437,12 +514,12 @@ html:not(.dark) .cp {
                                     </svg>
                                 </button>
                                 <div class="cp-act-menu">
-                                    <a href="{{ $viewUrl($course) }}" class="cp-act-menu-item">
+                                    <a href="{{ $viewUrl($course) }}" wire:navigate class="cp-act-menu-item">
                                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7Z"/></svg>
                                         View
                                     </a>
                                     @unless($course->isPendingReview())
-                                    <a href="{{ $editUrl($course) }}" class="cp-act-menu-item">
+                                    <a href="{{ $editUrl($course) }}" wire:navigate class="cp-act-menu-item">
                                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487z"/></svg>
                                         Edit
                                     </a>
@@ -478,7 +555,96 @@ html:not(.dark) .cp {
                 @endforelse
             </tbody>
         </table>
+        </div>{{-- end table view --}}
+
+        {{-- Card / grid view --}}
+        <div x-show="view==='grid'">
+        @if($courses->isEmpty())
+            <div class="cp-empty">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"/>
+                </svg>
+                <p>No courses found{{ $search ? ' for "' . $search . '"' : '' }}.</p>
+            </div>
+        @else
+        <div class="cp-grid">
+            @foreach ($courses as $course)
+            @php
+                $cs    = $catStyle($course->category?->name);
+                $ss    = $statusMap[$course->status] ?? ['bg' => 'rgba(148,163,184,.1)', 'color' => '#94a3b8', 'label' => ucfirst($course->status)];
+                $bgHex = substr(md5($course->instructor?->name ?? ''), 0, 6);
+                $avUrl = 'https://ui-avatars.com/api/?name=' . urlencode($course->instructor?->name ?? '?') . '&background=' . $bgHex . '&color=fff&bold=true&size=64';
+            @endphp
+            <div class="cp-course-card" onclick="Livewire.navigate('{{ $viewUrl($course) }}')">
+
+                {{-- Thumbnail --}}
+                <div class="cp-card-thumb">
+                    @if($course->thumbnail)
+                        <img src="{{ $course->thumbnail_url }}" alt="{{ $course->title }}">
+                    @else
+                        <div class="cp-card-thumb-placeholder" style="background:{{ $cs['bg'] }}">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="{{ $cs['color'] }}" stroke-width="1.3" style="width:38px;height:38px;opacity:.7">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"/>
+                            </svg>
+                        </div>
+                    @endif
+                    <span class="cp-card-status" style="background:{{ $ss['bg'] }};color:{{ $ss['color'] }}">
+                        <span style="width:5px;height:5px;border-radius:50%;background:{{ $ss['color'] }};flex-shrink:0;display:inline-block;"></span>
+                        {{ $ss['label'] }}
+                    </span>
+                </div>
+
+                {{-- Body --}}
+                <div class="cp-card-body">
+                    <div class="cp-card-title" title="{{ $course->title }}">{{ $course->title }}</div>
+                    <div class="cp-card-meta">
+                        <div class="cp-card-instructor">
+                            <img src="{{ $avUrl }}" class="cp-card-avatar" alt="">
+                            <span class="cp-card-instructor-name">{{ $course->instructor?->name ?? '—' }}</span>
+                        </div>
+                        @if($course->category)
+                        <span class="cp-card-cat" style="background:{{ $cs['bg'] }};color:{{ $cs['color'] }}">{{ $course->category->name }}</span>
+                        @endif
+                    </div>
+                </div>
+
+                {{-- Footer --}}
+                <div class="cp-card-footer" onclick="event.stopPropagation()">
+                    <div>
+                        @if($course->price > 0)
+                            <span class="cp-card-price">${{ number_format($course->price, 2) }}</span>
+                        @else
+                            <span class="cp-card-price-free">Free</span>
+                        @endif
+                        <div class="cp-card-students" style="margin-top:2px">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"/></svg>
+                            {{ number_format($course->enrollments_count) }} students
+                        </div>
+                    </div>
+                    <div class="cp-card-actions">
+                        @if($course->isPendingReview())
+                            <button type="button" wire:click="approveCourse({{ $course->id }})" class="cp-card-act cp-card-act-success" title="Approve" onclick="event.stopPropagation()">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg>
+                            </button>
+                            <button type="button" wire:click="openRejectModal({{ $course->id }})" class="cp-card-act cp-card-act-danger" title="Reject" onclick="event.stopPropagation()">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg>
+                            </button>
+                        @endif
+                        <a href="{{ $viewUrl($course) }}" wire:navigate class="cp-card-act" title="View" onclick="event.stopPropagation()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7Z"/></svg>
+                        </a>
+                        @unless($course->isPendingReview())
+                        <a href="{{ $editUrl($course) }}" wire:navigate class="cp-card-act" title="Edit" onclick="event.stopPropagation()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487z"/></svg>
+                        </a>
+                        @endunless
+                    </div>
+                </div>
+            </div>
+            @endforeach
         </div>
+        @endif
+        </div>{{-- end grid view --}}
 
         {{-- Pagination --}}
         <div class="cp-footer">

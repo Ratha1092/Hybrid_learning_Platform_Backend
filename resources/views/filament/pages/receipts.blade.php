@@ -1,7 +1,8 @@
 @php
-    $url = fn(array $p) => url()->current() . '?' . http_build_query(array_merge(request()->query(), $p));
     $accent = '#10b981';
 @endphp
+
+<div class="rc" style="--accent:{{ $accent }};">
 
 <style>
 .rc, .rc *, .rc *::before, .rc *::after { box-sizing:border-box; margin:0; padding:0; }
@@ -65,15 +66,14 @@ html:not(.dark) .rc {
 .rc-footer { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-top:1px solid var(--bd); flex-wrap:wrap; gap:10px; }
 .rc-footer-info { font-size:12px; color:var(--t2); }
 .rc-pages { display:flex; align-items:center; gap:6px; }
-.rc-page-btn { display:inline-flex; align-items:center; justify-content:center; min-width:30px; height:30px; padding:0 8px; border-radius:7px; font-size:12px; font-weight:700; text-decoration:none; color:var(--t2); background:none; border:1px solid transparent; transition:background .15s, border-color .15s, color .15s; }
+.rc-page-btn { display:inline-flex; align-items:center; justify-content:center; min-width:30px; height:30px; padding:0 8px; border-radius:7px; font-size:12px; font-weight:700; text-decoration:none; color:var(--t2); background:none; font-family:inherit; cursor:pointer; border:1px solid transparent; transition:background .15s, border-color .15s, color .15s; }
+.rc-loading{opacity:.45;pointer-events:none;transition:opacity .1s}
 .rc-page-btn:not(.disabled):hover { background:var(--p2); border-color:var(--bd2); color:var(--t1); }
 .rc-page-btn.active { background:var(--accent); color:#fff; border-color:transparent; }
 .rc-page-btn.disabled { opacity:.35; pointer-events:none; }
 .rc-per-page { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--t2); }
 .rc-per-page select { appearance:none; background:var(--p2); border:1px solid var(--bd2); border-radius:7px; padding:4px 22px 4px 9px; font-size:12px; font-weight:700; color:var(--t1); font-family:inherit; cursor:pointer; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 6px center; outline:none; }
 </style>
-
-<div class="rc" style="--accent:{{ $accent }};">
 
     {{-- Header --}}
     <div class="rc-header rca rc1">
@@ -87,34 +87,26 @@ html:not(.dark) .rc {
     <div class="rc-card rca rc2">
 
         <div class="rc-toolbar">
-            <form method="GET" action="{{ url()->current() }}" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                @foreach(request()->except(['search','gateway','page']) as $k => $v)
-                    @if(is_scalar($v))
-                        <input type="hidden" name="{{ $k }}" value="{{ $v }}">
-                    @endif
-                @endforeach
-
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
                 <div class="rc-search-box">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607z"/>
                     </svg>
-                    <input type="text" name="search" value="{{ $search }}" placeholder="Receipt #, order #, customer…">
+                    <input type="text" wire:model.live.debounce.500ms="search" placeholder="Receipt #, order #, customer…">
                 </div>
 
                 @if($gateways->isNotEmpty())
-                <select name="gateway" class="rc-select" onchange="this.form.submit()">
+                <select wire:model.live="gateway" class="rc-select">
                     <option value="">All Gateways</option>
                     @foreach($gateways as $gw)
-                        <option value="{{ $gw }}" {{ $gateway === $gw ? 'selected' : '' }}>{{ strtoupper($gw) }}</option>
+                        <option value="{{ $gw }}">{{ strtoupper($gw) }}</option>
                     @endforeach
                 </select>
                 @endif
-
-                <button type="submit" style="display:none"></button>
-            </form>
+            </div>
         </div>
 
-        <div style="overflow-x:auto">
+        <div style="overflow-x:auto" wire:loading.class="rc-loading" wire:target="gotoPage,search,gateway,setPerPage">
         <table class="rc-table">
             <thead>
                 <tr>
@@ -199,7 +191,7 @@ html:not(.dark) .rc {
             <div style="display:flex;align-items:center;gap:16px">
                 <div class="rc-per-page">
                     Per page
-                    <select onchange="window.location.href='{{ $url([]) }}&per_page=' + this.value + '&page=1'">
+                    <select wire:change="setPerPage($event.target.value)">
                         @foreach([10, 25, 50] as $n)
                             <option value="{{ $n }}" {{ $perPage == $n ? 'selected' : '' }}>{{ $n }}</option>
                         @endforeach
@@ -207,18 +199,18 @@ html:not(.dark) .rc {
                 </div>
                 @if($totalPages > 1)
                 <div class="rc-pages">
-                    <a href="{{ $url(['page' => max(1, $curPage - 1)]) }}"
-                       class="rc-page-btn {{ $curPage === 1 ? 'disabled' : '' }}">
+                    <button type="button" wire:click="gotoPage({{ max(1, $curPage - 1) }})"
+                       class="rc-page-btn {{ $curPage === 1 ? 'disabled' : '' }}" @disabled($curPage === 1)>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:12px;height:12px"><path d="M15 19l-7-7 7-7"/></svg>
-                    </a>
+                    </button>
                     @for($p = max(1, $curPage - 2); $p <= min($totalPages, $curPage + 2); $p++)
-                        <a href="{{ $url(['page' => $p]) }}"
-                           class="rc-page-btn {{ $curPage === $p ? 'active' : '' }}">{{ $p }}</a>
+                        <button type="button" wire:click="gotoPage({{ $p }})"
+                           class="rc-page-btn {{ $curPage === $p ? 'active' : '' }}">{{ $p }}</button>
                     @endfor
-                    <a href="{{ $url(['page' => min($totalPages, $curPage + 1)]) }}"
-                       class="rc-page-btn {{ $curPage === $totalPages ? 'disabled' : '' }}">
+                    <button type="button" wire:click="gotoPage({{ min($totalPages, $curPage + 1) }})"
+                       class="rc-page-btn {{ $curPage === $totalPages ? 'disabled' : '' }}" @disabled($curPage === $totalPages)>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:12px;height:12px"><path d="M9 5l7 7-7 7"/></svg>
-                    </a>
+                    </button>
                 </div>
                 @endif
             </div>

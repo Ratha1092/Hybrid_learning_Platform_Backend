@@ -4,6 +4,7 @@ namespace App\Domains\Courses\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Domains\Courses\Models\Course;
+use App\Domains\Courses\Models\Section;
 use App\Domains\Courses\Services\CourseService;
 use App\Domains\Notifications\Notifications\AdminCourseSubmittedNotification;
 use App\Domains\Users\Models\User;
@@ -111,6 +112,32 @@ class InstructorCourseController extends Controller
             'Course deleted successfully'
         );
     }
+    public function attachSections(Request $request, int $id): JsonResponse
+    {
+        $course = Course::where('id', $id)
+            ->where('instructor_id', auth()->id())
+            ->first();
+
+        if (!$course) {
+            return ApiResponse::error('Course not found', 404);
+        }
+
+        $validated = $request->validate([
+            'section_ids'   => 'required|array|min:1',
+            'section_ids.*' => 'integer|exists:sections,id',
+        ]);
+
+        $count = Section::whereIn('id', $validated['section_ids'])
+            ->where('instructor_id', auth()->id())
+            ->whereNull('course_id')
+            ->update(['course_id' => $id]);
+
+        return ApiResponse::success([
+            'course_id'      => $id,
+            'attached_count' => $count,
+        ], 'Sections attached successfully');
+    }
+
     public function submitForReview(int $id): JsonResponse
     {
         $course = Course::query()

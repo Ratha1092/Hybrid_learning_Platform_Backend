@@ -56,14 +56,38 @@ class Orders extends Page
         return '';
     }
 
+    public string $tab = 'all';
+    public string $search = '';
+    public int $page = 1;
+    public int $perPage = 10;
+
+    public function updatedSearch(): void
+    {
+        $this->page = 1;
+    }
+
+    public function updatedPerPage(): void
+    {
+        $this->page = 1;
+    }
+
+    public function selectTab(string $tab): void
+    {
+        $this->tab = $tab;
+        $this->page = 1;
+    }
+
+    public function gotoPage(int $page): void
+    {
+        $this->page = max(1, $page);
+    }
+
     protected function getViewData(): array
     {
-        $tab     = request('tab', 'all');
-        $search  = request('search', '');
-        $page    = max(1, (int) request('page', 1));
-        $perPage = (int) request('per_page', 10);
-
-        if (!in_array($perPage, [10, 25, 50])) $perPage = 10;
+        $tab     = $this->tab;
+        $search  = $this->search;
+        $page    = max(1, $this->page);
+        $perPage = in_array($this->perPage, [10, 25, 50], true) ? $this->perPage : 10;
 
         $base = fn() => Order::withoutTrashed();
 

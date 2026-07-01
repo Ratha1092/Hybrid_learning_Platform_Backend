@@ -52,14 +52,38 @@ class Sections extends Page
         return '';
     }
 
+    public string $search = '';
+    public ?int $courseId = null;
+    public int $page = 1;
+    public int $perPage = 10;
+
+    public function updatedSearch(): void
+    {
+        $this->page = 1;
+    }
+
+    public function updatedCourseId(): void
+    {
+        $this->page = 1;
+    }
+
+    public function setPerPage(int $perPage): void
+    {
+        $this->perPage = in_array($perPage, [10, 25, 50], true) ? $perPage : 10;
+        $this->page = 1;
+    }
+
+    public function gotoPage(int $page): void
+    {
+        $this->page = max(1, $page);
+    }
+
     protected function getViewData(): array
     {
-        $search   = request('search', '');
-        $courseId = request('course_id');
-        $page     = max(1, (int) request('page', 1));
-        $perPage  = (int) request('per_page', 10);
-
-        if (!in_array($perPage, [10, 25, 50])) $perPage = 10;
+        $search   = $this->search;
+        $courseId = $this->courseId;
+        $page     = max(1, $this->page);
+        $perPage  = in_array($this->perPage, [10, 25, 50], true) ? $this->perPage : 10;
 
         $query = Section::with('course:id,title')->withCount('lessons');
 

@@ -4,7 +4,6 @@ namespace App\Filament\Resources\Orders\Tables;
 
 use App\Domains\Orders\Models\Orders;
 use Filament\Actions\Action;
-use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -79,7 +78,6 @@ class OrdersTable
             ])
             ->recordActions([
                 ViewAction::make(),
-                EditAction::make(),
             ]);
     }
 }

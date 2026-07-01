@@ -20,7 +20,8 @@ class SectionForm
                             ->pluck('title', 'id')
                     )
                     ->searchable()
-                    ->required(),
+                    ->nullable()
+                    ->placeholder('— No course (standalone) —'),
                 Forms\Components\TextInput::make('title')
                     ->required()
                     ->maxLength(255),

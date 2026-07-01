@@ -6,6 +6,7 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 use App\Support\ApiResponse;
 use Spatie\Permission\Middleware\RoleMiddleware;
 use Spatie\Permission\Middleware\PermissionMiddleware;
@@ -79,6 +80,16 @@ return Application::configure(basePath: dirname(__DIR__))
                     'Resource not found',
                     404
                 );
+            }
+        });
+
+        // Livewire update endpoint hit with GET (browser history / back-button cache)
+        $exceptions->render(function (
+            MethodNotAllowedHttpException $e,
+            $request
+        ) {
+            if (!$request->is('api/*') && str_contains($request->path(), '/update') && str_contains($request->path(), 'livewire')) {
+                return redirect('/admin');
             }
         });
 

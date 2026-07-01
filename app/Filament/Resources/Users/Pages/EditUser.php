@@ -17,6 +17,12 @@ class EditUser extends EditRecord
 
     protected array $originalRoles = [];
 
+    protected array $pendingRoleIds = [];
+
+    // Bypasses Filament's relationship select entirely — its getState() call during
+    // save re-reads roles from the DB and clobbers whatever the checkboxes set.
+    public array $selectedRoleIds = [];
+
     protected function getHeaderActions(): array
     {
         return [
@@ -29,11 +35,30 @@ class EditUser extends EditRecord
         parent::fillForm();
 
         $this->originalRoles = $this->record->getRoleNames()->sort()->values()->all();
+        $this->selectedRoleIds = $this->record->roles()
+            ->pluck('roles.id')
+            ->map(fn ($id) => (string) $id)
+            ->values()
+            ->all();
+    }
+
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        // Read from selectedRoleIds (driven directly by the checkboxes), not $data['roles'] —
+        // Filament's relationship Select re-reads roles from the DB during getState() and
+        // would otherwise clobber whatever was just checked.
+        $this->pendingRoleIds = array_values(array_map('intval', $this->selectedRoleIds));
+        unset($data['roles']);
+
+        return $data;
     }
 
     protected function afterSave(): void
     {
-        $newRoles = $this->record->getRoleNames()->sort()->values()->all();
+        // Sync roles via Spatie so the pivot table is always correct.
+        $this->record->syncRoles($this->pendingRoleIds);
+
+        $newRoles = $this->record->fresh()->getRoleNames()->sort()->values()->all();
 
         if ($newRoles !== $this->originalRoles) {
             ActivityLogService::logChange(
@@ -60,6 +85,9 @@ class EditUser extends EditRecord
         }
 
         $user->update(['status' => 'suspended']);
+
+        // Cut off any active session immediately rather than waiting for their token to expire
+        $user->tokens()->delete();
 
         // Sync the form state so the status dropdown reflects the change immediately
         $this->data['status'] = 'suspended';

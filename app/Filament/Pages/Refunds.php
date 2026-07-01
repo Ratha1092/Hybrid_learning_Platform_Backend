@@ -50,6 +50,33 @@ class Refunds extends Page
         return '';
     }
 
+    public string $tab = 'eligible';
+    public string $search = '';
+    public int $page = 1;
+    public int $perPage = 10;
+
+    public function updatedSearch(): void
+    {
+        $this->page = 1;
+    }
+
+    public function selectTab(string $tab): void
+    {
+        $this->tab = $tab;
+        $this->page = 1;
+    }
+
+    public function setPerPage(int $perPage): void
+    {
+        $this->perPage = in_array($perPage, [10, 25, 50], true) ? $perPage : 10;
+        $this->page = 1;
+    }
+
+    public function gotoPage(int $page): void
+    {
+        $this->page = max(1, $page);
+    }
+
     public function refund(int $orderId, string $reason): void
     {
         if (!PanelAccess::can('orders.update')) {
@@ -141,18 +168,14 @@ class Refunds extends Page
             ->body("Order #{$order->order_number} has been refunded. Any distributed instructor earnings were reversed.")
             ->success()
             ->send();
-
-        $this->redirect(request()->fullUrl());
     }
 
     protected function getViewData(): array
     {
-        $tab     = request('tab', 'eligible');
-        $search  = request('search', '');
-        $page    = max(1, (int) request('page', 1));
-        $perPage = (int) request('per_page', 10);
-
-        if (!in_array($perPage, [10, 25, 50])) $perPage = 10;
+        $tab     = $this->tab;
+        $search  = $this->search;
+        $page    = max(1, $this->page);
+        $perPage = in_array($this->perPage, [10, 25, 50], true) ? $this->perPage : 10;
 
         $eligibleCount = Order::where('payment_status', OrderPaymentStatus::Paid)
             ->where('status', '!=', OrderStatus::Refunded)

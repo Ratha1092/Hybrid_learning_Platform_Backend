@@ -65,6 +65,53 @@ class AuditLog extends Page
         return '';
     }
 
+    public string $action = 'all';
+    public string $search = '';
+    public string $from = '';
+    public string $to = '';
+    public int $page = 1;
+    public int $perPage = 25;
+
+    public function updatedSearch(): void
+    {
+        $this->page = 1;
+    }
+
+    public function updatedFrom(): void
+    {
+        $this->page = 1;
+    }
+
+    public function updatedTo(): void
+    {
+        $this->page = 1;
+    }
+
+    public function selectAction(string $action): void
+    {
+        $this->action = $action;
+        $this->page = 1;
+    }
+
+    public function setPerPage(int $perPage): void
+    {
+        $this->perPage = in_array($perPage, [25, 50, 100], true) ? $perPage : 25;
+        $this->page = 1;
+    }
+
+    public function gotoPage(int $page): void
+    {
+        $this->page = max(1, $page);
+    }
+
+    public function clearFilters(): void
+    {
+        $this->search = '';
+        $this->from = '';
+        $this->to = '';
+        $this->page = 1;
+    }
+
     public function exportCsv(): void
     {
         $query = static::buildQuery($this->currentFilters());
@@ -89,10 +136,10 @@ class AuditLog extends Page
     private function currentFilters(): array
     {
         return [
-            'action' => request('action', 'all'),
-            'search' => request('search', ''),
-            'from' => request('from', ''),
-            'to' => request('to', ''),
+            'action' => $this->action,
+            'search' => $this->search,
+            'from' => $this->from,
+            'to' => $this->to,
         ];
     }
 
@@ -138,12 +185,8 @@ class AuditLog extends Page
         $search  = $filters['search'];
         $from    = $filters['from'];
         $to      = $filters['to'];
-        $page    = max(1, (int) request('page', 1));
-        $perPage = (int) request('per_page', 25);
-
-        if (!in_array($perPage, [25, 50, 100])) {
-            $perPage = 25;
-        }
+        $page    = max(1, $this->page);
+        $perPage = in_array($this->perPage, [25, 50, 100], true) ? $this->perPage : 25;
 
         $actions = self::ACTIONS;
         $query = static::buildQuery($filters);

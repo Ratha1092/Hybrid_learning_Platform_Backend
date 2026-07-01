@@ -26,17 +26,45 @@ class Invoices extends Page
         return '';
     }
 
+    public string $search = '';
+    public string $type = '';
+    public string $status = '';
+    public int $page = 1;
+    public int $perPage = 10;
+
+    public function updatedSearch(): void
+    {
+        $this->page = 1;
+    }
+
+    public function updatedType(): void
+    {
+        $this->page = 1;
+    }
+
+    public function updatedStatus(): void
+    {
+        $this->page = 1;
+    }
+
+    public function setPerPage(int $perPage): void
+    {
+        $this->perPage = in_array($perPage, [10, 25, 50], true) ? $perPage : 10;
+        $this->page = 1;
+    }
+
+    public function gotoPage(int $page): void
+    {
+        $this->page = max(1, $page);
+    }
+
     protected function getViewData(): array
     {
-        $search  = request('search', '');
-        $type    = request('type', '');
-        $status  = request('status', '');
-        $page    = max(1, (int) request('page', 1));
-        $perPage = (int) request('per_page', 10);
-
-        if (!in_array($perPage, [10, 25, 50])) {
-            $perPage = 10;
-        }
+        $search  = $this->search;
+        $type    = $this->type;
+        $status  = $this->status;
+        $page    = max(1, $this->page);
+        $perPage = in_array($this->perPage, [10, 25, 50], true) ? $this->perPage : 10;
 
         $query = Invoice::with([
             'order:id,order_number,user_id',

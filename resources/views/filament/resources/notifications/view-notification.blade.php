@@ -101,7 +101,7 @@ html:not(.dark) .nv{
         <p>{{ $n->id }}</p>
     </div>
     <div class="nv-header-btns">
-        <a href="{{ $backUrl }}" class="nv-btn nv-btn-gray">
+        <a href="{{ $backUrl }}" wire:navigate class="nv-btn nv-btn-gray">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/></svg>
             Back
         </a>
@@ -148,7 +148,7 @@ html:not(.dark) .nv{
                     <div class="nv-action-label-text">{{ $firstAction['label'] ?? 'View' }}</div>
                     <div class="nv-action-sub">{{ $firstAction['url'] ?? '' }}</div>
                 </div>
-                <a href="{{ $firstAction['url'] }}" class="nv-cta-btn" style="background:{{ $typeConfig['color'] }}">
+                <a href="{{ $firstAction['url'] }}" wire:navigate class="nv-cta-btn" style="background:{{ $typeConfig['color'] }}">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/></svg>
                     {{ $firstAction['label'] ?? 'Open' }}
                 </a>
@@ -227,7 +227,7 @@ html:not(.dark) .nv{
                 <div class="nv-meta-title">All Actions</div>
                 <div style="display:grid;gap:8px;margin-top:4px">
                     @foreach($actions as $action)
-                    <a href="{{ $action['url'] }}" class="nv-cta-btn" style="background:{{ $typeConfig['color'] }};justify-content:center">
+                    <a href="{{ $action['url'] }}" wire:navigate class="nv-cta-btn" style="background:{{ $typeConfig['color'] }};justify-content:center">
                         {{ $action['label'] ?? 'Open' }}
                     </a>
                     @endforeach

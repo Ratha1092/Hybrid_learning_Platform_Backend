@@ -6,20 +6,29 @@ use App\Http\Controllers\Controller;
 use App\Domains\Courses\Models\Course;
 use App\Domains\Learning\Models\Enrollment;
 use App\Support\ApiResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 
 class CourseController extends Controller
 {
-    public function index()
-    {
-        $courses = Course::with('instructor:id,name,avatar')
-            ->where('is_published', true)
-            ->latest()
-            ->get();
+public function index(Request $request)
+{
+    $search = $request->query('search');
 
-        return ApiResponse::success($courses, 'Courses retrieved successfully');
-    }
+    $courses = Course::with('instructor:id,name,avatar')
+        ->where('is_published', true)
+        ->when($search, function ($query, $search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhereHas('instructor', fn ($q2) => $q2->where('name', 'like', "%{$search}%"));
+            });
+        })
+        ->latest()
+        ->get();
+
+    return ApiResponse::success($courses, 'Courses retrieved successfully');
+}
 
     public function show($slug)
     {

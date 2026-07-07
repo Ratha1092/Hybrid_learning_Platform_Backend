@@ -55,6 +55,7 @@ class Course extends Model
         'visibility',
         'certificate_enabled',
         'rejection_reason',
+        'deleted_by',
     ];
     protected $casts = [
         'price' => 'decimal:2',
@@ -90,7 +91,12 @@ class Course extends Model
                 Cache::forget("courses.slug.{$course->slug}");
             }
         });
-        
+        static::deleting(function ($course) {
+            if (auth()->check()) {
+                $course->deleted_by = auth()->id();
+                $course->saveQuietly();
+            }
+        });
     }
     public function submitForReview(): void
     {

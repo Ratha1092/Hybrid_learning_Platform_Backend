@@ -4,9 +4,12 @@ namespace App\Domains\Courses\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class LessonAttachment extends Model
 {
+    use SoftDeletes;
+
     protected $table = 'lesson_resources';
 
     protected $fillable = [

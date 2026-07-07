@@ -13,10 +13,18 @@ class CourseController extends Controller
 {
     public function index()
     {
-        $courses = Course::with('instructor:id,name,avatar')
-            ->where('is_published', true)
-            ->latest()
-            ->get();
+        $query = Course::with('instructor:id,name,avatar')
+            ->where('is_published', true);
+
+        if ($instructorId = request('instructor_id')) {
+            $query->where('instructor_id', (int) $instructorId);
+        }
+
+        if ($search = request('search')) {
+            $query->where('title', 'ilike', "%{$search}%");
+        }
+
+        $courses = $query->latest()->get();
 
         return ApiResponse::success($courses, 'Courses retrieved successfully');
     }

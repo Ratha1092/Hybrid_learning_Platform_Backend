@@ -3,7 +3,9 @@
 use Illuminate\Support\Facades\Route;
 use App\Domains\Users\Controllers\ProfileController;
 use App\Domains\Users\Controllers\InstructorVerificationController;
+use App\Domains\Users\Controllers\InstructorListController;
 
+Route::middleware('throttle:courses')->get('/instructors', [InstructorListController::class, 'index']);
 Route::middleware(['auth:sanctum', 'throttle:profile'])
     ->prefix('users')
     ->group(function () {

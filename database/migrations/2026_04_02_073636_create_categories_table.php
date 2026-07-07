@@ -17,6 +17,8 @@ return new class extends Migration
             $table->string('image')->nullable();
             $table->boolean('is_featured')->default(false);
             $table->integer('sort_order')->default(0);
+            $table->foreignId('deleted_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->softDeletes();
             $table->timestamps();
         });
     }

@@ -9,6 +9,9 @@ use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use App\Domains\Courses\Models\Course;
 use App\Domains\Courses\Models\Lesson;
+use App\Domains\Courses\Models\Section;
+use App\Domains\Courses\Observers\CourseObserver;
+use App\Domains\Courses\Observers\SectionObserver;
 use App\Policies\CoursePolicy;
 use App\Policies\LessonPolicy;
 use App\Domains\Payments\Services\BakongConfig;
@@ -35,6 +38,9 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        Course::observe(CourseObserver::class);
+        Section::observe(SectionObserver::class);
+
         Gate::before(fn ($user) => $user->hasRole('super-admin') ? true : null);
 
         Gate::policy(

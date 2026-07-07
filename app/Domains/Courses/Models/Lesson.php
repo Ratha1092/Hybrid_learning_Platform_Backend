@@ -38,12 +38,24 @@ class Lesson extends Model
         'duration',
         'is_preview',
         'order',
+        'deleted_by',
     ];
 
     protected $casts = [
         'quiz_data' => 'array',
         'is_preview' => 'boolean',
     ];
+
+    protected static function booted(): void
+    {
+        static::deleting(function ($lesson) {
+            if (auth()->check()) {
+                $lesson->deleted_by = auth()->id();
+                $lesson->saveQuietly();
+            }
+        });
+    }
+
     public function section(): BelongsTo
     {
         return $this->belongsTo(Section::class);

@@ -5,10 +5,13 @@ namespace App\Filament\Resources\Reviews;
 use App\Domains\Learning\Models\Review;
 use App\Support\PanelAccess;
 use BackedEnum;
+use Filament\Actions;
 use Filament\Resources\Resource;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class ReviewResource extends Resource
 {
@@ -71,6 +74,18 @@ class ReviewResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('rating')
                     ->options([5 => '★★★★★', 4 => '★★★★☆', 3 => '★★★☆☆', 2 => '★★☆☆☆', 1 => '★☆☆☆☆']),
+                Tables\Filters\TrashedFilter::make(),
+            ])
+            ->recordActions([
+                Actions\RestoreAction::make()->iconButton(),
+                Actions\ForceDeleteAction::make()->iconButton(),
+            ])
+            ->toolbarActions([
+                Actions\BulkActionGroup::make([
+                    Actions\DeleteBulkAction::make(),
+                    Actions\RestoreBulkAction::make(),
+                    Actions\ForceDeleteBulkAction::make(),
+                ]),
             ]);
     }
 
@@ -82,6 +97,12 @@ class ReviewResource extends Resource
     public static function canCreate(): bool
     {
         return false;
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->withoutGlobalScopes([SoftDeletingScope::class]);
     }
 
     public static function canViewAny(): bool

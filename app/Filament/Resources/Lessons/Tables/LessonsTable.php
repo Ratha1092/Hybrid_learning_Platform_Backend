@@ -57,11 +57,22 @@ class LessonsTable
                         Lesson::TYPE_LIVE       => 'Live',
                         Lesson::TYPE_ASSIGNMENT => 'Assignment',
                     ]),
+                Tables\Filters\TrashedFilter::make(),
             ])
 
             ->recordActions([
                 Actions\ViewAction::make(),
                 Actions\EditAction::make(),
+                Actions\DeleteAction::make()->iconButton(),
+                Actions\RestoreAction::make()->iconButton(),
+                Actions\ForceDeleteAction::make()->iconButton(),
+            ])
+            ->toolbarActions([
+                Actions\BulkActionGroup::make([
+                    Actions\DeleteBulkAction::make(),
+                    Actions\RestoreBulkAction::make(),
+                    Actions\ForceDeleteBulkAction::make(),
+                ]),
             ]);
     }
 }

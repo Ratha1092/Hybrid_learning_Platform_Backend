@@ -2,12 +2,15 @@
 
 namespace App\Domains\Notifications\Notifications;
 
+use App\Domains\Notifications\Concerns\BroadcastsAsNotification;
 use App\Domains\Notifications\Enums\NotificationType;
 use Illuminate\Bus\Queueable;
+use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification as BaseNotification;
 
 class NewInstructorVerificationNotification extends BaseNotification
 {
+    use BroadcastsAsNotification;
     use Queueable;
 
     public function __construct(
@@ -17,7 +20,18 @@ class NewInstructorVerificationNotification extends BaseNotification
 
     public function via(object $notifiable): array
     {
-        return ['database'];
+        return ['database', 'broadcast'];
+    }
+
+    public function toBroadcast(object $notifiable): BroadcastMessage
+    {
+        return new BroadcastMessage([
+            'title'       => 'New Instructor Verification',
+            'message'     => "{$this->userName} submitted a verification request.",
+            'type'        => NotificationType::INSTRUCTOR_VERIFICATION->value,
+            'link'        => "/admin/instructor-verifications/{$this->verificationId}",
+            'action_text' => 'Review Application',
+        ]);
     }
 
     public function toDatabase(object $notifiable): array

@@ -276,8 +276,14 @@ html:not(.dark) .cp {
 /* ── Card grid ── */
 .cp-grid {
     display:grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    grid-template-columns: repeat(5, 1fr);
     gap:16px; padding:16px;
+}
+@media (max-width: 1280px) {
+    .cp-grid { grid-template-columns: repeat(4, 1fr); }
+}
+@media (max-width: 960px) {
+    .cp-grid { grid-template-columns: repeat(3, 1fr); }
 }
 .cp-course-card {
     background:var(--p1); border:1px solid var(--bd);

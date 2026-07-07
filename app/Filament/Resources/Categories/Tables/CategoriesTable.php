@@ -47,14 +47,19 @@ class CategoriesTable
             ])
             ->filters([
                 Tables\Filters\TernaryFilter::make('is_featured')->label('Featured'),
+                Tables\Filters\TrashedFilter::make(),
             ])
             ->recordActions([
                 Actions\EditAction::make()->iconButton(),
                 Actions\DeleteAction::make()->iconButton(),
+                Actions\RestoreAction::make()->iconButton(),
+                Actions\ForceDeleteAction::make()->iconButton(),
             ])
             ->toolbarActions([
                 Actions\BulkActionGroup::make([
                     Actions\DeleteBulkAction::make(),
+                    Actions\RestoreBulkAction::make(),
+                    Actions\ForceDeleteBulkAction::make(),
                 ]),
             ]);
     }

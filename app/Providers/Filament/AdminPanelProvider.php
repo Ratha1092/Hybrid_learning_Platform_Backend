@@ -146,14 +146,35 @@ class AdminPanelProvider extends PanelProvider
                 fn () => Livewire::mount('admin-notification-bell')
             )
             ->renderHook(
+                PanelsRenderHook::HEAD_END,
+                fn () => '<script>history.scrollRestoration="manual";</script>'
+            )
+            ->renderHook(
+                PanelsRenderHook::HEAD_END,
+                fn () => Blade::render('@vite([\'resources/js/admin-echo.js\'])')
+            )
+            ->renderHook(
+                PanelsRenderHook::HEAD_END,
+                fn () => Blade::render('@vite([\'resources/js/bi-charts.js\'])')
+            )
+            ->renderHook(
                 PanelsRenderHook::BODY_END,
                 fn () => <<<'HTML'
                 <script>
-                    var _hlNavScroll  = 0;
-                    var _hlNavFrozen  = false;
-                    var _hlWatching   = false;
-                    var _hlGroupTimer = null;
-                    var _hlRafId      = null;
+                if (!window._hlSidebarReady) {
+                window._hlSidebarReady = true;
+
+                    var _hlNavScroll     = 0;
+                    var _hlClickedOffset = null;
+                    var _hlWatching      = false;
+                    var _hlGroupTimer    = null;
+                    var _hlEnfRaf        = null;
+                    var _hlEnfTarget     = null;
+                    var _hlEnfStop       = 0;
+                    var _hlNavGen        = 0;
+                    var _hlSidebarOverlay = null;
+                    var _hlSidebarOverlayTimer = null;
+                    var _hlClickedHref = null;
 
                     function hlGetNav() {
                         var navs = document.querySelectorAll('.fi-sidebar-nav');
@@ -167,16 +188,139 @@ class AdminPanelProvider extends PanelProvider
                         if (!nav || nav._hlA) return;
                         nav._hlA = true;
                         nav.addEventListener('scroll', function () {
-                            if (!_hlNavFrozen) _hlNavScroll = this.scrollTop;
+                            if (_hlEnfTarget === null) _hlNavScroll = this.scrollTop;
                         }, { passive: true });
                     }
-
-                    // rAF loop: keep forcing scrollTop on every frame while navigating
-                    function hlRestoreLoop() {
-                        if (!_hlNavFrozen) return;
+                    function hlEnforceScroll() {
+                        if (performance.now() > _hlEnfStop || _hlEnfTarget === null) {
+                            _hlEnfTarget = null;
+                            _hlEnfRaf    = null;
+                            return;
+                        }
                         var nav = hlGetNav();
-                        if (nav) nav.scrollTop = _hlNavScroll;
-                        _hlRafId = requestAnimationFrame(hlRestoreLoop);
+                        if (nav && nav.scrollTop !== _hlEnfTarget) nav.scrollTop = _hlEnfTarget;
+                        _hlEnfRaf = requestAnimationFrame(hlEnforceScroll);
+                    }
+
+                    function hlStartEnforce(target, ms) {
+                        _hlEnfTarget = Math.max(0, target);
+                        _hlEnfStop   = performance.now() + ms;
+                        cancelAnimationFrame(_hlEnfRaf);
+                        _hlEnfRaf = requestAnimationFrame(hlEnforceScroll);
+                    }
+
+                    function hlStopEnforce() {
+                        _hlEnfTarget = null;
+                        cancelAnimationFrame(_hlEnfRaf);
+                        _hlEnfRaf = null;
+                    }
+
+                    function hlMakeSidebarCloneInert(clone) {
+                        clone.querySelectorAll('script').forEach(function (script) {
+                            script.remove();
+                        });
+
+                        [clone].concat(Array.prototype.slice.call(clone.querySelectorAll('*'))).forEach(function (node) {
+                            Array.prototype.slice.call(node.attributes || []).forEach(function (attribute) {
+                                var name = attribute.name;
+
+                                if (
+                                    name === 'id' ||
+                                    name.indexOf('wire:') === 0 ||
+                                    name.indexOf('x-') === 0 ||
+                                    name.charAt(0) === '@' ||
+                                    name.charAt(0) === ':'
+                                ) {
+                                    node.removeAttribute(name);
+                                }
+                            });
+                        });
+
+                        clone.setAttribute('aria-hidden', 'true');
+                        clone.setAttribute('inert', '');
+                    }
+
+                    function hlNormalizeUrl(url) {
+                        if (!url) return null;
+
+                        try {
+                            var parsed = new URL(url, window.location.origin);
+                            return parsed.origin + parsed.pathname + parsed.search;
+                        } catch (e) {
+                            return null;
+                        }
+                    }
+
+                    function hlSyncCloneActiveItem(clone) {
+                        var href = hlNormalizeUrl(_hlClickedHref);
+                        if (!href) return;
+
+                        clone.querySelectorAll('.fi-sidebar-item.fi-active').forEach(function (item) {
+                            item.classList.remove('fi-active');
+                        });
+
+                        clone.querySelectorAll('.fi-sidebar-item-btn[aria-current], .fi-sidebar-item-button[aria-current]').forEach(function (button) {
+                            button.removeAttribute('aria-current');
+                        });
+
+                        var links = clone.querySelectorAll('.fi-sidebar-item a[href]');
+                        for (var i = 0; i < links.length; i++) {
+                            if (hlNormalizeUrl(links[i].href) !== href) continue;
+
+                            var item = links[i].closest('.fi-sidebar-item');
+                            if (item) item.classList.add('fi-active');
+                            links[i].setAttribute('aria-current', 'page');
+                            break;
+                        }
+                    }
+
+                    function hlFreezeSidebar() {
+                        hlThawSidebar();
+
+                        var sidebar = document.querySelector('.fi-sidebar');
+                        if (!sidebar || sidebar.offsetWidth === 0 || sidebar.offsetHeight === 0) return;
+
+                        var rect = sidebar.getBoundingClientRect();
+                        var clone = sidebar.cloneNode(true);
+                        var nav = sidebar.querySelector('.fi-sidebar-nav');
+                        var cloneNav = clone.querySelector('.fi-sidebar-nav');
+
+                        if (nav && cloneNav) cloneNav.scrollTop = nav.scrollTop;
+
+                        hlSyncCloneActiveItem(clone);
+                        hlMakeSidebarCloneInert(clone);
+                        clone.classList.add('hl-sidebar-freeze');
+
+                        Object.assign(clone.style, {
+                            position: 'fixed',
+                            inset: 'auto auto auto auto',
+                            top: rect.top + 'px',
+                            left: rect.left + 'px',
+                            width: rect.width + 'px',
+                            height: rect.height + 'px',
+                            margin: '0',
+                            zIndex: '60',
+                            pointerEvents: 'none',
+                            transform: 'none',
+                            transition: 'none',
+                        });
+
+                        document.body.appendChild(clone);
+                        sidebar.classList.add('hl-sidebar-under-freeze');
+                        _hlSidebarOverlay = clone;
+                        clearTimeout(_hlSidebarOverlayTimer);
+                        _hlSidebarOverlayTimer = setTimeout(hlThawSidebar, 3000);
+                    }
+
+                    function hlThawSidebar() {
+                        clearTimeout(_hlSidebarOverlayTimer);
+                        _hlSidebarOverlayTimer = null;
+                        document.querySelectorAll('.hl-sidebar-under-freeze').forEach(function (sidebar) {
+                            sidebar.classList.remove('hl-sidebar-under-freeze');
+                        });
+                        if (!_hlSidebarOverlay) return;
+                        _hlSidebarOverlay.remove();
+                        _hlSidebarOverlay = null;
                     }
 
                     function hlEnsureVisible() {
@@ -190,6 +334,7 @@ class AdminPanelProvider extends PanelProvider
                         } else if (ir.bottom > nr.bottom) {
                             nav.scrollTop += (ir.bottom - nr.bottom) + 4;
                         }
+                        _hlNavScroll = nav.scrollTop;
                     }
 
                     function hlWatchGroups() {
@@ -198,7 +343,7 @@ class AdminPanelProvider extends PanelProvider
                         if (!nav) return;
                         _hlWatching = true;
                         new MutationObserver(function (mutations) {
-                            if (_hlNavFrozen) return;
+                            if (_hlEnfTarget !== null) return;
                             for (var i = 0; i < mutations.length; i++) {
                                 if (mutations[i].target.classList.contains('fi-sidebar-group')) {
                                     clearTimeout(_hlGroupTimer);
@@ -208,29 +353,49 @@ class AdminPanelProvider extends PanelProvider
                             }
                         }).observe(nav, { attributes: true, attributeFilter: ['class'], subtree: true });
                     }
-
-                    // Capture scroll + start rAF loop on the click itself
                     document.addEventListener('click', function (e) {
-                        if (e.target.closest('.fi-sidebar-item a')) {
+                        var itemEl = e.target.closest('.fi-sidebar-item');
+                        var linkEl = itemEl && e.target.closest('.fi-sidebar-item a[href], .fi-sidebar-item-btn[href], .fi-sidebar-item-button[href]');
+                        if (itemEl && linkEl) {
                             var nav = hlGetNav();
                             if (nav) {
-                                _hlNavScroll = nav.scrollTop;
-                                _hlNavFrozen = true;
-                                cancelAnimationFrame(_hlRafId);
-                                hlRestoreLoop();
+                                var nr = nav.getBoundingClientRect();
+                                var ir = itemEl.getBoundingClientRect();
+                                _hlNavScroll     = nav.scrollTop;
+                                _hlClickedOffset = ir.top - nr.top;
+                                _hlClickedHref   = linkEl.href;
                             }
                         }
                     }, true);
 
                     document.addEventListener('livewire:navigate', function () {
-                        _hlNavFrozen = true; // freeze for non-click navigations too
+                        document.documentElement.style.setProperty('--hl-sbtn-dur', '0ms');
+                        document.documentElement.style.setProperty('--hl-dot-dur', '0ms');
+                        document.documentElement.style.setProperty('--hl-sidebar-dur', '0ms');
+                        hlFreezeSidebar();
+                        // Keep sidebar nav visible during the network round-trip so it
+                        // doesn't look like it "reset" while waiting for the new page.
+                        var main = document.querySelector('.fi-main');
+                        if (main) {
+                            main.classList.remove('hl-page-entering');
+                            void main.offsetWidth;
+                            main.classList.add('hl-page-leaving');
+                        }
                     });
 
-                    function hlSidebarFocus() {
-                        var store = window.Alpine && window.Alpine.store('sidebar');
-                        var expanded = false;
+                    document.addEventListener('livewire:navigated', function () {
+                        var clickedOffset = _hlClickedOffset;
+                        _hlClickedOffset  = null;
+                        _hlClickedHref = null;
+                        _hlNavGen++;
+                        var myGen = _hlNavGen;
 
-                        if (store) {
+                        hlPageEnter();
+
+                        // Expand the active group if it was collapsed
+                        var expanded = false;
+                        var store = window.Alpine && window.Alpine.store('sidebar');
+                        if (store && clickedOffset !== null) {
                             var ag  = document.querySelector('.fi-sidebar-group.fi-active');
                             var lbl = ag && ag.dataset.groupLabel;
                             if (lbl && (store.collapsedGroups || []).includes(lbl)) {
@@ -239,22 +404,71 @@ class AdminPanelProvider extends PanelProvider
                             }
                         }
 
+                        // Wait for group expansion animation before computing scroll
                         setTimeout(function () {
-                            cancelAnimationFrame(_hlRafId); // stop the restore loop
-                            var nav = hlGetNav();
-                            if (nav) nav.scrollTop = _hlNavScroll; // final restore
-                            hlEnsureVisible();
-                            _hlNavFrozen = false;
-                            hlAttach(nav);
-                            hlWatchGroups();
-                        }, expanded ? 260 : 100);
+                            if (myGen !== _hlNavGen) return;
+                            var nav    = hlGetNav();
+                            if (!nav) return;
+                            var active = nav.querySelector('.fi-sidebar-item.fi-active');
+
+                            var target;
+                            if (clickedOffset !== null && !expanded && active) {
+                                var nr = nav.getBoundingClientRect();
+                                var ir = active.getBoundingClientRect();
+                                target = nav.scrollTop + (ir.top - nr.top) - clickedOffset;
+                            } else {
+                                target = _hlNavScroll;
+                            }
+
+                            hlStartEnforce(target, expanded ? 60 : 450);
+
+                            setTimeout(function () {
+                                if (myGen !== _hlNavGen) return;
+                                hlStopEnforce();
+                                var nav2 = hlGetNav();
+                                if (expanded) hlEnsureVisible();
+                                else if (nav2) _hlNavScroll = nav2.scrollTop;
+                                hlAttach(nav2);
+                                hlWatchGroups();
+                                document.documentElement.style.removeProperty('--hl-sbtn-dur');
+                                document.documentElement.style.removeProperty('--hl-dot-dur');
+                                document.documentElement.style.removeProperty('--hl-sidebar-dur');
+                                requestAnimationFrame(function () {
+                                    requestAnimationFrame(hlThawSidebar);
+                                });
+                            }, expanded ? 340 : 500);
+
+                        }, expanded ? 280 : 0);
+                    });
+
+                    function hlPageEnter() {
+                        var main = document.querySelector('.fi-main');
+                        if (!main) return;
+                        main.classList.remove('hl-page-leaving', 'hl-page-entering');
+                        void main.offsetWidth;
+                        main.classList.add('hl-page-entering');
                     }
 
                     document.addEventListener('DOMContentLoaded', function () {
+                        hlPageEnter();
                         hlAttach(hlGetNav());
-                        setTimeout(function () { hlSidebarFocus(); hlWatchGroups(); }, 150);
+                        setTimeout(function () {
+                            var store = window.Alpine && window.Alpine.store('sidebar');
+                            if (store) {
+                                var ag  = document.querySelector('.fi-sidebar-group.fi-active');
+                                var lbl = ag && ag.dataset.groupLabel;
+                                if (lbl && (store.collapsedGroups || []).includes(lbl)) {
+                                    store.collapsedGroups = store.collapsedGroups.filter(function (g) { return g !== lbl; });
+                                }
+                            }
+                            hlEnsureVisible();
+                            hlAttach(hlGetNav());
+                            hlWatchGroups();
+                        }, 150);
                     });
-                    document.addEventListener('livewire:navigated', hlSidebarFocus);
+                    window.rpDate = function(c){var xtr=c.extras||{};function ymd(dt){if(!dt)return'';return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');}function cr(k){if(k==='custom')return['',''];var n=new Date(),y=n.getFullYear(),m=n.getMonth(),d=n.getDate();var dow=n.getDay();var mo=dow===0?6:dow-1;switch(k){case'today':return[ymd(new Date(y,m,d)),ymd(new Date(y,m,d))];case'yesterday':return[ymd(new Date(y,m,d-1)),ymd(new Date(y,m,d-1))];case'this_week':return[ymd(new Date(y,m,d-mo)),ymd(new Date(y,m,d-mo+6))];case'last_week':return[ymd(new Date(y,m,d-mo-7)),ymd(new Date(y,m,d-mo-1))];case'last_30':return[ymd(new Date(y,m,d-29)),ymd(new Date(y,m,d))];case'last_6m':return[ymd(new Date(y,m-6,d)),ymd(new Date(y,m,d))];case'this_month':return[ymd(new Date(y,m,1)),ymd(new Date(y,m+1,0))];case'last_month':return[ymd(new Date(y,m-1,1)),ymd(new Date(y,m,0))];case'this_quarter':{var q=Math.floor(m/3);return[ymd(new Date(y,q*3,1)),ymd(new Date(y,q*3+3,0))];}case'this_year':return[ymd(new Date(y,0,1)),ymd(new Date(y,11,31))];case'all_time':return['',''];default:return[ymd(new Date(y,m,1)),ymd(new Date(y,m+1,0))];}}function nav(url){if(typeof Livewire!=='undefined'&&Livewire.navigate){Livewire.navigate(url);}else{location.href=url;}}return{open:false,preset:c.preset,from:c.from||'',to:c.to||'',fmt:function(s){if(!s)return'—';var dt=new Date(s+'T00:00:00');return dt.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});},get pFrom(){return this.fmt(this.from);},get pTo(){return this.fmt(this.to);},pick:function(k){this.preset=k;if(k!=='custom'){var r=cr(k);this.from=r[0];this.to=r[1];}this.apply();},apply:function(){var p=new URLSearchParams();p.set('preset',this.preset);if(this.preset==='custom'){if(this.from)p.set('date_from',this.from);if(this.to)p.set('date_to',this.to);}var ks=Object.keys(xtr);if(ks.length){var wrap=this.$el.closest('.rp')||document.body;ks.forEach(function(k){var sel=wrap.querySelector('select[wire\\:model\\.live="'+k+'"],select[wire\\:model="'+k+'"]');if(sel&&sel.value&&sel.value!=='all'){p.set(k,sel.value);}});}this.open=false;nav(location.pathname+'?'+p.toString());},reset:function(){this.open=false;nav(location.pathname);},init:function(){var self=this,el=this.$el;this._navH=function(){if(!el.isConnected)return;var p=el.dataset.rpPreset;if(p!==undefined){self.open=false;self.preset=p;self.from=el.dataset.rpFrom||'';self.to=el.dataset.rpTo||'';}};window.addEventListener('livewire:navigated',this._navH);},destroy:function(){window.removeEventListener('livewire:navigated',this._navH);}};};
+
+                } // end window._hlSidebarReady guard
                 </script>
                 HTML
             )

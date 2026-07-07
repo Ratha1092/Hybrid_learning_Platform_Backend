@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap');
 @import '../../../../vendor/filament/filament/resources/css/theme.css';
 
 @source '../../../../app/Filament/**/*';
@@ -9,9 +9,9 @@
  */
 
 :root {
-    --fi-font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
-    --hl-font-display: 'Space Grotesk', 'Inter', sans-serif;
-    --hl-font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    --fi-font-family: 'DM Sans', ui-sans-serif, system-ui, sans-serif;
+    --hl-font-display: 'Plus Jakarta Sans', 'DM Sans', sans-serif;
+    --hl-font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
 
     /* brass accent scale (built around #D7A441) */
     --fi-color-primary-50: 253 248 237;
@@ -364,7 +364,11 @@ body,
     background: var(--hl-sidebar) !important;
     border-right: 1px solid var(--hl-border) !important;
     box-shadow: none !important;
-    transition: width 180ms ease, transform 180ms ease !important;
+    transition: width var(--hl-sidebar-dur, 180ms) ease, transform var(--hl-sidebar-dur, 180ms) ease !important;
+}
+
+.fi-sidebar.hl-sidebar-under-freeze {
+    visibility: hidden !important;
 }
 
 .dark .fi-sidebar {
@@ -556,10 +560,30 @@ body,
 .fi-sidebar-group-btn {
     min-height: 1.9rem !important;
     padding: 0.25rem 0.65rem !important;
+    border-radius: 0.5rem !important;
+    cursor: pointer !important;
+    transition: background-color 0.16s ease !important;
+}
+
+.fi-sidebar-group-btn:hover {
+    background: rgba(148, 163, 184, 0.07) !important;
+}
+
+.fi-sidebar-group-btn:active {
+    background: rgba(148, 163, 184, 0.12) !important;
 }
 
 .fi-sidebar-group-collapse-btn {
     color: var(--hl-faint) !important;
+    transition: color 0.16s ease !important;
+}
+
+.fi-sidebar-group-collapse-btn svg {
+    transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1) !important;
+}
+
+.fi-sidebar-group.fi-collapsed .fi-sidebar-group-collapse-btn svg {
+    transform: rotate(180deg) !important;
 }
 
 .fi-sidebar-group[data-group-label='Overview'] > .fi-sidebar-group-btn {
@@ -588,9 +612,17 @@ body,
     font-weight: 500 !important;
 
     transition:
-        background-color 0.16s ease,
-        border-color 0.16s ease,
-        color 0.16s ease !important;
+        background-color var(--hl-sbtn-dur, 0.16s) ease,
+        border-color var(--hl-sbtn-dur, 0.16s) ease,
+        color var(--hl-sbtn-dur, 0.16s) ease,
+        box-shadow var(--hl-sbtn-dur, 0.16s) ease,
+        transform 0.1s ease !important;
+}
+
+.fi-sidebar-item-btn:active,
+.fi-sidebar-item-button:active {
+    transform: scale(0.965) !important;
+    transition-duration: 0.06s !important;
 }
 
 .fi-sidebar-item-btn svg,
@@ -682,6 +714,10 @@ body,
     border-radius: 999px !important;
     background: var(--hl-sidebar) !important;
     border: 1px solid #68778b !important;
+    transition:
+        background-color var(--hl-dot-dur, 0.22s) ease,
+        border-color var(--hl-dot-dur, 0.22s) ease,
+        box-shadow var(--hl-dot-dur, 0.28s) ease !important;
 }
 
 .fi-sidebar-group:not([data-group-label='Overview']) .fi-sidebar-item.fi-active > .fi-sidebar-item-btn::before {
@@ -989,7 +1025,30 @@ label[for*="remember"] {
     background: transparent !important;
 }
 
-/* 
+/*
+   PAGE TRANSITIONS
+*/
+
+@keyframes hl-page-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes hl-page-out {
+    from { opacity: 1; transform: translateY(0); }
+    to   { opacity: 0; transform: translateY(-6px); }
+}
+
+.hl-page-entering {
+    animation: hl-page-in 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.hl-page-leaving {
+    animation: hl-page-out 0.14s ease-in both;
+    pointer-events: none;
+}
+
+/*
    SCROLLBAR
  */
 
@@ -1017,4 +1076,3 @@ label[for*="remember"] {
         animation: none !important;
     }
 }
-

@@ -6,6 +6,7 @@ use App\Domains\Auth\Models\OAuthAccount;
 use App\Domains\Users\Models\User;
 use App\Domains\Auth\Resources\UserResource;
 use App\Domains\Auth\Services\ActivityLogService;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -161,6 +162,9 @@ class OAuthService
         }
 
         $token = $user->createToken('api-token')->plainTextToken;
+        if (\Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::fromFrontend(request())) {
+            Auth::guard('web')->login($user, true);
+        }
 
         ActivityLogService::log('login', $user);
 

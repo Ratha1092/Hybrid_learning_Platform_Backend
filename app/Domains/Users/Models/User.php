@@ -219,6 +219,11 @@ class User extends Authenticatable implements FilamentUser
         return $this->isVerifiedInstructor();
     }
 
+    public function receivesBroadcastNotificationsOn(): string
+    {
+        return 'user.'.$this->id;
+    }
+
     public function canAccessPanel(Panel $panel): bool
     {
         return $panel->getId() === 'admin'

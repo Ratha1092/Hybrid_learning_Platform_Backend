@@ -72,7 +72,7 @@ class Courses extends Page
         return '';
     }
 
-    // ── Row actions ───────────────────────────────────────────────────────
+    // Row actions
 
     public function setTab(string $tab): void
     {
@@ -192,6 +192,9 @@ class Courses extends Page
                   ->orWhere('short_description', 'like', "%{$search}%")
                   ->orWhereHas('instructor', fn($q2) => $q2->where('name', 'like', "%{$search}%"))
                   ->orWhereHas('category',   fn($q2) => $q2->where('name', 'like', "%{$search}%"));
+                if (str_contains(strtolower($search), 'free')) {
+                    $q->orWhere('price', 0);
+                }
             });
         }
 
@@ -221,7 +224,7 @@ class Courses extends Page
         );
     }
 
-    // ── View data ─────────────────────────────────────────────────────────
+    // View dat
 
     protected function getViewData(): array
     {
@@ -261,6 +264,9 @@ class Courses extends Page
                   ->orWhere('short_description', 'like', "%{$search}%")
                   ->orWhereHas('instructor', fn($q2) => $q2->where('name', 'like', "%{$search}%"))
                   ->orWhereHas('category',   fn($q2) => $q2->where('name', 'like', "%{$search}%"));
+                if (str_contains(strtolower($search), 'free')) {
+                    $q->orWhere('price', 0);
+                }
             });
         }
 

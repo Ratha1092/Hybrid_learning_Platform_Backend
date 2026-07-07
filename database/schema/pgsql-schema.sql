@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict julkKNlEfqJodJGNjamgxFiPbOZFy4u0D9i4Ynlna3BBYJxajBGpNhv9LZ3Gthu
+\restrict pIoXNb0TJdEbVaO9b8FAP7knHBKRUWCLtmTcthpDr4S5N7tEOldVh359CFse3vW
 
 -- Dumped from database version 16.14 (Ubuntu 16.14-0ubuntu0.24.04.1)
 -- Dumped by pg_dump version 16.14 (Ubuntu 16.14-0ubuntu0.24.04.1)
@@ -181,6 +181,8 @@ CREATE TABLE public.categories (
     image character varying(255),
     is_featured boolean DEFAULT false NOT NULL,
     sort_order integer DEFAULT 0 NOT NULL,
+    deleted_by bigint,
+    deleted_at timestamp(0) without time zone,
     created_at timestamp(0) without time zone,
     updated_at timestamp(0) without time zone
 );
@@ -203,6 +205,42 @@ CREATE SEQUENCE public.categories_id_seq
 --
 
 ALTER SEQUENCE public.categories_id_seq OWNED BY public.categories.id;
+
+
+--
+-- Name: contact_messages; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.contact_messages (
+    id bigint NOT NULL,
+    name character varying(255) NOT NULL,
+    email character varying(255) NOT NULL,
+    subject character varying(255) NOT NULL,
+    message text NOT NULL,
+    status character varying(255) DEFAULT 'unread'::character varying NOT NULL,
+    read_at timestamp(0) without time zone,
+    created_at timestamp(0) without time zone,
+    updated_at timestamp(0) without time zone
+);
+
+
+--
+-- Name: contact_messages_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.contact_messages_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: contact_messages_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.contact_messages_id_seq OWNED BY public.contact_messages.id;
 
 
 --
@@ -335,6 +373,7 @@ CREATE TABLE public.courses (
     approved_at timestamp(0) without time zone,
     approved_by bigint,
     commission_percentage numeric(5,2) DEFAULT '20'::numeric NOT NULL,
+    deleted_by bigint,
     created_at timestamp(0) without time zone,
     updated_at timestamp(0) without time zone,
     deleted_at timestamp(0) without time zone,
@@ -532,6 +571,7 @@ CREATE TABLE public.instructor_profiles (
     twitter character varying(255),
     linkedin character varying(255),
     youtube character varying(255),
+    deleted_at timestamp(0) without time zone,
     created_at timestamp(0) without time zone,
     updated_at timestamp(0) without time zone
 );
@@ -764,6 +804,7 @@ CREATE TABLE public.lesson_resources (
     title character varying(255) NOT NULL,
     type character varying(255),
     file_path character varying(255) NOT NULL,
+    deleted_at timestamp(0) without time zone,
     created_at timestamp(0) without time zone,
     updated_at timestamp(0) without time zone
 );
@@ -796,21 +837,23 @@ CREATE TABLE public.lessons (
     id bigint NOT NULL,
     section_id bigint NOT NULL,
     title character varying(255) NOT NULL,
+    description text,
     content text,
     type character varying(255) DEFAULT 'video'::character varying NOT NULL,
     is_preview boolean DEFAULT false NOT NULL,
     video_url character varying(255),
     video_path character varying(255),
-    quiz_data json,
-    duration integer,
-    "order" integer DEFAULT 0 NOT NULL,
-    created_at timestamp(0) without time zone,
-    updated_at timestamp(0) without time zone,
-    deleted_at timestamp(0) without time zone,
     video_provider character varying(255),
     attachment character varying(255),
     attachment_name character varying(255),
-    CONSTRAINT lessons_type_check CHECK (((type)::text = ANY (ARRAY[('video'::character varying)::text, ('article'::character varying)::text, ('quiz'::character varying)::text])))
+    quiz_data json,
+    duration integer,
+    "order" integer DEFAULT 0 NOT NULL,
+    deleted_by bigint,
+    created_at timestamp(0) without time zone,
+    updated_at timestamp(0) without time zone,
+    deleted_at timestamp(0) without time zone,
+    CONSTRAINT lessons_type_check CHECK (((type)::text = ANY ((ARRAY['video'::character varying, 'article'::character varying, 'quiz'::character varying, 'file'::character varying, 'live'::character varying, 'assignment'::character varying])::text[])))
 );
 
 
@@ -1487,8 +1530,11 @@ ALTER SEQUENCE public.scheduled_reports_id_seq OWNED BY public.scheduled_reports
 CREATE TABLE public.sections (
     id bigint NOT NULL,
     course_id bigint,
+    instructor_id bigint,
     title character varying(255) NOT NULL,
     "order" integer DEFAULT 0 NOT NULL,
+    deleted_by bigint,
+    deleted_at timestamp(0) without time zone,
     created_at timestamp(0) without time zone,
     updated_at timestamp(0) without time zone
 );
@@ -1562,6 +1608,7 @@ CREATE TABLE public.student_profiles (
     interests json,
     github character varying(255),
     linkedin character varying(255),
+    deleted_at timestamp(0) without time zone,
     created_at timestamp(0) without time zone,
     updated_at timestamp(0) without time zone
 );
@@ -1594,6 +1641,7 @@ CREATE TABLE public.tags (
     id bigint NOT NULL,
     name character varying(255) NOT NULL,
     slug character varying(255) NOT NULL,
+    deleted_at timestamp(0) without time zone,
     created_at timestamp(0) without time zone,
     updated_at timestamp(0) without time zone
 );
@@ -1859,6 +1907,13 @@ ALTER TABLE ONLY public.blocked_ips ALTER COLUMN id SET DEFAULT nextval('public.
 --
 
 ALTER TABLE ONLY public.categories ALTER COLUMN id SET DEFAULT nextval('public.categories_id_seq'::regclass);
+
+
+--
+-- Name: contact_messages id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.contact_messages ALTER COLUMN id SET DEFAULT nextval('public.contact_messages_id_seq'::regclass);
 
 
 --
@@ -2220,6 +2275,14 @@ ALTER TABLE ONLY public.categories
 
 
 --
+-- Name: contact_messages contact_messages_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.contact_messages
+    ADD CONSTRAINT contact_messages_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: coupons coupons_code_unique; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2361,6 +2424,14 @@ ALTER TABLE ONLY public.instructor_profiles
 
 ALTER TABLE ONLY public.instructor_profiles
     ADD CONSTRAINT instructor_profiles_user_id_unique UNIQUE (user_id);
+
+
+--
+-- Name: instructor_verifications instructor_verifications_identity_id_unique; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.instructor_verifications
+    ADD CONSTRAINT instructor_verifications_identity_id_unique UNIQUE (identity_id);
 
 
 --
@@ -2927,13 +2998,6 @@ CREATE INDEX email_verification_tokens_user_id_index ON public.email_verificatio
 
 
 --
--- Name: instructor_verifications_identity_id_unique; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX instructor_verifications_identity_id_unique ON public.instructor_verifications USING btree (identity_id);
-
-
---
 -- Name: instructor_verifications_status_index; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3175,6 +3239,14 @@ ALTER TABLE ONLY public.blocked_ips
 
 
 --
+-- Name: categories categories_deleted_by_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.categories
+    ADD CONSTRAINT categories_deleted_by_foreign FOREIGN KEY (deleted_by) REFERENCES public.users(id) ON DELETE SET NULL;
+
+
+--
 -- Name: coupons coupons_created_by_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3228,6 +3300,14 @@ ALTER TABLE ONLY public.courses
 
 ALTER TABLE ONLY public.courses
     ADD CONSTRAINT courses_category_id_foreign FOREIGN KEY (category_id) REFERENCES public.categories(id) ON DELETE CASCADE;
+
+
+--
+-- Name: courses courses_deleted_by_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.courses
+    ADD CONSTRAINT courses_deleted_by_foreign FOREIGN KEY (deleted_by) REFERENCES public.users(id) ON DELETE SET NULL;
 
 
 --
@@ -3364,6 +3444,14 @@ ALTER TABLE ONLY public.lesson_progress
 
 ALTER TABLE ONLY public.lesson_resources
     ADD CONSTRAINT lesson_resources_lesson_id_foreign FOREIGN KEY (lesson_id) REFERENCES public.lessons(id) ON DELETE CASCADE;
+
+
+--
+-- Name: lessons lessons_deleted_by_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.lessons
+    ADD CONSTRAINT lessons_deleted_by_foreign FOREIGN KEY (deleted_by) REFERENCES public.users(id) ON DELETE SET NULL;
 
 
 --
@@ -3567,6 +3655,22 @@ ALTER TABLE ONLY public.sections
 
 
 --
+-- Name: sections sections_deleted_by_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sections
+    ADD CONSTRAINT sections_deleted_by_foreign FOREIGN KEY (deleted_by) REFERENCES public.users(id) ON DELETE SET NULL;
+
+
+--
+-- Name: sections sections_instructor_id_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sections
+    ADD CONSTRAINT sections_instructor_id_foreign FOREIGN KEY (instructor_id) REFERENCES public.users(id) ON DELETE SET NULL;
+
+
+--
 -- Name: student_profiles student_profiles_user_id_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3642,13 +3746,13 @@ ALTER TABLE ONLY public.wishlists
 -- PostgreSQL database dump complete
 --
 
-\unrestrict julkKNlEfqJodJGNjamgxFiPbOZFy4u0D9i4Ynlna3BBYJxajBGpNhv9LZ3Gthu
+\unrestrict pIoXNb0TJdEbVaO9b8FAP7knHBKRUWCLtmTcthpDr4S5N7tEOldVh359CFse3vW
 
 --
 -- PostgreSQL database dump
 --
 
-\restrict MTeO5b2en86sEXUWF28r72PtroFMMrGPbfTMzLfgfUioUdOTkzfMeWTiG8dpriC
+\restrict msHUZ96ku39hcM5jpalUNSMz3W0g8iOkHP0MjOzSk4TOp5MHtWKScWiSRtF7iCU
 
 -- Dumped from database version 16.14 (Ubuntu 16.14-0ubuntu0.24.04.1)
 -- Dumped by pg_dump version 16.14 (Ubuntu 16.14-0ubuntu0.24.04.1)
@@ -3669,64 +3773,66 @@ SET row_security = off;
 --
 
 COPY public.migrations (id, migration, batch) FROM stdin;
-1	2026_04_02_073001_create_users_table	1
-2	2026_04_02_073036_create_password_reset_tokens_table	1
-3	2026_04_02_073108_create_personal_access_tokens_table	1
-4	2026_04_02_073129_create_user_sessions_table	1
-5	2026_04_02_073636_create_categories_table	1
-6	2026_04_02_073700_create_tags_table	1
-7	2026_04_02_073731_create_courses_table	1
-8	2026_04_02_073756_create_course_tag_table	1
-9	2026_04_02_073831_create_sections_table	1
-10	2026_04_02_073856_create_lessons_table	1
-11	2026_04_02_073915_create_coupons_table	1
-12	2026_04_02_073915_create_lesson_resources_table	1
-13	2026_04_02_073916_create_orders_table	1
-14	2026_04_02_075304_create_enrollments_table	1
-15	2026_04_02_080012_create_lesson_progress_table	1
-16	2026_04_02_080126_create_wishlists_table	1
-17	2026_04_02_080149_create_reviews_table	1
-18	2026_04_02_080951_create_order_items_table	1
-19	2026_04_02_081212_create_payments_table	1
-20	2026_04_02_081313_create_transactions_table	1
-21	2026_04_02_081353_create_revenue_shares_table	1
-22	2026_04_02_081442_create_instructor_wallets_table	1
-23	2026_04_02_081512_create_payout_requests_table	1
-24	2026_04_02_081513_create_wallet_transactions_table	1
-25	2026_04_09_113443_create_failed_jobs_table	1
-26	2026_04_10_115404_create_daily_metrics_table	1
-27	2026_04_21_120000_create_student_profiles_table	1
-28	2026_04_21_120001_create_instructor_profiles_table	1
-29	2026_04_23_create_instructor_verifications_table	1
-30	2026_05_01_000001_add_email_verification	1
-31	2026_05_01_000002_add_password_reset	1
-32	2026_05_01_000003_add_two_factor_auth	1
-33	2026_05_01_000004_add_activity_logs	1
-34	2026_05_01_000005_add_oauth_accounts	1
-35	2026_05_06_000001_rebuild_password_reset_tokens_for_api	1
-36	2026_05_08_111944_create_permission_tables	1
-37	2026_05_09_122355_add_preview_video_to_courses_table	1
-38	2026_05_09_122844_add_learning_content_fields_to_lessons_table	1
-39	2026_05_11_150914_create_cache_table	1
-40	2026_05_12_200018_add_khqr_fields_to_payments_table	1
-41	2026_05_12_200106_add_payment_method_to_orders_table	1
-42	2026_05_13_000001_add_verification_tracking_to_payments_table	1
-43	2026_05_15_152556_add_course_id_to_lesson_progress_table	1
-44	2026_05_21_163426_create_notifications_table	1
-45	2026_05_24_191526_create_course_views_table	1
-46	2026_05_26_002708_add_rejection_reason_to_courses_table	1
-47	2026_06_09_210205_create_otp_codes_table	1
-48	2026_06_16_000001_create_settings_table	1
-49	2026_06_20_084657_create_refunds_table	2
-50	2026_06_21_000001_create_scheduled_reports_table	3
-51	2026_06_24_141134_create_blocked_ips_table	4
-52	2026_06_27_000001_add_tax_and_invoice_number_to_orders	5
-53	2026_06_27_000002_create_document_sequences_table	6
-54	2026_06_27_000003_create_billing_addresses_table	7
-55	2026_06_27_000004_create_invoices_table	8
-56	2026_06_27_000005_create_invoice_items_table	9
-57	2026_06_27_000006_create_receipts_table	10
+155	2026_07_06_000001_create_contact_messages_table	13
 58	2026_06_30_031742_make_course_id_nullable_on_sections_table	11
+97	2026_04_02_073001_create_users_table	12
+98	2026_04_02_073036_create_password_reset_tokens_table	12
+99	2026_04_02_073108_create_personal_access_tokens_table	12
+100	2026_04_02_073129_create_user_sessions_table	12
+101	2026_04_02_073636_create_categories_table	12
+102	2026_04_02_073700_create_tags_table	12
+103	2026_04_02_073731_create_courses_table	12
+104	2026_04_02_073756_create_course_tag_table	12
+105	2026_04_02_073831_create_sections_table	12
+106	2026_04_02_073856_create_lessons_table	12
+107	2026_04_02_073915_create_coupons_table	12
+108	2026_04_02_073915_create_lesson_resources_table	12
+109	2026_04_02_073916_create_orders_table	12
+110	2026_04_02_075304_create_enrollments_table	12
+111	2026_04_02_080012_create_lesson_progress_table	12
+112	2026_04_02_080126_create_wishlists_table	12
+113	2026_04_02_080149_create_reviews_table	12
+114	2026_04_02_080951_create_order_items_table	12
+115	2026_04_02_081212_create_payments_table	12
+116	2026_04_02_081313_create_transactions_table	12
+117	2026_04_02_081353_create_revenue_shares_table	12
+118	2026_04_02_081442_create_instructor_wallets_table	12
+119	2026_04_02_081512_create_payout_requests_table	12
+120	2026_04_02_081513_create_wallet_transactions_table	12
+121	2026_04_09_113443_create_failed_jobs_table	12
+122	2026_04_10_115404_create_daily_metrics_table	12
+123	2026_04_21_120000_create_student_profiles_table	12
+124	2026_04_21_120001_create_instructor_profiles_table	12
+125	2026_04_23_create_instructor_verifications_table	12
+126	2026_05_01_000001_add_email_verification	12
+127	2026_05_01_000002_add_password_reset	12
+128	2026_05_01_000003_add_two_factor_auth	12
+129	2026_05_01_000004_add_activity_logs	12
+130	2026_05_01_000005_add_oauth_accounts	12
+131	2026_05_06_000001_rebuild_password_reset_tokens_for_api	12
+132	2026_05_08_111944_create_permission_tables	12
+133	2026_05_09_122355_add_preview_video_to_courses_table	12
+134	2026_05_09_122844_add_learning_content_fields_to_lessons_table	12
+135	2026_05_11_150914_create_cache_table	12
+136	2026_05_12_200018_add_khqr_fields_to_payments_table	12
+137	2026_05_12_200106_add_payment_method_to_orders_table	12
+138	2026_05_13_000001_add_verification_tracking_to_payments_table	12
+139	2026_05_15_152556_add_course_id_to_lesson_progress_table	12
+140	2026_05_21_163426_create_notifications_table	12
+141	2026_05_24_191526_create_course_views_table	12
+142	2026_05_26_002708_add_rejection_reason_to_courses_table	12
+143	2026_06_09_210205_create_otp_codes_table	12
+144	2026_06_16_000001_create_settings_table	12
+145	2026_06_20_084657_create_refunds_table	12
+146	2026_06_21_000001_create_scheduled_reports_table	12
+147	2026_06_24_141134_create_blocked_ips_table	12
+148	2026_06_27_000001_add_tax_and_invoice_number_to_orders	12
+149	2026_06_27_000002_create_document_sequences_table	12
+150	2026_06_27_000003_create_billing_addresses_table	12
+151	2026_06_27_000004_create_invoices_table	12
+152	2026_06_27_000005_create_invoice_items_table	12
+153	2026_06_27_000006_create_receipts_table	12
+154	2026_06_30_164626_seed_missing_document_sequences	12
 \.
 
 
@@ -3734,12 +3840,12 @@ COPY public.migrations (id, migration, batch) FROM stdin;
 -- Name: migrations_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.migrations_id_seq', 58, true);
+SELECT pg_catalog.setval('public.migrations_id_seq', 155, true);
 
 
 --
 -- PostgreSQL database dump complete
 --
 
-\unrestrict MTeO5b2en86sEXUWF28r72PtroFMMrGPbfTMzLfgfUioUdOTkzfMeWTiG8dpriC
+\unrestrict msHUZ96ku39hcM5jpalUNSMz3W0g8iOkHP0MjOzSk4TOp5MHtWKScWiSRtF7iCU
 

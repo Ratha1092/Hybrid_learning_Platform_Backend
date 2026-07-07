@@ -127,6 +127,7 @@ class CoursesTable
                         'intermediate' => 'Intermediate',
                         'advanced'     => 'Advanced',
                     ]),
+                Tables\Filters\TrashedFilter::make(),
             ])
 
             // ── ROW ACTIONS ───────────────────────────────────────────────────
@@ -171,6 +172,9 @@ class CoursesTable
                         $record->instructor?->notify(new CourseRejectedNotification($record, $data['reason']));
                         Notification::make()->title('Course Rejected')->body('The instructor has been notified.')->danger()->send();
                     }),
+
+                Actions\RestoreAction::make()->iconButton(),
+                Actions\ForceDeleteAction::make()->iconButton(),
 
                 Actions\ActionGroup::make([
                     Actions\Action::make('submitReview')

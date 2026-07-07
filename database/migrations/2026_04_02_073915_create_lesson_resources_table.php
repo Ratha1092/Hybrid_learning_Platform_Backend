@@ -14,6 +14,7 @@ return new class extends Migration
             $table->string('title');
             $table->string('type')->nullable(); // pdf, zip, etc
             $table->string('file_path');
+            $table->softDeletes();
             $table->timestamps();
         });
     }

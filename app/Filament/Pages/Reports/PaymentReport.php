@@ -22,9 +22,38 @@ class PaymentReport extends Page implements Schedulable
     protected string $view = 'filament.pages.reports.payment-report';
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-credit-card';
     protected static ?string $navigationLabel = 'Payments Report';
-    protected static string|\UnitEnum|null $navigationGroup = 'Reports';
-    protected static ?int $navigationSort = 3;
+    protected static string|\UnitEnum|null $navigationGroup = 'Data Exports';
+    protected static ?int $navigationSort = 2;
     protected static ?string $slug = 'reports/payments';
+
+    public string $preset = 'this_month';
+    public string $dateFrom = '';
+    public string $dateTo = '';
+    public string $gateway = 'all';
+    public string $status = 'all';
+    public int $page = 1;
+
+    public function mount(): void
+    {
+        $this->preset   = request('preset', 'this_month');
+        $this->dateFrom = request('date_from', '');
+        $this->dateTo   = request('date_to', '');
+        $this->gateway  = request('gateway', 'all');
+        $this->status   = request('status', 'all');
+        $this->page     = (int) request('page', 1);
+    }
+
+    public function applyDateFilter(string $preset, string $from = '', string $to = ''): void
+    {
+        $this->preset   = $preset ?: 'this_month';
+        $this->dateFrom = $preset === 'custom' ? $from : '';
+        $this->dateTo   = $preset === 'custom' ? $to : '';
+        $this->page     = 1;
+        $this->dispatchDateResolved();
+    }
+
+    public function updatedGateway(): void { $this->page = 1; }
+    public function updatedStatus(): void  { $this->page = 1; }
 
     public static function canAccess(): bool
     {
@@ -132,22 +161,25 @@ class PaymentReport extends Page implements Schedulable
     private function currentFilters(): array
     {
         return [
-            'preset' => request('preset', 'this_month'),
-            'date_from' => request('date_from'),
-            'date_to' => request('date_to'),
-            'gateway' => request('gateway', 'all'),
-            'status' => request('status', 'all'),
-            'page' => (int) request('page', 1),
-            'per_page' => (int) request('per_page', 10),
+            'preset'    => $this->preset ?: 'this_month',
+            'date_from' => $this->dateFrom ?: null,
+            'date_to'   => $this->dateTo ?: null,
+            'gateway'   => $this->gateway,
+            'status'    => $this->status,
+            'page'      => $this->page,
+            'per_page'  => 10,
         ];
     }
 
     private function staticFilterMeta(array $filters): array
     {
+        [$from, $to] = static::resolvePreset($filters['preset'], 'this_month', $filters['date_from'] ?? null, $filters['date_to'] ?? null);
         return [
-            'activePreset' => $filters['preset'],
-            'activeGateway' => $filters['gateway'],
-            'activeStatus' => $filters['status'],
+            'activePreset'   => $filters['preset'],
+            'activeDateFrom' => $from?->format('Y-m-d') ?? '',
+            'activeDateTo'   => $to?->format('Y-m-d') ?? '',
+            'activeGateway'  => $filters['gateway'],
+            'activeStatus'   => $filters['status'],
         ];
     }
 

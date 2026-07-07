@@ -4,6 +4,7 @@ namespace App\Domains\Auth\Services;
 
 use App\Domains\System\Models\Setting;
 use App\Domains\Users\Models\User;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
@@ -27,6 +28,9 @@ class AuthService
         $user->assignRole('student');
         ActivityLogService::log('registration', $user);
         $token = $user->createToken('api-token')->plainTextToken;
+        if (\Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::fromFrontend(request())) {
+            Auth::guard('web')->login($user, true);
+        }
 
         return [
             'token' => $token,
@@ -86,6 +90,9 @@ class AuthService
 
         $user->tokens()->delete();
         $token = $user->createToken('api-token')->plainTextToken;
+        if (\Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::fromFrontend(request())) {
+            Auth::guard('web')->login($user, true);
+        }
         ActivityLogService::log('login', $user);
 
         return [
@@ -96,7 +103,15 @@ class AuthService
 
     public function logout($user)
     {
-        $user?->currentAccessToken()?->delete();
+        $token = $user?->currentAccessToken();
+        if ($token && !($token instanceof \Laravel\Sanctum\TransientToken)) {
+            $token->delete();
+        }
+        if (\Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::fromFrontend(request())) {
+            Auth::guard('web')->logout();
+            request()->session()->invalidate();
+            request()->session()->regenerateToken();
+        }
     }
 
     private function isLockedOut(User $user): bool

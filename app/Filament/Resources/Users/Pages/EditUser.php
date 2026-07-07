@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Users\Pages;
 
 use App\Domains\Auth\Services\ActivityLogService;
+use App\Domains\Users\Models\InstructorVerification;
 use App\Domains\Users\Models\User;
 use App\Filament\Resources\Users\UserResource;
 use Filament\Actions\DeleteAction;
@@ -58,7 +59,8 @@ class EditUser extends EditRecord
         // Sync roles via Spatie so the pivot table is always correct.
         $this->record->syncRoles($this->pendingRoleIds);
 
-        $newRoles = $this->record->fresh()->getRoleNames()->sort()->values()->all();
+        $fresh = $this->record->fresh();
+        $newRoles = $fresh->getRoleNames()->sort()->values()->all();
 
         if ($newRoles !== $this->originalRoles) {
             ActivityLogService::logChange(
@@ -67,6 +69,44 @@ class EditUser extends EditRecord
                 ['roles' => $this->originalRoles],
                 ['roles' => $newRoles],
             );
+        }
+
+        // When the instructor role is assigned via the admin panel the normal
+        // application flow is bypassed, so no InstructorVerification record is
+        // created. Without it isVerifiedInstructor() returns false and the user
+        // gets a 403 on every instructor API endpoint.
+        $this->ensureInstructorVerification($fresh);
+    }
+
+    private function ensureInstructorVerification(User $user): void
+    {
+        if (! $user->hasRole('instructor')) {
+            return;
+        }
+
+        $verification = InstructorVerification::withTrashed()
+            ->where('user_id', $user->id)
+            ->first();
+
+        if ($verification) {
+            // Restore soft-deleted record and promote to approved if needed.
+            if ($verification->trashed()) {
+                $verification->restore();
+            }
+            if ($verification->status !== 'approved') {
+                $verification->update([
+                    'status'      => 'approved',
+                    'reviewed_by' => auth()->id(),
+                    'reviewed_at' => now(),
+                ]);
+            }
+        } else {
+            InstructorVerification::create([
+                'user_id'     => $user->id,
+                'status'      => 'approved',
+                'reviewed_by' => auth()->id(),
+                'reviewed_at' => now(),
+            ]);
         }
     }
 

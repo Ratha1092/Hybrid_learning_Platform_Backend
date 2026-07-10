@@ -27,9 +27,22 @@ class SectionsTable
                     ->dateTime('M d, Y'),
             ])
 
+            ->filters([
+                Tables\Filters\TrashedFilter::make(),
+            ])
             ->recordActions([
                 Actions\ViewAction::make(),
                 Actions\EditAction::make(),
+                Actions\DeleteAction::make()->iconButton(),
+                Actions\RestoreAction::make()->iconButton(),
+                Actions\ForceDeleteAction::make()->iconButton(),
+            ])
+            ->toolbarActions([
+                Actions\BulkActionGroup::make([
+                    Actions\DeleteBulkAction::make(),
+                    Actions\RestoreBulkAction::make(),
+                    Actions\ForceDeleteBulkAction::make(),
+                ]),
             ]);
     }
 }

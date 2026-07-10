@@ -72,32 +72,69 @@ html.dark {
 .db-topbar-right   { display:flex; align-items:center; gap:.5rem; flex-wrap:wrap; }
 
 /* ── Date filter ──────────────────────────────────────────────── */
-.db-filter-form { display:flex; align-items:center; gap:.5rem; flex-wrap:wrap; }
-.db-select {
-    background:var(--db-card); border:1px solid var(--db-border); border-radius:.5rem;
-    padding:.35rem .75rem; font-size:.8125rem; color:var(--db-t2); cursor:pointer;
-    outline:none; transition:border-color .15s;
-    -webkit-appearance:none; appearance:none;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
-    background-repeat:no-repeat; background-position:right .5rem center; padding-right:1.75rem;
+/* ── Date range pill ──────────────────────────────────────────── */
+.db-drp-wrap { position:relative; }
+.db-drp-pill {
+    display:inline-flex; align-items:center; gap:0;
+    background:var(--db-card); border:1.5px solid var(--db-teal);
+    border-radius:10px; padding:.45rem .75rem .45rem .65rem;
+    cursor:pointer; user-select:none; white-space:nowrap;
+    box-shadow:0 0 0 3px rgba(20,184,166,.08);
+    transition:box-shadow .15s, border-color .15s;
+    font-size:.8125rem; color:var(--db-t1);
 }
-.db-select:focus { border-color:var(--db-blue); }
-.db-date-input {
-    background:var(--db-card); border:1px solid var(--db-border); border-radius:.5rem;
-    padding:.35rem .65rem; font-size:.8125rem; color:var(--db-t2); outline:none; transition:border-color .15s;
-    colorscheme:light dark;
+.db-drp-pill:hover { box-shadow:0 0 0 4px rgba(20,184,166,.14); }
+.db-drp-pill-icon { color:var(--db-teal); flex-shrink:0; margin-right:.5rem; }
+.db-drp-pill-from { font-weight:600; color:var(--db-t1); }
+.db-drp-pill-sep  { margin:0 .5rem; color:var(--db-border); font-size:.9rem; font-weight:300; }
+.db-drp-pill-to   { font-weight:600; color:var(--db-t1); }
+.db-drp-pill-chevron { margin-left:.6rem; color:var(--db-teal); transition:transform .2s; flex-shrink:0; }
+.db-drp-pill-chevron.open { transform:rotate(180deg); }
+
+.db-drp-panel {
+    display:none; position:absolute; right:0; top:calc(100% + 8px);
+    background:var(--db-card); border:1px solid var(--db-border);
+    border-radius:12px; box-shadow:var(--db-sh-md);
+    padding:1rem; min-width:280px; z-index:200;
 }
-.db-date-input:focus { border-color:var(--db-blue); }
-.db-filter-btn {
-    background:var(--db-blue); color:#fff; border:none; border-radius:.5rem;
-    padding:.375rem .875rem; font-size:.8125rem; font-weight:600; cursor:pointer; transition:opacity .15s;
+.db-drp-panel.open { display:block; }
+
+.db-drp-presets { display:flex; flex-direction:column; gap:2px; margin-bottom:.75rem; }
+.db-drp-preset {
+    display:block; width:100%; text-align:left; background:none; border:none;
+    padding:.45rem .65rem; border-radius:7px; font-size:.8rem; font-weight:500;
+    color:var(--db-t2); cursor:pointer; font-family:inherit;
+    transition:background .12s, color .12s;
 }
-.db-filter-btn:hover { opacity:.88; }
-.db-filter-btn-ghost {
-    background:var(--db-card); color:var(--db-t3); border:1px solid var(--db-border); border-radius:.5rem;
-    padding:.35rem .75rem; font-size:.8125rem; cursor:pointer; text-decoration:none; transition:border-color .15s;
+.db-drp-preset:hover { background:var(--db-bg); color:var(--db-t1); }
+.db-drp-preset.active { background:rgba(20,184,166,.1); color:var(--db-teal); font-weight:700; }
+
+.db-drp-divider { border:none; border-top:1px solid var(--db-border); margin:.5rem 0; }
+
+.db-drp-custom-label { font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--db-t4); margin-bottom:.4rem; }
+.db-drp-custom-row { display:flex; align-items:center; gap:.4rem; }
+.db-drp-date {
+    flex:1; background:var(--db-bg); border:1px solid var(--db-border); border-radius:7px;
+    padding:.35rem .5rem; font-size:.8rem; color:var(--db-t1); outline:none;
+    transition:border-color .15s; colorscheme:light dark;
 }
-.db-filter-btn-ghost:hover { border-color:var(--db-blue); color:var(--db-blue); }
+.db-drp-date:focus { border-color:var(--db-teal); }
+.db-drp-date-sep { color:var(--db-t4); font-size:.8rem; flex-shrink:0; }
+
+.db-drp-actions { display:flex; gap:.5rem; margin-top:.75rem; }
+.db-drp-apply {
+    flex:1; background:var(--db-teal); color:#fff; border:none; border-radius:7px;
+    padding:.4rem .75rem; font-size:.8rem; font-weight:700; cursor:pointer;
+    font-family:inherit; transition:opacity .15s;
+}
+.db-drp-apply:hover { opacity:.88; }
+.db-drp-reset {
+    background:var(--db-bg); color:var(--db-t3); border:1px solid var(--db-border); border-radius:7px;
+    padding:.4rem .65rem; font-size:.8rem; cursor:pointer; font-family:inherit;
+    text-decoration:none; display:inline-flex; align-items:center;
+    transition:border-color .15s, color .15s;
+}
+.db-drp-reset:hover { border-color:var(--db-teal); color:var(--db-teal); }
 
 /* ── Badges ───────────────────────────────────────────────────── */
 .db-badge { display:inline-flex; align-items:center; gap:.2rem; font-size:.6875rem; font-weight:600; padding:.2rem .45rem; border-radius:9999px; white-space:nowrap; }
@@ -348,20 +385,42 @@ function dbChart() {
 }
 function dbCustomDate() {
     return {
+        open:   false,
         preset: '{{ $activePreset }}',
-        show: false,
-        toggle() { this.show = this.preset === 'custom'; },
-        init() { this.show = this.preset === 'custom'; },
-        applyFilter(form) {
+        from:   '{{ $activeDateFrom }}',
+        to:     '{{ $activeDateTo }}',
+
+        fmtDate(iso) {
+            if (!iso) return '—';
+            const d = new Date(iso + 'T00:00:00');
+            return d.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+        },
+        get pillFrom() { return this.fmtDate(this.from); },
+        get pillTo()   { return this.fmtDate(this.to);   },
+
+        selectPreset(key) {
+            this.preset = key;
+            if (key !== 'custom') this.apply();
+        },
+        apply() {
             const params = new URLSearchParams();
             params.set('preset', this.preset);
-            if (this.show) {
-                const from = form.querySelector('[name="date_from"]')?.value;
-                const to   = form.querySelector('[name="date_to"]')?.value;
-                if (from) params.set('date_from', from);
-                if (to)   params.set('date_to', to);
+            if (this.preset === 'custom') {
+                if (this.from) params.set('date_from', this.from);
+                if (this.to)   params.set('date_to',   this.to);
             }
+            this.open = false;
             const url = window.location.pathname + '?' + params.toString();
+            if (typeof Livewire !== 'undefined' && Livewire.navigate) {
+                Livewire.navigate(url);
+            } else {
+                window.location.href = url;
+            }
+        },
+        reset() {
+            this.preset = 'this_month';
+            this.open   = false;
+            const url = window.location.pathname;
             if (typeof Livewire !== 'undefined' && Livewire.navigate) {
                 Livewire.navigate(url);
             } else {
@@ -383,31 +442,56 @@ function dbCustomDate() {
             $userName = auth()->user()->name ?? 'Admin';
         @endphp
         <h1>Good {{ $greeting }}, <span style="color:var(--db-blue);">{{ $userName }}</span> 👋</h1>
-        <p>Here's what's happening on your platform today.</p>
+        <p>Here's what's happening on your platform.</p>
     </div>
     <div class="db-topbar-right">
-        {{-- Date range filter --}}
-        <div x-data="dbCustomDate()" x-init="init()">
-            <form class="db-filter-form" @submit.prevent="applyFilter($el)">
-                <div style="display:flex;align-items:center;gap:.375rem;background:var(--db-card);border:1px solid var(--db-border);border-radius:.5rem;padding:.25rem .25rem .25rem .65rem;box-shadow:var(--db-sh);">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--db-t3)" stroke-width="2" style="flex-shrink:0;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                    <select name="preset" class="db-select" style="border:none;background:transparent;padding:.2rem .1rem;padding-right:1.5rem;"
-                        x-model="preset" @change="toggle()">
-                        @foreach(\App\Support\Concerns\HasDateRangePresets::dateRangePresetOptions() as $key => $label)
-                            <option value="{{ $key }}" {{ $activePreset === $key ? 'selected' : '' }}>{{ $label }}</option>
-                        @endforeach
-                    </select>
+        {{-- Date range pill filter --}}
+        <div class="db-drp-wrap" x-data="dbCustomDate()" @click.outside="open=false">
+
+            {{-- Pill trigger --}}
+            <div class="db-drp-pill" @click="open=!open">
+                <span class="db-drp-pill-icon">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                </span>
+                <span class="db-drp-pill-from" x-text="pillFrom"></span>
+                <span class="db-drp-pill-sep">|</span>
+                <span class="db-drp-pill-to" x-text="pillTo"></span>
+                <span class="db-drp-pill-chevron" :class="{open}">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+                </span>
+            </div>
+
+            {{-- Dropdown panel --}}
+            <div class="db-drp-panel" :class="{open}">
+
+                {{-- Presets --}}
+                <div class="db-drp-presets">
+                    @foreach(\App\Support\Concerns\HasDateRangePresets::dateRangePresetOptions() as $key => $label)
+                        @if($key !== 'custom')
+                        <button type="button" class="db-drp-preset"
+                            :class="{ active: preset === '{{ $key }}' }"
+                            @click="selectPreset('{{ $key }}')">
+                            {{ $label }}
+                        </button>
+                        @endif
+                    @endforeach
                 </div>
-                <div x-show="show" x-transition style="display:flex;align-items:center;gap:.375rem;flex-wrap:wrap;">
-                    <input type="date" name="date_from" class="db-date-input" value="{{ $activeDateFrom }}" placeholder="From">
-                    <span style="color:var(--db-t3);font-size:.8125rem;">—</span>
-                    <input type="date" name="date_to"   class="db-date-input" value="{{ $activeDateTo }}"   placeholder="To">
+
+                <hr class="db-drp-divider">
+
+                {{-- Custom range --}}
+                <div class="db-drp-custom-label">Custom Range</div>
+                <div class="db-drp-custom-row">
+                    <input type="date" class="db-drp-date" x-model="from" @change="preset='custom'">
+                    <span class="db-drp-date-sep">—</span>
+                    <input type="date" class="db-drp-date" x-model="to"   @change="preset='custom'">
                 </div>
-                <button type="submit" class="db-filter-btn">Apply</button>
-                @if($activePreset !== 'this_month')
-                    <a href="{{ request()->url() }}" class="db-filter-btn-ghost">Reset</a>
-                @endif
-            </form>
+
+                <div class="db-drp-actions">
+                    <button type="button" class="db-drp-apply" @click="apply()">Apply</button>
+                    <button type="button" class="db-drp-reset" @click="reset()">Reset</button>
+                </div>
+            </div>
         </div>
     </div>
 </div>

@@ -18,6 +18,10 @@ class SettingsSeeder extends Seeder
             'site_description'     => ['Learn without limits.', 'string', 'Short tagline used for SEO and branding.', true],
             'support_email'        => ['support@example.com', 'string', 'Public support contact email.', true],
             'support_phone'        => ['', 'string', 'Public support contact phone number.', true],
+            'contact_address'      => ['8 Charter Street, Bldg 1295, Natalie Tower, Phnom Penh', 'string', 'Physical office address shown on the Contact page.', true],
+            'hours_weekday'        => ['8:00 am – 6:00 pm', 'string', 'Office hours for Monday–Friday shown on the Contact page.', true],
+            'hours_saturday'       => ['9:00 am – 1:00 pm', 'string', 'Office hours for Saturday shown on the Contact page.', true],
+            'hours_sunday'         => ['Closed', 'string', 'Office hours for Sunday shown on the Contact page (e.g. Closed or a time range).', true],
             'default_language'     => ['en', 'string', 'Default platform language.', true],
             'default_timezone'     => ['UTC', 'string', 'Default timezone for date/time display.', true],
             'maintenance_mode'     => ['false', 'boolean', 'When enabled, blocks non-staff access to the platform.', true],
@@ -64,6 +68,7 @@ class SettingsSeeder extends Seeder
             'tax_percentage'                => ['0', 'decimal', 'Tax percentage applied at checkout.', true],
             'refund_period_days'            => ['14', 'integer', 'Number of days a purchase remains eligible for refund.', true],
             'wallet_enabled'                => ['true', 'boolean', 'Enable the instructor wallet system.', false],
+            'payout_hold_period_days'       => ['14', 'integer', 'Days to hold new earnings in pending balance before they become withdrawable.', false],
         ],
         'payment_gateway' => [
             'bakong_enabled'        => ['true', 'boolean', 'Enable the Bakong payment gateway.', true],

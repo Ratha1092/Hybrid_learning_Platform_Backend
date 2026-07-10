@@ -27,6 +27,7 @@ return new class extends Migration
             $table->json('quiz_data')->nullable();
             $table->integer('duration')->nullable();
             $table->integer('order')->default(0);
+            $table->foreignId('deleted_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
             $table->softDeletes();
         });

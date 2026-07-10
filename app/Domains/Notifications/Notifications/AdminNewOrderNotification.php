@@ -2,11 +2,14 @@
 
 namespace App\Domains\Notifications\Notifications;
 
+use App\Domains\Notifications\Concerns\BroadcastsAsNotification;
 use App\Domains\Orders\Models\Order;
+use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification;
 
 class AdminNewOrderNotification extends Notification
 {
+    use BroadcastsAsNotification;
     public function __construct(
         public readonly int    $orderId,
         public readonly string $customerName,
@@ -14,7 +17,21 @@ class AdminNewOrderNotification extends Notification
 
     public function via(object $notifiable): array
     {
-        return ['database'];
+        return ['database', 'broadcast'];
+    }
+
+    public function toBroadcast(object $notifiable): BroadcastMessage
+    {
+        $order  = Order::find($this->orderId);
+        $isFree = (float) ($order?->final_amount ?? 0) === 0.0;
+
+        return new BroadcastMessage([
+            'title'       => $isFree ? 'New Free Enrollment' : 'New Order Placed',
+            'message'     => "Order #{$order?->order_number} by {$this->customerName}" . ($isFree ? ' (free).' : " — \${$order?->final_amount}."),
+            'type'        => 'order',
+            'link'        => '/admin/orders',
+            'action_text' => 'View Orders',
+        ]);
     }
 
     public function toArray(object $notifiable): array

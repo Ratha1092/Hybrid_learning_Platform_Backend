@@ -9,16 +9,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('lessons', function (Blueprint $table) {
-
-            $table->string('video_provider')
-                ->nullable()
-                ->after('video_path');
-            $table->string('attachment')
-                ->nullable()
-                ->after('video_provider');
-            $table->string('attachment_name')
-                ->nullable()
-                ->after('attachment');
+            if (! Schema::hasColumn('lessons', 'video_provider')) {
+                $table->string('video_provider')->nullable()->after('video_path');
+            }
+            if (! Schema::hasColumn('lessons', 'attachment')) {
+                $table->string('attachment')->nullable()->after('video_provider');
+            }
+            if (! Schema::hasColumn('lessons', 'attachment_name')) {
+                $table->string('attachment_name')->nullable()->after('attachment');
+            }
         });
     }
 

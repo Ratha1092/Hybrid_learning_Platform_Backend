@@ -17,6 +17,7 @@ return new class extends Migration
             $table->json('interests')->nullable();
             $table->string('github')->nullable();
             $table->string('linkedin')->nullable();
+            $table->softDeletes();
             $table->timestamps();
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
         });

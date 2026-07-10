@@ -2,16 +2,30 @@
 
 namespace App\Domains\Notifications\Notifications;
 
+use App\Domains\Notifications\Concerns\BroadcastsAsNotification;
 use Illuminate\Bus\Queueable;
+use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification;
 
 class InstructorApprovedNotification extends Notification
 {
+    use BroadcastsAsNotification;
     use Queueable;
 
     public function via(object $notifiable): array
     {
-        return ['database'];
+        return ['database', 'broadcast'];
+    }
+
+    public function toBroadcast(object $notifiable): BroadcastMessage
+    {
+        return new BroadcastMessage([
+            'title'       => 'Application Approved',
+            'message'     => 'Your instructor application has been approved. Log in to start creating courses.',
+            'type'        => 'instructor_approved',
+            'link'        => env('FRONTEND_URL', 'http://localhost:3000') . '/instructor/login',
+            'action_text' => 'Go to Instructor Dashboard',
+        ]);
     }
 
     public function toArray(object $notifiable): array

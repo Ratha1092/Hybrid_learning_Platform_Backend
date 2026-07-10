@@ -59,13 +59,30 @@ trait HasDateRangePresets
         };
     }
 
+    /**
+     * Resolve the current preset to concrete dates and dispatch a browser event
+     * so Alpine can update the pill without re-initialising the x-data component.
+     */
+    protected function dispatchDateResolved(): void
+    {
+        [$f, $t] = static::resolvePreset($this->preset, 'this_month', $this->dateFrom ?: null, $this->dateTo ?: null);
+        $this->dispatch('rp-date-resolved',
+            from: $f?->format('Y-m-d') ?? '',
+            to:   $t?->format('Y-m-d') ?? ''
+        );
+    }
+
     public static function applyDateRange($query, string $column, $from, $to)
     {
         if ($from) {
             $query->where($column, '>=', $from);
         }
         if ($to) {
-            $query->where($column, '<=', $to);
+            // Use an exclusive upper bound (<) at the start of the following day so that
+            // all sub-second timestamps on the last day are captured. Using <= endOfDay()
+            // would silently drop records whose microseconds push them past the truncated
+            // SQL string '23:59:59'.
+            $query->where($column, '<', Carbon::instance($to)->addDay()->startOfDay());
         }
 
         return $query;

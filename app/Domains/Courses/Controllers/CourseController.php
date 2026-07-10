@@ -12,20 +12,20 @@ use Illuminate\Support\Facades\Storage;
 
 class CourseController extends Controller
 {
-public function index(Request $request)
-{
-    $search = $request->query('search');
+    public function index()
+    {
+        $query = Course::with('instructor:id,name,avatar')
+            ->where('is_published', true);
 
-    $courses = Course::with('instructor:id,name,avatar')
-        ->where('is_published', true)
-        ->when($search, function ($query, $search) {
-            $query->where(function ($q) use ($search) {
-                $q->where('title', 'like', "%{$search}%")
-                  ->orWhereHas('instructor', fn ($q2) => $q2->where('name', 'like', "%{$search}%"));
-            });
-        })
-        ->latest()
-        ->get();
+        if ($instructorId = request('instructor_id')) {
+            $query->where('instructor_id', (int) $instructorId);
+        }
+
+        if ($search = request('search')) {
+            $query->where('title', 'ilike', "%{$search}%");
+        }
+
+        $courses = $query->latest()->get();
 
     return ApiResponse::success($courses, 'Courses retrieved successfully');
 }

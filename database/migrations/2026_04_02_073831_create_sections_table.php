@@ -14,6 +14,8 @@ return new class extends Migration
             $table->foreignId('instructor_id')->nullable()->constrained('users')->nullOnDelete();
             $table->string('title');
             $table->integer('order')->default(0);
+            $table->foreignId('deleted_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->softDeletes();
             $table->timestamps();
         });
     }

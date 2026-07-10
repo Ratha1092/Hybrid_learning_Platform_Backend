@@ -22,9 +22,28 @@ class CourseIntelligenceReport extends Page implements Schedulable
     protected string $view = 'filament.pages.reports.course-intelligence-report';
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-academic-cap';
     protected static ?string $navigationLabel = 'Course Intelligence';
-    protected static string|\UnitEnum|null $navigationGroup = 'Reports';
-    protected static ?int $navigationSort = 5;
+    protected static string|\UnitEnum|null $navigationGroup = 'Data Exports';
+    protected static ?int $navigationSort = 4;
     protected static ?string $slug = 'reports/course-intelligence';
+
+    public string $preset = 'this_month';
+    public string $dateFrom = '';
+    public string $dateTo = '';
+
+    public function mount(): void
+    {
+        $this->preset   = request('preset', 'this_month');
+        $this->dateFrom = request('date_from', '');
+        $this->dateTo   = request('date_to', '');
+    }
+
+    public function applyDateFilter(string $preset, string $from = '', string $to = ''): void
+    {
+        $this->preset   = $preset ?: 'this_month';
+        $this->dateFrom = $preset === 'custom' ? $from : '';
+        $this->dateTo   = $preset === 'custom' ? $to : '';
+        $this->dispatchDateResolved();
+    }
 
     public static function canAccess(): bool
     {
@@ -98,9 +117,14 @@ class CourseIntelligenceReport extends Page implements Schedulable
     public function getViewData(): array
     {
         $filters = $this->currentFilters();
+        [$from, $to] = static::resolvePreset($filters['preset'], 'this_month', $filters['date_from'] ?? null, $filters['date_to'] ?? null);
 
         return array_merge(
-            ['activePreset' => $filters['preset']],
+            [
+                'activePreset'    => $filters['preset'],
+                'activeDateFrom'  => $from?->format('Y-m-d') ?? '',
+                'activeDateTo'    => $to?->format('Y-m-d') ?? '',
+            ],
             static::buildReportData($filters),
         );
     }
@@ -120,9 +144,9 @@ class CourseIntelligenceReport extends Page implements Schedulable
     private function currentFilters(): array
     {
         return [
-            'preset' => request('preset', 'this_month'),
-            'date_from' => request('date_from'),
-            'date_to' => request('date_to'),
+            'preset'    => $this->preset ?: 'this_month',
+            'date_from' => $this->dateFrom ?: null,
+            'date_to'   => $this->dateTo ?: null,
         ];
     }
 

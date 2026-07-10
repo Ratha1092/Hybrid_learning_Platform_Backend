@@ -13,7 +13,7 @@ return new class extends Migration
 
             $table->string('name');
             $table->string('slug')->unique();
-
+            $table->softDeletes();
             $table->timestamps();
         });
     }

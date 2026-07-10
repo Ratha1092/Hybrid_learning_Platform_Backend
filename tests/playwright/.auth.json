@@ -1,0 +1,69 @@
+{
+  "cookies": [
+    {
+      "name": "PHPDEBUGBAR_STACK_DATA",
+      "value": "%5B%5D",
+      "domain": "localhost",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": true,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "XSRF-TOKEN",
+      "value": "eyJpdiI6ImQrOEhKUVIzQjFYeGlEUXpnZHZZVkE9PSIsInZhbHVlIjoiR2picDY5QlVyVDQzN3BlTTIzbWhpeUMvT3hURk10ZmZpOUcvMTlvZzM3UVIyTUZPdHZEVjh0dkZUVWhDY1JPSEtlK2ZvbUcvWnJDQ3VjQ2ZBNXo1WDlHeXdYYzBNWTV4Mlp0UnJ0RWh1Mmh0aXhSNkRJdXordkUwWVczY3QrajciLCJtYWMiOiIwNzNhNTU3MTdhNTJkMGE1OWQzNjcwNmZmMWJhYjExNzY2MWUzM2IxM2Q0YTU0YzdkNTQwYTE5MDliYmI0ZDQ1IiwidGFnIjoiIn0%3D",
+      "domain": "localhost",
+      "path": "/",
+      "expires": 1783430099.607089,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "laravel-session",
+      "value": "eyJpdiI6IjhQMEZKeWswTGhSaVNYcDBvSjFlK2c9PSIsInZhbHVlIjoiNkpNcHlhNUo1Z2NQUVB0N1BZVGZ4U0VUajdUVTkrdnlvZ3poc3FyQzM5YmhudnZ1dTY3SWx0d0EwK0V5ZHNtbXloK052dTAyemk2NnVuWUFGMkJxQmhiOGIzeU40UVZhZnV4Yk1vc2ppK0pRWFphMXlBeldYZlR1QW41NXNDSlYiLCJtYWMiOiJlZGU5YTk0ZTI5OWRjNmRlZGJlMmQwZTQ1OGZmMGRjMDJhMTU3MmIzZDdiM2Q0OWYzYWIxY2Q5YTJmNTNmMTg3IiwidGFnIjoiIn0%3D",
+      "domain": "localhost",
+      "path": "/",
+      "expires": 1783430099.979457,
+      "httpOnly": true,
+      "secure": false,
+      "sameSite": "Lax"
+    }
+  ],
+  "origins": [
+    {
+      "origin": "http://localhost:8000",
+      "localStorage": [
+        {
+          "name": "theme",
+          "value": "dark"
+        },
+        {
+          "name": "isOpenDesktop",
+          "value": "true"
+        },
+        {
+          "name": "phpdebugbar-height",
+          "value": "301"
+        },
+        {
+          "name": "phpdebugbar-visible",
+          "value": "0"
+        },
+        {
+          "name": "pusherTransportTLS",
+          "value": "{\"timestamp\":1783422899918,\"transport\":\"ws\",\"latency\":154,\"cacheSkipCount\":0}"
+        },
+        {
+          "name": "isOpen",
+          "value": "true"
+        },
+        {
+          "name": "collapsedGroups",
+          "value": "[]"
+        }
+      ]
+    }
+  ]
+}

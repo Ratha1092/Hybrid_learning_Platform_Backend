@@ -4,10 +4,13 @@ namespace App\Domains\Courses\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
 class Category extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = [
         'name',
         'slug',
@@ -16,6 +19,7 @@ class Category extends Model
         'image',
         'is_featured',
         'sort_order',
+        'deleted_by',
     ];
 
     protected $casts = [
@@ -24,6 +28,12 @@ class Category extends Model
     protected $appends = ['image_url'];
     protected static function booted(): void
     {
+        static::deleting(function ($category) {
+            if (auth()->check()) {
+                $category->deleted_by = auth()->id();
+                $category->saveQuietly();
+            }
+        });
         static::creating(function ($category) {
             if (empty($category->slug)) {
                 $base = Str::slug($category->name);

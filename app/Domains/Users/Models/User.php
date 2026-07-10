@@ -23,6 +23,7 @@ use App\Domains\Analytics\Models\CourseView;
 use App\Domains\Finance\Models\RevenueShare;
 use App\Domains\Finance\Models\InstructorWallet;
 use App\Domains\Finance\Models\PayoutRequest;
+use App\Domains\Finance\Models\InstructorPayoutAccount;
 use App\Domains\Users\Models\InstructorProfile;
 use App\Domains\Users\Models\StudentProfile;
 use App\Domains\Users\Models\InstructorVerification;
@@ -129,6 +130,11 @@ class User extends Authenticatable implements FilamentUser
         return $this->hasMany(PayoutRequest::class, 'instructor_id');
     }
 
+    public function payoutAccount(): HasOne
+    {
+        return $this->hasOne(InstructorPayoutAccount::class, 'instructor_id');
+    }
+
     public function instructorProfile(): HasOne
     {
         return $this->hasOne(InstructorProfile::class);
@@ -217,6 +223,11 @@ class User extends Authenticatable implements FilamentUser
     public function canCreateCourses(): bool
     {
         return $this->isVerifiedInstructor();
+    }
+
+    public function receivesBroadcastNotificationsOn(): string
+    {
+        return 'user.'.$this->id;
     }
 
     public function canAccessPanel(Panel $panel): bool

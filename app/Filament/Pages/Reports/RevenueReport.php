@@ -22,9 +22,31 @@ class RevenueReport extends Page implements Schedulable
     protected string $view = 'filament.pages.reports.revenue-report';
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-banknotes';
     protected static ?string $navigationLabel = 'Revenue Report';
-    protected static string|\UnitEnum|null $navigationGroup = 'Reports';
-    protected static ?int $navigationSort = 3;
+    protected static string|\UnitEnum|null $navigationGroup = 'Data Exports';
+    protected static ?int $navigationSort = 1;
     protected static ?string $slug = 'reports/revenue';
+
+    public string $preset = 'this_month';
+    public string $dateFrom = '';
+    public string $dateTo = '';
+    public int $page = 1;
+
+    public function mount(): void
+    {
+        $this->preset   = request('preset', 'this_month');
+        $this->dateFrom = request('date_from', '');
+        $this->dateTo   = request('date_to', '');
+        $this->page     = (int) request('page', 1);
+    }
+
+    public function applyDateFilter(string $preset, string $from = '', string $to = ''): void
+    {
+        $this->preset   = $preset ?: 'this_month';
+        $this->dateFrom = $preset === 'custom' ? $from : '';
+        $this->dateTo   = $preset === 'custom' ? $to : '';
+        $this->page     = 1;
+        $this->dispatchDateResolved();
+    }
 
     public static function canAccess(): bool
     {
@@ -102,8 +124,13 @@ class RevenueReport extends Page implements Schedulable
     {
         $filters = $this->currentFilters();
 
+        [$from, $to] = static::resolvePreset($filters['preset'], 'this_month', $filters['date_from'] ?? null, $filters['date_to'] ?? null);
         return array_merge(
-            ['activePreset' => $filters['preset']],
+            [
+                'activePreset'   => $filters['preset'],
+                'activeDateFrom' => $from?->format('Y-m-d') ?? '',
+                'activeDateTo'   => $to?->format('Y-m-d') ?? '',
+            ],
             static::buildReportData($filters, paginate: true),
         );
     }
@@ -123,11 +150,11 @@ class RevenueReport extends Page implements Schedulable
     private function currentFilters(): array
     {
         return [
-            'preset' => request('preset', 'this_month'),
-            'date_from' => request('date_from'),
-            'date_to' => request('date_to'),
-            'page' => (int) request('page', 1),
-            'per_page' => (int) request('per_page', 10),
+            'preset'    => $this->preset ?: 'this_month',
+            'date_from' => $this->dateFrom ?: null,
+            'date_to'   => $this->dateTo ?: null,
+            'page'      => $this->page,
+            'per_page'  => 10,
         ];
     }
 
@@ -155,17 +182,54 @@ class RevenueReport extends Page implements Schedulable
         $platformRevenue = (float) ($itemTotals->platform_total ?? 0);
         $instructorPayable = (float) ($itemTotals->instructor_total ?? 0);
 
-        $trendBase = $to ?? now();
-        $revenueTrend = collect(range(5, 0))->map(function ($mo) use ($trendBase) {
-            $date = (clone $trendBase)->subMonths($mo);
-            return [
-                'month' => $date->format('M'),
-                'revenue' => (float) Order::where('payment_status', OrderPaymentStatus::Paid->value)
-                    ->whereMonth('created_at', $date->month)
-                    ->whereYear('created_at', $date->year)
-                    ->sum('final_amount'),
-            ];
-        });
+        if ($from && $to) {
+            $diffDays = (int) $from->diffInDays($to) + 1;
+            if ($diffDays <= 31) {
+                $trendTitle = 'Daily Revenue';
+                $revenueTrend = collect();
+                $cursor = clone $from;
+                while ($cursor->lte($to)) {
+                    $ds = (clone $cursor)->startOfDay();
+                    $de = (clone $cursor)->endOfDay();
+                    $revenueTrend->push([
+                        'label'   => $cursor->format('M d'),
+                        'revenue' => (float) Order::where('payment_status', OrderPaymentStatus::Paid->value)
+                            ->whereBetween('created_at', [$ds, $de])
+                            ->sum('final_amount'),
+                    ]);
+                    $cursor->addDay();
+                }
+            } else {
+                $trendTitle = 'Monthly Revenue';
+                $startMonth = (clone $from)->startOfMonth();
+                $endMonth   = (clone $to)->startOfMonth();
+                $revenueTrend = collect();
+                $cursor = clone $startMonth;
+                while ($cursor->lte($endMonth)) {
+                    $revenueTrend->push([
+                        'label'   => $cursor->format('M \'y'),
+                        'revenue' => (float) Order::where('payment_status', OrderPaymentStatus::Paid->value)
+                            ->whereMonth('created_at', $cursor->month)
+                            ->whereYear('created_at', $cursor->year)
+                            ->sum('final_amount'),
+                    ]);
+                    $cursor->addMonth();
+                }
+            }
+        } else {
+            $trendTitle = 'Revenue Trend (12 Months)';
+            $trendBase  = now();
+            $revenueTrend = collect(range(11, 0))->map(function ($mo) use ($trendBase) {
+                $date = (clone $trendBase)->subMonths($mo);
+                return [
+                    'label'   => $date->format('M \'y'),
+                    'revenue' => (float) Order::where('payment_status', OrderPaymentStatus::Paid->value)
+                        ->whereMonth('created_at', $date->month)
+                        ->whereYear('created_at', $date->year)
+                        ->sum('final_amount'),
+                ];
+            });
+        }
 
         $topCoupons = Coupon::where('used_count', '>', 0)
             ->orderByDesc('used_count')
@@ -201,6 +265,7 @@ class RevenueReport extends Page implements Schedulable
                 'averageOrderValue' => $averageOrderValue,
             ],
             'revenueTrend' => $revenueTrend,
+            'trendTitle'   => $trendTitle,
             'topCoupons' => $topCoupons,
             'orders' => $orders,
             'total' => $totalRows,

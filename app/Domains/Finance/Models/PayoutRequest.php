@@ -9,9 +9,11 @@ class PayoutRequest extends Model
 {
     protected $fillable = [
         'instructor_id',
+        'payout_account_id',
         'amount',
         'currency',
         'payment_method',
+        'source',
         'details',
         'status',
         'requested_at',
@@ -29,5 +31,10 @@ class PayoutRequest extends Model
     public function instructor()
     {
         return $this->belongsTo(User::class, 'instructor_id');
+    }
+
+    public function payoutAccount()
+    {
+        return $this->belongsTo(InstructorPayoutAccount::class, 'payout_account_id');
     }
 }

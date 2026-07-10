@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Domains\Courses\Models\Course;
 use App\Domains\Learning\Models\Enrollment;
 use App\Support\ApiResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 
@@ -26,8 +27,8 @@ class CourseController extends Controller
 
         $courses = $query->latest()->get();
 
-        return ApiResponse::success($courses, 'Courses retrieved successfully');
-    }
+    return ApiResponse::success($courses, 'Courses retrieved successfully');
+}
 
     public function show($slug)
     {

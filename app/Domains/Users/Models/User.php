@@ -23,6 +23,7 @@ use App\Domains\Analytics\Models\CourseView;
 use App\Domains\Finance\Models\RevenueShare;
 use App\Domains\Finance\Models\InstructorWallet;
 use App\Domains\Finance\Models\PayoutRequest;
+use App\Domains\Finance\Models\InstructorPayoutAccount;
 use App\Domains\Users\Models\InstructorProfile;
 use App\Domains\Users\Models\StudentProfile;
 use App\Domains\Users\Models\InstructorVerification;
@@ -127,6 +128,11 @@ class User extends Authenticatable implements FilamentUser
     public function payoutRequests(): HasMany
     {
         return $this->hasMany(PayoutRequest::class, 'instructor_id');
+    }
+
+    public function payoutAccount(): HasOne
+    {
+        return $this->hasOne(InstructorPayoutAccount::class, 'instructor_id');
     }
 
     public function instructorProfile(): HasOne

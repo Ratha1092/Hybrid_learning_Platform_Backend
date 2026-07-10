@@ -68,6 +68,7 @@ class SettingsSeeder extends Seeder
             'tax_percentage'                => ['0', 'decimal', 'Tax percentage applied at checkout.', true],
             'refund_period_days'            => ['14', 'integer', 'Number of days a purchase remains eligible for refund.', true],
             'wallet_enabled'                => ['true', 'boolean', 'Enable the instructor wallet system.', false],
+            'payout_hold_period_days'       => ['14', 'integer', 'Days to hold new earnings in pending balance before they become withdrawable.', false],
         ],
         'payment_gateway' => [
             'bakong_enabled'        => ['true', 'boolean', 'Enable the Bakong payment gateway.', true],

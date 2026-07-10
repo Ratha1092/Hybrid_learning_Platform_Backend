@@ -6,6 +6,9 @@ use App\Domains\Auth\Services\ActivityLogService;
 use App\Domains\Finance\Models\InstructorWallet;
 use App\Domains\Finance\Models\PayoutRequest;
 use App\Domains\Finance\Models\WalletTransaction;
+use App\Domains\Notifications\Notifications\PayoutApprovedNotification;
+use App\Domains\Notifications\Notifications\PayoutRejectedNotification;
+use App\Domains\System\Models\Setting;
 use App\Support\PanelAccess;
 use BackedEnum;
 use Filament\Notifications\Notification;
@@ -94,6 +97,14 @@ class Payouts extends Page
 
         ActivityLogService::logChange('payout.approved', $payout);
 
+        if (Setting::get('payout_notification', true)) {
+            $payout->instructor?->notify(new PayoutApprovedNotification(
+                $payout->id,
+                (float) $payout->amount,
+                $payout->currency
+            ));
+        }
+
         Notification::make()
             ->title('Payout Approved')
             ->body('The payout request has been marked as approved.')
@@ -150,6 +161,10 @@ class Payouts extends Page
 
         ActivityLogService::logChange('payout.rejected', $payout, [], ['reason' => $reason]);
 
+        if (Setting::get('payout_notification', true)) {
+            $payout->instructor?->notify(new PayoutRejectedNotification($payout->id, $reason));
+        }
+
         Notification::make()
             ->title('Payout Rejected')
             ->body('Funds have been returned to the instructor\'s wallet.')
@@ -173,7 +188,7 @@ class Payouts extends Page
             ['key' => 'rejected', 'label' => 'Rejected', 'count' => $base()->where('status', 'rejected')->count(), 'color' => '#f87171'],
         ];
 
-        $query = PayoutRequest::with('instructor:id,name,email');
+        $query = PayoutRequest::with(['instructor:id,name,email', 'payoutAccount']);
 
         if ($tab !== 'all' && in_array($tab, ['pending', 'approved', 'rejected'])) {
             $query->where('status', $tab);

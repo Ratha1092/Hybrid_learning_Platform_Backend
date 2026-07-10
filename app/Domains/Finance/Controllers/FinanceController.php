@@ -5,7 +5,7 @@ namespace App\Domains\Finance\Controllers;
 use App\Http\Controllers\Controller;
 use App\Domains\Finance\Models\InstructorWallet;
 use App\Domains\Finance\Models\WalletTransaction;
-use App\Domains\Finance\Models\PayoutRequest;
+use App\Domains\Finance\Services\PayoutService;
 use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\DB;
 
 class FinanceController extends Controller
 {
+    public function __construct(private readonly PayoutService $payoutService) {}
+
     public function wallet(Request $request): JsonResponse
     {
         $wallet = InstructorWallet::firstOrCreate(
@@ -81,53 +83,15 @@ class FinanceController extends Controller
     public function requestPayout(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'amount' => ['required', 'numeric', 'min:10', 'decimal:0,2'],
-            'payment_method' => [
-                'required',
-                'string',
-                'in:bank_transfer,momo,acleda,wing',
-            ],
-            'details' => ['nullable', 'array', 'max:20'],
+            'amount' => ['required', 'numeric', 'min:0.01', 'decimal:0,2'],
         ]);
 
-        $payout = DB::transaction(function () use ($request, $validated) {
-            $wallet = InstructorWallet::where(
-                'instructor_id',
-                $request->user()->id
-            )
-                ->lockForUpdate()
-                ->first();
-
-            if (!$wallet || $wallet->balance < $validated['amount']) {
-                return null;
-            }
-
-            $wallet->decrement('balance', $validated['amount']);
-
-            $payout = PayoutRequest::create([
-                'instructor_id' => $request->user()->id,
-                'amount' => $validated['amount'],
-                'currency' => $wallet->currency,
-                'payment_method' => $validated['payment_method'],
-                'details' => $validated['details'] ?? null,
-                'status' => 'pending',
-            ]);
-
-            WalletTransaction::create([
-                'instructor_id' => $request->user()->id,
-                'amount' => $validated['amount'],
-                'type' => 'debit',
-                'status' => 'pending',
-                'payout_request_id' => $payout->id,
-                'description' => 'Payout request',
-            ]);
-
-            return $payout;
-        });
-
-        if (!$payout) {
-            return ApiResponse::error('Insufficient balance', 422);
+        try {
+            $payout = $this->payoutService->requestPayout($request->user(), (float) $validated['amount']);
+        } catch (\RuntimeException $e) {
+            return ApiResponse::error($e->getMessage(), 422);
         }
+
         return ApiResponse::success($payout, 'Payout request submitted successfully', 201);
     }
 }

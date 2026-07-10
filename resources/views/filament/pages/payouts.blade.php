@@ -57,6 +57,7 @@ html:not(.dark) .po {
 .po-table tbody tr:last-child { border-bottom:none; }
 .po-table tbody tr:hover { background:var(--p2); }
 .po-table td { padding:12px 12px; vertical-align:middle; }
+.po-row-link { cursor:pointer; }
 
 .po-id { font-size:11.5px; font-weight:700; color:var(--t2); white-space:nowrap; }
 .po-user-cell { display:flex; align-items:center; gap:8px; }
@@ -89,6 +90,11 @@ html:not(.dark) .po {
 .po-modal-btn-gray { background:var(--p2); border:1px solid var(--bd2); color:var(--t2); }
 .po-modal-btn-danger { background:rgba(248,113,113,.15); color:#f87171; border:1px solid rgba(248,113,113,.3); }
 .po-modal-btn-success { background:rgba(52,211,153,.15); color:#34d399; border:1px solid rgba(52,211,153,.3); }
+
+.po-field { display:flex; flex-direction:column; gap:3px; }
+.po-field-label { font-size:10.5px; font-weight:800; letter-spacing:.07em; text-transform:uppercase; color:var(--t2); }
+.po-field-value { font-size:13px; color:var(--t1); word-break:break-word; }
+.po-qr-img { width:100%; max-width:220px; border-radius:8px; margin-top:6px; border:1px solid var(--bd2); background:#fff; padding:8px; }
 
 .po-empty { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:56px 24px; gap:10px; color:var(--t2); }
 .po-empty svg { width:40px; height:40px; opacity:.35; }
@@ -152,6 +158,7 @@ html:not(.dark) .po {
                     <th>Email</th>
                     <th>Amount</th>
                     <th>Method</th>
+                    <th>Source</th>
                     <th>Status</th>
                     <th>Requested</th>
                     @if($canUpdate)<th style="text-align:right">Actions</th>@endif
@@ -161,8 +168,17 @@ html:not(.dark) .po {
                 @forelse ($payouts as $payout)
                 @php
                     $ss = $statusStyle($payout->status);
+                    $d = $payout->details ?? [];
+                    $qrUrl = !empty($d['qr_code_path']) ? \Illuminate\Support\Facades\Storage::disk('public')->url($d['qr_code_path']) : null;
+                    $accountData = [
+                        'method' => str_replace('_', ' ', $payout->payment_method),
+                        'account_name' => $d['account_name'] ?? null,
+                        'account_number' => $d['account_number'] ?? null,
+                        'phone_number' => $d['phone_number'] ?? null,
+                        'qr_url' => $qrUrl,
+                    ];
                 @endphp
-                <tr>
+                <tr class="po-row-link" onclick='openAccountModal(@json($accountData))'>
                     <td><span class="po-id">{{ $payout->id }}</span></td>
 
                     <td>
@@ -178,6 +194,12 @@ html:not(.dark) .po {
                     <td><span class="po-method">{{ str_replace('_', ' ', $payout->payment_method) }}</span></td>
 
                     <td>
+                        <span class="po-badge" style="background:{{ $payout->source === 'monthly_auto' ? 'rgba(124,58,237,.12)' : 'rgba(148,163,184,.1)' }};color:{{ $payout->source === 'monthly_auto' ? '#7c3aed' : '#94a3b8' }}">
+                            {{ $payout->source === 'monthly_auto' ? 'Monthly Auto' : 'Manual' }}
+                        </span>
+                    </td>
+
+                    <td>
                         <span class="po-badge" style="background:{{ $ss['bg'] }};color:{{ $ss['color'] }}">
                             <span class="po-dot" style="background:{{ $ss['color'] }}"></span>
                             {{ $ss['label'] }}
@@ -187,7 +209,7 @@ html:not(.dark) .po {
                     <td><span class="po-date">{{ $payout->created_at?->format('M d, Y') }}</span></td>
 
                     @if($canUpdate)
-                    <td>
+                    <td onclick="event.stopPropagation()">
                         <div class="po-actions">
                             @if($payout->status === 'pending')
                             <button onclick="openApproveModal({{ $payout->id }}, '{{ addslashes($payout->instructor?->name) }}')"
@@ -209,7 +231,7 @@ html:not(.dark) .po {
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="{{ $canUpdate ? 8 : 7 }}">
+                    <td colspan="{{ $canUpdate ? 9 : 8 }}">
                         <div class="po-empty">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.625c.621 0 1.125.504 1.125 1.125v.375M3.75 4.5h16.5"/>
@@ -263,6 +285,18 @@ html:not(.dark) .po {
         </div>
     </div>
 
+    {{-- Payout Account Modal --}}
+    <div class="po-modal-overlay" id="po-account-modal" onclick="if(event.target===this)closeAccountModal()">
+        <div class="po-modal">
+            <h3>Payout Destination</h3>
+            <p>Use these details to send the instructor their funds.</p>
+            <div id="po-account-body" style="display:grid;gap:8px;font-size:13px;color:var(--t1)"></div>
+            <div class="po-modal-footer">
+                <button class="po-modal-btn po-modal-btn-gray" onclick="closeAccountModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
     @if($canUpdate)
     {{-- Approve Modal --}}
     <div class="po-modal-overlay" id="po-approve-modal" onclick="if(event.target===this)closeApproveModal()">
@@ -293,6 +327,25 @@ html:not(.dark) .po {
 </div>
 
 <script>
+    function poField(label, value) {
+        return '<div class="po-field"><span class="po-field-label">' + label + '</span><span class="po-field-value">' + value + '</span></div>';
+    }
+    function openAccountModal(account) {
+        var rows = [];
+        rows.push(poField('Method', account.method || '—'));
+        rows.push(poField('Account Name', account.account_name || '—'));
+        if (account.account_number) rows.push(poField('Account Number', account.account_number));
+        if (account.phone_number) rows.push(poField('Phone Number', account.phone_number));
+        if (account.qr_url) {
+            rows.push('<img src="' + account.qr_url + '" alt="Payout QR code" class="po-qr-img">');
+        }
+        document.getElementById('po-account-body').innerHTML = rows.join('');
+        document.getElementById('po-account-modal').classList.add('open');
+    }
+    function closeAccountModal() {
+        document.getElementById('po-account-modal').classList.remove('open');
+    }
+
     var approveId = null;
     function openApproveModal(id, name) {
         approveId = id;

@@ -20,3 +20,11 @@ Schedule::command('reports:run-scheduled')
 Schedule::command('horizon:snapshot')->everyFiveMinutes();
 
 Schedule::command('cache:prune-stale-tags')->hourly();
+
+Schedule::command('wallet:release-pending-balance')
+    ->daily()
+    ->withoutOverlapping();
+
+Schedule::command('payouts:generate-monthly')
+    ->lastDayOfMonth('23:59')
+    ->withoutOverlapping();

@@ -59,7 +59,7 @@ class Settings extends Page
             'Access' => ['course_access_duration_months'],
         ],
         'finance' => [
-            'Payouts & Currency' => ['minimum_payout_amount', 'default_currency', 'wallet_enabled'],
+            'Payouts & Currency' => ['minimum_payout_amount', 'payout_hold_period_days', 'default_currency', 'wallet_enabled'],
             'Tax & Refunds' => ['tax_percentage', 'refund_period_days'],
         ],
         'payment_gateway' => [

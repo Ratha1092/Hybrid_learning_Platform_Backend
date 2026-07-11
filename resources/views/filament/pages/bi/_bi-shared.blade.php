@@ -11,6 +11,7 @@ window.__biRun = function(fn) {
     }
 };
 </script>
+@include('filament.pages.partials._csv-download-script')
 <style>
 .bi,
 .bi *,
@@ -54,7 +55,7 @@ html:not(.dark) .bi {
     --t3: #cbd5e1;
 }
 
-/* ── Header ───────────────────────────────────────── */
+/* Header */
 .bi-header {
     display: flex;
     align-items: center;
@@ -85,31 +86,39 @@ html:not(.dark) .bi {
     align-items: center;
 }
 
-/* ── KPI Cards ────────────────────────────────────── */
+.bi-export-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--p1);
+    border: 1px solid var(--bd2);
+    border-radius: 10px;
+    padding: .38rem .75rem;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: inherit;
+    color: var(--t2);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background .15s, color .15s, border-color .15s;
+}
+
+.bi-export-btn:hover {
+    background: var(--p2);
+    color: var(--t1);
+    border-color: var(--acc);
+}
+
+.bi-export-btn[disabled] {
+    opacity: .55;
+    cursor: default;
+}
+
+/* KPI Cards */
 .bi-kpi-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
     gap: 12px;
-}
-
-.bi-kpi-grid.cols-3 {
-    grid-template-columns: repeat(3, 1fr);
-}
-
-@media (max-width: 900px) {
-    .bi-kpi-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-@media (max-width: 640px) {
-    .bi-kpi-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .bi-kpi-grid.cols-3 {
-        grid-template-columns: 1fr;
-    }
 }
 
 .bi-kpi {
@@ -119,6 +128,13 @@ html:not(.dark) .bi {
     padding: 16px;
     position: relative;
     overflow: hidden;
+    min-width: 0;
+}
+
+.bi-kpi-value {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .bi-kpi-label {
@@ -160,12 +176,13 @@ html:not(.dark) .bi {
     -webkit-text-fill-color: transparent;
 }
 
-/* ── Cards / Layout ───────────────────────────────── */
+/* Cards / Layout─ */
 .bi-card {
     background: var(--p1);
     border: 1px solid var(--bd);
     border-radius: 12px;
     padding: 16px;
+    min-width: 0;
 }
 
 .bi-card h3 {
@@ -178,33 +195,43 @@ html:not(.dark) .bi {
 .bi-chart-wrap {
     position: relative;
     height: 220px;
+    width: 100%;
+    max-width: 100%;
+}
+
+.bi-chart-wrap canvas {
+    max-width: 100% !important;
 }
 
 .bi-charts-2 {
     display: grid;
     grid-template-columns: 2fr 1fr;
     gap: 16px;
+    min-width: 0;
 }
 
 .bi-charts-3 {
     display: grid;
     grid-template-columns: 1.5fr 1fr 1fr;
     gap: 16px;
+    min-width: 0;
 }
 
 .bi-grid-2 {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 16px;
+    min-width: 0;
 }
 
 .bi-grid-3 {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
     gap: 16px;
+    min-width: 0;
 }
 
-@media (max-width: 1000px) {
+@media (max-width: 1100px) {
     .bi-charts-3 { grid-template-columns: 1fr 1fr; }
     .bi-grid-3 { grid-template-columns: 1fr 1fr; }
 }
@@ -219,7 +246,7 @@ html:not(.dark) .bi {
     .bi-grid-3 { grid-template-columns: 1fr; }
 }
 
-/* ── Tables ───────────────────────────────────────── */
+/* Tables */
 .bi-table-card {
     background: var(--p1);
     border: 1px solid var(--bd);
@@ -296,7 +323,7 @@ html:not(.dark) .bi {
     color: var(--acc);
 }
 
-/* ── Date range picker ────────────────────────────── */
+/* Date range picker */
 .rp-drp-wrap {
     position: relative;
 }

@@ -6,6 +6,7 @@ use App\Domains\Analytics\Models\DailyMetric;
 use App\Domains\Learning\Models\Enrollment;
 use App\Domains\Learning\Models\LessonProgress;
 use App\Domains\Users\Models\User;
+use App\Support\Concerns\HasBiCsvExport;
 use App\Support\Concerns\HasDateRangePresets;
 use App\Support\PanelAccess;
 use BackedEnum;
@@ -15,6 +16,7 @@ use Illuminate\Support\Facades\Cache;
 
 class StudentIntelligence extends Page
 {
+    use HasBiCsvExport;
     use HasDateRangePresets;
 
     protected string $view = 'filament.pages.bi.student-intelligence';
@@ -48,6 +50,22 @@ class StudentIntelligence extends Page
     public static function canAccess(): bool
     {
         return PanelAccess::can('bi.view_students');
+    }
+
+    public static function pdfView(): string
+    {
+        return 'bi.pdf.student-intelligence';
+    }
+
+    public static function pdfViewData(array $filters): array
+    {
+        $preset = $filters['preset'] ?? 'this_month';
+
+        return array_merge([
+            'siteName'       => \App\Domains\System\Models\Setting::get('site_name', config('app.name')),
+            'title'          => 'Student Intelligence Report',
+            'filtersSummary' => static::dateRangePresetOptions()[$preset] ?? ucfirst($preset),
+        ], static::buildPageData($filters));
     }
 
     public function getViewData(): array

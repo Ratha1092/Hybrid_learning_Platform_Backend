@@ -9,6 +9,7 @@ use App\Domains\Learning\Models\Enrollment;
 use App\Domains\Learning\Models\Review;
 use App\Domains\Learning\Models\Wishlist;
 use App\Domains\Orders\Models\Refund;
+use App\Support\Concerns\HasBiCsvExport;
 use App\Support\Concerns\HasDateRangePresets;
 use App\Support\PanelAccess;
 use BackedEnum;
@@ -17,6 +18,7 @@ use Illuminate\Support\Facades\Cache;
 
 class CourseIntelligence extends Page
 {
+    use HasBiCsvExport;
     use HasDateRangePresets;
 
     protected string $view = 'filament.pages.bi.course-intelligence';
@@ -50,6 +52,22 @@ class CourseIntelligence extends Page
     public static function canAccess(): bool
     {
         return PanelAccess::can('bi.view_courses');
+    }
+
+    public static function pdfView(): string
+    {
+        return 'bi.pdf.course-intelligence';
+    }
+
+    public static function pdfViewData(array $filters): array
+    {
+        $preset = $filters['preset'] ?? 'this_month';
+
+        return array_merge([
+            'siteName'       => \App\Domains\System\Models\Setting::get('site_name', config('app.name')),
+            'title'          => 'Course Intelligence Report',
+            'filtersSummary' => static::dateRangePresetOptions()[$preset] ?? ucfirst($preset),
+        ], static::buildPageData($filters));
     }
 
     public function getViewData(): array

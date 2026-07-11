@@ -4,6 +4,7 @@ namespace App\Domains\Finance\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Domains\Finance\Models\InstructorWallet;
+use App\Domains\Finance\Models\PayoutRequest;
 use App\Domains\Finance\Models\WalletTransaction;
 use App\Domains\Finance\Services\PayoutService;
 use App\Support\ApiResponse;
@@ -93,5 +94,15 @@ class FinanceController extends Controller
         }
 
         return ApiResponse::success($payout, 'Payout request submitted successfully', 201);
+    }
+
+    public function payoutRequests(Request $request): JsonResponse
+    {
+        $payouts = PayoutRequest::where('instructor_id', $request->user()->id)
+            ->with('receipt:id,payout_request_id,receipt_number')
+            ->latest()
+            ->paginate(20);
+
+        return ApiResponse::success($payouts, 'Payout requests retrieved successfully');
     }
 }

@@ -12,6 +12,7 @@ use App\Domains\Orders\Models\Refund;
 use App\Domains\Payments\Enums\PaymentStatus;
 use App\Domains\Payments\Models\Payment;
 use App\Domains\Users\Models\User;
+use App\Support\Concerns\HasBiCsvExport;
 use App\Support\Concerns\HasDateRangePresets;
 use App\Support\PanelAccess;
 use BackedEnum;
@@ -21,6 +22,7 @@ use Illuminate\Support\Facades\Cache;
 
 class FinancialIntelligence extends Page
 {
+    use HasBiCsvExport;
     use HasDateRangePresets;
 
     protected string $view = 'filament.pages.bi.financial-intelligence';
@@ -54,6 +56,22 @@ class FinancialIntelligence extends Page
     public static function canAccess(): bool
     {
         return PanelAccess::can('bi.view_financial');
+    }
+
+    public static function pdfView(): string
+    {
+        return 'bi.pdf.financial-intelligence';
+    }
+
+    public static function pdfViewData(array $filters): array
+    {
+        $preset = $filters['preset'] ?? 'this_month';
+
+        return array_merge([
+            'siteName'       => \App\Domains\System\Models\Setting::get('site_name', config('app.name')),
+            'title'          => 'Financial Intelligence Report',
+            'filtersSummary' => static::dateRangePresetOptions()[$preset] ?? ucfirst($preset),
+        ], static::buildPageData($filters));
     }
 
     public function getViewData(): array

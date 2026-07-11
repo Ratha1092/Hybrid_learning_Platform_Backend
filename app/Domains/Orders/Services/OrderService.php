@@ -15,6 +15,7 @@ use App\Domains\Courses\Models\Course;
 use App\Domains\Notifications\Notifications\AdminNewOrderNotification;
 use App\Jobs\Notifications\NotifyAdminsJob;
 use App\Domains\Promotions\Models\Coupon;
+use App\Domains\System\Models\Setting;
 use App\Domains\Users\Models\User;
 use Illuminate\Support\Facades\DB;
 
@@ -104,6 +105,10 @@ class OrderService
                 ]);
                 app(EnrollmentService::class)->enrollFromOrder($order);
                 return $order;
+            }
+
+            if (!Setting::get('bakong_enabled', true) && !Setting::get('khqr_enabled', true)) {
+                throw new \RuntimeException('Online payment is currently unavailable. Please try again later.');
             }
 
             $this->bakongKhqrService->createPaymentForOrder($order);

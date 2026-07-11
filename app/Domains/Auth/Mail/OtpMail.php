@@ -20,7 +20,7 @@ class OtpMail extends Mailable implements ShouldQueue
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: 'Your Verification Code — ' . config('app.name'));
+        return new Envelope(subject: 'Your Verification Code — ' . config('app.name'), tags: ['critical']);
     }
 
     public function content(): Content

@@ -21,7 +21,7 @@ class TwoFactorCodeMail extends Mailable implements ShouldQueue
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: 'Your Login Verification Code');
+        return new Envelope(subject: 'Your Login Verification Code', tags: ['critical']);
     }
 
     public function content(): Content

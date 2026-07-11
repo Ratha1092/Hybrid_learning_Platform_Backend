@@ -1,4 +1,5 @@
 <x-filament-panels::page>
+<div wire:poll.{{ $refreshInterval }}s>
 <style>
 /* ── Light mode tokens ─────────────────────────────────────────── */
 :root {
@@ -1089,4 +1090,5 @@ function dbCustomDate() {
 </div>
 
 </div>{{-- end .db-wrap --}}
+</div>{{-- end wire:poll wrapper --}}
 </x-filament-panels::page>

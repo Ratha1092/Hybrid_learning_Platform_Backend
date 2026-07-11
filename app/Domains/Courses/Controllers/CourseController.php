@@ -3,8 +3,10 @@
 namespace App\Domains\Courses\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Domains\Analytics\Models\CourseView;
 use App\Domains\Courses\Models\Course;
 use App\Domains\Learning\Models\Enrollment;
+use App\Domains\System\Models\Setting;
 use App\Support\ApiResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -54,6 +56,14 @@ class CourseController extends Controller
         }
 
         $user = auth('sanctum')->user();
+
+        if (Setting::get('track_course_views', true)) {
+            CourseView::create([
+                'course_id' => $course->id,
+                'user_id' => $user?->id,
+                'ip_address' => request()->ip(),
+            ]);
+        }
         $enrollment = $user ? Enrollment::where('user_id', $user->id)
             ->where('course_id', $course->id)
             ->first() : null;

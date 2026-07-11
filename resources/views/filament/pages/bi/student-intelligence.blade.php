@@ -115,7 +115,7 @@ window.__biRun(function() {
             type: 'bar',
             data: {
                 labels: @json($hoursLabels),
-                datasets: [{ label: 'Hours', data: @json($hoursValues), backgroundColor: 'rgba(215,164,65,0.7)', borderColor: '#D7A441', borderWidth: 1, borderRadius: 4 }]
+                datasets: [{ label: 'Hours', data: @json($hoursValues), backgroundColor: 'rgba(37,99,235,0.7)', borderColor: '#2563eb', borderWidth: 1, borderRadius: 4 }]
             },
             options: { responsive: true, maintainAspectRatio: false, animation: { duration: 400 }, plugins: { legend: { display: false } }, scales: baseScales }
         });

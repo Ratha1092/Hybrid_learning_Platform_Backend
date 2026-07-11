@@ -2,12 +2,17 @@
 
 namespace App\Domains\Users\Requests;
 
+use App\Domains\System\Models\Setting;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateProfileRequest extends FormRequest
 {
     public function authorize(): bool
     {
+        if ($this->user()?->hasRole('instructor') && !Setting::get('allow_instructor_profile_edit', true)) {
+            return false;
+        }
+
         return true;
     }
 

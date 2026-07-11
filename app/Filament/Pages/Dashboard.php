@@ -450,6 +450,7 @@ class Dashboard extends BaseDashboard implements Schedulable
             'diskPercent'      => $diskPercent,
             'redisStatus'      => $redisStatus,
             'serverUptime'     => $serverUptime,
+            'refreshInterval'  => max(5, (int) Setting::get('dashboard_refresh_interval', 30)),
         ];
     }
 

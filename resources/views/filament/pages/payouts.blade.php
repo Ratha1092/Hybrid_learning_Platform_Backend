@@ -1,5 +1,5 @@
 @php
-    $accent = '#ea580c';
+    $accent = '#2563eb';
 
     $statusStyle = fn($status) => match($status) {
         'pending'  => ['bg' => 'rgba(251,191,36,.12)',  'color' => '#fbbf24', 'label' => 'Pending'],
@@ -85,7 +85,7 @@ html:not(.dark) .po {
 .po-modal h3 { font-size:15px; font-weight:750; color:var(--t1); margin-bottom:6px; }
 .po-modal p { font-size:12.5px; color:var(--t2); margin-bottom:16px; }
 .po-modal textarea { width:100%; background:var(--p2); border:1px solid var(--bd2); border-radius:9px; padding:10px 13px; color:var(--t1); font-size:13px; font-family:inherit; resize:vertical; min-height:90px; outline:none; }
-.po-modal textarea:focus { border-color:#ea580c; }
+.po-modal textarea:focus { border-color:#2563eb; }
 .po-modal-footer { display:flex; justify-content:flex-end; gap:8px; margin-top:14px; }
 .po-modal-btn { display:inline-flex; align-items:center; gap:6px; padding:8px 16px; border-radius:9px; font-size:12px; font-weight:700; cursor:pointer; border:none; font-family:inherit; transition:opacity .15s; }
 .po-modal-btn-gray { background:var(--p2); border:1px solid var(--bd2); color:var(--t2); }

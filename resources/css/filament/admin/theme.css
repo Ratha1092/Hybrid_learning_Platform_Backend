@@ -13,18 +13,18 @@
     --hl-font-display: 'Plus Jakarta Sans', 'DM Sans', sans-serif;
     --hl-font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
 
-    /* brass accent scale (built around #D7A441) */
-    --fi-color-primary-50: 253 248 237;
-    --fi-color-primary-100: 250 240 219;
-    --fi-color-primary-200: 245 224 180;
-    --fi-color-primary-300: 237 202 137;
-    --fi-color-primary-400: 227 182 101;
-    --fi-color-primary-500: 215 164 65;
-    --fi-color-primary-600: 187 138 48;
-    --fi-color-primary-700: 149 108 36;
-    --fi-color-primary-800: 112 82 27;
-    --fi-color-primary-900: 84 62 21;
-    --fi-color-primary-950: 46 34 12;
+    /* blue accent scale (built around #2563EB, matching the frontend's brand blue) */
+    --fi-color-primary-50: 239 246 255;
+    --fi-color-primary-100: 219 234 254;
+    --fi-color-primary-200: 191 219 254;
+    --fi-color-primary-300: 147 197 253;
+    --fi-color-primary-400: 96 165 250;
+    --fi-color-primary-500: 59 130 246;
+    --fi-color-primary-600: 37 99 235;
+    --fi-color-primary-700: 29 78 216;
+    --fi-color-primary-800: 30 64 175;
+    --fi-color-primary-900: 30 58 138;
+    --fi-color-primary-950: 23 37 84;
 
     --hl-bg: #f1f5f9;
     --hl-bg-soft: #ffffff;
@@ -43,7 +43,6 @@
 
     --hl-blue: #2563eb;
     --hl-purple: #7c3aed;
-    --hl-orange: #d7a441;
     --hl-green: #16a34a;
     --hl-red-glow: rgba(229, 72, 77, 0.5);
 }
@@ -85,7 +84,7 @@ body,
 .dark body,
 .dark .fi-body {
     background:
-        radial-gradient(circle at 75% -10%, rgba(215, 164, 65, 0.045), transparent 28%),
+        radial-gradient(circle at 75% -10%, rgba(37, 99, 235, 0.045), transparent 28%),
         var(--hl-bg) !important;
 }
 
@@ -239,8 +238,8 @@ body,
 }
 
 .fi-topbar .fi-global-search-field .fi-input-wrp:focus-within {
-    border-color: var(--hl-orange) !important;
-    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.12) !important;
+    border-color: var(--hl-blue) !important;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12) !important;
 }
 
 .fi-topbar .fi-global-search-field input {
@@ -428,9 +427,9 @@ body,
     height: 2.35rem !important;
     flex-shrink: 0 !important;
     border-radius: 0.7rem !important;
-    background: linear-gradient(145deg, rgba(215, 164, 65, 0.22), rgba(215, 164, 65, 0.05)) !important;
-    border: 1px solid rgba(215, 164, 65, 0.38) !important;
-    color: var(--hl-orange) !important;
+    background: linear-gradient(145deg, rgba(37, 99, 235, 0.22), rgba(37, 99, 235, 0.05)) !important;
+    border: 1px solid rgba(37, 99, 235, 0.38) !important;
+    color: var(--hl-blue) !important;
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
 }
 
@@ -650,11 +649,11 @@ body,
 .fi-sidebar-item.fi-active > .fi-sidebar-item-button,
 .fi-sidebar-item-btn[aria-current='page'],
 .fi-sidebar-item-button[aria-current='page'] {
-    background: linear-gradient(90deg, rgba(215, 164, 65, 0.18), rgba(215, 164, 65, 0.045)) !important;
-    border-color: rgba(215, 164, 65, 0.2) !important;
+    background: linear-gradient(90deg, rgba(37, 99, 235, 0.18), rgba(37, 99, 235, 0.045)) !important;
+    border-color: rgba(37, 99, 235, 0.2) !important;
     box-shadow:
-        inset 3px 0 0 var(--hl-orange),
-        0 0 18px rgba(215, 164, 65, 0.08) !important;
+        inset 3px 0 0 var(--hl-blue),
+        0 0 18px rgba(37, 99, 235, 0.08) !important;
     color: var(--hl-text) !important;
     font-weight: 600 !important;
 }
@@ -663,7 +662,7 @@ body,
 .fi-sidebar-item.fi-active > .fi-sidebar-item-button svg,
 .fi-sidebar-item-btn[aria-current='page'] svg,
 .fi-sidebar-item-button[aria-current='page'] svg {
-    color: var(--hl-orange) !important;
+    color: var(--hl-blue) !important;
 }
 
 .fi-sidebar-item.fi-active > .fi-sidebar-item-btn .fi-sidebar-item-label,
@@ -721,9 +720,9 @@ body,
 }
 
 .fi-sidebar-group:not([data-group-label='Overview']) .fi-sidebar-item.fi-active > .fi-sidebar-item-btn::before {
-    background: var(--hl-orange) !important;
-    border-color: var(--hl-orange) !important;
-    box-shadow: 0 0 0 3px rgba(215, 164, 65, 0.12), 0 0 10px rgba(215, 164, 65, 0.5) !important;
+    background: var(--hl-blue) !important;
+    border-color: var(--hl-blue) !important;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12), 0 0 10px rgba(37, 99, 235, 0.5) !important;
 }
 
 /* Collapsed icon rail stays clean — no spine, matching the reference. */
@@ -789,9 +788,9 @@ body,
 }
 
 .fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-item.fi-active > .fi-sidebar-item-btn {
-    background: rgba(215, 164, 65, 0.14) !important;
-    border-color: rgba(215, 164, 65, 0.34) !important;
-    box-shadow: inset 0 0 0 1px rgba(215, 164, 65, 0.04) !important;
+    background: rgba(37, 99, 235, 0.14) !important;
+    border-color: rgba(37, 99, 235, 0.34) !important;
+    box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.04) !important;
 }
 
 .fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-item-btn > .fi-icon {
@@ -977,7 +976,7 @@ label[for*="remember"] {
  */
 
 .fi-btn-color-primary {
-    background: var(--hl-orange) !important;
+    background: var(--hl-blue) !important;
     color: white !important;
     font-weight: 700 !important;
     border: none !important;

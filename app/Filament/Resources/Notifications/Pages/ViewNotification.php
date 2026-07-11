@@ -25,6 +25,13 @@ class ViewNotification extends ViewRecord
         $actions = $data['actions'] ?? [];
         $type    = $data['type'] ?? '';
 
+        if (empty($actions) && filled($data['link'] ?? null)) {
+            $actions = [[
+                'label' => $data['action_text'] ?? 'Open',
+                'url'   => $data['link'],
+            ]];
+        }
+
         $typeConfig = match ($type) {
             'order', 'enrollment_confirmed' => ['label' => 'Order',          'color' => '#22c55e', 'bg' => 'rgba(34,197,94,.12)'],
             'instructor_verification'       => ['label' => 'Instructor Verification', 'color' => '#f59e0b', 'bg' => 'rgba(245,158,11,.12)'],

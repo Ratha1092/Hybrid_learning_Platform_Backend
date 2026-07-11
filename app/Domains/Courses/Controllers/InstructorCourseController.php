@@ -7,6 +7,7 @@ use App\Domains\Courses\Models\Course;
 use App\Domains\Courses\Models\Section;
 use App\Domains\Courses\Services\CourseService;
 use App\Domains\Notifications\Notifications\AdminCourseSubmittedNotification;
+use App\Domains\System\Models\Setting;
 use App\Domains\Users\Models\User;
 use App\Jobs\Notifications\NotifyAdminsJob;
 use App\Support\ApiResponse;
@@ -34,7 +35,7 @@ class InstructorCourseController extends Controller
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'price' => ['nullable', 'numeric', 'min:0'],
+            'price' => ['nullable', 'numeric', static::minPriceRule()],
             'level' => ['nullable', 'string'],
             'language' => ['nullable', 'string'],
             'category_id' => ['required', 'exists:categories,id'],
@@ -78,14 +79,17 @@ class InstructorCourseController extends Controller
             'title'               => ['sometimes', 'string', 'max:255'],
             'description'         => ['nullable', 'string'],
             'short_description'   => ['nullable', 'string', 'max:500'],
-            'price'               => ['sometimes', 'numeric', 'min:0'],
+            'price'               => ['sometimes', 'numeric', static::minPriceRule()],
             'level'               => ['nullable', 'string'],
             'language'            => ['nullable', 'string'],
             'category_id'         => ['sometimes', 'exists:categories,id'],
             'preview_video_url'   => ['nullable', 'url'],
             'requirements'        => ['nullable', 'string'],
             'what_you_will_learn' => ['nullable', 'string'],
-            'thumbnail'           => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'thumbnail'           => [
+                'nullable', 'image', 'mimes:jpg,jpeg,png,webp',
+                'max:' . (int) Setting::get('max_course_thumbnail_size', 2048),
+            ],
         ]);
 
         $updatedCourse = $this->courseService->update($course, $validated, $request->file('thumbnail'));
@@ -158,6 +162,19 @@ class InstructorCourseController extends Controller
         if ($course->isPublished()) {
             return ApiResponse::error('Course is already published.',400);
         }
+
+        $autoApprove = Setting::get('course_auto_approval', false)
+            && !Setting::get('course_review_required', true);
+
+        if ($autoApprove) {
+            $course->publish((int) $course->instructor_id);
+
+            return ApiResponse::success(
+                $course,
+                'Course published automatically.'
+            );
+        }
+
         $course->submitForReview();
 
         NotifyAdminsJob::dispatch(
@@ -169,5 +186,10 @@ class InstructorCourseController extends Controller
             $course,
             'Course submitted for review successfully.'
         );
+    }
+
+    private static function minPriceRule(): string
+    {
+        return Setting::get('allow_free_courses', true) ? 'min:0' : 'min:0.01';
     }
 }

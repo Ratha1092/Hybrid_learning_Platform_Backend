@@ -2,6 +2,7 @@
 
 namespace App\Domains\Auth\Requests;
 
+use App\Domains\System\Models\Setting;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Password;
 
@@ -31,12 +32,22 @@ class RegisterRequest extends FormRequest
             'password' => [
                 'required',
                 'confirmed',
-                Password::min(8)
-                    ->mixedCase()
-                    ->numbers()
-                    ->symbols()
+                static::passwordRule(),
             ],
         ];
+    }
+
+    public static function passwordRule(): Password
+    {
+        $rule = Password::min((int) Setting::get('password_min_length', 8))
+            ->mixedCase()
+            ->numbers();
+
+        if (Setting::get('password_require_special_characters', true)) {
+            $rule = $rule->symbols();
+        }
+
+        return $rule;
     }
 
     public function messages(): array

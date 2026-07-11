@@ -6,6 +6,8 @@ use App\Domains\Courses\Models\Course;
 use App\Domains\Courses\Models\Lesson;
 use App\Domains\Learning\Models\Enrollment;
 use App\Domains\Learning\Models\LessonProgress;
+use App\Domains\Notifications\Notifications\CourseCompletionNotification;
+use App\Domains\System\Models\Setting;
 use App\Domains\Users\Models\User;
 use Illuminate\Support\Facades\DB;
 
@@ -119,7 +121,17 @@ class ProgressService
         ]);
 
         if ($percentage >= 100) {
+            $wasAlreadyCompleted = $enrollment->status === 'completed';
+
             $enrollment->markCompleted();
+
+            if (Setting::get('certificate_enabled', true) && $course->certificate_enabled) {
+                $enrollment->update(['certificate_issued' => true]);
+            }
+
+            if (!$wasAlreadyCompleted && Setting::get('course_completion_notification', true)) {
+                $user->notify(new CourseCompletionNotification($course->id, $course->title));
+            }
         }
     }
 

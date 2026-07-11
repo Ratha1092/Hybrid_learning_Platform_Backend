@@ -6,7 +6,7 @@
     font-size:13px; line-height:1.5; padding-bottom:48px; display:grid; gap:20px;
     --bg:#0f172a; --p1:#1e293b; --p2:#263245;
     --bd:rgba(255,255,255,.07); --bd2:rgba(255,255,255,.13);
-    --t1:#e2e8f0; --t2:#64748b; --t3:#334155; --accent:#D7A441;
+    --t1:#e2e8f0; --t2:#64748b; --t3:#334155; --accent:#2563EB;
     color:var(--t1);
 }
 html:not(.dark) .rp {
@@ -29,7 +29,7 @@ html:not(.dark) .rp {
 .rp-kpi-label { font-size:10.5px; font-weight:700; letter-spacing:.05em; text-transform:uppercase; color:var(--t2); margin-bottom:6px; }
 .rp-kpi-value { font-size:22px; font-weight:800; color:var(--t1); }
 .rp-kpi-soon-badge { font-size:9.5px; font-weight:700; color:#8a6315; text-transform:uppercase; letter-spacing:.04em; margin-top:4px; }
-html.dark .rp-kpi-soon-badge { color:#D7A441; }
+html.dark .rp-kpi-soon-badge { color:#2563EB; }
 .rp-table-card { background:var(--p1); border:1px solid var(--bd); border-radius:12px; overflow:hidden; max-height:600px; overflow-y:auto; }
 .rp-table { width:100%; border-collapse:collapse; }
 .rp-table thead tr { border-bottom:1px solid var(--bd); }

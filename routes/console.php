@@ -28,3 +28,7 @@ Schedule::command('wallet:release-pending-balance')
 Schedule::command('payouts:generate-monthly')
     ->lastDayOfMonth('23:59')
     ->withoutOverlapping();
+
+Schedule::command('app:prune-retained-data')
+    ->daily()
+    ->withoutOverlapping();

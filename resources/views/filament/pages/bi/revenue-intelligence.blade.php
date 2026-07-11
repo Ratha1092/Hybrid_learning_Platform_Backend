@@ -107,7 +107,7 @@ window.__biRun(function() {
             type: 'line',
             data: {
                 labels: @json($trendLabels),
-                datasets: [{label:'Revenue ($)',data:@json($trendValues),borderColor:'#D7A441',backgroundColor:'rgba(215,164,65,0.08)',fill:true,tension:0.4,pointRadius:2,borderWidth:2}]
+                datasets: [{label:'Revenue ($)',data:@json($trendValues),borderColor:'#2563eb',backgroundColor:'rgba(37,99,235,0.08)',fill:true,tension:0.4,pointRadius:2,borderWidth:2}]
             },
             options:{responsive:true,maintainAspectRatio:false,animation:{duration:400},plugins:{legend:{display:false},tooltip:{backgroundColor:isDark?'#1e293b':'#fff',titleColor:isDark?'#e2e8f0':'#0f172a',bodyColor:'#64748b',borderColor:'rgba(148,163,184,0.2)',borderWidth:1}},scales:baseScales}
         });

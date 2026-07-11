@@ -11,6 +11,7 @@ use App\Domains\Courses\Controllers\InstructorLessonController;
 use App\Domains\Courses\Controllers\InstructorDashboardController;
 use App\Domains\Courses\Controllers\InstructorLessonResourceController;
 use App\Domains\Courses\Controllers\InstructorStandaloneSectionController;
+use App\Domains\Learning\Controllers\ReviewController;
 
 // Global search
 Route::middleware('throttle:courses')
@@ -24,14 +25,20 @@ Route::middleware('throttle:courses')
         Route::get('/{slug}', [CategoryController::class, 'show']);
     });
 
-//Public Courses
+// Public Courses
 Route::middleware('throttle:courses')
     ->prefix('courses')
     ->group(function () {
         Route::get('/',[CourseController::class, 'index']);
         Route::get('/{slug}',[CourseController::class, 'show']);
+        Route::get('/{courseId}/reviews', [ReviewController::class, 'index'])->where('courseId', '[0-9]+');
     });
-//Instructor Dashboard
+
+// Student review submission
+Route::middleware(['auth:sanctum', 'throttle:courses'])
+    ->post('/courses/{courseId}/reviews', [ReviewController::class, 'store'])
+    ->where('courseId', '[0-9]+');
+// Instructor Dashboard
 Route::middleware(['auth:sanctum','verified_instructor','throttle:courses',])
     ->prefix('instructor')
     ->group(function () {
@@ -47,7 +54,7 @@ Route::middleware(['auth:sanctum', 'verified_instructor', 'throttle:courses'])
         Route::get('/standalone', [InstructorStandaloneSectionController::class, 'standalone']);
     });
 
-//Instructor Course Management
+// Instructor Course Management
 Route::middleware(['auth:sanctum','verified_instructor','throttle:courses',])
     ->prefix('instructor/courses')
     ->group(function () {

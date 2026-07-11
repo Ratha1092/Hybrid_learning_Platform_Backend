@@ -5,6 +5,7 @@ namespace App\Domains\Finance\Services;
 use App\Domains\Finance\Mail\PayoutReceiptIssuedMail;
 use App\Domains\Finance\Models\PayoutReceipt;
 use App\Domains\Finance\Models\PayoutRequest;
+use App\Domains\System\Models\Setting;
 use App\Support\ReportPdfExporter;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
@@ -24,7 +25,7 @@ class PayoutReceiptService
                 'payout_request_id' => $payout->id,
                 'receipt_number' => $this->nextNumber(),
                 'amount' => (float) $payout->amount,
-                'currency' => $payout->currency ?? 'USD',
+                'currency' => $payout->currency ?? Setting::get('default_currency', 'USD'),
                 'payment_method' => $payout->payment_method,
                 'paid_at' => $payout->processed_at ?? now(),
             ]);

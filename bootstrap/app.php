@@ -34,8 +34,15 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->api(prepend: [
+            \App\Http\Middleware\ForceHttps::class,
             \App\Http\Middleware\CheckMaintenanceMode::class,
             \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
+        ]);
+
+        $middleware->web(prepend: [
+            \App\Http\Middleware\ForceHttps::class,
+            \App\Http\Middleware\ApplySessionTimeoutSetting::class,
+            \App\Http\Middleware\CheckIpBlocklist::class,
         ]);
     })
 

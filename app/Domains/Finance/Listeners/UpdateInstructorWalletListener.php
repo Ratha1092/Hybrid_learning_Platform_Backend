@@ -6,6 +6,7 @@ use App\Domains\Payments\Events\PaymentSuccessEvent;
 use App\Domains\Finance\Models\InstructorWallet;
 use App\Domains\Finance\Models\RevenueShare;
 use App\Domains\Finance\Models\WalletTransaction;
+use App\Domains\System\Models\Setting;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Log;
 
@@ -33,7 +34,7 @@ class UpdateInstructorWalletListener implements ShouldQueue
 
             $wallet = InstructorWallet::firstOrCreate(
                 ['instructor_id' => $share->instructor_id],
-                ['balance' => 0, 'pending_balance' => 0]
+                ['balance' => 0, 'pending_balance' => 0, 'currency' => Setting::get('default_currency', 'USD')]
             );
 
             $wallet->increment('pending_balance', $share->instructor_amount);

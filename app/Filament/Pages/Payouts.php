@@ -188,7 +188,7 @@ class Payouts extends Page
         $base = fn () => PayoutRequest::query();
 
         $tabs = [
-            ['key' => 'all',      'label' => 'All',      'count' => $base()->count(),                              'color' => '#ea580c'],
+            ['key' => 'all',      'label' => 'All',      'count' => $base()->count(),                              'color' => '#2563eb'],
             ['key' => 'pending',  'label' => 'Pending',  'count' => $base()->where('status', 'pending')->count(),  'color' => '#fbbf24'],
             ['key' => 'approved', 'label' => 'Approved', 'count' => $base()->where('status', 'approved')->count(), 'color' => '#34d399'],
             ['key' => 'rejected', 'label' => 'Rejected', 'count' => $base()->where('status', 'rejected')->count(), 'color' => '#f87171'],

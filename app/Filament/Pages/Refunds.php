@@ -11,6 +11,7 @@ use App\Domains\Orders\Enums\OrderStatus;
 use App\Domains\Orders\Models\Order;
 use App\Domains\Orders\Models\Refund;
 use App\Domains\Payments\Enums\PaymentStatus;
+use App\Domains\System\Models\Setting;
 use App\Support\PanelAccess;
 use BackedEnum;
 use Filament\Notifications\Notification;
@@ -98,6 +99,16 @@ class Refunds extends Page
 
         if ($order->payment_status !== OrderPaymentStatus::Paid) {
             Notification::make()->title('Only paid orders can be refunded.')->danger()->send();
+            return;
+        }
+
+        $refundPeriodDays = (int) Setting::get('refund_period_days', 30);
+        if ($refundPeriodDays > 0 && $order->paid_at?->diffInDays(now()) > $refundPeriodDays) {
+            Notification::make()
+                ->title('Refund window has expired.')
+                ->body("This order was paid more than {$refundPeriodDays} days ago and is outside the refund period.")
+                ->danger()
+                ->send();
             return;
         }
 

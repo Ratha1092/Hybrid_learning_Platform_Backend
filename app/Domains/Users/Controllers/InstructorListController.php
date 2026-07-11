@@ -2,6 +2,7 @@
 
 namespace App\Domains\Users\Controllers;
 
+use App\Domains\System\Models\Setting;
 use App\Domains\Users\Models\User;
 use App\Http\Controllers\Controller;
 use App\Support\ApiResponse;
@@ -13,7 +14,8 @@ class InstructorListController extends Controller
 {
     public function index(Request $request)
     {
-        $limit = min((int) $request->integer('limit', 20), 50);
+        $maxLimit = (int) Setting::get('featured_instructor_limit', 20);
+        $limit = min((int) $request->integer('limit', $maxLimit), $maxLimit);
 
         $instructors = Cache::remember("instructors.public.{$limit}", now()->addMinutes(10), function () use ($limit) {
             return User::role('instructor')

@@ -31,9 +31,6 @@ class PaymentController extends Controller
             $payment = $this->bakongKhqrService->expirePayment($payment);
         }
 
-        // Do NOT refresh the payload here — regenerating changes the MD5, which
-        // breaks Bakong transaction lookup since the user already scanned the original QR.
-
         return ApiResponse::success($this->paymentStatusPayload($payment), 'Payment status retrieved successfully');
     }
 

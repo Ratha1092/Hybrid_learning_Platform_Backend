@@ -6,12 +6,14 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\Request;
 use App\Domains\Courses\Models\Course;
 use App\Domains\Courses\Models\Lesson;
 use App\Domains\Courses\Models\Section;
 use App\Domains\Courses\Observers\CourseObserver;
 use App\Domains\Courses\Observers\SectionObserver;
+use App\Domains\Learning\Models\Review;
 use App\Policies\CoursePolicy;
 use App\Policies\LessonPolicy;
 use App\Domains\Payments\Services\BakongConfig;
@@ -40,6 +42,11 @@ class AppServiceProvider extends ServiceProvider
     {
         Course::observe(CourseObserver::class);
         Section::observe(SectionObserver::class);
+
+        Relation::morphMap([
+            'course' => Course::class,
+            'review' => Review::class,
+        ]);
 
         Gate::before(fn ($user) => $user->hasRole('super-admin') ? true : null);
 

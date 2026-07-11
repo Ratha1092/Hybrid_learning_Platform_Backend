@@ -5,6 +5,7 @@ namespace App\Domains\Courses\Controllers;
 use App\Http\Controllers\Controller;
 use App\Domains\Courses\Models\Lesson;
 use App\Domains\Courses\Models\Section;
+use App\Domains\System\Models\Setting;
 use App\Support\ApiResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -44,6 +45,11 @@ class InstructorLessonController extends Controller
 
         if ($section->course->instructor_id !== auth()->id()) {
             return ApiResponse::error('Unauthorized', 403);
+        }
+
+        $maxLessons = (int) Setting::get('max_lessons_per_course', 200);
+        if ($maxLessons > 0 && $section->course->lessons()->count() >= $maxLessons) {
+            return ApiResponse::error("This course has reached the maximum of {$maxLessons} lessons.", 422);
         }
 
         $validated = $request->validate([
@@ -114,8 +120,11 @@ class InstructorLessonController extends Controller
             return ApiResponse::error('Unauthorized', 403);
         }
 
+        $allowedFormats = Setting::get('allowed_video_formats', 'mp4,mov,avi,webm');
+        $maxSizeKb = (int) Setting::get('max_video_upload_size', 512000);
+
         $request->validate([
-            'video' => 'required|file|mimes:mp4,mov,avi,mkv,webm|max:512000',
+            'video' => "required|file|mimes:{$allowedFormats}|max:{$maxSizeKb}",
         ]);
 
         if ($lesson->video_path) {

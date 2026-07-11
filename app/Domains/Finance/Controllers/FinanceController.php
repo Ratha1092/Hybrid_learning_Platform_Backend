@@ -7,6 +7,7 @@ use App\Domains\Finance\Models\InstructorWallet;
 use App\Domains\Finance\Models\PayoutRequest;
 use App\Domains\Finance\Models\WalletTransaction;
 use App\Domains\Finance\Services\PayoutService;
+use App\Domains\System\Models\Setting;
 use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -19,9 +20,13 @@ class FinanceController extends Controller
 
     public function wallet(Request $request): JsonResponse
     {
+        if (!Setting::get('wallet_enabled', true)) {
+            return ApiResponse::error('The instructor wallet system is currently disabled.', 403);
+        }
+
         $wallet = InstructorWallet::firstOrCreate(
             ['instructor_id' => $request->user()->id],
-            ['balance' => 0, 'pending_balance' => 0, 'currency' => 'USD']
+            ['balance' => 0, 'pending_balance' => 0, 'currency' => Setting::get('default_currency', 'USD')]
         );
 
         return ApiResponse::success($wallet, 'Wallet retrieved successfully');
@@ -83,6 +88,10 @@ class FinanceController extends Controller
 
     public function requestPayout(Request $request): JsonResponse
     {
+        if (!Setting::get('wallet_enabled', true)) {
+            return ApiResponse::error('The instructor wallet system is currently disabled.', 403);
+        }
+
         $validated = $request->validate([
             'amount' => ['required', 'numeric', 'min:0.01', 'decimal:0,2'],
         ]);

@@ -154,7 +154,7 @@ window.__biRun(function() {
             type: 'doughnut',
             data: {
                 labels: Object.keys(d),
-                datasets: [{ data: Object.values(d), backgroundColor: ['#22c55e','#64748b','#D7A441','#ef4444'], borderWidth: 1, borderColor: 'rgba(0,0,0,0.08)' }]
+                datasets: [{ data: Object.values(d), backgroundColor: ['#22c55e','#64748b','#2563eb','#ef4444'], borderWidth: 1, borderColor: 'rgba(0,0,0,0.08)' }]
             },
             options: { responsive: true, maintainAspectRatio: false, animation: { duration: 400 }, plugins: { legend: { position: 'right', labels: { color: tickColor, font: { family: ff, size: 10 }, boxWidth: 10 } } } }
         });
@@ -170,7 +170,7 @@ window.__biRun(function() {
             type: 'line',
             data: {
                 labels: d.map(function(r){ return r.label; }),
-                datasets: [{ label: 'Avg Rating', data: d.map(function(r){ return r.avg; }), borderColor: '#D7A441', backgroundColor: 'rgba(215,164,65,0.08)', fill: true, tension: 0.4, pointRadius: 3, borderWidth: 2 }]
+                datasets: [{ label: 'Avg Rating', data: d.map(function(r){ return r.avg; }), borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,0.08)', fill: true, tension: 0.4, pointRadius: 3, borderWidth: 2 }]
             },
             options: {
                 responsive: true,

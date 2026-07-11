@@ -98,7 +98,7 @@ window.__biRun(function() {
             type: 'bar',
             data: {
                 labels: @json($earningsChartLabels),
-                datasets: [{ label: 'Earnings ($)', data: @json($earningsChartValues), backgroundColor: 'rgba(215,164,65,0.7)', borderColor: '#D7A441', borderWidth: 1, borderRadius: 3 }]
+                datasets: [{ label: 'Earnings ($)', data: @json($earningsChartValues), backgroundColor: 'rgba(37,99,235,0.7)', borderColor: '#2563eb', borderWidth: 1, borderRadius: 3 }]
             },
             options: {
                 indexAxis: 'y',

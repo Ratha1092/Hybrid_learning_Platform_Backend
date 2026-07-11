@@ -227,7 +227,8 @@ html:not(.dark) {
 
                     $url = $data['action_url']
                         ?? $data['url']
-                        ?? ($data['actions'][0]['url'] ?? null);
+                        ?? ($data['actions'][0]['url'] ?? null)
+                        ?? $data['link'] ?? null;
 
                     [$iconBg, $iconColor, $iconPath] = match(true) {
                         str_contains($type, 'course_approved')  => ['rgba(16,185,129,.15)',  '#10b981', 'M9 12.75L11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z'],

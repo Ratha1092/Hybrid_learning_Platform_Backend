@@ -657,10 +657,11 @@ use RuntimeException;
             if ((string) ($decoded['transactionCurrency'] ?? '') !== (string) $currencyCode) {
                 throw new RuntimeException('Generated KHQR currency does not match the payment currency.');
             }
-
             $expectedAmount = $currencyCode === 116
                 ? (string) intval(round($amount))
-                : rtrim(rtrim(number_format($amount, 2, '.', ''), '0'), '.');
+                : (floor($amount) == $amount
+                    ? (string) intval($amount)
+                    : number_format($amount, 2, '.', ''));
 
             if ((string) ($decoded['transactionAmount'] ?? '') !== $expectedAmount) {
                 throw new RuntimeException('Generated KHQR amount does not match the payment amount.');

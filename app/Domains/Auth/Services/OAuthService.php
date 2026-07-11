@@ -3,6 +3,7 @@
 namespace App\Domains\Auth\Services;
 
 use App\Domains\Auth\Models\OAuthAccount;
+use App\Domains\System\Models\Setting;
 use App\Domains\Users\Models\User;
 use App\Domains\Auth\Resources\UserResource;
 use App\Domains\Auth\Services\ActivityLogService;
@@ -17,6 +18,10 @@ class OAuthService
 {
     public function handleGoogle(array $data)
     {
+        if (!Setting::get('enable_google_login', true)) {
+            throw new RuntimeException('Google sign-in is currently disabled.');
+        }
+
         return DB::transaction(function () use ($data) {
             $provider = 'google';
             $providerId = $data['provider_id'];

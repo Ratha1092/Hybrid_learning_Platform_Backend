@@ -44,7 +44,7 @@ class AdminPanelProvider extends PanelProvider
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->login(\App\Filament\Auth\Pages\Login::class)
             ->colors([
-                'primary' => Color::hex('#4141d7'),
+                'primary' => Color::hex('#2563eb'),
             ])
             ->renderHook(
                 PanelsRenderHook::SIDEBAR_LOGO_BEFORE,

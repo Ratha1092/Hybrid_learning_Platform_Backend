@@ -37,7 +37,7 @@ window.__biRun = function(fn) {
     --t1: #e2e8f0;
     --t2: #64748b;
     --t3: #334155;
-    --acc: #D7A441;
+    --acc: #2563EB;
     --acc2: #2563eb;
     --ok: #22c55e;
     --err: #ef4444;
@@ -319,7 +319,7 @@ html:not(.dark) .bi {
 }
 
 .bi-tag-warn {
-    background: rgba(215,164,65,.12);
+    background: rgba(37,99,235,.12);
     color: var(--acc);
 }
 
@@ -338,14 +338,14 @@ html:not(.dark) .bi {
     cursor: pointer;
     user-select: none;
     white-space: nowrap;
-    box-shadow: 0 0 0 3px rgba(215,164,65,.08);
+    box-shadow: 0 0 0 3px rgba(37,99,235,.08);
     transition: box-shadow .15s;
     font-size: 12px;
     color: var(--t1);
 }
 
 .rp-drp-pill:hover {
-    box-shadow: 0 0 0 4px rgba(215,164,65,.14);
+    box-shadow: 0 0 0 4px rgba(37,99,235,.14);
 }
 
 .rp-drp-icon {
@@ -418,12 +418,12 @@ html:not(.dark) .bi {
 }
 
 .rp-drp-pre:hover {
-    background: rgba(215,164,65,.06);
+    background: rgba(37,99,235,.06);
     color: var(--t1);
 }
 
 .rp-drp-pre.active {
-    background: rgba(215,164,65,.10);
+    background: rgba(37,99,235,.10);
     color: var(--acc);
     font-weight: 700;
 }

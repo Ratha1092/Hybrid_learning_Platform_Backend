@@ -20,7 +20,7 @@ class NewInstructorVerificationNotification extends BaseNotification
 
     public function via(object $notifiable): array
     {
-        return ['database', 'broadcast'];
+        return \App\Domains\Notifications\Support\NotificationChannels::standard();
     }
 
     public function toBroadcast(object $notifiable): BroadcastMessage

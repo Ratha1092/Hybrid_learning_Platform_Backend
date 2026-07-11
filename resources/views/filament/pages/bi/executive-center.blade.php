@@ -9,9 +9,9 @@
     border-radius: 99px;
     font-size: 11px;
     font-weight: 700;
-    background: rgba(215,164,65,.12);
+    background: rgba(37,99,235,.12);
     color: var(--acc);
-    border: 1px solid rgba(215,164,65,.25);
+    border: 1px solid rgba(37,99,235,.25);
 }
 
 .bi-btn {
@@ -259,8 +259,8 @@ window.__biRun(function() {
                 datasets: [{
                     label: 'Revenue ($)',
                     data: data.revenue,
-                    borderColor: '#D7A441',
-                    backgroundColor: 'rgba(215,164,65,0.08)',
+                    borderColor: '#2563eb',
+                    backgroundColor: 'rgba(37,99,235,0.08)',
                     fill: true,
                     tension: 0.4,
                     pointRadius: 3,
@@ -288,7 +288,7 @@ window.__biRun(function() {
                 labels: data.labels,
                 datasets: [
                     { label: 'Students', data: data.students, borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,0.08)', fill: true, tension: 0.4, pointRadius: 3, borderWidth: 2 },
-                    { label: 'Instructors', data: data.instructors, borderColor: '#D7A441', backgroundColor: 'rgba(215,164,65,0.08)', fill: true, tension: 0.4, pointRadius: 3, borderWidth: 2 }
+                    { label: 'Instructors', data: data.instructors, borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,0.08)', fill: true, tension: 0.4, pointRadius: 3, borderWidth: 2 }
                 ]
             },
             options: baseOpts
@@ -304,7 +304,7 @@ window.__biRun(function() {
             type: 'bar',
             data: {
                 labels: @json($topCoursesChartLabels),
-                datasets: [{ label: 'Revenue ($)', data: @json($topCoursesChartValues), backgroundColor: 'rgba(215,164,65,0.75)', borderColor: '#D7A441', borderWidth: 1, borderRadius: 4 }]
+                datasets: [{ label: 'Revenue ($)', data: @json($topCoursesChartValues), backgroundColor: 'rgba(37,99,235,0.75)', borderColor: '#2563eb', borderWidth: 1, borderRadius: 4 }]
             },
             options: {
                 indexAxis: 'y',

@@ -1,0 +1,441 @@
+@php
+    $accent = '#2563eb';
+
+    $statusStyle = fn($status) => match($status) {
+        'pending'   => ['bg' => 'rgba(251,191,36,.12)',  'color' => '#fbbf24', 'label' => 'Pending'],
+        'reviewed'  => ['bg' => 'rgba(52,211,153,.12)',  'color' => '#34d399', 'label' => 'Reviewed'],
+        'dismissed' => ['bg' => 'rgba(248,113,113,.12)', 'color' => '#f87171', 'label' => 'Dismissed'],
+        default     => ['bg' => 'rgba(148,163,184,.1)',  'color' => '#94a3b8', 'label' => ucfirst($status ?? '—')],
+    };
+
+    $typeStyle = fn($type) => match($type) {
+        'course' => ['bg' => 'rgba(99,102,241,.12)', 'color' => '#818cf8', 'label' => 'Course'],
+        'review' => ['bg' => 'rgba(6,182,212,.12)',  'color' => '#22d3ee', 'label' => 'Review'],
+        default  => ['bg' => 'rgba(148,163,184,.1)', 'color' => '#94a3b8', 'label' => ucfirst($type ?: '—')],
+    };
+
+    $itemUrl = function ($report) {
+        if ($report->reportable_type === 'course') {
+            return route('filament.admin.resources.courses.view', ['record' => $report->reportable_id]);
+        }
+        return null;
+    };
+@endphp
+
+<div wire:poll.15s>
+<div class="lp" id="lp-content-reports" style="--accent:{{ $accent }};">
+
+<style>
+.lp, .lp *, .lp *::before, .lp *::after { box-sizing:border-box; margin:0; padding:0; }
+.lp {
+    font-family:Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size:13px; line-height:1.5;
+    padding-bottom:48px;
+    display:grid; gap:20px;
+    --bg:#0f172a; --p1:#1e293b; --p2:#263245;
+    --bd:rgba(255,255,255,.07); --bd2:rgba(255,255,255,.13);
+    --t1:#e2e8f0; --t2:#64748b; --t3:#334155;
+    --sh:0 4px 24px rgba(0,0,0,.3);
+    color:var(--t1);
+}
+html:not(.dark) .lp {
+    --bg:#f1f5f9; --p1:#ffffff; --p2:#f8fafc;
+    --bd:rgba(15,23,42,.13); --bd2:rgba(15,23,42,.20);
+    --t1:#0f172a; --t2:#64748b; --t3:#cbd5e1;
+    --sh:0 2px 16px rgba(15,23,42,.1);
+}
+@keyframes lpUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:none} }
+.lpa { opacity:0; animation:lpUp .45s cubic-bezier(.16,1,.3,1) forwards; }
+.lp1{animation-delay:.04s} .lp2{animation-delay:.09s}
+
+.lp-header { display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; padding-bottom:20px; border-bottom:1px solid var(--bd); }
+.lp-header-text h1 { font-size:clamp(20px,2.2vw,26px); font-weight:780; letter-spacing:-.018em; color:var(--t1); line-height:1.15; }
+.lp-header-text p { font-size:12px; color:var(--t2); margin-top:5px; }
+
+.lp-card { background:var(--p1); border:1px solid var(--bd); border-radius:12px; overflow:hidden; box-shadow:var(--sh); }
+.lp-toolbar { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 16px; border-bottom:1px solid var(--bd); flex-wrap:wrap; }
+.lp-tabs { display:flex; align-items:center; gap:4px; flex-wrap:wrap; }
+.lp-tab { display:inline-flex; align-items:center; gap:6px; padding:6px 13px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; text-decoration:none; color:var(--t2); background:none; font-family:inherit; border:1px solid transparent; transition:background .15s, color .15s, border-color .15s; }
+.lp-tab:hover { background:var(--p2); color:var(--t1); }
+.lp-tab-badge { display:inline-flex; align-items:center; justify-content:center; min-width:18px; height:18px; padding:0 5px; border-radius:5px; font-size:10px; font-weight:800; }
+.lp-search-box { display:flex; align-items:center; gap:6px; background:var(--p2); border:1px solid var(--bd2); border-radius:8px; padding:6px 12px; }
+.lp-search-box svg { width:14px; height:14px; color:var(--t2); flex-shrink:0; }
+.lp-search-box input { background:none; border:none; outline:none; color:var(--t1); font-size:12px; font-family:inherit; width:200px; }
+.lp-search-box input::placeholder { color:var(--t2); }
+
+.lp-table { width:100%; border-collapse:collapse; }
+.lp-table thead tr { border-bottom:1px solid var(--bd); }
+.lp-table th { padding:10px 12px; text-align:left; font-size:10.5px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--t2); white-space:nowrap; }
+.lp-table tbody tr { border-bottom:1px solid var(--bd); transition:background .12s; }
+.lp-table tbody tr:last-child { border-bottom:none; }
+.lp-table tbody tr:hover { background:var(--p2); }
+.lp-row-link { cursor:pointer; }
+.lp-table td { padding:12px 12px; vertical-align:middle; }
+
+.lp-id { font-size:11.5px; font-weight:700; color:var(--t2); white-space:nowrap; }
+.lp-user-cell { display:flex; align-items:center; gap:8px; }
+.lp-user-name { font-size:12.5px; color:var(--t1); font-weight:500; }
+.lp-email { font-size:12px; color:var(--t2); }
+.lp-badge { display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:6px; font-size:11.5px; font-weight:700; white-space:nowrap; }
+.lp-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+.lp-date { font-size:12px; color:var(--t2); white-space:nowrap; }
+.lp-reason { font-size:12px; color:var(--t1); max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; display:block; }
+
+.lp-actions { display:flex; align-items:center; gap:4px; justify-content:flex-end; }
+.lp-act-btn { display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:8px; background:none; border:1px solid transparent; cursor:pointer; color:var(--t2); text-decoration:none; transition:background .15s, border-color .15s, color .15s; }
+.lp-act-btn:hover { background:var(--p2); border-color:var(--bd2); color:var(--t1); }
+.lp-act-btn svg { width:18px; height:18px; }
+.lp-act-btn-approve { color:#34d399; }
+.lp-act-btn-approve:hover { background:rgba(52,211,153,.12) !important; border-color:rgba(52,211,153,.3) !important; color:#34d399 !important; }
+.lp-act-btn-reject { color:#f87171; }
+.lp-act-btn-reject:hover { background:rgba(248,113,113,.12) !important; border-color:rgba(248,113,113,.3) !important; color:#f87171 !important; }
+
+/* Modals */
+.lp-modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:9999; align-items:center; justify-content:center; padding:20px; }
+.lp-modal-overlay.open { display:flex; }
+.lp-modal { background:var(--p1); border:1px solid var(--bd2); border-radius:14px; padding:26px; width:100%; max-width:460px; box-shadow:0 20px 60px rgba(0,0,0,.4); }
+.lp-modal h3 { font-size:15px; font-weight:750; color:var(--t1); margin-bottom:6px; }
+.lp-modal p { font-size:12.5px; color:var(--t2); margin-bottom:16px; }
+.lp-modal-footer { display:flex; justify-content:flex-end; gap:8px; margin-top:14px; }
+.lp-modal-btn { display:inline-flex; align-items:center; gap:6px; padding:8px 16px; border-radius:9px; font-size:12px; font-weight:700; cursor:pointer; border:none; font-family:inherit; transition:opacity .15s; }
+.lp-modal-btn-gray { background:var(--p2); border:1px solid var(--bd2); color:var(--t2); }
+.lp-modal-btn-danger { background:rgba(248,113,113,.15); color:#f87171; border:1px solid rgba(248,113,113,.3); }
+.lp-modal-btn-success { background:rgba(52,211,153,.15); color:#34d399; border:1px solid rgba(52,211,153,.3); }
+
+/* View details modal */
+.lp-view-modal { max-width:560px; }
+.lp-vm-row { display:grid; grid-template-columns:120px 1fr; gap:10px; padding:9px 0; border-bottom:1px solid var(--bd); }
+.lp-vm-row:last-child { border-bottom:none; }
+.lp-vm-key { font-size:11px; font-weight:700; letter-spacing:.03em; text-transform:uppercase; color:var(--t2); }
+.lp-vm-val { font-size:13px; color:var(--t1); word-break:break-word; }
+.lp-vm-val a { color:var(--accent); text-decoration:none; }
+.lp-vm-val a:hover { text-decoration:underline; }
+
+.lp-empty { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:56px 24px; gap:10px; color:var(--t2); }
+.lp-empty svg { width:40px; height:40px; opacity:.35; }
+.lp-empty p { font-size:13px; }
+
+.lp-footer { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-top:1px solid var(--bd); flex-wrap:wrap; gap:10px; }
+.lp-footer-info { font-size:12px; color:var(--t2); }
+.lp-pages { display:flex; align-items:center; gap:6px; }
+.lp-page-btn { display:inline-flex; align-items:center; justify-content:center; min-width:30px; height:30px; padding:0 8px; border-radius:7px; font-size:12px; font-weight:700; text-decoration:none; color:var(--t2); background:none; font-family:inherit; cursor:pointer; border:1px solid transparent; transition:background .15s, border-color .15s, color .15s; }
+.lp-loading{opacity:.45;pointer-events:none;transition:opacity .1s}
+.lp-page-btn:not(.disabled):hover { background:var(--p2); border-color:var(--bd2); color:var(--t1); }
+.lp-page-btn.active { background:var(--accent); color:#fff; border-color:transparent; }
+.lp-page-btn.disabled { opacity:.35; pointer-events:none; }
+.lp-per-page { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--t2); }
+.lp-per-page select { appearance:none; background:var(--p2); border:1px solid var(--bd2); border-radius:7px; padding:4px 22px 4px 9px; font-size:12px; font-weight:700; color:var(--t1); font-family:inherit; cursor:pointer; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 6px center; outline:none; }
+</style>
+
+    {{-- Header --}}
+    <div class="lp-header lpa lp1">
+        <div class="lp-header-text">
+            <h1>Content Reports</h1>
+            <p>Review courses and reviews flagged by users.</p>
+        </div>
+    </div>
+
+    {{-- Table card --}}
+    <div class="lp-card lpa lp2">
+
+        {{-- Toolbar --}}
+        <div class="lp-toolbar">
+            <div class="lp-tabs">
+                @foreach ($tabs as $t)
+                @php
+                    $isActive   = $tab === $t['key'];
+                    $tabColor   = $t['color'];
+                    $tabStyle   = $isActive ? "background:{$tabColor}1a;color:{$tabColor};border-color:{$tabColor}55;font-weight:700;" : '';
+                    $badgeStyle = "background:{$tabColor}20;color:{$tabColor};";
+                @endphp
+                <button type="button" wire:click="selectTab('{{ $t['key'] }}')" class="lp-tab" style="{{ $tabStyle }}">
+                    {{ $t['label'] }}
+                    <span class="lp-tab-badge" style="{{ $badgeStyle }}">{{ $t['count'] }}</span>
+                </button>
+                @endforeach
+            </div>
+
+            <div class="lp-search-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607z"/>
+                </svg>
+                <input type="text" wire:model.live.debounce.500ms="search" placeholder="Search reason or reporter...">
+            </div>
+        </div>
+
+        {{-- Table --}}
+        <div style="overflow-x:auto" wire:loading.class="lp-loading" wire:target="selectTab,gotoPage,search,setPerPage">
+        <table class="lp-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Type</th>
+                    <th>Item</th>
+                    <th>Reported By</th>
+                    <th>Reason</th>
+                    <th>Status</th>
+                    <th>Reported</th>
+                    <th style="text-align:right">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse ($reports as $report)
+                @php
+                    $ss   = $statusStyle($report->status);
+                    $ts   = $typeStyle($report->reportable_type);
+                    $url  = $itemUrl($report);
+                    $detailsJson = htmlspecialchars(json_encode([
+                        'id' => $report->id,
+                        'type' => $ts['label'],
+                        'itemId' => $report->reportable_id,
+                        'itemUrl' => $url,
+                        'reporterName' => $report->reporter?->name ?? '—',
+                        'reporterEmail' => $report->reporter?->email ?? '—',
+                        'reason' => $report->reason,
+                        'details' => $report->details ?? '',
+                        'status' => $ss['label'],
+                        'statusColor' => $ss['color'],
+                        'reviewerName' => $report->reviewer?->name,
+                        'reviewedAt' => $report->reviewed_at?->format('M d, Y · H:i'),
+                        'reportedAt' => $report->created_at?->format('M d, Y · H:i'),
+                        'pending' => $report->status === 'pending',
+                    ]), ENT_QUOTES, 'UTF-8');
+                @endphp
+                <tr class="lp-row-link" onclick='openViewModal({{ $detailsJson }})'>
+                    <td><span class="lp-id">{{ $report->id }}</span></td>
+
+                    <td>
+                        <span class="lp-badge" style="background:{{ $ts['bg'] }};color:{{ $ts['color'] }}">
+                            {{ $ts['label'] }}
+                        </span>
+                    </td>
+
+                    <td><span class="lp-date">#{{ $report->reportable_id }}</span></td>
+
+                    <td>
+                        <div class="lp-user-cell">
+                            <span class="lp-user-name">{{ $report->reporter?->name ?? '—' }}</span>
+                        </div>
+                    </td>
+
+                    <td><span class="lp-reason" title="{{ $report->reason }}">{{ $report->reason }}</span></td>
+
+                    <td>
+                        <span class="lp-badge" style="background:{{ $ss['bg'] }};color:{{ $ss['color'] }}">
+                            <span class="lp-dot" style="background:{{ $ss['color'] }}"></span>
+                            {{ $ss['label'] }}
+                        </span>
+                    </td>
+
+                    <td><span class="lp-date">{{ $report->created_at?->format('M d, Y') }}</span></td>
+
+                    <td onclick="event.stopPropagation()">
+                        <div class="lp-actions">
+                            @if($report->status === 'pending')
+                            <button onclick='openReviewModal({{ $report->id }})'
+                                    class="lp-act-btn lp-act-btn-approve" title="Mark Reviewed">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/>
+                                </svg>
+                            </button>
+                            <button onclick='openDismissModal({{ $report->id }})'
+                                    class="lp-act-btn lp-act-btn-reject" title="Dismiss">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/>
+                                </svg>
+                            </button>
+                            @endif
+                            <button onclick='openViewModal({{ $detailsJson }})' class="lp-act-btn" title="View">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><circle cx="12" cy="12" r="3"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                @empty
+                <tr>
+                    <td colspan="8">
+                        <div class="lp-empty">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 3v1.5M3 21v-6m0 0 2.77-.693a9 9 0 0 1 6.208.682l.108.054a9 9 0 0 0 6.086.71l3.114-.732a48.524 48.524 0 0 1-.005-10.499l-3.11.732a9 9 0 0 1-6.085-.711l-.108-.054a9 9 0 0 0-6.208-.682L3 4.5M3 15V4.5"/>
+                            </svg>
+                            <p>No content reports found{{ $search ? ' for "' . $search . '"' : '' }}.</p>
+                        </div>
+                    </td>
+                </tr>
+                @endforelse
+            </tbody>
+        </table>
+        </div>
+
+        {{-- Pagination --}}
+        <div class="lp-footer">
+            <div class="lp-footer-info">
+                @if($total > 0)
+                    Showing {{ ($curPage - 1) * $perPage + 1 }} to {{ min($curPage * $perPage, $total) }} of {{ number_format($total) }} reports
+                @else
+                    No results
+                @endif
+            </div>
+            <div style="display:flex;align-items:center;gap:16px">
+                <div class="lp-per-page">
+                    Per page
+                    <select wire:change="setPerPage($event.target.value)">
+                        @foreach([10, 25, 50] as $n)
+                            <option value="{{ $n }}" {{ $perPage == $n ? 'selected' : '' }}>{{ $n }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                @if($totalPages > 1)
+                <div class="lp-pages">
+                    <button type="button" wire:click="gotoPage({{ max(1, $curPage - 1) }})"
+                       class="lp-page-btn {{ $curPage === 1 ? 'disabled' : '' }}" @disabled($curPage === 1)>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:12px;height:12px"><path d="M15 19l-7-7 7-7"/></svg>
+                    </button>
+                    @for($p = max(1, $curPage - 2); $p <= min($totalPages, $curPage + 2); $p++)
+                        <button type="button" wire:click="gotoPage({{ $p }})"
+                           class="lp-page-btn {{ $curPage === $p ? 'active' : '' }}">
+                            {{ $p }}
+                        </button>
+                    @endfor
+                    <button type="button" wire:click="gotoPage({{ min($totalPages, $curPage + 1) }})"
+                       class="lp-page-btn {{ $curPage === $totalPages ? 'disabled' : '' }}" @disabled($curPage === $totalPages)>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:12px;height:12px"><path d="M9 5l7 7-7 7"/></svg>
+                    </button>
+                </div>
+                @endif
+            </div>
+        </div>
+    </div>
+
+    {{-- Mark Reviewed Modal --}}
+    <div class="lp-modal-overlay" id="lp-review-modal" onclick="if(event.target===this)closeReviewModal()">
+        <div class="lp-modal">
+            <h3>Mark as Reviewed</h3>
+            <p>Are you sure you want to mark this report as reviewed? No further action will be taken on the reported item.</p>
+            <div class="lp-modal-footer">
+                <button class="lp-modal-btn lp-modal-btn-gray" onclick="closeReviewModal()">Cancel</button>
+                <button class="lp-modal-btn lp-modal-btn-success" onclick="submitReview()">Mark Reviewed</button>
+            </div>
+        </div>
+    </div>
+
+    {{-- Dismiss Modal --}}
+    <div class="lp-modal-overlay" id="lp-dismiss-modal" onclick="if(event.target===this)closeDismissModal()">
+        <div class="lp-modal">
+            <h3>Dismiss Report</h3>
+            <p>Are you sure you want to dismiss this report? It will be closed with no action taken.</p>
+            <div class="lp-modal-footer">
+                <button class="lp-modal-btn lp-modal-btn-gray" onclick="closeDismissModal()">Cancel</button>
+                <button class="lp-modal-btn lp-modal-btn-danger" onclick="submitDismiss()">Dismiss Report</button>
+            </div>
+        </div>
+    </div>
+
+    {{-- View Details Modal --}}
+    <div class="lp-modal-overlay" id="lp-view-modal" onclick="if(event.target===this)closeViewModal()">
+        <div class="lp-modal lp-view-modal">
+            <h3 id="lp-view-title">Report #</h3>
+            <p>Full details of this content report.</p>
+            <div id="lp-view-body"></div>
+            <div class="lp-modal-footer" id="lp-view-footer"></div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    var reviewId = null;
+    function openReviewModal(id) {
+        reviewId = id;
+        document.getElementById('lp-review-modal').classList.add('open');
+    }
+    function closeReviewModal() {
+        document.getElementById('lp-review-modal').classList.remove('open');
+        reviewId = null;
+    }
+    function submitReview() {
+        if (!reviewId) return;
+        const id = reviewId;
+        closeReviewModal();
+        closeViewModal();
+        @this.call('markReviewed', id);
+    }
+
+    var dismissId = null;
+    function openDismissModal(id) {
+        dismissId = id;
+        document.getElementById('lp-dismiss-modal').classList.add('open');
+    }
+    function closeDismissModal() {
+        document.getElementById('lp-dismiss-modal').classList.remove('open');
+        dismissId = null;
+    }
+    function submitDismiss() {
+        if (!dismissId) return;
+        const id = dismissId;
+        closeDismissModal();
+        closeViewModal();
+        @this.call('dismiss', id);
+    }
+
+    function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str ?? '';
+        return div.innerHTML;
+    }
+
+    function openViewModal(r) {
+        document.getElementById('lp-view-title').textContent = 'Report #' + r.id;
+
+        const itemVal = r.itemUrl
+            ? '<a href="' + r.itemUrl + '" target="_blank" rel="noopener">' + escapeHtml(r.type) + ' #' + r.itemId + ' →</a>'
+            : escapeHtml(r.type) + ' #' + r.itemId;
+
+        let rows = [
+            ['Item', itemVal],
+            ['Reported By', escapeHtml(r.reporterName) + ' <span style="color:var(--t2)">(' + escapeHtml(r.reporterEmail) + ')</span>'],
+            ['Reason', escapeHtml(r.reason)],
+            ['Details', r.details ? escapeHtml(r.details) : '<span style="color:var(--t2)">No additional details provided.</span>'],
+            ['Status', '<span class="lp-badge" style="background:' + r.statusColor + '20;color:' + r.statusColor + '">' + escapeHtml(r.status) + '</span>'],
+            ['Reported At', escapeHtml(r.reportedAt)],
+        ];
+        if (!r.pending) {
+            rows.push(['Reviewed By', escapeHtml(r.reviewerName ?? '—')]);
+            rows.push(['Reviewed At', escapeHtml(r.reviewedAt ?? '—')]);
+        }
+
+        document.getElementById('lp-view-body').innerHTML = rows.map(([k, v]) =>
+            '<div class="lp-vm-row"><div class="lp-vm-key">' + k + '</div><div class="lp-vm-val">' + v + '</div></div>'
+        ).join('');
+
+        const footer = document.getElementById('lp-view-footer');
+        footer.innerHTML = '';
+        const closeBtn = document.createElement('button');
+        closeBtn.className = 'lp-modal-btn lp-modal-btn-gray';
+        closeBtn.textContent = 'Close';
+        closeBtn.onclick = closeViewModal;
+        footer.appendChild(closeBtn);
+
+        if (r.pending) {
+            const dismissBtn = document.createElement('button');
+            dismissBtn.className = 'lp-modal-btn lp-modal-btn-danger';
+            dismissBtn.textContent = 'Dismiss';
+            dismissBtn.onclick = function () { openDismissModal(r.id); };
+            footer.appendChild(dismissBtn);
+
+            const reviewBtn = document.createElement('button');
+            reviewBtn.className = 'lp-modal-btn lp-modal-btn-success';
+            reviewBtn.textContent = 'Mark Reviewed';
+            reviewBtn.onclick = function () { openReviewModal(r.id); };
+            footer.appendChild(reviewBtn);
+        }
+
+        document.getElementById('lp-view-modal').classList.add('open');
+    }
+    function closeViewModal() {
+        document.getElementById('lp-view-modal').classList.remove('open');
+    }
+</script>
+</div>{{-- end single root --}}

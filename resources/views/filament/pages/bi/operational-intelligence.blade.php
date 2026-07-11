@@ -11,8 +11,8 @@
 }
 
 .bi-alert-row.warn {
-    background: rgba(215,164,65,.09);
-    border: 1px solid rgba(215,164,65,.2);
+    background: rgba(37,99,235,.09);
+    border: 1px solid rgba(37,99,235,.2);
     color: var(--acc);
 }
 
@@ -240,7 +240,7 @@ window.__biRun(function() {
             type: 'doughnut',
             data: {
                 labels: Object.keys(d),
-                datasets: [{ data: Object.values(d), backgroundColor: ['#D7A441','#22c55e','#ef4444','#64748b'], borderWidth: 1, borderColor: 'rgba(0,0,0,0.08)' }]
+                datasets: [{ data: Object.values(d), backgroundColor: ['#2563eb','#22c55e','#ef4444','#64748b'], borderWidth: 1, borderColor: 'rgba(0,0,0,0.08)' }]
             },
             options: { responsive: true, maintainAspectRatio: false, animation: { duration: 400 }, plugins: { legend: { position: 'right', labels: { color: tickColor, font: { family: ff, size: 10 }, boxWidth: 10 } } } }
         });
@@ -258,7 +258,7 @@ window.__biRun(function() {
                 datasets: [
                     { label: 'Paid', data: @json($payTrendPaid), backgroundColor: 'rgba(34,197,94,0.7)', borderWidth: 0, borderRadius: 3, stack: 'a' },
                     { label: 'Failed', data: @json($payTrendFailed), backgroundColor: 'rgba(239,68,68,0.7)', borderWidth: 0, borderRadius: 3, stack: 'a' },
-                    { label: 'Pending', data: @json($payTrendPending), backgroundColor: 'rgba(215,164,65,0.7)', borderWidth: 0, borderRadius: 3, stack: 'a' }
+                    { label: 'Pending', data: @json($payTrendPending), backgroundColor: 'rgba(37,99,235,0.7)', borderWidth: 0, borderRadius: 3, stack: 'a' }
                 ]
             },
             options: { responsive: true, maintainAspectRatio: false, animation: { duration: 400 }, plugins: { legend: { labels: { color: tickColor, font: { family: ff, size: 10 }, boxWidth: 10 } } }, scales: baseScales }
@@ -274,7 +274,7 @@ window.__biRun(function() {
             type: 'line',
             data: {
                 labels: @json($reviewTrendLabels),
-                datasets: [{ label: 'Pending Reviews', data: @json($reviewTrendValues), borderColor: '#D7A441', backgroundColor: 'rgba(215,164,65,0.08)', fill: true, tension: 0.3, pointRadius: 0, borderWidth: 2 }]
+                datasets: [{ label: 'Pending Reviews', data: @json($reviewTrendValues), borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,0.08)', fill: true, tension: 0.3, pointRadius: 0, borderWidth: 2 }]
             },
             options: { responsive: true, maintainAspectRatio: false, animation: { duration: 400 }, plugins: { legend: { display: false } }, scales: baseScales }
         });

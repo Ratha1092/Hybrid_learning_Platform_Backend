@@ -42,13 +42,13 @@ class NotificationInfolist
                     ->schema([
                         TextEntry::make('action_url')
                             ->label('Action URL')
-                            ->state(fn ($record) => $record->data['actions'][0]['url'] ?? null)
-                            ->url(fn ($record) => $record->data['actions'][0]['url'] ?? null)
+                            ->state(fn ($record) => $record->data['actions'][0]['url'] ?? $record->data['link'] ?? null)
+                            ->url(fn ($record) => $record->data['actions'][0]['url'] ?? $record->data['link'] ?? null)
                             ->openUrlInNewTab()
                             ->placeholder('N/A'),
                         TextEntry::make('action_label')
                             ->label('Action Label')
-                            ->state(fn ($record) => $record->data['actions'][0]['label'] ?? null)
+                            ->state(fn ($record) => $record->data['actions'][0]['label'] ?? $record->data['action_text'] ?? null)
                             ->placeholder('N/A'),
                     ])
                     ->columns(2),

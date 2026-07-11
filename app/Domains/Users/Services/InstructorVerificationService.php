@@ -2,7 +2,10 @@
 
 namespace App\Domains\Users\Services;
 
+use App\Domains\Notifications\Notifications\InstructorApprovedNotification;
 use App\Domains\Notifications\Notifications\NewInstructorVerificationNotification;
+use App\Domains\System\Models\Setting;
+use App\Domains\Users\Models\InstructorProfile;
 use App\Jobs\Notifications\NotifyAdminsJob;
 use App\Domains\Users\Models\InstructorVerification;
 use App\Domains\Users\Models\User;
@@ -32,7 +35,10 @@ class InstructorVerificationService
             );
         }
 
-        $verification = DB::transaction(function () use ($user, $data) {
+        $autoApprove = !Setting::get('require_instructor_verification', true)
+            || Setting::get('auto_approve_instructors', false);
+
+        $verification = DB::transaction(function () use ($user, $data, $autoApprove) {
             $certificatePath = $data['certificate_file']
                 ->store('verifications/certificates', 'public');
             $identityPath = $data['identity_file']
@@ -48,13 +54,23 @@ class InstructorVerificationService
                 'certificate_file' => $certificatePath,
                 'identity_file' => $identityPath,
                 'identity_id' => $data['identity_id'],
-                'status' => 'pending',
+                'status' => $autoApprove ? 'approved' : 'pending',
+                'reviewed_at' => $autoApprove ? now() : null,
             ]);
+
+            if ($autoApprove) {
+                InstructorProfile::firstOrCreate(['user_id' => $user->id]);
+                $user->syncRoles(['instructor']);
+            }
 
             return $verification;
         });
 
-        $this->notifyAdmins($verification, $user);
+        if ($autoApprove) {
+            $user->notify(new InstructorApprovedNotification());
+        } else {
+            $this->notifyAdmins($verification, $user);
+        }
 
         return $verification;
     }

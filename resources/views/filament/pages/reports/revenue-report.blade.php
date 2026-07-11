@@ -9,7 +9,7 @@
     font-size:13px; line-height:1.5; padding-bottom:48px; display:grid; gap:20px;
     --bg:#0f172a; --p1:#1e293b; --p2:#263245;
     --bd:rgba(255,255,255,.07); --bd2:rgba(255,255,255,.13);
-    --t1:#e2e8f0; --t2:#64748b; --t3:#334155; --accent:#D7A441;
+    --t1:#e2e8f0; --t2:#64748b; --t3:#334155; --accent:#2563EB;
     color:var(--t1);
 }
 html:not(.dark) .rp {
@@ -35,7 +35,7 @@ html:not(.dark) .rp {
 .rp-card h3 { font-size:13px; font-weight:700; margin-bottom:12px; color:var(--t1); }
 .rp-trend { display:flex; align-items:flex-end; gap:8px; height:120px; }
 .rp-trend-bar-wrap { flex:1; display:flex; flex-direction:column; align-items:center; gap:6px; height:100%; justify-content:flex-end; }
-.rp-trend-bar { width:100%; background:#D7A441; border-radius:4px 4px 0 0; min-height:2px; }
+.rp-trend-bar { width:100%; background:#2563EB; border-radius:4px 4px 0 0; min-height:2px; }
 .rp-trend-label { font-size:10px; color:var(--t2); }
 .rp-coupon-row { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--bd); font-size:12px; }
 .rp-coupon-row:last-child { border-bottom:none; }

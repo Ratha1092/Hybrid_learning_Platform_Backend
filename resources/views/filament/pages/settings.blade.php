@@ -24,7 +24,7 @@
     --p1:#ffffff;--p2:#f1f5f9;--p3:#e8eef5;
     --bd:rgba(15,23,42,.13);--bd2:rgba(15,23,42,.20);
     --t1:#0f172a;--t2:#475569;--t3:#94a3b8;
-    --accent:#f97316;--accent-soft:rgba(249,115,22,.14);--radius:14px;
+    --accent:#2563eb;--accent-soft:rgba(37,99,235,.14);--radius:14px;
     color:var(--t1);
 }
 html.dark .st{
@@ -59,7 +59,7 @@ html.dark .st{
 .st-nav-item.active{background:var(--accent-soft);color:var(--accent)}
 .st-nav-item:not(.active):hover{background:var(--p2);color:var(--t1)}
 .st-nav-icon{position:relative;width:30px;height:30px;border-radius:8px;display:grid;place-items:center;flex-shrink:0;background:var(--p2);color:var(--t2)}
-.st-nav-item.active .st-nav-icon{background:rgba(249,115,22,.18);color:var(--accent)}
+.st-nav-item.active .st-nav-icon{background:rgba(37,99,235,.18);color:var(--accent)}
 .st-nav-icon svg{width:14px;height:14px}
 .st-nav-icon-dot{position:absolute;top:-2px;right:-2px;width:8px;height:8px;border-radius:50%;background:var(--accent);border:2px solid var(--p1)}
 .st-nav-label{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -68,7 +68,7 @@ html.dark .st{
 /* Content card */
 .st-card{background:var(--p1);border:1px solid var(--bd);border-radius:var(--radius);overflow:hidden}
 .st-card-header{padding:18px 22px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:12px}
-.st-card-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:rgba(249,115,22,.16);color:var(--accent)}
+.st-card-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:rgba(37,99,235,.16);color:var(--accent)}
 .st-card-icon svg{width:18px;height:18px}
 .st-card-title{font-size:16px;font-weight:700;color:var(--t1)}
 .st-card-subtitle{font-size:12px;color:var(--t2);margin-top:2px}
@@ -92,10 +92,10 @@ html.dark .st{
 .st-input{
     flex:1;background:var(--p2);border:1px solid var(--bd2);border-radius:9px;
     padding:8px 12px;font-size:13px;font-weight:600;color:var(--t1);font-family:inherit;
-    outline:none;transition:border-color .15s,box-shadow .15s;width:100%;text-align:right;
+    outline:none;transition:border-color .15s,box-shadow .15s;width:100%;text-align:left;
 }
 .st-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);z-index:1;position:relative}
-.st-input-wrap:has(.st-input-suffix) .st-input{border-radius:9px 0 0 9px;text-align:left}
+.st-input-wrap:has(.st-input-suffix) .st-input{border-radius:9px 0 0 9px}
 .st-input-suffix{background:var(--p2);border:1px solid var(--bd2);border-left:none;border-radius:0 9px 9px 0;padding:8px 12px;font-size:13px;font-weight:700;color:var(--t2)}
 .st-range-wrap{margin-top:10px;max-width:280px}
 .st-range{width:100%;accent-color:var(--accent);cursor:pointer}
@@ -114,10 +114,10 @@ html.dark .st{
 .st-progress-wrap{margin:16px 0}
 .st-progress-label{display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--t2);margin-bottom:6px}
 .st-progress-bar{height:6px;background:var(--bd);border-radius:3px;overflow:hidden}
-.st-progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),#fb923c);border-radius:3px;transition:width .5s ease}
+.st-progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),#60a5fa);border-radius:3px;transition:width .5s ease}
 
 /* Checkbox / toggle */
-.st-checkbox-row{display:flex;align-items:flex-start;gap:10px;padding:14px 16px;background:var(--accent-soft);border:1px solid rgba(249,115,22,.25);border-radius:10px;margin-top:4px;cursor:pointer}
+.st-checkbox-row{display:flex;align-items:flex-start;gap:10px;padding:14px 16px;background:var(--accent-soft);border:1px solid rgba(37,99,235,.25);border-radius:10px;margin-top:4px;cursor:pointer}
 .st-checkbox-row input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);cursor:pointer;flex-shrink:0;margin-top:2px}
 .st-checkbox-title{font-size:13px;font-weight:700;color:var(--t1)}
 .st-checkbox-desc{font-size:11.5px;color:var(--t2);margin-top:2px}
@@ -363,7 +363,7 @@ html.dark .st{
                                             </span>
                                             <span class="st-row-control">
                                                 <span class="st-color-row">
-                                                    <input type="color" class="st-color-swatch" value="{{ $setting->value ?: '#f97316' }}" oninput="this.nextElementSibling.value=this.value">
+                                                    <input type="color" class="st-color-swatch" value="{{ $setting->value ?: '#2563eb' }}" oninput="this.nextElementSibling.value=this.value">
                                                     <input type="text" name="{{ $setting->key }}" class="st-input" value="{{ $setting->value }}" oninput="this.previousElementSibling.value=this.value">
                                                 </span>
                                             </span>

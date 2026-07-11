@@ -21,7 +21,7 @@
     --bg:#0f172a; --p1:#1e293b; --p2:#263245;
     --bd:rgba(255,255,255,.07); --bd2:rgba(255,255,255,.13);
     --t1:#e2e8f0; --t2:#64748b; --t3:#334155;
-    --accent:#D7A441;
+    --accent:#2563EB;
     color:var(--t1);
 }
 html:not(.dark) .rp {
@@ -163,7 +163,7 @@ html:not(.dark) .rp {
                 @if($count > 0)
                 <div class="rp-bar-row">
                     <div class="rp-bar-label">{{ $roleLabel($r) }}</div>
-                    <div class="rp-bar-track"><div class="rp-bar-fill" style="width:{{ max(4, ($count/$roleMax)*100) }}%;background:#D7A441"></div></div>
+                    <div class="rp-bar-track"><div class="rp-bar-fill" style="width:{{ max(4, ($count/$roleMax)*100) }}%;background:#2563EB"></div></div>
                     <div class="rp-bar-value">{{ number_format($count) }}</div>
                 </div>
                 @endif

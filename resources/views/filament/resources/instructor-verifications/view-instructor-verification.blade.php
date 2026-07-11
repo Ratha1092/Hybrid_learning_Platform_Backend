@@ -1,6 +1,6 @@
 @php
     $v       = $record->load(['user', 'reviewer']);
-    $accent  = '#ea580c';
+    $accent  = '#2563eb';
 
     $ss = match($v->status) {
         'pending'  => ['bg' => 'rgba(251,191,36,.12)',  'color' => '#fbbf24', 'label' => 'Pending'],
@@ -75,7 +75,7 @@ html:not(.dark) .iv {
 .iv-field { display:flex; flex-direction:column; gap:4px; }
 .iv-label { font-size:10.5px; font-weight:800; letter-spacing:.07em; text-transform:uppercase; color:var(--t2); }
 .iv-value { font-size:13px; color:var(--t1); word-break:break-word; }
-.iv-value a { color:#ea580c; text-decoration:none; }
+.iv-value a { color:#2563eb; text-decoration:none; }
 .iv-value a:hover { text-decoration:underline; }
 .iv-value-muted { color:var(--t2); font-style:italic; }
 .iv-value-long { font-size:12.5px; line-height:1.7; color:var(--t1); white-space:pre-wrap; }
@@ -96,7 +96,7 @@ html:not(.dark) .iv {
 .iv-doc-box { border:1px solid var(--bd2); border-radius:10px; overflow:hidden; background:var(--p2); }
 .iv-doc-box img { width:100%; height:160px; object-fit:cover; display:block; }
 .iv-doc-label { padding:8px 12px; font-size:11.5px; font-weight:700; color:var(--t2); text-transform:uppercase; letter-spacing:.06em; border-top:1px solid var(--bd); display:flex; align-items:center; justify-content:space-between; }
-.iv-doc-label a { color:#ea580c; font-size:11px; font-weight:700; text-decoration:none; }
+.iv-doc-label a { color:#2563eb; font-size:11px; font-weight:700; text-decoration:none; }
 .iv-doc-label a:hover { text-decoration:underline; }
 .iv-doc-missing { display:flex; flex-direction:column; align-items:center; justify-content:center; height:160px; gap:6px; color:var(--t2); font-size:12px; }
 .iv-doc-missing svg { width:32px; height:32px; opacity:.35; }
@@ -108,7 +108,7 @@ html:not(.dark) .iv {
 .iv-modal h3 { font-size:15px; font-weight:750; color:var(--t1); margin-bottom:6px; }
 .iv-modal p { font-size:12.5px; color:var(--t2); margin-bottom:16px; }
 .iv-modal textarea { width:100%; background:var(--p2); border:1px solid var(--bd2); border-radius:9px; padding:10px 13px; color:var(--t1); font-size:13px; font-family:inherit; resize:vertical; min-height:90px; outline:none; }
-.iv-modal textarea:focus { border-color:#ea580c; }
+.iv-modal textarea:focus { border-color:#2563eb; }
 .iv-modal-footer { display:flex; justify-content:flex-end; gap:8px; margin-top:14px; }
 .iv-modal-btn { display:inline-flex; align-items:center; gap:6px; padding:8px 16px; border-radius:9px; font-size:12px; font-weight:700; cursor:pointer; border:none; font-family:inherit; transition:opacity .15s; }
 .iv-modal-btn-gray { background:var(--p2); border:1px solid var(--bd2); color:var(--t2); }

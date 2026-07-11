@@ -34,7 +34,7 @@
 .bi-funnel-bar {
     height: 100%;
     border-radius: 4px;
-    background: rgba(215,164,65,0.7);
+    background: rgba(37,99,235,0.7);
     transition: width 0.4s ease;
     display: flex;
     align-items: center;

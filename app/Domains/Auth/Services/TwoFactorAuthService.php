@@ -3,6 +3,7 @@
 namespace App\Domains\Auth\Services;
 
 use App\Domains\Auth\Models\TwoFactorCode;
+use App\Domains\System\Models\Setting;
 use App\Domains\Users\Models\User;
 use App\Jobs\Mail\SendTwoFactorEmailJob;
 use Illuminate\Support\Facades\DB;
@@ -59,6 +60,10 @@ class TwoFactorAuthService
      */
     public function enable(User $user): array
     {
+        if (!Setting::get('enable_2fa', false)) {
+            throw new \RuntimeException('Two-factor authentication is not available on this platform.');
+        }
+
         $code = $this->generateCode($user);
 
         $response = [

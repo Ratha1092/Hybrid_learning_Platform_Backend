@@ -104,7 +104,7 @@ window.__biRun(function() {
                 labels: @json($cfLabels),
                 datasets: [
                     { label: 'Revenue', data: @json($cfRevenue), backgroundColor: 'rgba(34,197,94,0.7)', borderColor: '#22c55e', borderWidth: 1, borderRadius: 3, stack: 'a' },
-                    { label: 'Payouts', data: @json($cfPayouts), backgroundColor: 'rgba(215,164,65,0.7)', borderColor: '#D7A441', borderWidth: 1, borderRadius: 3, stack: 'b' },
+                    { label: 'Payouts', data: @json($cfPayouts), backgroundColor: 'rgba(37,99,235,0.7)', borderColor: '#2563eb', borderWidth: 1, borderRadius: 3, stack: 'b' },
                     { label: 'Refunds', data: @json($cfRefunds), backgroundColor: 'rgba(239,68,68,0.7)', borderColor: '#ef4444', borderWidth: 1, borderRadius: 3, stack: 'b' }
                 ]
             },
@@ -130,7 +130,7 @@ window.__biRun(function() {
             type: 'bar',
             data: {
                 labels: @json($ptLabels),
-                datasets: [{ label: 'Payouts ($)', data: @json($ptValues), backgroundColor: 'rgba(215,164,65,0.7)', borderColor: '#D7A441', borderWidth: 1, borderRadius: 4 }]
+                datasets: [{ label: 'Payouts ($)', data: @json($ptValues), backgroundColor: 'rgba(37,99,235,0.7)', borderColor: '#2563eb', borderWidth: 1, borderRadius: 4 }]
             },
             options: {
                 responsive: true,

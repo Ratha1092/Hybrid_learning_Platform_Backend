@@ -5,6 +5,7 @@ namespace App\Domains\Payments\Listeners;
 use App\Domains\Notifications\Notifications\AdminPaymentNotification;
 use App\Domains\Notifications\Notifications\EnrollmentConfirmedNotification;
 use App\Domains\Payments\Events\PaymentSuccessEvent;
+use App\Domains\System\Models\Setting;
 use App\Domains\Users\Models\User;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
@@ -23,7 +24,7 @@ class PaymentNotificationListener implements ShouldQueue
         foreach (User::role(['super-admin', 'admin'])->get() as $admin) {
             $admin->notify($adminNotification);
         }
-        if ($order->user) {
+        if ($order->user && Setting::get('course_purchase_notification', true)) {
             $order->user->notify(new EnrollmentConfirmedNotification($order, $courseTitle));
         }
     }

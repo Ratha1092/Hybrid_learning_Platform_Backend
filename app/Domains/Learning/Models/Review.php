@@ -15,7 +15,16 @@ class Review extends Model
         'course_id',
         'user_id',
         'rating',
-        'comment'
+        'title',
+        'comment',
+        'is_approved',
+        'is_featured',
+        'approved_by',
+    ];
+
+    protected $casts = [
+        'is_approved' => 'boolean',
+        'is_featured' => 'boolean',
     ];
 
     public function course()

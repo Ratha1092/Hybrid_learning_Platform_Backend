@@ -37,4 +37,9 @@ class PayoutRequest extends Model
     {
         return $this->belongsTo(InstructorPayoutAccount::class, 'payout_account_id');
     }
+
+    public function receipt()
+    {
+        return $this->hasOne(PayoutReceipt::class);
+    }
 }

@@ -6,6 +6,7 @@ use App\Domains\Notifications\Notifications\CourseRejectedNotification;
 use App\Domains\Payments\Models\Payment;
 use App\Domains\Payments\Services\BakongKhqrService;
 use App\Domains\System\Models\Setting;
+use App\Http\Controllers\Admin\BiPdfController;
 use App\Http\Controllers\Admin\ReportCsvController;
 use App\Http\Controllers\Admin\ReportPdfController;
 use Illuminate\Support\Facades\Route;
@@ -319,6 +320,35 @@ Route::middleware(['web', 'auth'])->post(
 )->name('admin.billing.receipts.resend');
 
 Route::middleware(['web', 'auth'])->get(
+    '/admin/finance/payout-receipts/{id}/download',
+    function (int $id) {
+        $receipt = \App\Domains\Finance\Models\PayoutReceipt::findOrFail($id);
+        abort_unless(auth()->user()->can('payouts.download'), 403);
+
+        if (!$receipt->pdf_path || !\Illuminate\Support\Facades\Storage::disk('local')->exists($receipt->pdf_path)) {
+            app(\App\Domains\Finance\Services\PayoutReceiptService::class)->regeneratePdf($receipt);
+            $receipt->refresh();
+        }
+
+        return \Illuminate\Support\Facades\Storage::disk('local')->download(
+            $receipt->pdf_path,
+            $receipt->receipt_number . '.pdf',
+            ['Content-Type' => 'application/pdf']
+        );
+    }
+)->name('admin.finance.payout-receipts.download');
+
+Route::middleware(['web', 'auth'])->post(
+    '/admin/finance/payout-receipts/{id}/resend',
+    function (int $id) {
+        abort_unless(auth()->user()->can('payouts.download'), 403);
+        $receipt = \App\Domains\Finance\Models\PayoutReceipt::findOrFail($id);
+        app(\App\Domains\Finance\Services\PayoutReceiptService::class)->sendByEmail($receipt);
+        return redirect()->back()->with('billing_success', 'Payout receipt email queued for delivery.');
+    }
+)->name('admin.finance.payout-receipts.resend');
+
+Route::middleware(['web', 'auth'])->get(
     '/admin/reports/{type}/pdf',
     [ReportPdfController::class, 'show']
 )->name('admin.reports.pdf');
@@ -327,6 +357,11 @@ Route::middleware(['web', 'auth'])->get(
     '/admin/reports/{type}/csv',
     [ReportCsvController::class, 'show']
 )->name('admin.reports.csv');
+
+Route::middleware(['web', 'auth'])->get(
+    '/admin/bi/{type}/pdf',
+    [BiPdfController::class, 'show']
+)->name('admin.bi.pdf');
 
 Route::middleware(['web', 'auth'])->get(
     '/admin/export/courses',

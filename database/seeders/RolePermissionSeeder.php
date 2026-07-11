@@ -21,7 +21,7 @@ class RolePermissionSeeder extends Seeder
         'payments'   => ['view', 'create', 'update', 'delete'],
         'invoices'   => ['view', 'download', 'resend'],
         'receipts'   => ['view', 'download', 'resend'],
-        'payouts'    => ['view', 'create', 'update', 'delete'],
+        'payouts'    => ['view', 'create', 'update', 'delete', 'download'],
         'payout_accounts' => ['view', 'approve', 'reject'],
         'wallets'    => ['view', 'update', 'view-own'],
         'analytics'  => ['view', 'view-own'],
@@ -39,7 +39,7 @@ class RolePermissionSeeder extends Seeder
     private const ROLE_PERMISSIONS = [
         'admin' => ['users.*', 'instructor_verifications.*', 'courses.*', 'orders.*', 'coupons.*', 'analytics.view', 'reviews.*', 'settings.*','reports.export', 'reports.view_executive', 'reports.view_revenue', 'reports.view_payment',    'reports.view_payout', 'reports.view_course_intelligence', 'reports.view_instructor_intelligence','reports.view_learning_intelligence', 'reports.view_user', 'reports.schedule','system.view_security', 'invoices.*', 'receipts.*',],
         'finance-manager' => ['payments.*', 'invoices.*', 'receipts.*', 'wallets.*', 'payouts.*', 'payout_accounts.*', 'coupons.*', 'analytics.view', 'reports.export','reports.view_revenue', 'reports.view_payment', 'reports.view_payout', 'reports.schedule', 'settings_finance.*',],
-        'accountant' => ['payments.view', 'invoices.view', 'invoices.download', 'receipts.view', 'receipts.download', 'wallets.view', 'payouts.view', 'payout_accounts.view', 'payout_accounts.approve', 'payout_accounts.reject', 'reports.export','reports.view_revenue', 'reports.view_payment', 'reports.view_payout',],
+        'accountant' => ['payments.view', 'invoices.view', 'invoices.download', 'receipts.view', 'receipts.download', 'wallets.view', 'payouts.view', 'payouts.download', 'payout_accounts.view', 'payout_accounts.approve', 'payout_accounts.reject', 'reports.export','reports.view_revenue', 'reports.view_payment', 'reports.view_payout',],
         'content-manager' => ['courses.*', 'categories.*', 'tags.*', 'reviews.*','reports.view_course_intelligence', 'reports.view_instructor_intelligence', 'reports.view_learning_intelligence',],
         'moderator' => ['courses.approve', 'courses.reject', 'reviews.approve', 'reviews.reject', 'instructor_verifications.view', 'instructor_verifications.approve', 'instructor_verifications.reject',],
         'support-staff' => ['users.view', 'users.update', 'orders.view', 'reviews.view',],

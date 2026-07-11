@@ -6,6 +6,7 @@ use App\Domains\Auth\Services\ActivityLogService;
 use App\Domains\Finance\Models\InstructorWallet;
 use App\Domains\Finance\Models\PayoutRequest;
 use App\Domains\Finance\Models\WalletTransaction;
+use App\Domains\Finance\Services\PayoutReceiptService;
 use App\Domains\Notifications\Notifications\PayoutApprovedNotification;
 use App\Domains\Notifications\Notifications\PayoutRejectedNotification;
 use App\Domains\System\Models\Setting;
@@ -97,17 +98,22 @@ class Payouts extends Page
 
         ActivityLogService::logChange('payout.approved', $payout);
 
+        $receipt = app(PayoutReceiptService::class)->issue($payout->fresh());
+
         if (Setting::get('payout_notification', true)) {
             $payout->instructor?->notify(new PayoutApprovedNotification(
                 $payout->id,
                 (float) $payout->amount,
-                $payout->currency
+                $payout->currency,
+                $receipt->id
             ));
+
+            app(PayoutReceiptService::class)->sendByEmail($receipt);
         }
 
         Notification::make()
             ->title('Payout Approved')
-            ->body('The payout request has been marked as approved.')
+            ->body('The payout request has been marked as approved and a receipt has been issued.')
             ->success()
             ->send();
     }
@@ -188,7 +194,7 @@ class Payouts extends Page
             ['key' => 'rejected', 'label' => 'Rejected', 'count' => $base()->where('status', 'rejected')->count(), 'color' => '#f87171'],
         ];
 
-        $query = PayoutRequest::with(['instructor:id,name,email', 'payoutAccount']);
+        $query = PayoutRequest::with(['instructor:id,name,email', 'payoutAccount', 'receipt:id,payout_request_id,receipt_number']);
 
         if ($tab !== 'all' && in_array($tab, ['pending', 'approved', 'rejected'])) {
             $query->where('status', $tab);
@@ -208,7 +214,8 @@ class Payouts extends Page
         $payouts    = $query->skip(($curPage - 1) * $perPage)->take($perPage)->get();
 
         $canUpdate = PanelAccess::can('payouts.update');
+        $canDownload = PanelAccess::can('payouts.download');
 
-        return compact('tabs', 'tab', 'search', 'payouts', 'total', 'totalPages', 'curPage', 'perPage', 'canUpdate');
+        return compact('tabs', 'tab', 'search', 'payouts', 'total', 'totalPages', 'curPage', 'perPage', 'canUpdate', 'canDownload');
     }
 }

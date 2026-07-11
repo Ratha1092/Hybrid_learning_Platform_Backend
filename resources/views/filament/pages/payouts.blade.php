@@ -78,9 +78,10 @@ html:not(.dark) .po {
 .po-act-btn-reject { color:#f87171; }
 .po-act-btn-reject:hover { background:rgba(248,113,113,.12) !important; border-color:rgba(248,113,113,.3) !important; color:#f87171 !important; }
 
-.po-modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:9999; align-items:center; justify-content:center; }
+.po-modal-overlay { display:none; position:fixed; inset:0; background:rgba(15,23,42,.35); backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px); z-index:9999; align-items:center; justify-content:center; padding:20px; }
 .po-modal-overlay.open { display:flex; }
-.po-modal { background:var(--p1); border:1px solid var(--bd2); border-radius:14px; padding:26px; width:100%; max-width:460px; box-shadow:0 20px 60px rgba(0,0,0,.4); }
+@keyframes poModalIn { from{opacity:0;transform:translateY(8px) scale(.98)} to{opacity:1;transform:none} }
+.po-modal { background:var(--p1); border:1px solid var(--bd2); border-radius:14px; padding:26px; width:100%; max-width:460px; box-shadow:0 20px 60px rgba(0,0,0,.35); animation:poModalIn .18s cubic-bezier(.16,1,.3,1) forwards; }
 .po-modal h3 { font-size:15px; font-weight:750; color:var(--t1); margin-bottom:6px; }
 .po-modal p { font-size:12.5px; color:var(--t2); margin-bottom:16px; }
 .po-modal textarea { width:100%; background:var(--p2); border:1px solid var(--bd2); border-radius:9px; padding:10px 13px; color:var(--t1); font-size:13px; font-family:inherit; resize:vertical; min-height:90px; outline:none; }
@@ -161,7 +162,7 @@ html:not(.dark) .po {
                     <th>Source</th>
                     <th>Status</th>
                     <th>Requested</th>
-                    @if($canUpdate)<th style="text-align:right">Actions</th>@endif
+                    @if($canUpdate || $canDownload)<th style="text-align:right">Actions</th>@endif
                 </tr>
             </thead>
             <tbody>
@@ -208,10 +209,10 @@ html:not(.dark) .po {
 
                     <td><span class="po-date">{{ $payout->created_at?->format('M d, Y') }}</span></td>
 
-                    @if($canUpdate)
+                    @if($canUpdate || $canDownload)
                     <td onclick="event.stopPropagation()">
                         <div class="po-actions">
-                            @if($payout->status === 'pending')
+                            @if($canUpdate && $payout->status === 'pending')
                             <button onclick="openApproveModal({{ $payout->id }}, '{{ addslashes($payout->instructor?->name) }}')"
                                     class="po-act-btn po-act-btn-approve" title="Approve">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
@@ -225,13 +226,21 @@ html:not(.dark) .po {
                                 </svg>
                             </button>
                             @endif
+                            @if($canDownload && $payout->receipt)
+                            <a href="{{ route('admin.finance.payout-receipts.download', $payout->receipt->id) }}"
+                               class="po-act-btn" title="Download Receipt">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/>
+                                </svg>
+                            </a>
+                            @endif
                         </div>
                     </td>
                     @endif
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="{{ $canUpdate ? 9 : 8 }}">
+                    <td colspan="{{ ($canUpdate || $canDownload) ? 9 : 8 }}">
                         <div class="po-empty">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.625c.621 0 1.125.504 1.125 1.125v.375M3.75 4.5h16.5"/>

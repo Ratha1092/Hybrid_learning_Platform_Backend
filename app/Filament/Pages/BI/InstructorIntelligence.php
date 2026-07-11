@@ -11,6 +11,7 @@ use App\Domains\Orders\Enums\OrderPaymentStatus;
 use App\Domains\Orders\Models\Order;
 use App\Domains\Orders\Models\OrderItem;
 use App\Domains\Users\Models\User;
+use App\Support\Concerns\HasBiCsvExport;
 use App\Support\Concerns\HasDateRangePresets;
 use App\Support\PanelAccess;
 use BackedEnum;
@@ -19,6 +20,7 @@ use Illuminate\Support\Facades\Cache;
 
 class InstructorIntelligence extends Page
 {
+    use HasBiCsvExport;
     use HasDateRangePresets;
 
     protected string $view = 'filament.pages.bi.instructor-intelligence';
@@ -52,6 +54,22 @@ class InstructorIntelligence extends Page
     public static function canAccess(): bool
     {
         return PanelAccess::can('bi.view_instructors');
+    }
+
+    public static function pdfView(): string
+    {
+        return 'bi.pdf.instructor-intelligence';
+    }
+
+    public static function pdfViewData(array $filters): array
+    {
+        $preset = $filters['preset'] ?? 'this_month';
+
+        return array_merge([
+            'siteName'       => \App\Domains\System\Models\Setting::get('site_name', config('app.name')),
+            'title'          => 'Instructor Intelligence Report',
+            'filtersSummary' => static::dateRangePresetOptions()[$preset] ?? ucfirst($preset),
+        ], static::buildPageData($filters));
     }
 
     public function getViewData(): array

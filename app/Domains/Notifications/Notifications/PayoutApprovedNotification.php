@@ -17,6 +17,7 @@ class PayoutApprovedNotification extends BaseNotification
         public readonly int    $payoutRequestId,
         public readonly float  $amount,
         public readonly string $currency,
+        public readonly ?int   $receiptId = null,
     ) {}
 
     public function via(object $notifiable): array
@@ -32,6 +33,7 @@ class PayoutApprovedNotification extends BaseNotification
             'type'        => NotificationType::FINANCE->value,
             'link'        => "/instructor/finance/payouts/{$this->payoutRequestId}",
             'action_text' => 'View Payout',
+            'receipt_id'  => $this->receiptId,
         ]);
     }
 
@@ -43,6 +45,7 @@ class PayoutApprovedNotification extends BaseNotification
             'type' => NotificationType::FINANCE->value,
             'link' => "/instructor/finance/payouts/{$this->payoutRequestId}",
             'action_text' => 'View Payout',
+            'receipt_id' => $this->receiptId,
         ];
     }
 }

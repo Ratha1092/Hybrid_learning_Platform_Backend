@@ -64,6 +64,7 @@
             <h1>Operational Intelligence ⚙️</h1>
             <p>Live system state — pending reviews, failed payments, queue health, and alerts.</p>
         </div>
+        @include('filament.pages.bi._bi-actions', ['biKey' => 'ops'])
     </div>
 
     {{-- Alert summary cards --}}
@@ -85,7 +86,7 @@
         </div>
         <div class="bi-alert-row {{ $kpis['openRefunds'] > 0 ? 'warn' : 'ok' }}">
             <span class="bi-alert-icon">{{ $kpis['openRefunds'] > 0 ? '↩️' : '✅' }}</span>
-            <span class="bi-alert-msg">Open Refunds (7 days)</span>
+            <span class="bi-alert-msg">Open Refunds ({{ $periodLabel }})</span>
             <span class="bi-alert-val">{{ $kpis['openRefunds'] }}</span>
         </div>
         <div class="bi-alert-row {{ $kpis['failedJobs'] > 0 ? 'err' : 'ok' }}">
@@ -101,7 +102,7 @@
     </div>
 
     <div class="bi-kpi-grid">
-        <div class="bi-kpi"><div class="bi-kpi-label">Avg Order Processing</div><div class="bi-kpi-value">{{ $kpis['avgProcessingMins'] }}m</div><div class="bi-kpi-sub">Last 7 days average</div></div>
+        <div class="bi-kpi"><div class="bi-kpi-label">Avg Order Processing</div><div class="bi-kpi-value">{{ $kpis['avgProcessingMins'] }}m</div><div class="bi-kpi-sub">{{ $periodLabel }} average</div></div>
     </div>
 
     <div class="bi-charts-3">
@@ -158,7 +159,7 @@
 
     <div class="bi-grid-2">
         <div class="bi-table-card">
-            <h3>Failed Payments (Last 24h)</h3>
+            <h3>Failed Payments ({{ $periodLabel }})</h3>
             <table class="bi-table">
                 <thead><tr><th>Order</th><th>Amount</th><th>Gateway</th><th>Time</th></tr></thead>
                 <tbody>
@@ -170,7 +171,7 @@
                         <td style="color:var(--t2)">{{ $pay->created_at?->diffForHumans() ?? '—' }}</td>
                     </tr>
                     @empty
-                    <tr><td colspan="4" style="text-align:center;color:var(--ok);padding:20px">No failed payments in 24h</td></tr>
+                    <tr><td colspan="4" style="text-align:center;color:var(--ok);padding:20px">No failed payments in this period</td></tr>
                     @endforelse
                 </tbody>
             </table>

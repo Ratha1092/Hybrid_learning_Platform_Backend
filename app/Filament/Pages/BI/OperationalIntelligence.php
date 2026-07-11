@@ -11,6 +11,7 @@ use App\Domains\Payments\Enums\PaymentStatus;
 use App\Domains\Payments\Models\Payment;
 use App\Domains\Users\Models\InstructorVerification;
 use App\Domains\Learning\Models\Review;
+use App\Support\Concerns\HasBiCsvExport;
 use App\Support\Concerns\HasDateRangePresets;
 use App\Support\PanelAccess;
 use BackedEnum;
@@ -22,6 +23,7 @@ use Illuminate\Support\Facades\Queue;
 
 class OperationalIntelligence extends Page
 {
+    use HasBiCsvExport;
     use HasDateRangePresets;
 
     protected string $view = 'filament.pages.bi.operational-intelligence';
@@ -38,15 +40,38 @@ class OperationalIntelligence extends Page
         return PanelAccess::can('bi.view_operations');
     }
 
+    public static function pdfView(): string
+    {
+        return 'bi.pdf.operational-intelligence';
+    }
+
+    public static function pdfViewData(array $filters): array
+    {
+        $data = (new static())->getViewData();
+
+        return array_merge([
+            'siteName'       => \App\Domains\System\Models\Setting::get('site_name', config('app.name')),
+            'title'          => 'Operational Intelligence Report',
+            'filtersSummary' => $data['periodLabel'] ?? '',
+        ], $data);
+    }
+
     public function getViewData(): array
     {
-        return Cache::remember('bi.operations', 60, function () {
+        $preset = request('preset', 'this_month');
+        [$from, $to] = static::resolvePreset($preset, 'this_month', request('date_from'), request('date_to'));
+
+        $fromKey  = $from ? $from->format('Ymd') : 'null';
+        $toKey    = $to   ? $to->format('Ymd')   : 'null';
+        $cacheKey = "bi.operations.{$preset}.{$fromKey}.{$toKey}";
+
+        $data = Cache::remember($cacheKey, 60, function () use ($from, $to) {
             // KPIs — live system state
             $pendingCourseReviews  = Course::where('status', Course::STATUS_PENDING)->count();
             $pendingVerifications  = InstructorVerification::pending()->count();
             $failedPaymentsToday   = Payment::where('status', PaymentStatus::Failed->value)
                 ->whereDate('created_at', today())->count();
-            $openRefunds           = Refund::whereDate('created_at', '>=', now()->subDays(7))->count();
+            $openRefunds = (int) static::applyDateRange(Refund::query(), 'created_at', $from, $to)->count();
             $failedJobs = DB::table('failed_jobs')->count();
             try {
                 $queueJobs = Queue::size();
@@ -54,11 +79,11 @@ class OperationalIntelligence extends Page
                 $queueJobs = 0;
             }
 
-            // Avg order processing time (last 7 days, paid orders)
-            $avgProcessingMins = round((float) Order::where('payment_status', OrderPaymentStatus::Paid->value)
-                ->where('paid_at', '>=', now()->subDays(7))
-                ->whereNotNull('paid_at')
-                ->selectRaw("AVG(EXTRACT(EPOCH FROM (paid_at - created_at)) / 60) as avg_mins")
+            // Avg order processing time (selected period, paid orders)
+            $avgProcessingMins = round((float) static::applyDateRange(
+                Order::where('payment_status', OrderPaymentStatus::Paid->value)->whereNotNull('paid_at'),
+                'paid_at', $from, $to
+            )->selectRaw("AVG(EXTRACT(EPOCH FROM (paid_at - created_at)) / 60) as avg_mins")
                 ->value('avg_mins') ?? 0, 1);
 
             // Order status breakdown
@@ -98,9 +123,9 @@ class OperationalIntelligence extends Page
             $recentRefunds = Refund::with(['order' => fn ($q) => $q->select('id', 'order_number', 'customer_name')])
                 ->orderByDesc('created_at')->take(10)->get();
 
-            $failedPayments = Payment::where('status', PaymentStatus::Failed->value)
-                ->where('created_at', '>=', now()->subDay())
-                ->with('order:id,order_number')->orderByDesc('created_at')->take(15)->get();
+            $failedPayments = static::applyDateRange(
+                Payment::where('status', PaymentStatus::Failed->value), 'created_at', $from, $to
+            )->with('order:id,order_number')->orderByDesc('created_at')->take(15)->get();
 
             $verificationQueue = InstructorVerification::pending()
                 ->with('user:id,name,email')->orderByDesc('created_at')->take(10)->get();
@@ -131,5 +156,12 @@ class OperationalIntelligence extends Page
                 'failedJobsList'       => $failedJobsList,
             ];
         });
+
+        return array_merge([
+            'activePreset'   => $preset,
+            'activeDateFrom' => $from?->format('Y-m-d') ?? '',
+            'activeDateTo'   => $to?->format('Y-m-d') ?? '',
+            'periodLabel'    => static::dateRangePresetOptions()[$preset] ?? 'Selected Period',
+        ], $data);
     }
 }

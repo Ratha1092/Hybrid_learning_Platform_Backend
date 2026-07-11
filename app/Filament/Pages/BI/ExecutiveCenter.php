@@ -4,14 +4,13 @@ namespace App\Filament\Pages\BI;
 
 use App\Domains\Analytics\Models\DailyMetric;
 use App\Domains\Courses\Models\Course;
-
-
 use App\Domains\Learning\Models\Enrollment;
 use App\Domains\Orders\Enums\OrderPaymentStatus;
 use App\Domains\Orders\Models\Order;
 use App\Domains\Orders\Models\OrderItem;
 use App\Domains\Orders\Models\Refund;
 use App\Domains\Users\Models\User;
+use App\Support\Concerns\HasBiCsvExport;
 use App\Support\Concerns\HasDateRangePresets;
 use App\Support\PanelAccess;
 use BackedEnum;
@@ -21,6 +20,7 @@ use Illuminate\Support\Facades\Cache;
 
 class ExecutiveCenter extends Page
 {
+    use HasBiCsvExport;
     use HasDateRangePresets;
 
     protected string $view = 'filament.pages.bi.executive-center';
@@ -57,6 +57,22 @@ class ExecutiveCenter extends Page
     public static function canAccess(): bool
     {
         return PanelAccess::can('bi.view_executive');
+    }
+
+    public static function pdfView(): string
+    {
+        return 'bi.pdf.executive-center';
+    }
+
+    public static function pdfViewData(array $filters): array
+    {
+        $preset = $filters['preset'] ?? 'this_month';
+
+        return array_merge([
+            'siteName'       => \App\Domains\System\Models\Setting::get('site_name', config('app.name')),
+            'title'          => 'Executive Center Report',
+            'filtersSummary' => static::dateRangePresetOptions()[$preset] ?? ucfirst($preset),
+        ], static::buildPageData($filters));
     }
 
     public function getViewData(): array

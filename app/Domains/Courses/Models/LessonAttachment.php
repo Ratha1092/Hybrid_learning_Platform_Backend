@@ -28,6 +28,6 @@ class LessonAttachment extends Model
 
     public function getFileUrlAttribute(): string
     {
-        return \Storage::disk(config('filament.default_filesystem_disk'))->url($this->file_path);
+        return \Storage::disk('r2-private')->temporaryUrl($this->file_path, now()->addMinutes(30));
     }
 }

@@ -57,7 +57,7 @@
 
         <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:18px;">
             <button type="button" x-on:click="open = false" style="padding:8px 14px;border-radius:8px;font-size:12px;font-weight:700;border:1px solid var(--sm-border);background:var(--sm-panel-2);color:var(--sm-text);cursor:pointer;">Cancel</button>
-            <button type="button" wire:click="scheduleReport" x-on:click="open = false" style="padding:8px 14px;border-radius:8px;font-size:12px;font-weight:700;border:none;background:#D7A441;color:#fff;cursor:pointer;">Schedule</button>
+            <button type="button" wire:click="scheduleReport" x-on:click="open = false" style="padding:8px 14px;border-radius:8px;font-size:12px;font-weight:700;border:none;background:#2563eb;color:#fff;cursor:pointer;">Schedule</button>
         </div>
     </div>
 </div>

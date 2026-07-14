@@ -58,6 +58,8 @@ class LessonForm
                     ->schema([
                         FileUpload::make('video_path')
                             ->label('Video File')
+                            ->disk('r2-private')
+                            ->visibility('private')
                             ->directory('lessons/videos')
                             ->acceptedFileTypes(['video/*'])
                             ->maxSize(512 * 1024)
@@ -131,6 +133,8 @@ class LessonForm
                     ->schema([
                         FileUpload::make('attachment')
                             ->label('Document File')
+                            ->disk('r2-private')
+                            ->visibility('private')
                             ->directory('lessons/documents')
                             ->acceptedFileTypes([
                                 'application/pdf',
@@ -157,6 +161,8 @@ class LessonForm
                     ->hidden(fn (Get $get): bool => !in_array($get('type'), ['video', 'article']))
                     ->schema([
                         FileUpload::make('attachment')
+                            ->disk('r2-private')
+                            ->visibility('private')
                             ->directory('lessons/attachments')
                             ->acceptedFileTypes([
                                 'application/pdf',

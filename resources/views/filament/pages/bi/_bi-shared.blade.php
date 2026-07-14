@@ -171,7 +171,7 @@ html:not(.dark) .bi {
 .bi-health {
     font-size: 32px;
     font-weight: 900;
-    background: linear-gradient(135deg, var(--acc), #f59e0b);
+    background: linear-gradient(135deg, var(--acc), #60a5fa);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }

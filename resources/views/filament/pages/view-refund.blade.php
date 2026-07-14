@@ -22,7 +22,7 @@
     --bd:rgba(15,23,42,.08);--bd2:rgba(15,23,42,.14);
     --t1:#0f172a;--t2:#64748b;--t3:#cbd5e1;
     --sh:0 1px 4px rgba(15,23,42,.06),0 4px 16px rgba(15,23,42,.06);
-    --accent:#ea580c;--radius:14px;
+    --accent:#2563eb;--radius:14px;
     color:var(--t1);
 }
 html.dark .rfv{

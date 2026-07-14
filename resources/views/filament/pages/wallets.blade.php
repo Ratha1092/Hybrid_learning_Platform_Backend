@@ -1,5 +1,5 @@
 @php
-    $accent = '#ea580c';
+    $accent = '#2563eb';
 @endphp
 
 <div class="wl" id="wl-wallets" style="--accent:{{ $accent }};">

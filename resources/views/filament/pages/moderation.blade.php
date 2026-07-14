@@ -1,7 +1,7 @@
 @php
-    $accent = '#ea580c';
+    $accent = '#2563eb';
 
-    $activeTab = collect($tabs ?? [])->firstWhere('key', $tab) ?? ($tabs[0] ?? ['key' => 'all', 'label' => 'All', 'count' => 0, 'color' => '#ea580c']);
+    $activeTab = collect($tabs ?? [])->firstWhere('key', $tab) ?? ($tabs[0] ?? ['key' => 'all', 'label' => 'All', 'count' => 0, 'color' => '#2563eb']);
 
     $typeStyle = fn($type) => match($type) {
         'course'       => ['bg' => 'rgba(248,113,113,.12)', 'color' => '#f87171', 'dot' => '#f87171'],

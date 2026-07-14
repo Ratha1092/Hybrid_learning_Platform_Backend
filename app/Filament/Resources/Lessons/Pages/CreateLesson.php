@@ -70,6 +70,8 @@ class CreateLesson extends CreateRecord
             ->components([
                 FileUpload::make('video_path')
                     ->label('Video File')
+                    ->disk('r2-private')
+                    ->visibility('private')
                     ->directory('lessons/videos')
                     ->acceptedFileTypes(['video/*'])
                     ->maxSize(512 * 1024),
@@ -129,6 +131,8 @@ class CreateLesson extends CreateRecord
             ->components([
                 FileUpload::make('attachment')
                     ->label('Document File')
+                    ->disk('r2-private')
+                    ->visibility('private')
                     ->directory('lessons/documents')
                     ->acceptedFileTypes([
                         'application/pdf',
@@ -155,6 +159,8 @@ class CreateLesson extends CreateRecord
             ->statePath('data')
             ->components([
                 FileUpload::make('attachment')
+                    ->disk('r2-private')
+                    ->visibility('private')
                     ->directory('lessons/attachments')
                     ->acceptedFileTypes([
                         'application/pdf',

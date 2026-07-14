@@ -18,7 +18,7 @@
     font-size:13px; line-height:1.5;
     padding-bottom:48px;
     display:grid; gap:20px;
-    --accent:#d97706;
+    --accent:#2563eb;
     --bg:#0f172a; --p1:#1e293b; --p2:#263245;
     --bd:rgba(255,255,255,.07); --bd2:rgba(255,255,255,.13);
     --t1:#e2e8f0; --t2:#64748b; --t3:#334155;

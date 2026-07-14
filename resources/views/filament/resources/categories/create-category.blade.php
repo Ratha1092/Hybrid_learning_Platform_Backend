@@ -9,7 +9,7 @@
     --bd:rgba(255,255,255,.07);--bd2:rgba(255,255,255,.13);
     --t1:#e2e8f0;--t2:#64748b;--t3:#334155;
     --sh:0 4px 24px rgba(0,0,0,.28);
-    --accent:#f59e0b;--accent2:#d97706;
+    --accent:#3b82f6;--accent2:#2563eb;
     color:var(--t1);
 }
 html:not(.dark) .ec{
@@ -36,19 +36,19 @@ html:not(.dark) .ec{
 
 /* Intro banner */
 .ec-intro{background:var(--p1);border:1px solid var(--bd);border-radius:14px;box-shadow:var(--sh);padding:24px 28px;display:flex;align-items:center;gap:20px;flex-wrap:wrap}
-.ec-intro-icon{width:64px;height:64px;border-radius:16px;display:grid;place-items:center;flex-shrink:0;background:rgba(245,158,11,.12);color:var(--accent)}
+.ec-intro-icon{width:64px;height:64px;border-radius:16px;display:grid;place-items:center;flex-shrink:0;background:rgba(59,130,246,.12);color:var(--accent)}
 .ec-intro-icon svg{width:28px;height:28px}
 .ec-intro-body{flex:1;min-width:0}
 .ec-intro-title{font-size:18px;font-weight:780;color:var(--t1);letter-spacing:-.015em}
 .ec-intro-desc{font-size:12px;color:var(--t2);margin-top:4px;line-height:1.6}
 .ec-intro-steps{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap}
-.ec-step{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;border:1px solid;background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.2);color:var(--accent)}
+.ec-step{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;border:1px solid;background:rgba(59,130,246,.08);border-color:rgba(59,130,246,.2);color:var(--accent)}
 .ec-step-num{width:16px;height:16px;border-radius:50%;background:var(--accent);color:#fff;font-size:9px;font-weight:800;display:grid;place-items:center;flex-shrink:0}
 
 /* Card */
 .ec-card{background:var(--p1);border:1px solid var(--bd);border-radius:14px;box-shadow:var(--sh);overflow:hidden}
 .ec-card-head{padding:18px 22px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:12px}
-.ec-card-icon{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;background:rgba(245,158,11,.1);color:var(--accent);flex-shrink:0}
+.ec-card-icon{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;background:rgba(59,130,246,.1);color:var(--accent);flex-shrink:0}
 .ec-card-icon svg{width:16px;height:16px}
 .ec-card-title{font-size:13px;font-weight:750;color:var(--t1)}
 .ec-card-sub{font-size:11.5px;color:var(--t2);margin-top:2px}
@@ -58,7 +58,7 @@ html:not(.dark) .ec{
 .ec-label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--t2);margin-bottom:6px}
 .ec-label span{color:#ef4444;margin-left:2px}
 .ec-input{width:100%;background:var(--p2);border:1px solid var(--bd2);border-radius:9px;padding:10px 13px;font-size:13.5px;font-weight:550;color:var(--t1);font-family:inherit;outline:none;transition:border-color .15s,box-shadow .15s;-webkit-appearance:none}
-.ec-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(245,158,11,.13)}
+.ec-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(59,130,246,.13)}
 textarea.ec-input{resize:vertical;min-height:88px}
 .ec-input-icon-wrap{position:relative}
 .ec-input-prefix{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--t2);font-size:12px;pointer-events:none;font-family:ui-monospace,monospace}

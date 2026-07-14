@@ -17,7 +17,7 @@
     --bd:rgba(255,255,255,.07);--bd2:rgba(255,255,255,.13);
     --t1:#e2e8f0;--t2:#64748b;--t3:#334155;
     --sh:0 4px 24px rgba(0,0,0,.28);
-    --accent:#f59e0b;--accent2:#d97706;
+    --accent:#3b82f6;--accent2:#2563eb;
     color:var(--t1);
 }
 html:not(.dark) .ec{
@@ -30,12 +30,12 @@ html:not(.dark) .ec{
 .eca{opacity:0;animation:ecUp .38s cubic-bezier(.16,1,.3,1) forwards}
 .ec1{animation-delay:.04s}.ec2{animation-delay:.09s}.ec3{animation-delay:.14s}.ec4{animation-delay:.19s}.ec5{animation-delay:.24s}
 
-/* ── Header ── */
+/* Header */
 .ec-header{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding-bottom:20px;border-bottom:1px solid var(--bd)}
 .ec-page-title{font-size:clamp(22px,2.6vw,30px);font-weight:800;letter-spacing:-.02em;color:var(--t1)}
 .ec-header-actions{display:flex;align-items:center;gap:8px}
 
-/* ── Buttons ── */
+/* Buttons */
 .ec-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;text-decoration:none;border:none;font-family:inherit;transition:all .15s;white-space:nowrap}
 .ec-btn svg{width:14px;height:14px;flex-shrink:0}
 .ec-btn-gray{background:var(--p1);border:1px solid var(--bd2);color:var(--t2)}.ec-btn-gray:hover{color:var(--t1);border-color:var(--accent)}
@@ -43,18 +43,18 @@ html:not(.dark) .ec{
 .ec-btn-outline{background:transparent;border:1px solid var(--bd2);color:var(--t2)}.ec-btn-outline:hover{border-color:#ef4444;color:#ef4444}
 .ec-btn:disabled{opacity:.5;cursor:not-allowed}
 
-/* ── Card ── */
+/* Card */
 .ec-card{background:var(--p1);border:1px solid var(--bd);border-radius:14px;box-shadow:var(--sh);overflow:hidden}
 .ec-card-head{padding:18px 22px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:12px}
-.ec-card-icon{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;background:rgba(245,158,11,.12);color:var(--accent);flex-shrink:0}
+.ec-card-icon{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;background:rgba(59,130,246,.12);color:var(--accent);flex-shrink:0}
 .ec-card-icon svg{width:18px;height:18px}
 .ec-card-title{font-size:13px;font-weight:750;color:var(--t1)}
 .ec-card-sub{font-size:11.5px;color:var(--t2);margin-top:2px}
 .ec-card-body{padding:22px}
 
-/* ── Hero ── */
+/* Hero */
 .ec-hero{background:var(--p1);border:1px solid var(--bd);border-radius:14px;box-shadow:var(--sh);padding:24px 28px;display:flex;align-items:center;gap:22px;flex-wrap:wrap}
-.ec-hero-icon{width:72px;height:72px;border-radius:18px;display:grid;place-items:center;flex-shrink:0;background:rgba(245,158,11,.14)}
+.ec-hero-icon{width:72px;height:72px;border-radius:18px;display:grid;place-items:center;flex-shrink:0;background:rgba(59,130,246,.14)}
 .ec-hero-icon svg{width:32px;height:32px;color:var(--accent)}
 .ec-hero-img{width:72px;height:72px;border-radius:18px;object-fit:cover;border:2px solid var(--bd2);flex-shrink:0}
 .ec-hero-info{flex:1;min-width:0}
@@ -70,14 +70,14 @@ html:not(.dark) .ec{
 .ec-stat-val{font-size:22px;font-weight:800;color:var(--t1)}
 .ec-stat-label{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--t2);margin-top:2px}
 
-/* ── Fields ── */
+/* Fields */
 .ec-grid{display:grid;gap:18px}
 .ec-grid-2{grid-template-columns:1fr 1fr}
 @media(max-width:560px){.ec-grid-2{grid-template-columns:1fr}}
 .ec-label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--t2);margin-bottom:6px}
 .ec-label span{color:#ef4444;margin-left:2px}
 .ec-input{width:100%;background:var(--p2);border:1px solid var(--bd2);border-radius:9px;padding:10px 13px;font-size:13.5px;font-weight:550;color:var(--t1);font-family:inherit;outline:none;transition:border-color .15s,box-shadow .15s;-webkit-appearance:none}
-.ec-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(245,158,11,.13)}
+.ec-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(59,130,246,.13)}
 html.dark .ec-input:hover{border-color:var(--accent)}
 textarea.ec-input{resize:vertical;min-height:88px}
 .ec-input-icon-wrap{position:relative}
@@ -86,7 +86,7 @@ textarea.ec-input{resize:vertical;min-height:88px}
 .ec-error{display:block;font-size:11.5px;color:#ef4444;margin-top:5px}
 .ec-helper{font-size:11.5px;color:var(--t2);margin-top:5px}
 
-/* ── Toggle ── */
+/* Toggle */
 .ec-toggle-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 0}
 .ec-toggle-info .ec-toggle-title{font-size:13px;font-weight:650;color:var(--t1)}
 .ec-toggle-info .ec-toggle-desc{font-size:11.5px;color:var(--t2);margin-top:2px}
@@ -97,23 +97,23 @@ textarea.ec-input{resize:vertical;min-height:88px}
 .ec-toggle-thumb{position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.2);transition:transform .2s;pointer-events:none}
 .ec-toggle-wrap input:checked ~ .ec-toggle-track .ec-toggle-thumb{transform:translateX(20px)}
 
-/* ── Image preview ── */
+/* Image preview */
 .ec-image-preview{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:18px}
 .ec-image-thumb{width:80px;height:80px;border-radius:10px;object-fit:cover;border:2px solid var(--bd2);flex-shrink:0}
 .ec-image-meta{flex:1;min-width:0}
 .ec-image-name{font-size:13px;font-weight:650;color:var(--t1)}
 .ec-image-hint{font-size:11.5px;color:var(--t2);margin-top:3px}
 
-/* ── Filament imageForm: strip field label chrome, keep filepond ── */
+/* Filament imageForm: strip field label chrome, keep filepond */
 .ec-fi-wrap .fi-fo-field-wrp-label{font-size:11px!important;font-weight:700!important;text-transform:uppercase;letter-spacing:.05em;color:var(--t2)!important;margin-bottom:8px}
 .ec-fi-wrap .fi-fo-field-wrp{background:transparent!important;border:none!important;padding:0!important;box-shadow:none!important}
 
-/* ── Save bar ── */
+/* Save bar */
 .ec-save-bar{display:flex;align-items:center;gap:10px;padding-top:20px;border-top:1px solid var(--bd)}
 @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 </style>
 
-{{-- ── Notifications ── --}}
+{{-- Notifications --}}
 @if (session('success'))
 <div class="ec-card eca ec1" style="border-color:rgba(52,211,153,.25);background:rgba(52,211,153,.06)">
     <div style="display:flex;align-items:center;gap:10px;padding:14px 18px;color:#059669;font-weight:600;font-size:13px">
@@ -123,7 +123,7 @@ textarea.ec-input{resize:vertical;min-height:88px}
 </div>
 @endif
 
-{{-- ── Header ── --}}
+{{-- Header --}}
 <div class="ec-header eca ec1">
     <h1 class="ec-page-title">Edit Category</h1>
     <div class="ec-header-actions">
@@ -138,7 +138,7 @@ textarea.ec-input{resize:vertical;min-height:88px}
     </div>
 </div>
 
-{{-- ── Hero ── --}}
+{{-- Hero --}}
 <div class="ec-hero eca ec2">
     @if ($imageUrl)
         <img src="{{ $imageUrl }}" alt="{{ $cat->name }}" class="ec-hero-img">
@@ -183,7 +183,7 @@ textarea.ec-input{resize:vertical;min-height:88px}
     </div>
 </div>
 
-{{-- ── Details card ── --}}
+{{-- Details card --}}
 <div class="ec-card eca ec3">
     <div class="ec-card-head">
         <div class="ec-card-icon">
@@ -291,7 +291,7 @@ textarea.ec-input{resize:vertical;min-height:88px}
     </div>
 </div>
 
-{{-- ── Image card ── --}}
+{{-- Image card --}}
 <div class="ec-card eca ec4">
     <div class="ec-card-head">
         <div class="ec-card-icon">
@@ -320,7 +320,7 @@ textarea.ec-input{resize:vertical;min-height:88px}
     </div>
 </div>
 
-{{-- ── Save bar ── --}}
+{{-- Save bar --}}
 <div class="ec-save-bar eca ec5">
     <button
         type="button"

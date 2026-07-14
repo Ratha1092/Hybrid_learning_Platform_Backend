@@ -1,6 +1,7 @@
 @php
     $createUrl = route('filament.admin.resources.categories.create');
     $editUrl   = fn($cat) => route('filament.admin.resources.categories.edit', ['record' => $cat->id]);
+    $viewUrl   = fn($cat) => route('filament.admin.pages.category-courses') . '?id=' . $cat->id;
 @endphp
 
 <div>
@@ -231,7 +232,7 @@ html.dark {
                     $hue      = abs(crc32($cat->name)) % 360;
                     $bgColor  = "hsl({$hue},55%,42%)";
                 @endphp
-                <tr onclick="Livewire.navigate('{{ $editUrl($cat) }}')">
+                <tr onclick="Livewire.navigate('{{ $viewUrl($cat) }}')">
                     <td><span class="cat-id">{{ $cat->id }}</span></td>
 
                     <td>
@@ -250,7 +251,7 @@ html.dark {
                     </td>
 
                     <td class="th-c" onclick="event.stopPropagation()">
-                        <a href="{{ route('filament.admin.pages.category-courses') }}?id={{ $cat->id }}"
+                        <a href="{{ $viewUrl($cat) }}"
                            wire:navigate class="cat-courses-link"
                            style="{{ $cat->courses_count === 0 ? 'opacity:.4;pointer-events:none' : '' }}">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">

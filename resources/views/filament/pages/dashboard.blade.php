@@ -1,7 +1,7 @@
 <x-filament-panels::page>
 <div wire:poll.{{ $refreshInterval }}s>
 <style>
-/* ── Light mode tokens ─────────────────────────────────────────── */
+/* Light mode tokens─ */
 :root {
     --db-bg:       #F1F5F9;
     --db-card:     #FFFFFF;
@@ -27,7 +27,7 @@
     --db-sh-md:    0 4px 6px -1px rgb(0 0 0/.08), 0 2px 4px -2px rgb(0 0 0/.05);
     --db-input-bg: #F8FAFC;
 }
-/* ── Dark mode tokens ──────────────────────────────────────────── */
+/* Dark mode token */
 html.dark {
     --db-bg:       #0F172A;
     --db-card:     #1E293B;
@@ -60,20 +60,20 @@ html.dark {
 
 .db-wrap { background:var(--db-bg); min-height:100vh; padding:1rem 1.25rem; font-family:'Inter',system-ui,sans-serif; color:var(--db-t1); }
 
-/* ── Card ─────────────────────────────────────────────────────── */
+/* Car─ */
 .db-card { background:var(--db-card); border:1px solid var(--db-border); border-radius:.75rem; box-shadow:var(--db-sh); overflow:hidden; }
 .db-card-header { display:flex; align-items:center; justify-content:space-between; padding:.875rem 1.125rem .75rem; border-bottom:1px solid var(--db-border); }
 .db-card-title  { font-size:.875rem; font-weight:600; color:var(--db-t1); display:flex; align-items:center; gap:.4rem; }
 .db-card-body   { padding:1rem 1.125rem; }
 
-/* ── Top bar ──────────────────────────────────────────────────── */
+/* Top ba */
 .db-topbar { display:flex; align-items:center; justify-content:space-between; margin-bottom:1.25rem; flex-wrap:wrap; gap:.75rem; }
 .db-topbar-left h1 { font-size:1.75rem; font-weight:700; color:var(--db-t1); margin:0; }
 .db-topbar-left p  { font-size:.8125rem; color:var(--db-t3); margin:.1rem 0 0; }
 .db-topbar-right   { display:flex; align-items:center; gap:.5rem; flex-wrap:wrap; }
 
-/* ── Date filter ──────────────────────────────────────────────── */
-/* ── Date range pill ──────────────────────────────────────────── */
+/* Date filte */
+/* Date range pil */
 .db-drp-wrap { position:relative; }
 .db-drp-pill {
     display:inline-flex; align-items:center; gap:0;
@@ -137,7 +137,7 @@ html.dark {
 }
 .db-drp-reset:hover { border-color:var(--db-teal); color:var(--db-teal); }
 
-/* ── Badges ───────────────────────────────────────────────────── */
+/* Badge─ */
 .db-badge { display:inline-flex; align-items:center; gap:.2rem; font-size:.6875rem; font-weight:600; padding:.2rem .45rem; border-radius:9999px; white-space:nowrap; }
 .db-badge-green  { background:var(--db-green-l);  color:#065F46; }
 .db-badge-red    { background:var(--db-red-l);    color:#991B1B; }
@@ -151,13 +151,13 @@ html.dark .db-badge-amber  { color:#FDE68A; }
 html.dark .db-badge-blue   { color:var(--db-blue-d); }
 html.dark .db-badge-purple { color:#DDD6FE; }
 
-/* ── Status dot ───────────────────────────────────────────────── */
+/* Status do─ */
 .db-dot { width:.5rem; height:.5rem; border-radius:9999px; display:inline-block; flex-shrink:0; }
 .db-dot-green { background:var(--db-green); box-shadow:0 0 0 2px var(--db-green-l); }
 .db-dot-red   { background:var(--db-red);   box-shadow:0 0 0 2px var(--db-red-l); }
 .db-dot-amber { background:var(--db-amber); box-shadow:0 0 0 2px var(--db-amber-l); }
 
-/* ── KPI grid ─────────────────────────────────────────────────── */
+/* KPI gri─ */
 .db-kpi-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; margin-bottom:1rem; }
 @media(max-width:1024px){ .db-kpi-grid{ grid-template-columns:repeat(2,1fr); } }
 @media(max-width:640px) { .db-kpi-grid{ grid-template-columns:1fr; } }
@@ -169,7 +169,7 @@ html.dark .db-badge-purple { color:#DDD6FE; }
 .db-kpi-value { font-size:1.75rem; font-weight:700; color:var(--db-t1); line-height:1; letter-spacing:-.025em; font-variant-numeric:tabular-nums; }
 .db-kpi-label { font-size:.6875rem; font-weight:600; color:var(--db-t3); text-transform:uppercase; letter-spacing:.05em; margin-bottom:.25rem; }
 
-/* ── Action Required cards ────────────────────────────────────── */
+/* Action Required cards */
 .db-action-card {
     background:var(--db-card); border:1px solid var(--db-border); border-radius:.75rem;
     padding:.875rem 1rem; box-shadow:var(--db-sh); margin-bottom:1rem;
@@ -191,7 +191,7 @@ html.dark .db-badge-purple { color:#DDD6FE; }
 .db-action-num   { font-size:1.25rem; font-weight:700; color:var(--db-t1); line-height:1; }
 .db-action-lbl   { font-size:.6875rem; color:var(--db-t3); margin-top:.1rem; line-height:1.3; }
 
-/* ── Revenue chart ────────────────────────────────────────────── */
+/* Revenue char */
 .db-rev-grid { display:grid; grid-template-columns:1fr 264px; gap:1rem; margin-bottom:1rem; }
 @media(max-width:1100px){ .db-rev-grid{ grid-template-columns:1fr; } }
 .db-period-tabs { display:flex; gap:.2rem; background:var(--db-bg); border-radius:.5rem; padding:.2rem; border:1px solid var(--db-border); }
@@ -210,7 +210,7 @@ html.dark .db-period-tab.active { color:var(--db-blue); }
 .db-rev-stat-val { font-size:1.125rem; font-weight:700; color:var(--db-t1); font-variant-numeric:tabular-nums; margin:.1rem 0 .2rem; }
 .db-rev-stat-sub { font-size:.6875rem; color:var(--db-t3); display:flex; align-items:center; gap:.35rem; flex-wrap:wrap; }
 
-/* ── Mini stats ───────────────────────────────────────────────── */
+/* Mini stat─ */
 .db-mini-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; margin-bottom:1rem; }
 @media(max-width:768px){ .db-mini-grid{ grid-template-columns:1fr; } }
 .db-mini { background:var(--db-card); border:1px solid var(--db-border); border-radius:.75rem; padding:1rem 1.25rem; box-shadow:var(--db-sh); display:flex; align-items:center; gap:.875rem; }
@@ -220,7 +220,7 @@ html.dark .db-period-tab.active { color:var(--db-blue); }
 .db-mini-val   { font-size:1.5rem; font-weight:700; color:var(--db-t1); line-height:1.15; font-variant-numeric:tabular-nums; }
 .db-mini-sub   { font-size:.6875rem; color:var(--db-t3); margin-top:.15rem; display:flex; align-items:center; gap:.3rem; }
 
-/* ── Tables ───────────────────────────────────────────────────── */
+/* Table─ */
 .db-table { width:100%; border-collapse:collapse; }
 .db-table th { padding:.5rem .75rem; font-size:.6875rem; font-weight:600; text-transform:uppercase; letter-spacing:.04em; color:var(--db-t3); text-align:left; border-bottom:1px solid var(--db-border); background:var(--db-bg); white-space:nowrap; }
 .db-table td { padding:.6rem .75rem; font-size:.8125rem; color:var(--db-t2); border-bottom:1px solid var(--db-border); vertical-align:middle; }
@@ -239,19 +239,19 @@ html.dark .db-avatar { color:var(--db-blue); }
 .db-name { font-weight:500; color:var(--db-t1); }
 .db-sub  { font-size:.6875rem; color:var(--db-t3); }
 
-/* ── Two-col ──────────────────────────────────────────────────── */
+/* Two-co */
 .db-two-col { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem; }
 @media(max-width:900px){ .db-two-col{ grid-template-columns:1fr; } }
-/* ── Orders/refunds wide row ──────────────────────────────────── */
+/* Orders/refunds wide row */
 .db-orders-row { display:grid; grid-template-columns:3fr 2fr; gap:1rem; margin-bottom:1rem; }
 @media(max-width:960px){ .db-orders-row{ grid-template-columns:1fr; } }
 
-/* ── Three-col ────────────────────────────────────────────────── */
+/* Three-co */
 .db-three-col { display:grid; grid-template-columns:1fr 1fr 1fr; gap:1rem; margin-bottom:1rem; }
 @media(max-width:1100px){ .db-three-col{ grid-template-columns:1fr 1fr; } }
 @media(max-width:700px) { .db-three-col{ grid-template-columns:1fr; } }
 
-/* ── Course list ──────────────────────────────────────────────── */
+/* Course lis */
 .db-course-row { display:flex; align-items:center; gap:.75rem; padding:.6rem 0; border-bottom:1px solid var(--db-border); }
 .db-course-row:last-child { border-bottom:none; }
 .db-course-thumb { width:2.5rem; height:2.5rem; border-radius:.375rem; display:flex; align-items:center; justify-content:center; font-size:.75rem; font-weight:700; flex-shrink:0; }
@@ -261,7 +261,7 @@ html.dark .db-avatar { color:var(--db-blue); }
 .db-stars { display:flex; align-items:center; gap:.1rem; }
 .db-star { width:.8125rem; height:.8125rem; }
 
-/* ── System Health ────────────────────────────────────────────── */
+/* System Healt */
 .db-health-list { padding:.25rem 0; }
 .db-health-row  { display:flex; align-items:center; justify-content:space-between; padding:.6rem 1.125rem; border-bottom:1px solid var(--db-border); gap:.5rem; }
 .db-health-row:last-child { border-bottom:none; }
@@ -271,7 +271,7 @@ html.dark .db-avatar { color:var(--db-blue); }
 .db-progress-bar  { height:.375rem; background:var(--db-border); border-radius:9999px; overflow:hidden; margin-top:.375rem; }
 .db-progress-fill { height:100%; border-radius:9999px; }
 
-/* ── Utility ──────────────────────────────────────────────────── */
+/* Utilit */
 .db-trunc  { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .db-mono   { font-variant-numeric:tabular-nums; }
 .db-view-all { font-size:.75rem; font-weight:500; color:var(--db-blue); text-decoration:none; white-space:nowrap; }
@@ -434,7 +434,7 @@ function dbCustomDate() {
 
 <div class="db-wrap">
 
-{{-- ── Top bar ──────────────────────────────────────────────────── --}}
+{{-- Top ba --}}
 <div class="db-topbar">
     <div class="db-topbar-left">
         @php
@@ -497,7 +497,7 @@ function dbCustomDate() {
     </div>
 </div>
 
-{{-- ── Row 1: KPI cards ─────────────────────────────────────────── --}}
+{{-- Row 1: KPI cards─ --}}
 <div class="db-kpi-grid">
     @php $revGrowth = $revenueChartData['30d']['gross_growth'] ?? 0; @endphp
     <div class="db-kpi">
@@ -571,7 +571,7 @@ function dbCustomDate() {
     </div>
 </div>
 
-{{-- ── Row 2: Action Required ───────────────────────────────────── --}}
+{{-- Row 2: Action Required─ --}}
 <div class="db-action-card">
     <div class="db-action-header">
         <div class="db-action-title">Action Required</div>
@@ -626,9 +626,9 @@ function dbCustomDate() {
     </div>
 </div>
 
-{{-- ── Row 3: Revenue chart + sidebar ──────────────────────────── --}}
+{{-- Row 3: Revenue chart + sidebar --}}
 <div class="db-rev-grid">
-    <div class="db-card" x-data="dbChart()" x-init="setTimeout(()=>{ render(); const ro=new ResizeObserver(()=>render()); ro.observe($el); }, 80)">
+    <div class="db-card" wire:ignore x-data="dbChart()" x-init="setTimeout(()=>{ render(); const ro=new ResizeObserver(()=>render()); ro.observe($el); }, 80)">
         <div class="db-card-header">
             <span class="db-card-title">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--db-blue)" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
@@ -709,7 +709,7 @@ function dbCustomDate() {
     </div>
 </div>
 
-{{-- ── Row 4: Mini stats ────────────────────────────────────────── --}}
+{{-- Row 4: Mini stats --}}
 <div class="db-mini-grid">
     <div class="db-mini">
         <div class="db-mini-icon" style="background:var(--db-green-l);">
@@ -759,7 +759,7 @@ function dbCustomDate() {
     </div>
 </div>
 
-{{-- ── Row 5: Top Instructors ───────────────────────────────────── --}}
+{{-- Row 5: Top Instructors─ --}}
 <div class="db-card" style="margin-bottom:1rem;">
     <div class="db-card-header">
         <span class="db-card-title">
@@ -808,7 +808,7 @@ function dbCustomDate() {
     </table>
 </div>
 
-{{-- ── Row 6: Most Popular Courses (full-width) ────────────────── --}}
+{{-- Row 6: Most Popular Courses (full-width) --}}
 <div class="db-card" style="margin-bottom:1rem;">
     <div class="db-card-header">
         <span class="db-card-title">
@@ -865,7 +865,7 @@ function dbCustomDate() {
     </table>
 </div>
 
-{{-- ── Row 7: Recent Orders (wide) + Recent Refunds ────────────── --}}
+{{-- Row 7: Recent Orders (wide) + Recent Refunds --}}
 <div class="db-orders-row">
     {{-- Recent Orders --}}
     <div class="db-card">
@@ -975,7 +975,7 @@ function dbCustomDate() {
         </table>
     </div>
 </div>
-{{-- ── Row 8: Low Rated Courses + System Health ────────────────── --}}
+{{-- Row 8: Low Rated Courses + System Health --}}
 <div class="db-two-col">
     {{-- Low Rated --}}
     <div class="db-card">

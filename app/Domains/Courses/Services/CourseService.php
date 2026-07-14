@@ -58,9 +58,9 @@ class CourseService
 
                     if ($thumbnail) {
                         if ($course->thumbnail) {
-                            Storage::disk('public')->delete($course->thumbnail);
+                            Storage::disk('r2')->delete($course->thumbnail);
                         }
-                        $data['thumbnail'] = $thumbnail->store('courses/thumbnails', 'public');
+                        $data['thumbnail'] = $thumbnail->store('courses/thumbnails', 'r2');
                     }
 
                     unset($data['thumbnail_file']);

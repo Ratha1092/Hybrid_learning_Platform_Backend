@@ -38,12 +38,12 @@ class ReceiptController extends Controller
         $receipt = Receipt::whereHas('order', fn ($q) => $q->where('user_id', auth()->id()))
             ->findOrFail($id);
 
-        if (!$receipt->pdf_path || !Storage::disk('local')->exists($receipt->pdf_path)) {
+        if (!$receipt->pdf_path || !Storage::disk('r2-private')->exists($receipt->pdf_path)) {
             $receipt->load('order.items');
             $receipt = $this->receiptService->issue($receipt->order);
         }
 
-        return Storage::disk('local')->download(
+        return Storage::disk('r2-private')->download(
             $receipt->pdf_path,
             $receipt->receipt_number . '.pdf',
             ['Content-Type' => 'application/pdf']

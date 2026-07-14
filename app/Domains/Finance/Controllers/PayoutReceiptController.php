@@ -38,12 +38,12 @@ class PayoutReceiptController extends Controller
         $receipt = PayoutReceipt::whereHas('payoutRequest', fn ($q) => $q->where('instructor_id', auth()->id()))
             ->findOrFail($id);
 
-        if (!$receipt->pdf_path || !Storage::disk('local')->exists($receipt->pdf_path)) {
+        if (!$receipt->pdf_path || !Storage::disk('r2-private')->exists($receipt->pdf_path)) {
             $this->receiptService->regeneratePdf($receipt);
             $receipt->refresh();
         }
 
-        return Storage::disk('local')->download(
+        return Storage::disk('r2-private')->download(
             $receipt->pdf_path,
             $receipt->receipt_number . '.pdf',
             ['Content-Type' => 'application/pdf']

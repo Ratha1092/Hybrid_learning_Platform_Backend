@@ -5,7 +5,6 @@ namespace App\Domains\Payments\Services;
 use App\Domains\Learning\Services\EnrollmentService;
 use App\Domains\Orders\Enums\OrderPaymentStatus;
 use App\Domains\Orders\Enums\OrderStatus;
-
 use App\Domains\Orders\Models\Order;
 use App\Domains\Payments\Enums\PaymentGateway;
 use App\Domains\Payments\Enums\PaymentStatus;
@@ -622,7 +621,6 @@ use RuntimeException;
             }
 
             $payload .= '6304';
-
             return $payload . Utils::crc16($payload);
         }
 
@@ -687,7 +685,6 @@ use RuntimeException;
             if (! preg_match('/^\d{4}$/', $merchantCategoryCode)) {
                 throw new RuntimeException('Bakong merchant category code must be exactly 4 digits.');
             }
-
             return $merchantCategoryCode;
         }
 

@@ -71,10 +71,10 @@ class UserService
     public function updateAvatar(User $user, UploadedFile $file): User
     {
         if ($user->avatar && !str_starts_with($user->avatar, 'http')) {
-            Storage::disk('public')->delete($user->avatar);
+            Storage::disk('r2')->delete($user->avatar);
         }
 
-        $path = $file->store('avatars', 'public');
+        $path = $file->store('avatars', 'r2');
         $user->update(['avatar' => $path]);
 
         return $user->refresh();

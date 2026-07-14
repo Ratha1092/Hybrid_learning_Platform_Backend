@@ -38,7 +38,7 @@ class SettingsSeeder extends Seeder
         ],
         'auth' => [
             'email_verification_required' => ['false', 'boolean', 'Require a verified email before a user can log in. Off by default to preserve existing behavior — enable once your email delivery is confirmed working.', false],
-            'enable_google_login'         => ['false', 'boolean', 'Show the Google login option.', true],
+            'enable_google_login'         => ['true', 'boolean', 'Show the Google login option.', true],
             'enable_facebook_login'       => ['false', 'boolean', 'Show the Facebook login option.', true],
             'enable_2fa'                  => ['false', 'boolean', 'Allow users to enable two-factor authentication.', false],
             'max_login_attempts'          => ['5', 'integer', 'Failed login attempts before an account is locked.', false],

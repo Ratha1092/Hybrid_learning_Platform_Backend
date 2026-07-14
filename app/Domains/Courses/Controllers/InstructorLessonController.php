@@ -128,11 +128,11 @@ class InstructorLessonController extends Controller
         ]);
 
         if ($lesson->video_path) {
-            Storage::disk('public')->delete($lesson->video_path);
+            Storage::disk('r2')->delete($lesson->video_path);
         }
 
         $path = $request->file('video')->store(
-            "courses/{$courseId}/videos", 'public'
+            "courses/{$courseId}/videos", 'r2'
         );
 
         $lesson->update([
@@ -142,7 +142,7 @@ class InstructorLessonController extends Controller
 
         return ApiResponse::success([
             'video_path' => $path,
-            'video_url'  => Storage::disk('public')->url($path),
+            'video_url'  => Storage::disk('r2')->url($path),
         ], 'Video uploaded successfully');
     }
 

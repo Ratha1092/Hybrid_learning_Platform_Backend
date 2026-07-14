@@ -20,10 +20,10 @@ class PayoutAccountService
             $qrPath = $existing?->qr_code_path;
 
             if (isset($data['qr_code'])) {
-                $qrPath = $data['qr_code']->store('payouts/qr-codes', 'public');
+                $qrPath = $data['qr_code']->store('payouts/qr-codes', 'r2');
 
                 if ($existing?->qr_code_path) {
-                    Storage::disk('public')->delete($existing->qr_code_path);
+                    Storage::disk('r2')->delete($existing->qr_code_path);
                 }
             }
 

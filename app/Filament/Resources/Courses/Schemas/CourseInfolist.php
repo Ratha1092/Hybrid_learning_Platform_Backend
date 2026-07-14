@@ -21,7 +21,7 @@ class CourseInfolist
                             ->schema([
                                 ImageEntry::make('thumbnail')
                                     ->label('')
-                                    ->disk('public')
+                                    ->disk('r2')
                                     ->height(220),
                                 Grid::make(1)
                                     ->schema([

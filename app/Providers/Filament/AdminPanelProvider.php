@@ -151,6 +151,36 @@ class AdminPanelProvider extends PanelProvider
             )
             ->renderHook(
                 PanelsRenderHook::HEAD_END,
+                fn () => <<<'HTML'
+                <style>
+                    .fi-sidebar-item-btn:focus,
+                    .fi-sidebar-item-button:focus,
+                    .fi-sidebar-item-btn:focus-visible,
+                    .fi-sidebar-item-button:focus-visible {
+                        outline: 0 solid transparent !important;
+                        --tw-ring-offset-shadow: 0 0 #0000 !important;
+                        --tw-ring-shadow: 0 0 #0000 !important;
+                    }
+
+                    .fi-sidebar-item:not(.fi-active) > .fi-sidebar-item-btn:focus-visible,
+                    .fi-sidebar-item:not(.fi-active) > .fi-sidebar-item-button:focus-visible {
+                        background: rgba(148, 163, 184, 0.07) !important;
+                        border-color: rgba(148, 163, 184, 0.14) !important;
+                        box-shadow: none !important;
+                    }
+
+                    .fi-sidebar-item.fi-active > .fi-sidebar-item-btn,
+                    .fi-sidebar-item.fi-active > .fi-sidebar-item-button,
+                    .fi-sidebar-item-btn[aria-current='page'],
+                    .fi-sidebar-item-button[aria-current='page'] {
+                        border-color: transparent !important;
+                        box-shadow: inset 3px 0 0 var(--hl-blue) !important;
+                    }
+                </style>
+                HTML
+            )
+            ->renderHook(
+                PanelsRenderHook::HEAD_END,
                 fn () => Blade::render('@vite([\'resources/js/admin-echo.js\'])')
             )
             ->renderHook(
@@ -306,6 +336,8 @@ class AdminPanelProvider extends PanelProvider
                         });
 
                         document.body.appendChild(clone);
+                        sidebar.dataset.hlPreviousVisibility = sidebar.style.visibility || '';
+                        sidebar.style.visibility = 'hidden';
                         sidebar.classList.add('hl-sidebar-under-freeze');
                         _hlSidebarOverlay = clone;
                         clearTimeout(_hlSidebarOverlayTimer);
@@ -317,6 +349,8 @@ class AdminPanelProvider extends PanelProvider
                         _hlSidebarOverlayTimer = null;
                         document.querySelectorAll('.hl-sidebar-under-freeze').forEach(function (sidebar) {
                             sidebar.classList.remove('hl-sidebar-under-freeze');
+                            sidebar.style.visibility = sidebar.dataset.hlPreviousVisibility || '';
+                            delete sidebar.dataset.hlPreviousVisibility;
                         });
                         if (!_hlSidebarOverlay) return;
                         _hlSidebarOverlay.remove();

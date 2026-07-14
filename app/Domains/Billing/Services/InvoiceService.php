@@ -137,7 +137,7 @@ class InvoiceService
         ]);
 
         $path = "invoices/{$invoice->invoice_number}.pdf";
-        Storage::disk('local')->put($path, $pdf);
+        Storage::disk('r2-private')->put($path, $pdf);
         $invoice->updateQuietly(['pdf_path' => $path]);
     }
 

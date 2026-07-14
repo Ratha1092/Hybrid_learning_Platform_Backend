@@ -72,7 +72,7 @@ class CreateCourse extends CreateRecord
         return $form->components([
             FileUpload::make('thumbnail')
                 ->image()
-                ->disk('public')
+                ->disk('r2')
                 ->directory('courses/thumbnails'),
         ])->statePath('data');
     }

@@ -38,12 +38,12 @@ class InvoiceController extends Controller
         $invoice = Invoice::whereHas('order', fn ($q) => $q->where('user_id', auth()->id()))
             ->findOrFail($id);
 
-        if (!$invoice->pdf_path || !Storage::disk('local')->exists($invoice->pdf_path)) {
+        if (!$invoice->pdf_path || !Storage::disk('r2-private')->exists($invoice->pdf_path)) {
             $this->invoiceService->regeneratePdf($invoice);
             $invoice->refresh();
         }
 
-        return Storage::disk('local')->download(
+        return Storage::disk('r2-private')->download(
             $invoice->pdf_path,
             $invoice->invoice_number . '.pdf',
             ['Content-Type' => 'application/pdf']

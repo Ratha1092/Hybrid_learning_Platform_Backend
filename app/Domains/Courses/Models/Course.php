@@ -246,7 +246,7 @@ class Course extends Model
             return null;
         }
 
-        return \Storage::disk('public')->url($this->thumbnail);
+        return \Storage::disk('r2')->url($this->thumbnail);
     }
     public function scopePublished($query)
     {

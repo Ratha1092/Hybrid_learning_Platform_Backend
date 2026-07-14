@@ -14,10 +14,11 @@ class InstructorListController extends Controller
 {
     public function index(Request $request)
     {
-        $maxLimit = (int) Setting::get('featured_instructor_limit', 20);
-        $limit = min((int) $request->integer('limit', $maxLimit), $maxLimit);
+        $maxPerPage = (int) Setting::get('featured_instructor_limit', 20);
+        $perPage = max(1, min((int) $request->integer('per_page', $request->integer('limit', $maxPerPage)), $maxPerPage));
+        $page = max(1, (int) $request->integer('page', 1));
 
-        $instructors = Cache::remember("instructors.public.{$limit}", now()->addMinutes(10), function () use ($limit) {
+        $instructors = Cache::remember("instructors.public.{$perPage}.{$page}", now()->addMinutes(10), function () use ($perPage, $page) {
             return User::role('instructor')
                 ->whereHas('courses', fn ($q) => $q->where('is_published', true))
                 ->withCount(['courses' => fn ($q) => $q->where('is_published', true)])
@@ -30,9 +31,9 @@ class InstructorListController extends Controller
                 ])
                 ->with('instructorProfile:user_id,bio,website')
                 ->orderByDesc('courses_count')
-                ->limit($limit)
-                ->get()
-                ->map(fn ($u) => [
+                ->orderBy('id')
+                ->paginate($perPage, ['*'], 'page', $page)
+                ->through(fn ($u) => [
                     'id'       => $u->id,
                     'name'     => $u->name,
                     'avatar'   => $u->avatar,

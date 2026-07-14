@@ -33,13 +33,13 @@ class InvoiceIssuedMail extends Mailable
 
     public function attachments(): array
     {
-        if (!$this->invoice->pdf_path || !Storage::disk('local')->exists($this->invoice->pdf_path)) {
+        if (!$this->invoice->pdf_path || !Storage::disk('r2-private')->exists($this->invoice->pdf_path)) {
             return [];
         }
 
         return [
             Attachment::fromData(
-                fn () => Storage::disk('local')->get($this->invoice->pdf_path),
+                fn () => Storage::disk('r2-private')->get($this->invoice->pdf_path),
                 $this->invoice->invoice_number . '.pdf'
             )->withMime('application/pdf'),
         ];

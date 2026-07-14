@@ -84,11 +84,11 @@ class InvoiceResource extends Resource
                     ->icon('heroicon-o-arrow-down-tray')
                     ->color('gray')
                     ->action(function (Invoice $record) {
-                        if (!$record->pdf_path || !Storage::disk('local')->exists($record->pdf_path)) {
+                        if (!$record->pdf_path || !Storage::disk('r2-private')->exists($record->pdf_path)) {
                             app(InvoiceService::class)->regeneratePdf($record);
                             $record->refresh();
                         }
-                        return Storage::disk('local')->download(
+                        return Storage::disk('r2-private')->download(
                             $record->pdf_path,
                             $record->invoice_number . '.pdf',
                             ['Content-Type' => 'application/pdf']

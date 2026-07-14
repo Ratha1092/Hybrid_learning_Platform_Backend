@@ -73,7 +73,7 @@ class ReceiptService
         ]);
 
         $path = "receipts/{$receipt->receipt_number}.pdf";
-        Storage::disk('local')->put($path, $pdf);
+        Storage::disk('r2-private')->put($path, $pdf);
         $receipt->updateQuietly(['pdf_path' => $path]);
     }
 

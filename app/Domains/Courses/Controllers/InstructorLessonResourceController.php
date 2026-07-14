@@ -35,7 +35,7 @@ class InstructorLessonResourceController extends Controller
         ]);
 
         $path = $request->file('file')->store(
-            "courses/{$courseId}/resources", 'public'
+            "courses/{$courseId}/resources", 'r2'
         );
 
         $resource = LessonAttachment::create([
@@ -62,7 +62,7 @@ class InstructorLessonResourceController extends Controller
             return ApiResponse::error('Resource not found', 404);
         }
 
-        \Storage::disk('public')->delete($resource->file_path);
+        \Storage::disk('r2')->delete($resource->file_path);
         $resource->delete();
 
         return ApiResponse::success(null, 'Resource deleted successfully');

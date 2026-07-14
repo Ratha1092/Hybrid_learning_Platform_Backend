@@ -29,13 +29,13 @@ class PayoutReceiptIssuedMail extends Mailable
 
     public function attachments(): array
     {
-        if (!$this->receipt->pdf_path || !Storage::disk('local')->exists($this->receipt->pdf_path)) {
+        if (!$this->receipt->pdf_path || !Storage::disk('r2-private')->exists($this->receipt->pdf_path)) {
             return [];
         }
 
         return [
             Attachment::fromData(
-                fn () => Storage::disk('local')->get($this->receipt->pdf_path),
+                fn () => Storage::disk('r2-private')->get($this->receipt->pdf_path),
                 $this->receipt->receipt_number . '.pdf'
             )->withMime('application/pdf'),
         ];

@@ -75,11 +75,11 @@ class ReceiptResource extends Resource
                     ->icon('heroicon-o-arrow-down-tray')
                     ->color('gray')
                     ->action(function (Receipt $record) {
-                        if (!$record->pdf_path || !Storage::disk('local')->exists($record->pdf_path)) {
+                        if (!$record->pdf_path || !Storage::disk('r2-private')->exists($record->pdf_path)) {
                             app(ReceiptService::class)->issue($record->order()->with('items')->first());
                             $record->refresh();
                         }
-                        return Storage::disk('local')->download(
+                        return Storage::disk('r2-private')->download(
                             $record->pdf_path,
                             $record->receipt_number . '.pdf',
                             ['Content-Type' => 'application/pdf']

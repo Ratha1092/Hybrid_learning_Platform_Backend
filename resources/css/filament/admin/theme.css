@@ -650,10 +650,8 @@ body,
 .fi-sidebar-item-btn[aria-current='page'],
 .fi-sidebar-item-button[aria-current='page'] {
     background: linear-gradient(90deg, rgba(37, 99, 235, 0.18), rgba(37, 99, 235, 0.045)) !important;
-    border-color: rgba(37, 99, 235, 0.2) !important;
-    box-shadow:
-        inset 3px 0 0 var(--hl-blue),
-        0 0 18px rgba(37, 99, 235, 0.08) !important;
+    border-color: transparent !important;
+    box-shadow: inset 3px 0 0 var(--hl-blue) !important;
     color: var(--hl-text) !important;
     font-weight: 600 !important;
 }
@@ -668,6 +666,22 @@ body,
 .fi-sidebar-item.fi-active > .fi-sidebar-item-btn .fi-sidebar-item-label,
 .fi-sidebar-item-btn[aria-current='page'] .fi-sidebar-item-label {
     color: var(--hl-text) !important;
+}
+
+.fi-sidebar-item-btn:focus,
+.fi-sidebar-item-button:focus,
+.fi-sidebar-item-btn:focus-visible,
+.fi-sidebar-item-button:focus-visible {
+    outline: 0 solid transparent !important;
+    --tw-ring-offset-shadow: 0 0 #0000 !important;
+    --tw-ring-shadow: 0 0 #0000 !important;
+}
+
+.fi-sidebar-item:not(.fi-active) > .fi-sidebar-item-btn:focus-visible,
+.fi-sidebar-item:not(.fi-active) > .fi-sidebar-item-button:focus-visible {
+    background: rgba(148, 163, 184, 0.07) !important;
+    border-color: rgba(148, 163, 184, 0.14) !important;
+    box-shadow: none !important;
 }
 
 /* Sidebar item badges (count / pending pills) */
@@ -863,9 +877,12 @@ body,
         max-width: 200px !important;
         margin-inline: 0.5rem !important;
     }
-    /* End section (bell + avatar) must never shrink */
+    /* End section (search + bell + avatar): pin to the right edge, since
+       .fi-topbar-start (the flex-grow spacer that pushes it right on
+       desktop) is hidden on mobile. */
     .fi-topbar-end {
         flex-shrink: 0 !important;
+        margin-inline-start: auto !important;
     }
 
     /* Cap the mobile sidebar drawer so it doesn't eat half the screen */

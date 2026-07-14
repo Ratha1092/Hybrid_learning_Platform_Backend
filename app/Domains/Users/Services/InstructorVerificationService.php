@@ -40,9 +40,9 @@ class InstructorVerificationService
 
         $verification = DB::transaction(function () use ($user, $data, $autoApprove) {
             $certificatePath = $data['certificate_file']
-                ->store('verifications/certificates', 'public');
+                ->store('verifications/certificates', 'r2');
             $identityPath = $data['identity_file']
-                ->store('verifications/identities', 'public');
+                ->store('verifications/identities', 'r2');
             $verification = InstructorVerification::create([
                 'user_id' => $user->id,
                 'bio' => $data['bio'],

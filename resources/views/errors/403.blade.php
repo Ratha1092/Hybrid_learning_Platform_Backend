@@ -5,50 +5,116 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Access Denied</title>
     <style>
-        :root {
-            --bg:#0f172a; --p1:#1e293b; --p2:#263245;
-            --bd:rgba(255,255,255,.07); --bd2:rgba(255,255,255,.13);
-            --t1:#e2e8f0; --t2:#64748b;
-        }
-        @media (prefers-color-scheme: light) {
-            :root {
-                --bg:#f1f5f9; --p1:#ffffff; --p2:#f8fafc;
-                --bd:rgba(15,23,42,.08); --bd2:rgba(15,23,42,.14);
-                --t1:#0f172a; --t2:#64748b;
-            }
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-            background: var(--bg); color: var(--t1);
-            min-height: 100vh; display: flex; align-items: center; justify-content: center;
-            padding: 24px;
-        }
-        .card {
-            background: var(--p1); border: 1px solid var(--bd); border-radius: 16px;
-            box-shadow: 0 4px 24px rgba(0,0,0,.3);
-            padding: 48px 40px; max-width: 440px; width: 100%; text-align: center;
-        }
-        .icon {
-            width: 64px; height: 64px; border-radius: 16px; margin: 0 auto 20px;
-            background: rgba(248,113,113,.12); color: #f87171;
-            display: grid; place-items: center;
-        }
-        .icon svg { width: 30px; height: 30px; }
-        h1 { font-size: 19px; font-weight: 780; letter-spacing: -.01em; margin-bottom: 8px; }
-        p { font-size: 13.5px; color: var(--t2); line-height: 1.6; margin-bottom: 28px; }
-        .btns { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; }
-        .btn {
-            display: inline-flex; align-items: center; gap: 6px;
-            padding: 9px 18px; border-radius: 8px; font-size: 12.5px; font-weight: 700;
-            text-decoration: none; transition: opacity .18s, transform .15s; border: none;
-            font-family: inherit; cursor: pointer;
-        }
-        .btn:hover { opacity: .85; transform: translateY(-1px); }
-        .btn-primary { background: #6366f1; color: #fff; }
-        .btn-gray { background: var(--p2); color: var(--t1); border: 1px solid var(--bd2); }
-        .btn svg { width: 13px; height: 13px; }
-    </style>
+:root {
+    --bg:#0f172a;
+    --p1:#1e293b;
+    --p2:#263245;
+    --bd:rgba(255,255,255,.07);
+    --bd2:rgba(255,255,255,.13);
+    --t1:#e2e8f0;
+    --t2:#64748b;
+}
+@media (prefers-color-scheme: light) {
+    :root {
+        --bg:#f1f5f9;
+        --p1:#ffffff;
+        --p2:#f8fafc;
+        --bd:rgba(15,23,42,.08);
+        --bd2:rgba(15,23,42,.14);
+        --t1:#0f172a;
+        --t2:#64748b;
+    }
+}
+* {
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+body {
+    font-family:Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    background:var(--bg);
+    color:var(--t1);
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+}
+.card {
+    background:var(--p1);
+    border:1px solid var(--bd);
+    border-radius:16px;
+    box-shadow:0 4px 24px rgba(0,0,0,.3);
+    padding:48px 40px;
+    max-width:440px;
+    width:100%;
+    text-align:center;
+}
+.icon {
+    width:64px;
+    height:64px;
+    border-radius:16px;
+    margin:0 auto 20px;
+    background:rgba(248,113,113,.12);
+    color:#f87171;
+    display:grid;
+    place-items:center;
+}
+.icon svg {
+    width:30px;
+    height:30px;
+}
+h1 {
+    font-size:19px;
+    font-weight:780;
+    letter-spacing:-.01em;
+    margin-bottom:8px;
+}
+p {
+    font-size:13.5px;
+    color:var(--t2);
+    line-height:1.6;
+    margin-bottom:28px;
+}
+.btns {
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    flex-wrap:wrap;
+}
+.btn {
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:9px 18px;
+    border-radius:8px;
+    font-size:12.5px;
+    font-weight:700;
+    text-decoration:none;
+    transition:opacity .18s, transform .15s;
+    border:none;
+    font-family:inherit;
+    cursor:pointer;
+}
+.btn:hover {
+    opacity:.85;
+    transform:translateY(-1px);
+}
+.btn-primary {
+    background:#6366f1;
+    color:#fff;
+}
+.btn-gray {
+    background:var(--p2);
+    color:var(--t1);
+    border:1px solid var(--bd2);
+}
+.btn svg {
+    width:13px;
+    height:13px;
+}
+</style>
 </head>
 <body>
     <div class="card">

@@ -1,8 +1,5 @@
 <style>
-.se,
-.se *,
-.se *::before,
-.se *::after {
+.se, .se *, .se *::before, .se *::after {
     box-sizing:border-box;
     margin:0;
     padding:0;

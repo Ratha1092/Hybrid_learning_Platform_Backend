@@ -2,62 +2,62 @@
 
 <style>
 .bi-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    padding: 3px 10px;
-    border-radius: 99px;
-    font-size: 11px;
-    font-weight: 700;
-    background: rgba(37,99,235,.12);
-    color: var(--acc);
-    border: 1px solid rgba(37,99,235,.25);
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+    padding:3px 10px;
+    border-radius:99px;
+    font-size:11px;
+    font-weight:700;
+    background:rgba(37,99,235,.12);
+    color:var(--acc);
+    border:1px solid rgba(37,99,235,.25);
 }
 
 .bi-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 14px;
-    border-radius: 8px;
-    font-size: 12px;
-    font-weight: 700;
-    cursor: pointer;
-    text-decoration: none;
-    border: 1px solid var(--bd2);
-    background: var(--p1);
-    color: var(--t1);
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:8px 14px;
+    border-radius:8px;
+    font-size:12px;
+    font-weight:700;
+    cursor:pointer;
+    text-decoration:none;
+    border:1px solid var(--bd2);
+    background:var(--p1);
+    color:var(--t1);
 }
 
 .bi-btn:hover {
-    background: var(--p2);
+    background:var(--p2);
 }
 
 .bi-charts {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 16px;
+    display:grid;
+    grid-template-columns:2fr 1fr;
+    gap:16px;
 }
 
 @media (max-width: 900px) {
     .bi-charts {
-        grid-template-columns: 1fr;
+        grid-template-columns:1fr;
     }
 }
 
 .bi-avatar {
-    width: 26px;
-    height: 26px;
-    border-radius: 50%;
-    background: var(--p2);
-    border: 1px solid var(--bd);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 11px;
-    font-weight: 700;
-    color: var(--acc);
-    flex-shrink: 0;
+    width:26px;
+    height:26px;
+    border-radius:50%;
+    background:var(--p2);
+    border:1px solid var(--bd);
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    font-size:11px;
+    font-weight:700;
+    color:var(--acc);
+    flex-shrink:0;
 }
 </style>
 

@@ -1,8 +1,5 @@
 <style>
-.sh,
-.sh *,
-.sh *::before,
-.sh *::after {
+.sh, .sh *, .sh *::before, .sh *::after {
     box-sizing:border-box;
     margin:0;
     padding:0;

@@ -4,40 +4,131 @@
     <meta charset="utf-8">
     <title>Payout Receipt {{ $receipt->receipt_number }}</title>
     <style>
-        @page { margin: 36px 40px; }
-        * { box-sizing: border-box; }
-        body { font-family: 'Helvetica', 'Arial', sans-serif; color: #1f2937; font-size: 12px; }
+@page {
+    margin:36px 40px;
+}
+* {
+    box-sizing:border-box;
+}
+body {
+    font-family:'Helvetica', 'Arial', sans-serif;
+    color:#1f2937;
+    font-size:12px;
+}
 
-        .header { display: table; width: 100%; margin-bottom: 28px; }
-        .header-brand { display: table-cell; vertical-align: top; }
-        .header-meta { display: table-cell; vertical-align: top; text-align: right; }
+.header {
+    display:table;
+    width:100%;
+    margin-bottom:28px;
+}
+.header-brand {
+    display:table-cell;
+    vertical-align:top;
+}
+.header-meta {
+    display:table-cell;
+    vertical-align:top;
+    text-align:right;
+}
 
-        .brand-name { font-size: 20px; font-weight: bold; color: #15110a; }
-        .brand-sub { font-size: 11px; color: #6b7280; margin-top: 2px; }
+.brand-name {
+    font-size:20px;
+    font-weight:bold;
+    color:#15110a;
+}
+.brand-sub {
+    font-size:11px;
+    color:#6b7280;
+    margin-top:2px;
+}
 
-        .doc-title { font-size: 13px; font-weight: bold; color: #7c3aed; text-transform: uppercase; letter-spacing: 1px; }
-        .doc-number { font-size: 11px; color: #6b7280; margin-top: 4px; }
+.doc-title {
+    font-size:13px;
+    font-weight:bold;
+    color:#7c3aed;
+    text-transform:uppercase;
+    letter-spacing:1px;
+}
+.doc-number {
+    font-size:11px;
+    color:#6b7280;
+    margin-top:4px;
+}
 
-        .status-pill {
-            display: inline-block; margin-top: 8px; padding: 3px 10px;
-            border-radius: 999px; font-size: 10px; font-weight: bold;
-            background: #ecfdf5; color: #059669;
-        }
+.status-pill {
+    display:inline-block;
+    margin-top:8px;
+    padding:3px 10px;
+    border-radius:999px;
+    font-size:10px;
+    font-weight:bold;
+    background:#ecfdf5;
+    color:#059669;
+}
 
-        .divider { border-top: 1px solid #e5e7eb; margin: 18px 0; }
+.divider {
+    border-top:1px solid #e5e7eb;
+    margin:18px 0;
+}
 
-        .info-grid { display: table; width: 100%; margin-bottom: 20px; }
-        .info-col { display: table-cell; width: 50%; vertical-align: top; }
-        .info-label { font-size: 9.5px; color: #9ca3af; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 3px; }
-        .info-value { font-size: 12px; color: #111827; }
+.info-grid {
+    display:table;
+    width:100%;
+    margin-bottom:20px;
+}
+.info-col {
+    display:table-cell;
+    width:50%;
+    vertical-align:top;
+}
+.info-label {
+    font-size:9.5px;
+    color:#9ca3af;
+    text-transform:uppercase;
+    letter-spacing:.5px;
+    margin-bottom:3px;
+}
+.info-value {
+    font-size:12px;
+    color:#111827;
+}
 
-        .totals { width: 100%; margin-top: 16px; }
-        .totals-row { display: table; width: 100%; margin-bottom: 6px; }
-        .totals-row.grand .totals-label { display: table-cell; text-align: right; width: 80%; color: #111827; font-weight: bold; font-size: 13px; padding-right: 14px; }
-        .totals-row.grand .totals-value { display: table-cell; text-align: right; width: 20%; color: #15110a; font-weight: bold; font-size: 15px; }
+.totals {
+    width:100%;
+    margin-top:16px;
+}
+.totals-row {
+    display:table;
+    width:100%;
+    margin-bottom:6px;
+}
+.totals-row.grand .totals-label {
+    display:table-cell;
+    text-align:right;
+    width:80%;
+    color:#111827;
+    font-weight:bold;
+    font-size:13px;
+    padding-right:14px;
+}
+.totals-row.grand .totals-value {
+    display:table-cell;
+    text-align:right;
+    width:20%;
+    color:#15110a;
+    font-weight:bold;
+    font-size:15px;
+}
 
-        .footer { margin-top: 36px; padding-top: 16px; border-top: 1px solid #e5e7eb; text-align: center; color: #9ca3af; font-size: 10px; }
-    </style>
+.footer {
+    margin-top:36px;
+    padding-top:16px;
+    border-top:1px solid #e5e7eb;
+    text-align:center;
+    color:#9ca3af;
+    font-size:10px;
+}
+</style>
 </head>
 <body>
 

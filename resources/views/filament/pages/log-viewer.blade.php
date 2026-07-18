@@ -1,8 +1,5 @@
 <style>
-.lv,
-.lv *,
-.lv *::before,
-.lv *::after {
+.lv, .lv *, .lv *::before, .lv *::after {
     box-sizing:border-box;
     margin:0;
     padding:0;

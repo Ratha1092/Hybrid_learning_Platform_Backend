@@ -1,8 +1,5 @@
 <style>
-.qm,
-.qm *,
-.qm *::before,
-.qm *::after {
+.qm, .qm *, .qm *::before, .qm *::after {
     box-sizing:border-box;
     margin:0;
     padding:0;

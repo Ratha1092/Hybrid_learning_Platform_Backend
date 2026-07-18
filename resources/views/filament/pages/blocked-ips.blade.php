@@ -1,8 +1,5 @@
 <style>
-.bi,
-.bi *,
-.bi *::before,
-.bi *::after {
+.bi, .bi *, .bi *::before, .bi *::after {
     box-sizing:border-box;
     margin:0;
     padding:0;

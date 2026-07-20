@@ -100,7 +100,7 @@ class CourseController extends Controller
         }
 
         if ($lesson->video_path) {
-            return Storage::disk('r2')->url($lesson->video_path);
+            return Storage::disk('r2-private')->temporaryUrl($lesson->video_path, now()->addMinutes(30));
         }
 
         return null;

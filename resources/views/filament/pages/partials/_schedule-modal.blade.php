@@ -1,27 +1,27 @@
 {{-- Shared "schedule this report" modal. Pairs with
      App\Domains\Reports\Concerns\HasScheduleAction. Expects $reportLabel. --}}
 <style>
-    .hl-schedule-modal-backdrop {
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, .55);
-        z-index: 9998;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        --sm-panel: #1e293b;
-        --sm-panel-2: #263245;
-        --sm-border: rgba(255, 255, 255, .13);
-        --sm-text: #e2e8f0;
-        --sm-muted: #94a3b8;
-    }
-    html:not(.dark) .hl-schedule-modal-backdrop {
-        --sm-panel: #ffffff;
-        --sm-panel-2: #f8fafc;
-        --sm-border: rgba(15, 23, 42, .14);
-        --sm-text: #0f172a;
-        --sm-muted: #64748b;
-    }
+.hl-schedule-modal-backdrop {
+    position:fixed;
+    inset:0;
+    background:rgba(0, 0, 0, .55);
+    z-index:9998;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    --sm-panel:#1e293b;
+    --sm-panel-2:#263245;
+    --sm-border:rgba(255, 255, 255, .13);
+    --sm-text:#e2e8f0;
+    --sm-muted:#94a3b8;
+}
+html:not(.dark) .hl-schedule-modal-backdrop {
+    --sm-panel:#ffffff;
+    --sm-panel-2:#f8fafc;
+    --sm-border:rgba(15, 23, 42, .14);
+    --sm-text:#0f172a;
+    --sm-muted:#64748b;
+}
 </style>
 <div
     class="hl-schedule-modal-backdrop"
@@ -57,7 +57,7 @@
 
         <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:18px;">
             <button type="button" x-on:click="open = false" style="padding:8px 14px;border-radius:8px;font-size:12px;font-weight:700;border:1px solid var(--sm-border);background:var(--sm-panel-2);color:var(--sm-text);cursor:pointer;">Cancel</button>
-            <button type="button" wire:click="scheduleReport" x-on:click="open = false" style="padding:8px 14px;border-radius:8px;font-size:12px;font-weight:700;border:none;background:#D7A441;color:#fff;cursor:pointer;">Schedule</button>
+            <button type="button" wire:click="scheduleReport" x-on:click="open = false" style="padding:8px 14px;border-radius:8px;font-size:12px;font-weight:700;border:none;background:#2563eb;color:#fff;cursor:pointer;">Schedule</button>
         </div>
     </div>
 </div>

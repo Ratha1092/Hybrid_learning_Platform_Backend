@@ -3,20 +3,103 @@
 <head>
     <meta charset="utf-8">
     <style>
-        body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 20px; }
-        .container { max-width: 600px; margin: 0 auto; background: #fff; border-radius: 8px; padding: 40px; }
-        .header { background: #ef4444; color: #fff; text-align: center; padding: 20px; border-radius: 8px 8px 0 0; margin: -40px -40px 30px; }
-        .ip-badge { display: inline-block; background: #fef2f2; color: #b91c1c; padding: 6px 16px; border-radius: 6px; font-weight: bold; font-family: monospace; font-size: 16px; margin: 10px 0; border: 1px solid #fecaca; }
-        .stat-box { background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 16px 20px; margin: 16px 0; }
-        .stat-number { font-size: 32px; font-weight: bold; color: #dc2626; }
-        .stat-label { font-size: 13px; color: #6b7280; margin-top: 4px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 13px; }
-        th { background: #f9fafb; text-align: left; padding: 8px 12px; border-bottom: 2px solid #e5e7eb; color: #6b7280; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; }
-        td { padding: 8px 12px; border-bottom: 1px solid #f3f4f6; color: #374151; }
-        .btn { display: inline-block; background: #ef4444; color: #fff; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; margin-top: 20px; }
-        .footer { margin-top: 30px; font-size: 12px; color: #999; text-align: center; }
-        .warning { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 6px; padding: 12px 16px; color: #92400e; font-size: 13px; margin: 16px 0; }
-    </style>
+body {
+    font-family:Arial, sans-serif;
+    background:#f4f4f4;
+    margin:0;
+    padding:20px;
+}
+.container {
+    max-width:600px;
+    margin:0 auto;
+    background:#fff;
+    border-radius:8px;
+    padding:40px;
+}
+.header {
+    background:#ef4444;
+    color:#fff;
+    text-align:center;
+    padding:20px;
+    border-radius:8px 8px 0 0;
+    margin:-40px -40px 30px;
+}
+.ip-badge {
+    display:inline-block;
+    background:#fef2f2;
+    color:#b91c1c;
+    padding:6px 16px;
+    border-radius:6px;
+    font-weight:bold;
+    font-family:monospace;
+    font-size:16px;
+    margin:10px 0;
+    border:1px solid #fecaca;
+}
+.stat-box {
+    background:#fef2f2;
+    border:1px solid #fecaca;
+    border-radius:8px;
+    padding:16px 20px;
+    margin:16px 0;
+}
+.stat-number {
+    font-size:32px;
+    font-weight:bold;
+    color:#dc2626;
+}
+.stat-label {
+    font-size:13px;
+    color:#6b7280;
+    margin-top:4px;
+}
+table {
+    width:100%;
+    border-collapse:collapse;
+    margin-top:16px;
+    font-size:13px;
+}
+th {
+    background:#f9fafb;
+    text-align:left;
+    padding:8px 12px;
+    border-bottom:2px solid #e5e7eb;
+    color:#6b7280;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.05em;
+}
+td {
+    padding:8px 12px;
+    border-bottom:1px solid #f3f4f6;
+    color:#374151;
+}
+.btn {
+    display:inline-block;
+    background:#ef4444;
+    color:#fff;
+    padding:12px 24px;
+    border-radius:8px;
+    text-decoration:none;
+    font-weight:bold;
+    margin-top:20px;
+}
+.footer {
+    margin-top:30px;
+    font-size:12px;
+    color:#999;
+    text-align:center;
+}
+.warning {
+    background:#fffbeb;
+    border:1px solid #fcd34d;
+    border-radius:6px;
+    padding:12px 16px;
+    color:#92400e;
+    font-size:13px;
+    margin:16px 0;
+}
+</style>
 </head>
 <body>
     <div class="container">

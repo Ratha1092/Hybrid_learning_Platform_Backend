@@ -115,7 +115,7 @@ class Lesson extends Model
         }
 
         if ($this->video_path) {
-            return \Storage::disk(config('filament.default_filesystem_disk'))->url($this->video_path);
+            return \Storage::disk('r2-private')->temporaryUrl($this->video_path, now()->addMinutes(30));
         }
 
         return null;
@@ -127,7 +127,7 @@ class Lesson extends Model
             return null;
         }
 
-        return \Storage::disk(config('filament.default_filesystem_disk'))->url($this->attachment);
+        return \Storage::disk('r2-private')->temporaryUrl($this->attachment, now()->addMinutes(30));
     }
     public function scopePublished(Builder $query): Builder
     {

@@ -15,7 +15,7 @@ class SettingsSeeder extends Seeder
             'site_name'            => ['Hybrid Learning', 'string', 'Platform display name shown across the site.', true],
             'site_logo'            => ['', 'string', 'URL/path to the platform logo.', true],
             'site_favicon'         => ['', 'string', 'URL/path to the favicon.', true],
-            'site_description'     => ['Learn without limits.', 'string', 'Short tagline used for SEO and branding.', true],
+            'site_description'     => ['Learn and grow with us.', 'string', 'Short tagline used for SEO and branding.', true],
             'support_email'        => ['support@example.com', 'string', 'Public support contact email.', true],
             'support_phone'        => ['', 'string', 'Public support contact phone number.', true],
             'contact_address'      => ['8 Charter Street, Bldg 1295, Natalie Tower, Phnom Penh', 'string', 'Physical office address shown on the Contact page.', true],

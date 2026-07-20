@@ -32,13 +32,6 @@ body {
     border-radius:20px;
     font-weight:bold;
 }
-.reason-box {
-    background:#fef2f2;
-    border-left:4px solid #dc2626;
-    padding:15px;
-    margin:20px 0;
-    border-radius:4px;
-}
 .footer {
     margin-top:30px;
     font-size:12px;
@@ -50,19 +43,14 @@ body {
 <body>
     <div class="container">
         <div class="header">
-            <h2>Application Status Update</h2>
+            <h2>Account Suspended</h2>
         </div>
 
         <p>Dear <strong>{{ $user->name }}</strong>,</p>
 
-        <p>We have reviewed your instructor application. Unfortunately, your application has been <span class="badge">Rejected</span>.</p>
+        <p>Your {{ config('app.name') }} account has been <span class="badge">Suspended</span>. You will not be able to sign in or access the platform while your account remains in this state.</p>
 
-        <div class="reason-box">
-            <strong>Reason:</strong><br>
-            {{ $reason }}
-        </div>
-
-        <p>You are welcome to re-apply after addressing the above concerns.</p>
+        <p>If you believe this was a mistake or would like more information, please contact our support team.</p>
 
         <p>Best regards,<br><strong>{{ config('app.name') }} Team</strong></p>
 

@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 use Illuminate\Mail\Events\MessageSending;
+use Illuminate\Auth\Events\Authenticated;
+use Laravel\Sanctum\Events\TokenAuthenticated;
 
 use App\Domains\Payments\Events\PaymentSuccessEvent;
 use App\Domains\Learning\Listeners\EnrollStudentListener;
@@ -11,6 +13,7 @@ use App\Domains\Finance\Listeners\ProcessRevenueListener;
 use App\Domains\Finance\Listeners\UpdateInstructorWalletListener;
 use App\Domains\Finance\Listeners\RecordWalletTransactionListener;
 use App\Listeners\ApplyMailSettings;
+use App\Listeners\LogOutSuspendedUser;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -25,6 +28,12 @@ class EventServiceProvider extends ServiceProvider
         ],
         MessageSending::class => [
             ApplyMailSettings::class,
+        ],
+        Authenticated::class => [
+            LogOutSuspendedUser::class,
+        ],
+        TokenAuthenticated::class => [
+            LogOutSuspendedUser::class . '@handleTokenAuthenticated',
         ],
     ];
 }

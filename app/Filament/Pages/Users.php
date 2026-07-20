@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Domains\Users\Mail\AccountSuspendedMail;
 use App\Domains\Users\Models\User;
 use App\Support\NavBadge;
 use App\Support\PanelAccess;
@@ -9,6 +10,7 @@ use BackedEnum;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Number;
 
 class Users extends Page
@@ -95,6 +97,11 @@ class Users extends Page
         }
 
         $user->update(['status' => 'suspended']);
+
+        // Cut off any active session/token immediately rather than waiting for their token to expire
+        $user->tokens()->delete();
+
+        Mail::to($user->email)->send(new AccountSuspendedMail($user));
 
         Notification::make()
             ->title('User suspended')

@@ -120,7 +120,7 @@ class Moderation extends Page
         }
 
         $tabs = [
-            ['key' => 'all',          'label' => 'All',         'count' => $entries->count(),                                         'color' => '#ea580c'],
+            ['key' => 'all',          'label' => 'All',         'count' => $entries->count(),                                         'color' => '#2563eb'],
             ['key' => 'course',       'label' => 'Courses',     'count' => $entries->where('type', 'course')->count(),               'color' => '#f87171'],
             ['key' => 'verification', 'label' => 'Instructors', 'count' => $entries->where('type', 'verification')->count(),         'color' => '#f87171'],
         ];

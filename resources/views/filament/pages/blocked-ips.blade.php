@@ -1,8 +1,5 @@
 <style>
-.bi,
-.bi *,
-.bi *::before,
-.bi *::after {
+.bi, .bi *, .bi *::before, .bi *::after {
     box-sizing:border-box;
     margin:0;
     padding:0;
@@ -22,7 +19,7 @@
     --t1:#e2e8f0;
     --t2:#64748b;
     --t3:#334155;
-    --accent:#D7A441;
+    --accent:#2563eb;
     color:var(--t1);
 }
 html:not(.dark) .bi {

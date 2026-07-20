@@ -19,79 +19,326 @@
 
 <div class="nv">
 <style>
-.nv,.nv *,.nv *::before,.nv *::after{box-sizing:border-box;margin:0;padding:0}
-.nv{
+.nv,.nv *,.nv *::before,.nv *::after {
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+.nv {
     font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
-    font-size:13px;line-height:1.5;padding-bottom:48px;
-    --p1:#1e293b;--p2:#263245;
-    --bd:rgba(255,255,255,.07);--bd2:rgba(255,255,255,.13);
-    --t1:#e2e8f0;--t2:#64748b;--t3:#334155;
+    font-size:13px;
+    line-height:1.5;
+    padding-bottom:48px;
+    --p1:#1e293b;
+    --p2:#263245;
+    --bd:rgba(255,255,255,.07);
+    --bd2:rgba(255,255,255,.13);
+    --t1:#e2e8f0;
+    --t2:#64748b;
+    --t3:#334155;
     --sh:0 4px 24px rgba(0,0,0,.3);
     color:var(--t1);
 }
-html:not(.dark) .nv{
-    --p1:#ffffff;--p2:#f8fafc;
-    --bd:rgba(15,23,42,.08);--bd2:rgba(15,23,42,.14);
-    --t1:#0f172a;--t2:#64748b;--t3:#cbd5e1;
+html:not(.dark) .nv {
+    --p1:#ffffff;
+    --p2:#f8fafc;
+    --bd:rgba(15,23,42,.08);
+    --bd2:rgba(15,23,42,.14);
+    --t1:#0f172a;
+    --t2:#64748b;
+    --t3:#cbd5e1;
     --sh:0 2px 16px rgba(15,23,42,.1);
 }
-@keyframes nvUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
-.nva{opacity:0;animation:nvUp .45s cubic-bezier(.16,1,.3,1) forwards}
-.nv1{animation-delay:.04s}.nv2{animation-delay:.09s}.nv3{animation-delay:.14s}.nv4{animation-delay:.16s}
+@keyframes nvUp {
+    from {
+        opacity:0;
+        transform:translateY(12px);
+    }
+    to {
+        opacity:1;
+        transform:none;
+    }
+}
+.nva {
+    opacity:0;
+    animation:nvUp .45s cubic-bezier(.16,1,.3,1) forwards;
+}
+.nv1 {
+    animation-delay:.04s;
+}
+.nv2 {
+    animation-delay:.09s;
+}
+.nv3 {
+    animation-delay:.14s;
+}
+.nv4 {
+    animation-delay:.16s;
+}
 
-.nv-header{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding-bottom:20px;border-bottom:1px solid var(--bd)}
-.nv-header-text h1{font-size:clamp(18px,2vw,24px);font-weight:780;letter-spacing:-.018em;line-height:1.15}
-.nv-header-text p{font-size:12px;color:var(--t2);margin-top:4px}
-.nv-header-btns{display:flex;align-items:center;gap:8px;flex-shrink:0}
-.nv-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:8px;font-size:12px;font-weight:700;letter-spacing:.01em;cursor:pointer;text-decoration:none;transition:opacity .15s,transform .12s;white-space:nowrap;border:none;font-family:inherit}
-.nv-btn:hover{opacity:.85;transform:translateY(-1px)}
-.nv-btn svg{width:13px;height:13px;flex-shrink:0}
-.nv-btn-gray{background:var(--p2);color:var(--t1);border:1px solid var(--bd2)}
-.nv-btn-accent{color:#fff}
+.nv-header {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    flex-wrap:wrap;
+    padding-bottom:20px;
+    border-bottom:1px solid var(--bd);
+}
+.nv-header-text h1 {
+    font-size:clamp(18px,2vw,24px);
+    font-weight:780;
+    letter-spacing:-.018em;
+    line-height:1.15;
+}
+.nv-header-text p {
+    font-size:12px;
+    color:var(--t2);
+    margin-top:4px;
+}
+.nv-header-btns {
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex-shrink:0;
+}
+.nv-btn {
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:8px 14px;
+    border-radius:8px;
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:.01em;
+    cursor:pointer;
+    text-decoration:none;
+    transition:opacity .15s,transform .12s;
+    white-space:nowrap;
+    border:none;
+    font-family:inherit;
+}
+.nv-btn:hover {
+    opacity:.85;
+    transform:translateY(-1px);
+}
+.nv-btn svg {
+    width:13px;
+    height:13px;
+    flex-shrink:0;
+}
+.nv-btn-gray {
+    background:var(--p2);
+    color:var(--t1);
+    border:1px solid var(--bd2);
+}
+.nv-btn-accent {
+    color:#fff;
+}
 
-.nv-layout{display:grid;grid-template-columns:1fr 320px;gap:16px;align-items:start}
-@media(max-width:800px){.nv-layout{grid-template-columns:1fr}}
+.nv-layout {
+    display:grid;
+    grid-template-columns:1fr 320px;
+    gap:16px;
+    align-items:start;
+}
+@media(max-width:800px) {
+    .nv-layout {
+        grid-template-columns:1fr;
+    }
+}
 
-.nv-card{background:var(--p1);border:1px solid var(--bd);border-radius:12px;box-shadow:var(--sh)}
+.nv-card {
+    background:var(--p1);
+    border:1px solid var(--bd);
+    border-radius:12px;
+    box-shadow:var(--sh);
+}
 
 /* Hero */
-.nv-hero{display:flex;align-items:flex-start;gap:16px;padding:24px}
-.nv-icon{width:52px;height:52px;border-radius:13px;display:grid;place-items:center;flex-shrink:0}
-.nv-icon svg{width:24px;height:24px}
-.nv-hero-body{flex:1;min-width:0}
-.nv-type-chip{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:.02em;margin-bottom:8px}
-.nv-type-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
-.nv-title{font-size:18px;font-weight:780;letter-spacing:-.015em;line-height:1.25}
-.nv-ago{font-size:11.5px;color:var(--t2);margin-top:5px}
+.nv-hero {
+    display:flex;
+    align-items:flex-start;
+    gap:16px;
+    padding:24px;
+}
+.nv-icon {
+    width:52px;
+    height:52px;
+    border-radius:13px;
+    display:grid;
+    place-items:center;
+    flex-shrink:0;
+}
+.nv-icon svg {
+    width:24px;
+    height:24px;
+}
+.nv-hero-body {
+    flex:1;
+    min-width:0;
+}
+.nv-type-chip {
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+    padding:3px 10px;
+    border-radius:20px;
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:.02em;
+    margin-bottom:8px;
+}
+.nv-type-dot {
+    width:6px;
+    height:6px;
+    border-radius:50%;
+    flex-shrink:0;
+}
+.nv-title {
+    font-size:18px;
+    font-weight:780;
+    letter-spacing:-.015em;
+    line-height:1.25;
+}
+.nv-ago {
+    font-size:11.5px;
+    color:var(--t2);
+    margin-top:5px;
+}
 
 /* Message */
-.nv-section{padding:0 24px 24px}
-.nv-section-label{font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--t2);margin-bottom:8px}
-.nv-divider{border:none;border-top:1px solid var(--bd);margin:0 24px}
-.nv-message{font-size:14px;line-height:1.65;color:var(--t1);padding:20px 24px}
+.nv-section {
+    padding:0 24px 24px;
+}
+.nv-section-label {
+    font-size:10.5px;
+    font-weight:800;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    color:var(--t2);
+    margin-bottom:8px;
+}
+.nv-divider {
+    border:none;
+    border-top:1px solid var(--bd);
+    margin:0 24px;
+}
+.nv-message {
+    font-size:14px;
+    line-height:1.65;
+    color:var(--t1);
+    padding:20px 24px;
+}
 
 /* Action CTA */
-.nv-action-card{padding:18px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
-.nv-action-label-text{font-size:13px;font-weight:700;color:var(--t1)}
-.nv-action-sub{font-size:11.5px;color:var(--t2);margin-top:2px;font-family:ui-monospace,'Cascadia Code',monospace;word-break:break-all}
-.nv-cta-btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:8px;font-size:12.5px;font-weight:700;color:#fff;text-decoration:none;white-space:nowrap;flex-shrink:0;transition:opacity .15s,transform .12s}
-.nv-cta-btn:hover{opacity:.85;transform:translateY(-1px)}
-.nv-cta-btn svg{width:13px;height:13px}
+.nv-action-card {
+    padding:18px 20px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    flex-wrap:wrap;
+}
+.nv-action-label-text {
+    font-size:13px;
+    font-weight:700;
+    color:var(--t1);
+}
+.nv-action-sub {
+    font-size:11.5px;
+    color:var(--t2);
+    margin-top:2px;
+    font-family:ui-monospace,'Cascadia Code',monospace;
+    word-break:break-all;
+}
+.nv-cta-btn {
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:9px 16px;
+    border-radius:8px;
+    font-size:12.5px;
+    font-weight:700;
+    color:#fff;
+    text-decoration:none;
+    white-space:nowrap;
+    flex-shrink:0;
+    transition:opacity .15s,transform .12s;
+}
+.nv-cta-btn:hover {
+    opacity:.85;
+    transform:translateY(-1px);
+}
+.nv-cta-btn svg {
+    width:13px;
+    height:13px;
+}
 
 /* Sidebar cards */
-.nv-meta-card{padding:18px 20px}
-.nv-meta-title{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--t2);margin-bottom:14px}
-.nv-meta-row{display:flex;flex-direction:column;gap:12px}
-.nv-meta-item{}
-.nv-meta-key{font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--t2);margin-bottom:3px}
-.nv-meta-val{font-size:12.5px;color:var(--t1);font-weight:500}
-.nv-meta-val.mono{font-family:ui-monospace,'Cascadia Code',monospace;font-size:11px;color:var(--t2);word-break:break-all}
+.nv-meta-card {
+    padding:18px 20px;
+}
+.nv-meta-title {
+    font-size:11px;
+    font-weight:800;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    color:var(--t2);
+    margin-bottom:14px;
+}
+.nv-meta-row {
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+}
+.nv-meta-item {
+}
+.nv-meta-key {
+    font-size:10.5px;
+    font-weight:700;
+    letter-spacing:.04em;
+    text-transform:uppercase;
+    color:var(--t2);
+    margin-bottom:3px;
+}
+.nv-meta-val {
+    font-size:12.5px;
+    color:var(--t1);
+    font-weight:500;
+}
+.nv-meta-val.mono {
+    font-family:ui-monospace,'Cascadia Code',monospace;
+    font-size:11px;
+    color:var(--t2);
+    word-break:break-all;
+}
 
 /* Status pill */
-.nv-status{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:11.5px;font-weight:700}
-.nv-status-unread{background:rgba(251,191,36,.12);color:#d97706;border:1px solid rgba(251,191,36,.25)}
-.nv-status-read{background:rgba(34,197,94,.1);color:#16a34a;border:1px solid rgba(34,197,94,.2)}
-.nv-status-dot{width:6px;height:6px;border-radius:50%}
+.nv-status {
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+    padding:4px 10px;
+    border-radius:20px;
+    font-size:11.5px;
+    font-weight:700;
+}
+.nv-status-unread {
+    background:rgba(251,191,36,.12);
+    color:#d97706;
+    border:1px solid rgba(251,191,36,.25);
+}
+.nv-status-read {
+    background:rgba(34,197,94,.1);
+    color:#16a34a;
+    border:1px solid rgba(34,197,94,.2);
+}
+.nv-status-dot {
+    width:6px;
+    height:6px;
+    border-radius:50%;
+}
 </style>
 
 {{-- Header --}}

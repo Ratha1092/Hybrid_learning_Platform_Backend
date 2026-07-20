@@ -1,8 +1,5 @@
 <style>
-.sh,
-.sh *,
-.sh *::before,
-.sh *::after {
+.sh, .sh *, .sh *::before, .sh *::after {
     box-sizing:border-box;
     margin:0;
     padding:0;
@@ -22,7 +19,7 @@
     --t1:#e2e8f0;
     --t2:#64748b;
     --t3:#334155;
-    --accent:#D7A441;
+    --accent:#2563eb;
     --ok:#10b981;
     --warn:#f59e0b;
     --err:#f87171;

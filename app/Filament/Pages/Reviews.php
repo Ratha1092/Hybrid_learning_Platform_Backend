@@ -89,7 +89,7 @@ class Reviews extends Page
         $perPage  = in_array($this->perPage, [10, 25, 50], true) ? $this->perPage : 10;
 
         $tabs = [
-            ['key' => 'all', 'label' => 'All',   'count' => Review::count(),                         'color' => '#d97706'],
+            ['key' => 'all', 'label' => 'All',   'count' => Review::count(),                         'color' => '#2563eb'],
             ['key' => '5',   'label' => '5★',     'count' => Review::where('rating', 5)->count(),    'color' => '#34d399'],
             ['key' => '4',   'label' => '4★',     'count' => Review::where('rating', 4)->count(),    'color' => '#60a5fa'],
             ['key' => '3',   'label' => '3★',     'count' => Review::where('rating', 3)->count(),    'color' => '#fbbf24'],

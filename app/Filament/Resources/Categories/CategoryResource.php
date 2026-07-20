@@ -6,6 +6,7 @@ use App\Domains\Courses\Models\Category;
 use App\Support\PanelAccess;
 use App\Filament\Resources\Categories\Pages\CreateCategory;
 use App\Filament\Resources\Categories\Pages\EditCategory;
+use App\Filament\Resources\Categories\Pages\ViewCategory;
 use App\Filament\Resources\Categories\Schemas\CategoryForm;
 use App\Filament\Resources\Categories\Tables\CategoriesTable;
 use BackedEnum;
@@ -59,6 +60,7 @@ class CategoryResource extends Resource
     {
         return [
             'create' => CreateCategory::route('/create'),
+            'view'   => ViewCategory::route('/{record}'),
             'edit'   => EditCategory::route('/{record}/edit'),
         ];
     }

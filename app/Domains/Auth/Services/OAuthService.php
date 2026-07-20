@@ -162,8 +162,8 @@ class OAuthService
 
     private function loginUser($user, bool $isNew = false)
     {
-        if ($user->status === 'suspended') {
-            throw new RuntimeException('Your account has been suspended. Please contact support.');
+        if ($user->status === User::STATUS_SUSPENDED) {
+            throw new RuntimeException(User::SUSPENDED_MESSAGE);
         }
 
         $token = $user->createToken('api-token')->plainTextToken;

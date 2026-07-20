@@ -61,9 +61,9 @@ class AuthService
 
         $this->clearFailedAttempts($user);
 
-        if ($user->status === 'suspended') {
+        if ($user->status === User::STATUS_SUSPENDED) {
             throw ValidationException::withMessages([
-                'email' => ['Your account has been suspended. Please contact support.'],
+                'email' => [User::SUSPENDED_MESSAGE],
             ]);
         }
 

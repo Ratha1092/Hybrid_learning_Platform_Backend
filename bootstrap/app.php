@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 use App\Support\ApiResponse;
+use App\Exceptions\AccountSuspendedException;
 use Spatie\Permission\Middleware\RoleMiddleware;
 use Spatie\Permission\Middleware\PermissionMiddleware;
 use Spatie\Permission\Middleware\RoleOrPermissionMiddleware;
@@ -52,6 +53,21 @@ return Application::configure(basePath: dirname(__DIR__))
     ])
 
     ->withExceptions(function (Exceptions $exceptions): void {
+
+        // Account Suspended Exception
+        $exceptions->render(function (
+            AccountSuspendedException $e,
+            $request
+        ) {
+            if ($request->is('api/*')) {
+                return ApiResponse::error(
+                    $e->getMessage(),
+                    $e->getStatusCode(),
+                    null,
+                    ['error_code' => AccountSuspendedException::ERROR_CODE]
+                );
+            }
+        });
 
         // Authentication Exception
         $exceptions->render(function (

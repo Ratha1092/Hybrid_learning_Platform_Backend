@@ -2,68 +2,68 @@
 
 <style>
 .bi-funnel-wrap {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    padding: 8px 0;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    padding:8px 0;
 }
 
 .bi-funnel-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
+    display:flex;
+    align-items:center;
+    gap:12px;
 }
 
 .bi-funnel-label {
-    width: 110px;
-    font-size: 11.5px;
-    color: var(--t2);
-    font-weight: 600;
-    flex-shrink: 0;
+    width:110px;
+    font-size:11.5px;
+    color:var(--t2);
+    font-weight:600;
+    flex-shrink:0;
 }
 
 .bi-funnel-bar-wrap {
-    flex: 1;
-    background: var(--p2);
-    border-radius: 4px;
-    height: 22px;
-    overflow: hidden;
-    position: relative;
+    flex:1;
+    background:var(--p2);
+    border-radius:4px;
+    height:22px;
+    overflow:hidden;
+    position:relative;
 }
 
 .bi-funnel-bar {
-    height: 100%;
-    border-radius: 4px;
-    background: rgba(37,99,235,0.7);
-    transition: width 0.4s ease;
-    display: flex;
-    align-items: center;
-    padding-left: 8px;
-    min-width: 24px;
+    height:100%;
+    border-radius:4px;
+    background:rgba(37,99,235,0.7);
+    transition:width 0.4s ease;
+    display:flex;
+    align-items:center;
+    padding-left:8px;
+    min-width:24px;
 }
 
 .bi-funnel-bar span {
-    font-size: 10px;
-    font-weight: 700;
-    color: #fff;
-    white-space: nowrap;
+    font-size:10px;
+    font-weight:700;
+    color:#fff;
+    white-space:nowrap;
 }
 
 .bi-funnel-count {
-    width: 70px;
-    text-align: right;
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--t1);
-    flex-shrink: 0;
+    width:70px;
+    text-align:right;
+    font-size:12px;
+    font-weight:700;
+    color:var(--t1);
+    flex-shrink:0;
 }
 
 .bi-funnel-pct {
-    width: 42px;
-    text-align: right;
-    font-size: 11px;
-    color: var(--t2);
-    flex-shrink: 0;
+    width:42px;
+    text-align:right;
+    font-size:11px;
+    color:var(--t2);
+    flex-shrink:0;
 }
 </style>
 

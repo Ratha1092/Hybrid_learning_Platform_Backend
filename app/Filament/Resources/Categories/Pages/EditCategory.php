@@ -44,14 +44,17 @@ class EditCategory extends EditRecord
         ])->statePath('data');
     }
 
-    // Separate form for image upload only
+    // Separate form for image upload only — kept on its own state path so it
+    // never shares Livewire state with `form` (or the raw wire:model="data.*"
+    // inputs in the view), which was clobbering the FileUpload's array state
+    // back to a plain string and crashing getUploadedFiles().
     public function imageForm(Schema $form): Schema
     {
         return $form->components([
             FileUpload::make('image')
                 ->image()
                 ->directory('categories'),
-        ])->statePath('data');
+        ])->statePath('imageData');
     }
 
     protected function getForms(): array

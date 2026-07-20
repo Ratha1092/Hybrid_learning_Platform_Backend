@@ -3,12 +3,14 @@
 namespace App\Filament\Resources\Users\Pages;
 
 use App\Domains\Auth\Services\ActivityLogService;
+use App\Domains\Users\Mail\AccountSuspendedMail;
 use App\Domains\Users\Models\InstructorVerification;
 use App\Domains\Users\Models\User;
 use App\Filament\Resources\Users\UserResource;
 use Filament\Actions\DeleteAction;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
+use Illuminate\Support\Facades\Mail;
 
 class EditUser extends EditRecord
 {
@@ -128,6 +130,8 @@ class EditUser extends EditRecord
 
         // Cut off any active session immediately rather than waiting for their token to expire
         $user->tokens()->delete();
+
+        Mail::to($user->email)->send(new AccountSuspendedMail($user));
 
         // Sync the form state so the status dropdown reflects the change immediately
         $this->data['status'] = 'suspended';

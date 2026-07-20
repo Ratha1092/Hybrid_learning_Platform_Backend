@@ -26,6 +26,7 @@ use BackedEnum;
 use UnitEnum;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 
 class InstructorVerificationResource extends Resource
 {
@@ -240,8 +241,16 @@ class InstructorVerificationResource extends Resource
             ])->columns(2),
 
             Section::make('Documents')->schema([
-                ImageEntry::make('certificate_file')->label('Certificate'),
-                ImageEntry::make('identity_file')->label('ID Proof'),
+                ImageEntry::make('certificate_file')
+                    ->label('Certificate')
+                    ->state(fn ($record) => $record->certificate_file
+                        ? Storage::disk('r2-private')->temporaryUrl($record->certificate_file, now()->addMinutes(10))
+                        : null),
+                ImageEntry::make('identity_file')
+                    ->label('ID Proof')
+                    ->state(fn ($record) => $record->identity_file
+                        ? Storage::disk('r2-private')->temporaryUrl($record->identity_file, now()->addMinutes(10))
+                        : null),
             ])->columns(2),
 
             Section::make('Review Status')->schema([

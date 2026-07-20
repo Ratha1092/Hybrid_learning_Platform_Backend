@@ -1,8 +1,5 @@
 <style>
-.lv,
-.lv *,
-.lv *::before,
-.lv *::after {
+.lv, .lv *, .lv *::before, .lv *::after {
     box-sizing:border-box;
     margin:0;
     padding:0;
@@ -22,7 +19,7 @@
     --t1:#e2e8f0;
     --t2:#64748b;
     --t3:#334155;
-    --accent:#D7A441;
+    --accent:#2563eb;
     --err:#f87171;
     --warn:#f59e0b;
     --info:#10b981;

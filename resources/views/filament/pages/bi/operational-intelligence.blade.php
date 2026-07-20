@@ -2,56 +2,56 @@
 
 <style>
 .bi-alert-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 14px;
-    border-radius: 8px;
-    font-size: 12.5px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:10px 14px;
+    border-radius:8px;
+    font-size:12.5px;
 }
 
 .bi-alert-row.warn {
-    background: rgba(37,99,235,.09);
-    border: 1px solid rgba(37,99,235,.2);
-    color: var(--acc);
+    background:rgba(37,99,235,.09);
+    border:1px solid rgba(37,99,235,.2);
+    color:var(--acc);
 }
 
 .bi-alert-row.err {
-    background: rgba(239,68,68,.09);
-    border: 1px solid rgba(239,68,68,.2);
-    color: var(--err);
+    background:rgba(239,68,68,.09);
+    border:1px solid rgba(239,68,68,.2);
+    color:var(--err);
 }
 
 .bi-alert-row.ok {
-    background: rgba(34,197,94,.07);
-    border: 1px solid rgba(34,197,94,.2);
-    color: var(--ok);
+    background:rgba(34,197,94,.07);
+    border:1px solid rgba(34,197,94,.2);
+    color:var(--ok);
 }
 
 .bi-alert-icon {
-    font-size: 16px;
-    flex-shrink: 0;
+    font-size:16px;
+    flex-shrink:0;
 }
 
 .bi-alert-msg {
-    flex: 1;
-    font-weight: 600;
+    flex:1;
+    font-weight:600;
 }
 
 .bi-alert-val {
-    font-size: 18px;
-    font-weight: 800;
+    font-size:18px;
+    font-weight:800;
 }
 
 .bi-alerts-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
 }
 
 @media (max-width: 700px) {
     .bi-alerts-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns:1fr;
     }
 }
 </style>

@@ -296,6 +296,12 @@ html:not(.dark) .pa {
     border:1px solid var(--bd2);
     background:#fff;
     padding:12px;
+    cursor:zoom-in;
+    transition:transform .15s, box-shadow .15s;
+}
+.pa-qr-box img:hover {
+    transform:scale(1.03);
+    box-shadow:0 6px 20px rgba(0,0,0,.15);
 }
 .pa-qr-missing {
     display:flex;
@@ -311,6 +317,56 @@ html:not(.dark) .pa {
     width:32px;
     height:32px;
     opacity:.35;
+}
+
+/* Image lightbox */
+.pa-lightbox-overlay {
+    display:none;
+    position:fixed;
+    inset:0;
+    z-index:10000;
+    align-items:center;
+    justify-content:center;
+    background:rgba(8,11,20,.88);
+    backdrop-filter:blur(4px);
+    -webkit-backdrop-filter:blur(4px);
+    padding:40px;
+    cursor:zoom-out;
+}
+.pa-lightbox-overlay.open {
+    display:flex;
+}
+.pa-lightbox-overlay img {
+    max-width:min(90vw, 560px);
+    max-height:85vh;
+    border-radius:14px;
+    background:#fff;
+    padding:20px;
+    box-shadow:0 20px 60px rgba(0,0,0,.5);
+    cursor:default;
+}
+.pa-lightbox-close {
+    position:fixed;
+    top:22px;
+    right:22px;
+    width:40px;
+    height:40px;
+    border-radius:50%;
+    background:rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.18);
+    color:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    transition:background .15s;
+}
+.pa-lightbox-close:hover {
+    background:rgba(255,255,255,.18);
+}
+.pa-lightbox-close svg {
+    width:18px;
+    height:18px;
 }
 
 .pa-modal-overlay {
@@ -523,7 +579,7 @@ html:not(.dark) .pa-modal-overlay {
 
             <div class="pa-qr-box">
                 @if($qrUrl)
-                    <img src="{{ $qrUrl }}" alt="Payout QR code">
+                    <img src="{{ $qrUrl }}" alt="Payout QR code" onclick="openLightbox('{{ $qrUrl }}')">
                 @else
                     <div class="pa-qr-missing">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -573,6 +629,18 @@ html:not(.dark) .pa-modal-overlay {
         </div>
     </div>
 
+    {{-- Image lightbox (teleported to <body> so it centers on the real viewport) --}}
+    <template x-teleport="body">
+    <div class="pa-lightbox-overlay" id="pa-lightbox" onclick="if(event.target===this)closeLightbox()">
+        <div class="pa-lightbox-close" onclick="closeLightbox()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/>
+            </svg>
+        </div>
+        <img id="pa-lightbox-img" src="" alt="Payout QR code (full size)">
+    </div>
+    </template>
+
     @if($a->status === 'pending')
     {{-- Approve Modal (teleported to <body> so it centers on the real viewport,
          not inside any transformed page wrapper) --}}
@@ -606,6 +674,17 @@ html:not(.dark) .pa-modal-overlay {
     @endif
 
 <script>
+    function openLightbox(src) {
+        document.getElementById('pa-lightbox-img').src = src;
+        document.getElementById('pa-lightbox').classList.add('open');
+    }
+    function closeLightbox() {
+        document.getElementById('pa-lightbox').classList.remove('open');
+    }
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closeLightbox();
+    });
+
     function openApproveModal() {
         document.getElementById('pa-approve-modal').classList.add('open');
     }

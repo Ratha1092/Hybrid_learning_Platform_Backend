@@ -43,6 +43,7 @@ class User extends Authenticatable implements FilamentUser
 
     public const STATUS_ACTIVE = 'active';
     public const STATUS_SUSPENDED = 'suspended';
+    public const SUSPENDED_MESSAGE = 'Your account has been suspended. Please contact support.';
     public const INSTRUCTOR_NONE = 'not_instructor';
     public const INSTRUCTOR_PENDING = 'pending';
     public const INSTRUCTOR_VERIFIED = 'approved';

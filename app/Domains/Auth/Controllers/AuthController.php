@@ -25,7 +25,10 @@ class AuthController extends Controller
         try {
             $data = $this->authService->login($request->validated());
         } catch (ValidationException $exception) {
-            return ApiResponse::error('Invalid credentials', 400, $exception->errors());
+            $errors = $exception->errors();
+            $message = collect($errors)->flatten()->first() ?? 'Invalid credentials';
+
+            return ApiResponse::error($message, 400, $errors);
         }
 
         return ApiResponse::success($data, 'Login successful');

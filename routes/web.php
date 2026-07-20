@@ -257,12 +257,12 @@ Route::middleware(['web', 'auth'])->get(
         $invoice = \App\Domains\Billing\Models\Invoice::findOrFail($id);
         abort_unless(auth()->user()->can('invoices.download'), 403);
 
-        if (!$invoice->pdf_path || !\Illuminate\Support\Facades\Storage::disk('local')->exists($invoice->pdf_path)) {
+        if (!$invoice->pdf_path || !\Illuminate\Support\Facades\Storage::disk('r2-private')->exists($invoice->pdf_path)) {
             app(\App\Domains\Billing\Services\InvoiceService::class)->regeneratePdf($invoice);
             $invoice->refresh();
         }
 
-        return \Illuminate\Support\Facades\Storage::disk('local')->download(
+        return \Illuminate\Support\Facades\Storage::disk('r2-private')->download(
             $invoice->pdf_path,
             $invoice->invoice_number . '.pdf',
             ['Content-Type' => 'application/pdf']
@@ -296,12 +296,12 @@ Route::middleware(['web', 'auth'])->get(
         $receipt = \App\Domains\Billing\Models\Receipt::findOrFail($id);
         abort_unless(auth()->user()->can('receipts.download'), 403);
 
-        if (!$receipt->pdf_path || !\Illuminate\Support\Facades\Storage::disk('local')->exists($receipt->pdf_path)) {
+        if (!$receipt->pdf_path || !\Illuminate\Support\Facades\Storage::disk('r2-private')->exists($receipt->pdf_path)) {
             app(\App\Domains\Billing\Services\ReceiptService::class)->regeneratePdf($receipt);
             $receipt->refresh();
         }
 
-        return \Illuminate\Support\Facades\Storage::disk('local')->download(
+        return \Illuminate\Support\Facades\Storage::disk('r2-private')->download(
             $receipt->pdf_path,
             $receipt->receipt_number . '.pdf',
             ['Content-Type' => 'application/pdf']
@@ -325,12 +325,12 @@ Route::middleware(['web', 'auth'])->get(
         $receipt = \App\Domains\Finance\Models\PayoutReceipt::findOrFail($id);
         abort_unless(auth()->user()->can('payouts.download'), 403);
 
-        if (!$receipt->pdf_path || !\Illuminate\Support\Facades\Storage::disk('local')->exists($receipt->pdf_path)) {
+        if (!$receipt->pdf_path || !\Illuminate\Support\Facades\Storage::disk('r2-private')->exists($receipt->pdf_path)) {
             app(\App\Domains\Finance\Services\PayoutReceiptService::class)->regeneratePdf($receipt);
             $receipt->refresh();
         }
 
-        return \Illuminate\Support\Facades\Storage::disk('local')->download(
+        return \Illuminate\Support\Facades\Storage::disk('r2-private')->download(
             $receipt->pdf_path,
             $receipt->receipt_number . '.pdf',
             ['Content-Type' => 'application/pdf']

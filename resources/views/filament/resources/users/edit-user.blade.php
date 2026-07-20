@@ -86,7 +86,7 @@ html.dark .uv {
     --sh:0 4px 24px rgba(0,0,0,.3);
 }
 
-/* ── Header ── */
+/* Header */
 .uv-header {
     display:flex;
     align-items:center;
@@ -108,7 +108,7 @@ html.dark .uv {
     gap:8px;
 }
 
-/* ── Buttons ── */
+/* Buttons */
 .uv-btn {
     display:inline-flex;
     align-items:center;
@@ -160,7 +160,7 @@ html.dark .uv {
     cursor:not-allowed;
 }
 
-/* ── Hero ── */
+/* Hero */
 .uv-hero {
     background:var(--p1);
     border:1px solid var(--bd);
@@ -249,7 +249,7 @@ html.dark .uv {
     letter-spacing:-.01em;
 }
 
-/* ── Cards ── */
+/* Cards */
 .uv-grid-2 {
     display:grid;
     grid-template-columns:1fr 1fr;
@@ -264,7 +264,6 @@ html.dark .uv {
     background:var(--p1);
     border:1px solid var(--bd);
     border-radius:var(--radius);
-    overflow:hidden;
     box-shadow:var(--sh);
 }
 .uv-card-header {
@@ -307,7 +306,7 @@ html.dark .uv {
     padding-top:0;
 }
 
-/* ── Form fields ── */
+/* Form fields */
 .uv-field-group {
     display:flex;
     flex-direction:column;
@@ -398,7 +397,7 @@ select.uv-input {
     flex-shrink:0;
 }
 
-/* ── Input with trailing button (password reveal) ── */
+/* Input with trailing button (password reveal) */
 .uv-input-wrap {
     position:relative;
     display:flex;
@@ -428,7 +427,7 @@ select.uv-input {
     height:16px;
 }
 
-/* ── Roles grid ── */
+/* Roles grid */
 .uv-roles-grid {
     display:flex;
     flex-wrap:wrap;
@@ -471,7 +470,7 @@ select.uv-input {
     border-color:#6d28d9;
 }
 
-/* ── Custom select ── */
+/* Custom select */
 .uv-custom-select {
     position:relative;
 }
@@ -565,14 +564,14 @@ html.dark .uv-select-option:hover {
     flex-shrink:0;
 }
 
-/* ── Save bar ── */
+/* Save bar */
 .uv-save-bar {
     display:flex;
     align-items:center;
     gap:10px;
 }
 
-/* ── Alerts ── */
+/* Alerts */
 .uv-alert-errors {
     background:rgba(220,38,38,.06);
     border:1px solid rgba(220,38,38,.2);
@@ -597,7 +596,7 @@ html.dark .uv-select-option:hover {
     color:#dc2626;
 }
 
-/* ── Animations ── */
+/* Animations */
 @keyframes uvUp {
     from {
         opacity:0;
@@ -632,7 +631,7 @@ html.dark .uv-select-option:hover {
 }
 </style>
 
-{{-- ── Header ── --}}
+{{-- Header --}}
 <div class="uv-header uva uv1">
     <h1 class="uv-page-title">Edit user</h1>
     <div class="uv-header-actions">
@@ -671,7 +670,7 @@ html.dark .uv-select-option:hover {
     </div>
 </div>
 
-{{-- ── Hero card ── --}}
+{{-- Hero card --}}
 <div class="uv-hero uva uv2">
     @if($avatarUrl)
         <img src="{{ $avatarUrl }}" alt="{{ $user->name }}" class="uv-avatar-img">
@@ -705,7 +704,7 @@ html.dark .uv-select-option:hover {
     </div>
 </div>
 
-{{-- ── Validation error summary ── --}}
+{{-- Validation error summary --}}
 @if($errors->any())
 <div class="uv-alert-errors uva uv3">
     <div class="uv-alert-errors-title">Please fix the following errors</div>
@@ -717,7 +716,7 @@ html.dark .uv-select-option:hover {
 </div>
 @endif
 
-{{-- ── Profile + Access Control ── --}}
+{{-- Profile + Access Control --}}
 <div class="uv-grid-2 uva uv3">
 
     {{-- Profile --}}
@@ -746,7 +745,7 @@ html.dark .uv-select-option:hover {
 
             <div class="uv-field-group">
                 <label class="uv-label" for="eu-phone">Phone Number</label>
-                <input id="eu-phone" type="tel" class="uv-input" wire:model="data.phone" placeholder="+1 (555) 000-0000">
+                <input id="eu-phone" type="tel" class="uv-input" wire:model="data.phone" placeholder="(885) 000-0000">
                 @error('data.phone') <span class="uv-error">{{ $message }}</span> @enderror
             </div>
         </div>
@@ -808,7 +807,7 @@ html.dark .uv-select-option:hover {
 
 </div>
 
-{{-- ── Security ── --}}
+{{-- Security --}}
 <div class="uv-card uva uv4">
     <div class="uv-card-header">
         <div class="uv-card-icon">
@@ -834,7 +833,7 @@ html.dark .uv-select-option:hover {
     </div>
 </div>
 
-{{-- ── Save bar ── --}}
+{{-- Save bar --}}
 <div class="uv-save-bar uva uv5">
     <button
         type="button"

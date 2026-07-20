@@ -680,8 +680,10 @@ html:not(.dark) .cv {
         </div>
     </div>
 
-    {{-- Reject modal --}}
+    {{-- Reject modal (teleported to <body> so it centers on the real viewport,
+         not inside any transformed page wrapper) --}}
     @if($course->isPendingReview())
+    <template x-teleport="body">
     <div class="cv-modal-overlay" id="cv-reject-modal" onclick="if(event.target===this)this.classList.remove('open')">
         <div class="cv-modal">
             <h3>Reject Course</h3>
@@ -698,6 +700,7 @@ html:not(.dark) .cv {
             </div>
         </div>
     </div>
+    </template>
     @endif
 
 </div>

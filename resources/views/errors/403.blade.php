@@ -123,8 +123,17 @@ p {
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0zm-9 3.75h.008v.008H12v-.008z"/>
             </svg>
         </div>
+        @php
+            $reason = trim($exception->getMessage() ?? '');
+        @endphp
         <h1>You don't have access to this page</h1>
-        <p>Your account doesn't have the permission required to view this. If you think this is a mistake, ask an administrator to grant you access.</p>
+        <p>
+            @if($reason && $reason !== 'This action is unauthorized.')
+                {{ $reason }}
+            @else
+                Your account doesn't have the permission required to view this. If you think this is a mistake, ask an administrator to grant you access.
+            @endif
+        </p>
         <div class="btns">
             <button onclick="history.length > 1 ? history.back() : window.location.href='{{ url('/admin') }}'" class="btn btn-gray">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/></svg>

@@ -20,6 +20,7 @@ class PayoutRequest extends Model
         'processed_at',
         'processed_by',
         'rejection_reason',
+        'transaction_reference',
     ];
 
     protected $casts = [

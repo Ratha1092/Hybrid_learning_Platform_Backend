@@ -664,7 +664,9 @@ html:not(.dark) .iv {
     </div>
 
     @if($v->status === 'pending')
-    {{-- Approve Modal --}}
+    {{-- Approve Modal (teleported to <body> so it centers on the real viewport,
+         not inside any transformed page wrapper) --}}
+    <template x-teleport="body">
     <div class="iv-modal-overlay" id="iv-approve-modal" onclick="if(event.target===this)closeApproveModal()">
         <div class="iv-modal">
             <h3>Approve Application</h3>
@@ -675,8 +677,10 @@ html:not(.dark) .iv {
             </div>
         </div>
     </div>
+    </template>
 
     {{-- Reject Modal --}}
+    <template x-teleport="body">
     <div class="iv-modal-overlay" id="iv-reject-modal" onclick="if(event.target===this)closeRejectModal()">
         <div class="iv-modal">
             <h3>Reject Application</h3>
@@ -688,6 +692,7 @@ html:not(.dark) .iv {
             </div>
         </div>
     </div>
+    </template>
     @endif
 
 </div>

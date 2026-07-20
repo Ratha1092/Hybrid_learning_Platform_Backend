@@ -13,7 +13,7 @@ class ApiResponse
         ], $code);
     }
 
-    public static function error($message = 'Error', int $code = 400, $errors = null)
+    public static function error($message = 'Error', int $code = 400, $errors = null, array $extra = [])
     {
         $payload = [
             'success' => false,
@@ -24,6 +24,6 @@ class ApiResponse
             $payload['errors'] = $errors;
         }
 
-        return response()->json($payload, $code);
+        return response()->json([...$payload, ...$extra], $code);
     }
 }

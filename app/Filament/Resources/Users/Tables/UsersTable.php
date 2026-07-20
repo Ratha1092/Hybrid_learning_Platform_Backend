@@ -2,11 +2,13 @@
 
 namespace App\Filament\Resources\Users\Tables;
 
+use App\Domains\Users\Mail\AccountSuspendedMail;
 use App\Domains\Users\Models\InstructorProfile;
 use Filament\Actions;
-// use Filament\Notifications\Notification;
+use Filament\Notifications\Notification;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Mail;
 
 class UsersTable
 {
@@ -71,6 +73,8 @@ class UsersTable
                         $record->update([
                             'status' => 'suspended',
                         ]);
+                        $record->tokens()->delete();
+                        Mail::to($record->email)->send(new AccountSuspendedMail($record));
                         Notification::make()
                             ->title('User Suspended')
                             ->danger()

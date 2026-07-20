@@ -159,6 +159,10 @@ body {
             <div class="info-value">{{ strtoupper(str_replace('_', ' ', $receipt->payment_method)) }}</div>
             <div class="info-label" style="margin-top: 8px;">Payout Reference</div>
             <div class="info-value">#{{ $payout->id }}</div>
+            @if($payout->transaction_reference)
+            <div class="info-label" style="margin-top: 8px;">Transaction Reference</div>
+            <div class="info-value">{{ $payout->transaction_reference }}</div>
+            @endif
         </div>
     </div>
 

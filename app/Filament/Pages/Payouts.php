@@ -73,7 +73,7 @@ class Payouts extends Page
         return '';
     }
 
-    public function approve(int $id): void
+    public function approve(int $id, ?string $reference = null): void
     {
         if (!PanelAccess::can('payouts.update')) {
             return;
@@ -84,11 +84,14 @@ class Payouts extends Page
             return;
         }
 
-        DB::transaction(function () use ($payout) {
+        $reference = trim((string) $reference);
+
+        DB::transaction(function () use ($payout, $reference) {
             $payout->update([
                 'status' => 'approved',
                 'processed_at' => now(),
                 'processed_by' => auth()->id(),
+                'transaction_reference' => $reference !== '' ? $reference : null,
             ]);
 
             WalletTransaction::where('payout_request_id', $payout->id)

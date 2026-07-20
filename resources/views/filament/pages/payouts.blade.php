@@ -366,6 +366,21 @@ html:not(.dark) .po {
 .po-modal textarea:focus {
     border-color:#2563eb;
 }
+.po-approve-input {
+    width:100%;
+    background:var(--p2);
+    border:1px solid var(--bd2);
+    border-radius:9px;
+    padding:10px 13px;
+    color:var(--t1);
+    font-size:13px;
+    font-family:inherit;
+    outline:none;
+    margin-top:4px;
+}
+.po-approve-input:focus {
+    border-color:#2563eb;
+}
 .po-modal-footer {
     display:flex;
     justify-content:flex-end;
@@ -590,6 +605,7 @@ html:not(.dark) .po {
                         'account_number' => $d['account_number'] ?? null,
                         'phone_number' => $d['phone_number'] ?? null,
                         'qr_url' => $qrUrl,
+                        'transaction_reference' => $payout->transaction_reference,
                     ];
                 @endphp
                 <tr class="po-row-link" onclick='openAccountModal(@json($accountData))'>
@@ -725,6 +741,10 @@ html:not(.dark) .po {
         <div class="po-modal">
             <h3>Approve Payout</h3>
             <p id="po-approve-name-text">Are you sure you want to approve this payout request?</p>
+            <div class="po-field" style="margin-bottom:4px">
+                <label class="po-field-label" for="po-approve-reference">Transaction Reference (optional)</label>
+                <input type="text" id="po-approve-reference" class="po-approve-input" placeholder="e.g. KHQR transaction ID, bank transfer ref...">
+            </div>
             <div class="po-modal-footer">
                 <button class="po-modal-btn po-modal-btn-gray" onclick="closeApproveModal()">Cancel</button>
                 <button class="po-modal-btn po-modal-btn-success" onclick="submitApprove()">Approve Payout</button>
@@ -761,6 +781,9 @@ html:not(.dark) .po {
         if (account.qr_url) {
             rows.push('<img src="' + account.qr_url + '" alt="Payout QR code" class="po-qr-img">');
         }
+        if (account.transaction_reference) {
+            rows.push(poField('Transaction Reference', account.transaction_reference));
+        }
         document.getElementById('po-account-body').innerHTML = rows.join('');
         document.getElementById('po-account-modal').classList.add('open');
     }
@@ -772,6 +795,7 @@ html:not(.dark) .po {
     function openApproveModal(id, name) {
         approveId = id;
         document.getElementById('po-approve-name-text').textContent = 'Are you sure you want to approve ' + name + '\'s payout request?';
+        document.getElementById('po-approve-reference').value = '';
         document.getElementById('po-approve-modal').classList.add('open');
     }
     function closeApproveModal() {
@@ -781,8 +805,9 @@ html:not(.dark) .po {
     function submitApprove() {
         if (!approveId) return;
         const id = approveId;
+        const reference = document.getElementById('po-approve-reference').value.trim();
         closeApproveModal();
-        @this.call('approve', id);
+        @this.call('approve', id, reference);
     }
 
     var rejectId = null;

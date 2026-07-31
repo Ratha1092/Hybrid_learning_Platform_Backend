@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Spatie\Permission\Traits\HasRoles;
 use Filament\Models\Contracts\FilamentUser;
+use Filament\Models\Contracts\HasAvatar;
 use Filament\Panel;
 use Database\Factories\UserFactory;
 use App\Domains\Courses\Models\Course;
@@ -33,7 +34,7 @@ use App\Domains\Auth\Models\TwoFactorCode;
 use App\Domains\Auth\Models\ActivityLog;
 use App\Domains\Auth\Models\OAuthAccount;
 
-class User extends Authenticatable implements FilamentUser
+class User extends Authenticatable implements FilamentUser, HasAvatar
 {
     use HasFactory;
     use Notifiable;
@@ -257,6 +258,11 @@ class User extends Authenticatable implements FilamentUser
             return $this->avatar;
         }
 
-        return \Storage::disk(config('filament.default_filesystem_disk'))->url($this->avatar);
+        return \Storage::disk(config('filament.default_filesystem_disk', config('filesystems.default')))->url($this->avatar);
+    }
+
+    public function getFilamentAvatarUrl(): ?string
+    {
+        return $this->avatar_url;
     }
 }

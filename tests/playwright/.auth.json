@@ -12,20 +12,20 @@
     },
     {
       "name": "XSRF-TOKEN",
-      "value": "eyJpdiI6ImQrOEhKUVIzQjFYeGlEUXpnZHZZVkE9PSIsInZhbHVlIjoiR2picDY5QlVyVDQzN3BlTTIzbWhpeUMvT3hURk10ZmZpOUcvMTlvZzM3UVIyTUZPdHZEVjh0dkZUVWhDY1JPSEtlK2ZvbUcvWnJDQ3VjQ2ZBNXo1WDlHeXdYYzBNWTV4Mlp0UnJ0RWh1Mmh0aXhSNkRJdXordkUwWVczY3QrajciLCJtYWMiOiIwNzNhNTU3MTdhNTJkMGE1OWQzNjcwNmZmMWJhYjExNzY2MWUzM2IxM2Q0YTU0YzdkNTQwYTE5MDliYmI0ZDQ1IiwidGFnIjoiIn0%3D",
+      "value": "eyJpdiI6IjEwd2pER1lEaDNVbmc5NmdveUFFMnc9PSIsInZhbHVlIjoiTGFkQ2F6S1VwMUZEeW9nTUdEWnNMZXVldXVHcHVCY2tLQktZZmpZSzE3THYyVmhMODlXeU5IRm5ONUhrQW5LemxQdVE2dFFXbzN5elZZamVvak1BNFI1VVNiOXRtelVrclI5azRrdEROeENsbDZYKzZwRXR2RnRPSHNIS3lYSloiLCJtYWMiOiI0NTc4YTFlOTQwNzVhNmUwYWE0OGQzMzk3ODQ5NDZhYjVhYTdlM2QyZDJkMGNmN2I3NGZiMDY2NzQ5YzZmNDIyIiwidGFnIjoiIn0%3D",
       "domain": "localhost",
       "path": "/",
-      "expires": 1783430099.607089,
+      "expires": 1784736370.61723,
       "httpOnly": false,
       "secure": false,
       "sameSite": "Lax"
     },
     {
       "name": "laravel-session",
-      "value": "eyJpdiI6IjhQMEZKeWswTGhSaVNYcDBvSjFlK2c9PSIsInZhbHVlIjoiNkpNcHlhNUo1Z2NQUVB0N1BZVGZ4U0VUajdUVTkrdnlvZ3poc3FyQzM5YmhudnZ1dTY3SWx0d0EwK0V5ZHNtbXloK052dTAyemk2NnVuWUFGMkJxQmhiOGIzeU40UVZhZnV4Yk1vc2ppK0pRWFphMXlBeldYZlR1QW41NXNDSlYiLCJtYWMiOiJlZGU5YTk0ZTI5OWRjNmRlZGJlMmQwZTQ1OGZmMGRjMDJhMTU3MmIzZDdiM2Q0OWYzYWIxY2Q5YTJmNTNmMTg3IiwidGFnIjoiIn0%3D",
+      "value": "eyJpdiI6Ims3MGF2eGc3QXc3THlvdXd2TWpxTnc9PSIsInZhbHVlIjoiZHJuelloNkVqaGZCbWtwVEtjU0lXQ2xlcjJnUmY2RnBId2dFQ2VHVG1DWTc0V044U2dSS1FUSTR3RGRLK2FvaVVUTU9obzhWSmkyRUJsUklydHlza2NHWi9RcTBVMGtJN3JDVjg5WmhVakltNFhDRXNzRkxWeFdJSHBqSkl6MXAiLCJtYWMiOiI2ZGM2N2M4ZmVkMWVmNjc2YzlmZmFjNTUxNzc0ZGE3MTVmNzkyNDViMWIyMGIwNjVmNGNhMDk2YmZjMWZjYzIyIiwidGFnIjoiIn0%3D",
       "domain": "localhost",
       "path": "/",
-      "expires": 1783430099.979457,
+      "expires": 1784736371.029251,
       "httpOnly": true,
       "secure": false,
       "sameSite": "Lax"
@@ -53,7 +53,7 @@
         },
         {
           "name": "pusherTransportTLS",
-          "value": "{\"timestamp\":1783422899918,\"transport\":\"ws\",\"latency\":154,\"cacheSkipCount\":0}"
+          "value": "{\"timestamp\":1784729170978,\"transport\":\"ws\",\"latency\":275,\"cacheSkipCount\":0}"
         },
         {
           "name": "isOpen",

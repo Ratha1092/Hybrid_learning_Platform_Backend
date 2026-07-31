@@ -319,6 +319,20 @@ html:not(.dark) .lp {
     align-items:center;
     gap:10px;
 }
+.lp-user-avatar {
+    width:32px;
+    height:32px;
+    border-radius:50%;
+    flex-shrink:0;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    color:#fff;
+    font-size:11px;
+    font-weight:800;
+    letter-spacing:0;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);
+}
 .lp-user-name {
     font-size:13px;
     font-weight:650;
@@ -598,7 +612,7 @@ html:not(.dark) .lp-menu {
         </div>
 
         {{-- Table --}}
-        <div style="overflow-x:auto;border-radius:0 0 12px 12px;" wire:loading.class="lp-loading" wire:target="selectTab,gotoPage,search,perPage">
+        <div style="border-radius:0 0 12px 12px;" wire:loading.class="lp-loading" wire:target="selectTab,gotoPage,search,perPage">
         <table class="lp-table">
             <thead>
                 <tr>
@@ -617,7 +631,13 @@ html:not(.dark) .lp-menu {
                     $rs   = $roleStyle($user->getRoleNames()->first());
                     $ss   = $statusStyle($user->status);
                     $bgHex = substr(md5($user->name ?? ''), 0, 6);
-                    $avUrl = 'https://ui-avatars.com/api/?name=' . urlencode($user->name ?? '?') . '&background=' . $bgHex . '&color=fff&bold=true&size=64';
+                    $initials = collect(explode(' ', trim($user->name ?? '')))
+                        ->filter()
+                        ->take(2)
+                        ->map(fn ($part) => mb_substr($part, 0, 1))
+                        ->implode('');
+                    $initials = mb_strtoupper($initials ?: '?');
+                    $avatarUrl = $user->avatar_url;
                     $isSelf = $user->id === auth()->id();
                     $isSuspended = $user->status === 'suspended';
                 @endphp
@@ -626,7 +646,11 @@ html:not(.dark) .lp-menu {
 
                     <td>
                         <div class="lp-user-cell">
-                            <img src="{{ $avUrl }}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0" alt="">
+                            @if($avatarUrl)
+                                <img src="{{ $avatarUrl }}" class="lp-user-avatar" style="object-fit:cover" alt="">
+                            @else
+                                <span class="lp-user-avatar" style="background:#{{ $bgHex }}">{{ $initials }}</span>
+                            @endif
                             <span class="lp-user-name">{{ $user->name }}</span>
                         </div>
                     </td>
@@ -650,8 +674,8 @@ html:not(.dark) .lp-menu {
 
                     <td onclick="event.stopPropagation()">
                         <div class="lp-actions">
-                            <div class="lp-menu-wrap" x-data="{ open: false }" @click.outside="open = false">
-                                <button type="button" class="lp-act-btn" @click.stop="open = !open" title="Actions">
+                            <div class="lp-menu-wrap" x-data="{ open: false }" @click.outside="open = false" @lp-menu-open.window="if ($event.detail !== {{ $user->id }}) open = false">
+                                <button type="button" class="lp-act-btn" @click.stop="open = !open; if (open) $dispatch('lp-menu-open', {{ $user->id }})" title="Actions">
                                     <svg viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M4.5 12a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0zm6 0a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0zm6 0a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0z" clip-rule="evenodd"/></svg>
                                 </button>
 

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Users\Schemas;
 
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Pages\CreateRecord;
@@ -15,13 +16,29 @@ class UserForm
     {
         return $schema
             ->components([
-
                 Section::make('Profile')
                     ->description('Personal information and contact details')
                     ->icon('heroicon-o-user-circle')
                     ->schema([
                         Grid::make(2)
                             ->schema([
+                                FileUpload::make('avatar')
+                                    ->label('Profile Avatar')
+                                    ->avatar()
+                                    ->image()
+                                    ->imageEditor()
+                                    ->disk('r2')
+                                    ->directory('avatars')
+                                    ->visibility('public')
+                                    ->maxSize(3072)
+                                    ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
+                                    ->deleteUploadedFileUsing(function (?string $file): void {
+                                        if ($file && ! str_starts_with($file, 'http')) {
+                                            \Storage::disk('r2')->delete($file);
+                                        }
+                                    })
+                                    ->columnSpanFull(),
+
                                 TextInput::make('name')
                                     ->label('Full Name')
                                     ->required()
@@ -89,9 +106,8 @@ class UserForm
                                     ->maxLength(255)
                                     ->prefixIcon('heroicon-o-key')
                                     ->placeholder('••••••••'),
-                            ]),
-                    ]),
-
-            ]);
+                        ]),
+                ]),
+        ]);
     }
 }

@@ -192,6 +192,53 @@ html.dark .uv {
     object-fit:cover;
     border:2px solid var(--bd2);
 }
+.uv-avatar-edit {
+    display:flex;
+    align-items:center;
+    gap:14px;
+    padding:12px;
+    border:1px dashed var(--bd2);
+    border-radius:12px;
+    background:var(--p2);
+}
+.uv-avatar-edit-preview {
+    width:56px;
+    height:56px;
+    border-radius:14px;
+    object-fit:cover;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#fff;
+    font-size:16px;
+    font-weight:800;
+    flex-shrink:0;
+}
+.uv-avatar-edit-body {
+    display:grid;
+    gap:7px;
+    flex:1;
+    min-width:0;
+}
+.uv-file-input {
+    width:100%;
+    color:var(--t2);
+    font-size:12px;
+}
+.uv-file-input::file-selector-button {
+    margin-right:10px;
+    padding:7px 12px;
+    border:1px solid var(--bd2);
+    border-radius:8px;
+    background:var(--p1);
+    color:var(--t1);
+    font-weight:700;
+    cursor:pointer;
+}
+.uv-upload-note {
+    color:var(--t2);
+    font-size:11.5px;
+}
 .uv-hero-info {
     flex:1;
     min-width:0;
@@ -731,6 +778,25 @@ html.dark .uv-select-option:hover {
             </div>
         </div>
         <div class="uv-card-body">
+            <div class="uv-field-group">
+                <label class="uv-label" for="eu-avatar">Profile Avatar</label>
+                <div class="uv-avatar-edit">
+                    @if($avatarUpload)
+                        <img src="{{ $avatarUpload->temporaryUrl() }}" alt="New avatar preview" class="uv-avatar-edit-preview">
+                    @elseif($avatarUrl)
+                        <img src="{{ $avatarUrl }}" alt="{{ $user->name }}" class="uv-avatar-edit-preview">
+                    @else
+                        <div class="uv-avatar-edit-preview" style="background:{{ $avatarBg }}">{{ $initials }}</div>
+                    @endif
+                    <div class="uv-avatar-edit-body">
+                        <input id="eu-avatar" type="file" class="uv-file-input" wire:model="avatarUpload" accept="image/jpeg,image/png,image/webp">
+                        <div class="uv-upload-note" wire:loading.remove wire:target="avatarUpload">JPG, PNG, or WEBP. Max 3MB.</div>
+                        <div class="uv-upload-note" wire:loading wire:target="avatarUpload">Uploading preview...</div>
+                        @error('avatarUpload') <span class="uv-error">{{ $message }}</span> @enderror
+                    </div>
+                </div>
+            </div>
+
             <div class="uv-field-group">
                 <label class="uv-label" for="eu-name">Full Name</label>
                 <input id="eu-name" type="text" class="uv-input" wire:model="data.name" placeholder="John Doe" autocomplete="off">

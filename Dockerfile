@@ -54,7 +54,7 @@ COPY . .
 COPY --from=vendor /var/www/html/vendor ./vendor
 COPY --from=frontend /app/public/build ./public/build
 
-RUN composer dump-autoload --no-dev --optimize \
+RUN composer dump-autoload --no-dev --optimize --no-scripts \
     && chown -R www-data:www-data storage bootstrap/cache
 
 COPY docker/start.sh /usr/local/bin/start.sh

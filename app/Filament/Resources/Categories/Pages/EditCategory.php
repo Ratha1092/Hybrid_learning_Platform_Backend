@@ -18,6 +18,11 @@ class EditCategory extends EditRecord
     protected static string $resource = CategoryResource::class;
     protected string $view = 'filament.resources.categories.edit-category';
 
+    // Backing property for imageForm's separate statePath — Filament writes
+    // the FileUpload's live state directly onto this Livewire property, so
+    // it must be declared (unlike `data`, which EditRecord already declares).
+    public ?array $imageData = [];
+
     // Main form — all fields EXCEPT image (handled by imageForm)
     public function form(Schema $form): Schema
     {
@@ -53,6 +58,7 @@ class EditCategory extends EditRecord
         return $form->components([
             FileUpload::make('image')
                 ->image()
+                ->previewable(false)
                 ->directory('categories'),
         ])->statePath('imageData');
     }
@@ -60,6 +66,16 @@ class EditCategory extends EditRecord
     protected function getForms(): array
     {
         return ['form', 'imageForm'];
+    }
+
+    // EditRecord::fillForm() only fills the schema literally named `form` —
+    // imageForm lives on its own statePath, so it never gets the record's
+    // existing image unless we fill it ourselves here.
+    protected function fillForm(): void
+    {
+        parent::fillForm();
+
+        $this->imageForm->fill(['image' => $this->getRecord()->image]);
     }
 
     // Process imageForm file upload and merge image into saved data

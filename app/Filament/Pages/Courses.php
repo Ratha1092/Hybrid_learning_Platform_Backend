@@ -152,6 +152,21 @@ class Courses extends Page
         Notification::make()->title('Course Archived')->warning()->send();
     }
 
+    public function deleteCourse(int $id): void
+    {
+        if (!PanelAccess::can('courses.delete')) {
+            Notification::make()->title('Insufficient permissions')->danger()->send();
+            return;
+        }
+
+        $course = Course::withoutGlobalScopes()->findOrFail($id);
+        $title  = $course->title;
+        $course->delete();
+
+        ActivityLogService::logChange('course.deleted', $course);
+        Notification::make()->title('Course Deleted')->body("\"{$title}\" has been removed.")->danger()->send();
+    }
+
     public function returnToDraft(int $id): void
     {
         $course = Course::withoutGlobalScopes()->findOrFail($id);

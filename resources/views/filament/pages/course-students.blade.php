@@ -82,7 +82,6 @@ html:not(.dark) .cs {
     background:var(--p1);
     border:1px solid var(--bd);
     border-radius:12px;
-    overflow:hidden;
     box-shadow:var(--sh);
 }
 .cs-toolbar {
@@ -440,7 +439,7 @@ html:not(.dark) .cs-menu {
         </div>
 
         {{-- Table --}}
-        <div style="overflow-x:auto" wire:loading.class="cs-loading" wire:target="gotoPage,search">
+        <div wire:loading.class="cs-loading" wire:target="gotoPage,search">
         <table class="cs-table">
             <thead>
                 <tr>
@@ -507,8 +506,8 @@ html:not(.dark) .cs-menu {
 
                     {{-- Actions --}}
                     <td onclick="event.stopPropagation()">
-                        <div class="cs-actions" x-data="{ open: false }" @click.outside="open = false">
-                            <button type="button" class="cs-action-btn" @click.stop="open = !open" title="Actions">
+                        <div class="cs-actions" x-data="{ open: false }" @click.outside="open = false" @cs-menu-open.window="if ($event.detail !== {{ $enrollment->id }}) open = false">
+                            <button type="button" class="cs-action-btn" @click.stop="open = !open; if (open) $dispatch('cs-menu-open', {{ $enrollment->id }})" title="Actions">
                                 <svg viewBox="0 0 24 24" fill="currentColor">
                                     <path fill-rule="evenodd" d="M4.5 12a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0zm6 0a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0zm6 0a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0z" clip-rule="evenodd"/>
                                 </svg>

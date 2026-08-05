@@ -2,7 +2,7 @@
     /** @var \App\Domains\Courses\Models\Course $record */
     $crs = $record;
 
-    $thumbnailUrl = $crs->thumbnail ? asset('storage/' . $crs->thumbnail) : null;
+    $thumbnailUrl = $crs->thumbnail_url;
 
     $statusStyle = match($crs->status) {
         'published'      => ['bg'=>'rgba(52,211,153,.1)',  'border'=>'rgba(52,211,153,.25)',  'color'=>'#059669', 'label'=>'Published'],
@@ -534,7 +534,7 @@ select.cr-input {
     </div>
     <div class="cr-hero-stats">
         <div class="cr-stat">
-            <div class="cr-stat-val">${{ number_format($crs->price ?? 0, 0) }}</div>
+            <div class="cr-stat-val">${{ number_format($crs->price ?? 0, 2) }}</div>
             <div class="cr-stat-label">Price</div>
         </div>
         <div class="cr-stat">

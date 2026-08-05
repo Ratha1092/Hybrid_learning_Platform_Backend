@@ -11,9 +11,14 @@ use Filament\Actions\DeleteAction;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
+use Livewire\WithFileUploads;
 
 class EditUser extends EditRecord
 {
+    use WithFileUploads;
+
     protected static string $resource = UserResource::class;
 
     protected string $view = 'filament.resources.users.edit-user';
@@ -22,9 +27,13 @@ class EditUser extends EditRecord
 
     protected array $pendingRoleIds = [];
 
+    protected ?string $originalAvatar = null;
+
     // Bypasses Filament's relationship select entirely — its getState() call during
     // save re-reads roles from the DB and clobbers whatever the checkboxes set.
     public array $selectedRoleIds = [];
+
+    public ?TemporaryUploadedFile $avatarUpload = null;
 
     protected function getHeaderActions(): array
     {
@@ -38,6 +47,7 @@ class EditUser extends EditRecord
         parent::fillForm();
 
         $this->originalRoles = $this->record->getRoleNames()->sort()->values()->all();
+        $this->originalAvatar = $this->record->avatar;
         $this->selectedRoleIds = $this->record->roles()
             ->pluck('roles.id')
             ->map(fn ($id) => (string) $id)
@@ -53,6 +63,14 @@ class EditUser extends EditRecord
         $this->pendingRoleIds = array_values(array_map('intval', $this->selectedRoleIds));
         unset($data['roles']);
 
+        if ($this->avatarUpload) {
+            $this->validate([
+                'avatarUpload' => ['image', 'mimes:jpeg,png,webp', 'max:3072'],
+            ]);
+
+            $data['avatar'] = $this->avatarUpload->store('avatars', 'r2');
+        }
+
         return $data;
     }
 
@@ -62,6 +80,9 @@ class EditUser extends EditRecord
         $this->record->syncRoles($this->pendingRoleIds);
 
         $fresh = $this->record->fresh();
+        $this->deleteReplacedAvatar($fresh);
+        $this->avatarUpload = null;
+        $this->originalAvatar = $fresh->avatar;
         $newRoles = $fresh->getRoleNames()->sort()->values()->all();
 
         if ($newRoles !== $this->originalRoles) {
@@ -78,6 +99,17 @@ class EditUser extends EditRecord
         // created. Without it isVerifiedInstructor() returns false and the user
         // gets a 403 on every instructor API endpoint.
         $this->ensureInstructorVerification($fresh);
+    }
+
+    private function deleteReplacedAvatar(User $user): void
+    {
+        if (
+            $this->originalAvatar
+            && $this->originalAvatar !== $user->avatar
+            && ! str_starts_with($this->originalAvatar, 'http')
+        ) {
+            Storage::disk('r2')->delete($this->originalAvatar);
+        }
     }
 
     private function ensureInstructorVerification(User $user): void

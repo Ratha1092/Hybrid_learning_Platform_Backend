@@ -624,7 +624,7 @@ html.dark .st {
     position:sticky;
     bottom:0;
     z-index:5;
-    display:flex;
+    display:none;
     align-items:center;
     justify-content:space-between;
     gap:16px;
@@ -634,6 +634,9 @@ html.dark .st {
     border:1px solid var(--bd);
     border-radius:12px;
     backdrop-filter:blur(12px);
+}
+.st-footer.is-visible {
+    display:flex;
 }
 .st-footer-status {
     display:flex;
@@ -895,7 +898,7 @@ html.dark .st {
             <div class="st-footer" id="st-footer">
                 <div class="st-footer-status">
                     <span class="st-footer-dot" id="st-footer-dot"></span>
-                    <span id="st-footer-status-text">All changes saved</span>
+                    <span id="st-footer-status-text">Unsaved changes</span>
                 </div>
                 <div class="st-footer-actions">
                     <span class="st-readonly" id="st-readonly-note" style="display:none">You have view-only access to this group.</span>
@@ -950,6 +953,7 @@ html.dark .st {
     }
 
     // --- Sticky save bar / dirty tracking ---
+    const footer       = document.getElementById('st-footer');
     const footerDot    = document.getElementById('st-footer-dot');
     const footerText   = document.getElementById('st-footer-status-text');
     const discardBtn   = document.getElementById('st-discard-btn');
@@ -963,8 +967,9 @@ html.dark .st {
         if (!activeForm) return;
         const canUpdate = activeForm.dataset.canUpdate === '1';
 
-        footerText.textContent = dirty ? 'Unsaved changes' : 'All changes saved';
-        footerDot.style.background = dirty ? '#f59e0b' : '#22c55e';
+        footer.classList.toggle('is-visible', dirty);
+        footerText.textContent = 'Unsaved changes';
+        footerDot.style.background = '#f59e0b';
 
         discardBtn.style.display = canUpdate ? '' : 'none';
         saveBtn.style.display = canUpdate ? '' : 'none';

@@ -4,6 +4,7 @@ namespace App\Providers\Filament;
 
 use App\Domains\System\Models\Setting;
 use App\Filament\Pages\Dashboard;
+use App\Support\LocalAvatarProvider;
 use Filament\Enums\ThemeMode;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -36,6 +37,7 @@ class AdminPanelProvider extends PanelProvider
             ->defaultThemeMode(ThemeMode::Dark)
             ->brandName('Hybrid Learning')
             ->favicon(asset('favicon.svg'))
+            ->defaultAvatarProvider(LocalAvatarProvider::class)
             ->spa()
             ->sidebarCollapsibleOnDesktop()
             ->sidebarWidth('15rem')

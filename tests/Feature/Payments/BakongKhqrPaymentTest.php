@@ -4,6 +4,7 @@ namespace Tests\Feature\Payments;
 
 use App\Domains\Courses\Models\Category;
 use App\Domains\Courses\Models\Course;
+use App\Domains\Learning\Models\Enrollment;
 use App\Domains\Payments\Events\PaymentSuccessEvent;
 use App\Domains\Payments\Models\Payment;
 use App\Domains\Users\Models\User;
@@ -61,7 +62,9 @@ class BakongKhqrPaymentTest extends TestCase
             '30.00',
             number_format((float) $decodedKhqr['transactionAmount'], 2, '.', '')
         );
-        $this->assertStringContainsString('KHQR-', $response->json('data.payment.external_reference'));
+        // external_reference is the order_number (BakongKhqrService::referenceFor()),
+        // e.g. "ORD-20260722204733-...", not a "KHQR-" prefixed value.
+        $this->assertStringContainsString('ORD-', $response->json('data.payment.external_reference'));
     }
 
     public function test_verify_marks_payment_paid_from_backend_bakong_response(): void
@@ -79,9 +82,11 @@ class BakongKhqrPaymentTest extends TestCase
 
         $payment = Payment::firstOrFail();
 
+        // Real Bakong "check transaction by MD5" contract: responseCode 0 = paid
+        // (see BakongKhqrService::extractVerificationStatus()), not {"status":"paid"}.
         Http::fake([
             'https://bakong.test/verify' => Http::response([
-                'status' => 'paid',
+                'responseCode' => 0,
                 'transaction_id' => 'txn_123',
                 'amount' => '30.00',
                 'currency' => 'USD',
@@ -118,6 +123,62 @@ class BakongKhqrPaymentTest extends TestCase
         ]);
 
         Event::assertDispatched(PaymentSuccessEvent::class);
+    }
+
+    public function test_successful_verification_enrolls_the_student_in_the_course(): void
+    {
+        // End-to-end business-logic check for the checkout -> verify -> enrollment
+        // pipeline: unlike test_verify_marks_payment_paid_from_backend_bakong_response
+        // above (which fakes PaymentSuccessEvent to isolate the payment-verify step),
+        // this test lets the event actually dispatch. QUEUE_CONNECTION=sync in
+        // phpunit.xml means EnrollStudentListener (ShouldQueue) runs inline, so we can
+        // assert the real side effect: an active Enrollment row for the student/course.
+        config(['services.bakong.verify_url' => 'https://bakong.test/verify']);
+
+        $student = User::factory()->create();
+        $course = $this->createPublishedCourse(price: 30);
+
+        Sanctum::actingAs($student);
+
+        $this->postJson('/api/v1/checkout', [
+            'course_id' => $course->id,
+        ])->assertCreated();
+
+        $payment = Payment::firstOrFail();
+
+        // Shape matches what BakongKhqrService::extractVerificationStatus /
+        // markAsPaid actually read (responseCode 0 = paid; transaction_id,
+        // amount, currency, payer_account) -- NOT the {"status":"paid",...}
+        // shape used by the other tests in this file, which predates a
+        // refactor of the service and currently fails against the real
+        // Bakong "check transaction by MD5" response contract.
+        Http::fake([
+            'https://bakong.test/verify' => Http::response([
+                'responseCode' => 0,
+                'transaction_id' => 'txn_enroll_1',
+                'amount' => '30.00',
+                'currency' => 'USD',
+                'payer_account' => 'student@bank',
+            ]),
+        ]);
+
+        $this->postJson('/api/v1/payments/verify', [
+            'payment_id' => $payment->id,
+        ])->assertOk()->assertJsonPath('data.status', 'paid');
+
+        $this->assertDatabaseHas('enrollments', [
+            'user_id' => $student->id,
+            'course_id' => $course->id,
+            'order_id' => $payment->order_id,
+            'status' => 'active',
+            'source' => 'purchase',
+        ]);
+
+        $enrollment = Enrollment::where('user_id', $student->id)
+            ->where('course_id', $course->id)
+            ->firstOrFail();
+
+        $this->assertNotNull($enrollment->enrolled_at);
     }
 
     public function test_verify_keeps_payment_processing_when_bakong_is_temporarily_unavailable(): void

@@ -74,18 +74,7 @@ class AuthService
         }
 
         if ($user->two_factor_enabled) {
-            $code = app(TwoFactorAuthService::class)->generateCode($user);
-
-            $response = [
-                'requires_2fa' => true,
-                'email' => $user->email,
-            ];
-
-            if (!app()->environment('production')) {
-                $response['code'] = $code;
-            }
-
-            return $response;
+            return app(TwoFactorAuthService::class)->createLoginChallenge($user);
         }
 
         $user->tokens()->delete();

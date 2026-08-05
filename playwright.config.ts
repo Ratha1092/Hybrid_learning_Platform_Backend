@@ -43,5 +43,23 @@ export default defineConfig({
                 storageState: 'tests/playwright/.auth.json',
             },
         },
+        {
+            name: 'e2e2-temp',
+            dependencies: ['setup'],
+            testMatch: '**/e2e2-temp.spec.ts',
+            use: {
+                ...devices['Desktop Chrome'],
+                storageState: 'tests/playwright/.auth.json',
+            },
+        },
+        {
+            name: 'inspect-temp',
+            dependencies: ['setup'],
+            testMatch: '**/inspect-temp.spec.ts',
+            use: {
+                ...devices['Desktop Chrome'],
+                storageState: 'tests/playwright/.auth.json',
+            },
+        },
     ],
 });

@@ -7,6 +7,7 @@ use App\Support\ApiResponse;
 use App\Domains\Auth\Services\TwoFactorAuthService;
 use App\Domains\Auth\Services\ActivityLogService;
 use App\Domains\Auth\Requests\VerifyTwoFactorRequest;
+use App\Domains\Auth\Requests\VerifyLoginTwoFactorRequest;
 use App\Domains\Auth\Requests\SendTwoFactorCodeRequest;
 use App\Domains\Auth\Requests\DisableTwoFactorRequest;
 
@@ -57,7 +58,7 @@ class TwoFactorAuthController extends Controller
         return ApiResponse::success($data, '2FA code sent');
     }
 
-    public function verifyCode(VerifyTwoFactorRequest $request)
+    public function verifyCode(VerifyLoginTwoFactorRequest $request)
     {
         $data = $this->twoFactorService->verifyLogin($request->validated());
 

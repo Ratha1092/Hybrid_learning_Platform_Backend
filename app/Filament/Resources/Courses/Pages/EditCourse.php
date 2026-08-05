@@ -20,8 +20,8 @@ class EditCourse extends EditRecord
 {
     protected static string $resource = CourseResource::class;
     protected string $view = 'filament.resources.courses.edit-course';
+    public ?array $thumbnailData = [];
 
-    // Main form — all fields EXCEPT thumbnail and description (handled by sub-forms)
     public function form(Schema $form): Schema
     {
         return $form->components([
@@ -72,9 +72,10 @@ class EditCourse extends EditRecord
         return $form->components([
             FileUpload::make('thumbnail')
                 ->image()
+                ->previewable(false)
                 ->disk('r2')
                 ->directory('courses/thumbnails'),
-        ])->statePath('data');
+        ])->statePath('thumbnailData');
     }
 
     // Sub-form for description RichEditor
@@ -88,6 +89,12 @@ class EditCourse extends EditRecord
     protected function getForms(): array
     {
         return ['form', 'thumbnailForm', 'descriptionForm'];
+    }
+    protected function fillForm(): void
+    {
+        parent::fillForm();
+
+        $this->thumbnailForm->fill(['thumbnail' => $this->getRecord()->thumbnail]);
     }
 
     protected function mutateFormDataBeforeSave(array $data): array

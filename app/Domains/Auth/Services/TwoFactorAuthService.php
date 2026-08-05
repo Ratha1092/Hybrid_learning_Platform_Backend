@@ -6,11 +6,15 @@ use App\Domains\Auth\Models\TwoFactorCode;
 use App\Domains\System\Models\Setting;
 use App\Domains\Users\Models\User;
 use App\Jobs\Mail\SendTwoFactorEmailJob;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class TwoFactorAuthService
 {
+    private const LOGIN_CHALLENGE_TTL_MINUTES = 5;
+
     /**
      * Generate OTP code
      */
@@ -77,6 +81,31 @@ class TwoFactorAuthService
         return $response;
     }
 
+    public function createLoginChallenge(User $user): array
+    {
+        $code = $this->generateCode($user);
+        $challengeToken = Str::random(64);
+
+        Cache::put(
+            $this->loginChallengeCacheKey($challengeToken),
+            $user->id,
+            now()->addMinutes(self::LOGIN_CHALLENGE_TTL_MINUTES),
+        );
+
+        $response = [
+            'requires_2fa' => true,
+            'challenge_token' => $challengeToken,
+            'email' => $user->email,
+            'expires_in' => self::LOGIN_CHALLENGE_TTL_MINUTES * 60,
+        ];
+
+        if (!app()->environment('production')) {
+            $response['code'] = $code;
+        }
+
+        return $response;
+    }
+
     public function verifyAndEnable(User $user, array $data): bool
     {
         if (!$this->verifyCode($user, $data['code'])) {
@@ -124,16 +153,14 @@ class TwoFactorAuthService
      */
     public function sendCode(array $data): array
     {
-        $user = User::where('email', $data['email'])->first();
-
-        if (!$user || !$this->isEnabled($user)) {
-            throw new \RuntimeException('2FA not enabled');
-        }
+        $user = $this->userFromLoginChallenge($data['challenge_token']);
 
         $code = $this->generateCode($user);
 
         $response = [
             'message' => 'Verification code generated',
+            'challenge_token' => $data['challenge_token'],
+            'expires_in' => self::LOGIN_CHALLENGE_TTL_MINUTES * 60,
         ];
 
         if (!app()->environment('production')) {
@@ -148,16 +175,14 @@ class TwoFactorAuthService
      */
     public function verifyLogin(array $data): array
     {
-        $user = User::where('email', $data['email'])->first();
-
-        if (!$user) {
-            throw new \RuntimeException('User not found');
-        }
+        $user = $this->userFromLoginChallenge($data['challenge_token']);
 
         if (!$this->verifyCode($user, $data['code'])) {
             throw new \RuntimeException('Invalid or expired code');
         }
 
+        Cache::forget($this->loginChallengeCacheKey($data['challenge_token']));
+        $user->tokens()->delete();
         $token = $user->createToken('api-token')->plainTextToken;
 
         ActivityLogService::log('login', $user);
@@ -174,5 +199,22 @@ class TwoFactorAuthService
     public function isEnabled(User $user): bool
     {
         return (bool) $user->two_factor_enabled;
+    }
+
+    private function userFromLoginChallenge(string $challengeToken): User
+    {
+        $userId = Cache::get($this->loginChallengeCacheKey($challengeToken));
+        $user = $userId ? User::find($userId) : null;
+
+        if (!$user || !$this->isEnabled($user)) {
+            throw new \RuntimeException('Invalid or expired 2FA challenge');
+        }
+
+        return $user;
+    }
+
+    private function loginChallengeCacheKey(string $challengeToken): string
+    {
+        return "2fa_login_challenge:{$challengeToken}";
     }
 }

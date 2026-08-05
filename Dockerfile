@@ -40,6 +40,10 @@ RUN composer install --no-dev --no-scripts --no-interaction --optimize-autoloade
 # ---- Frontend assets ----
 FROM node:20-alpine AS frontend
 WORKDIR /app
+ARG VITE_PUSHER_APP_KEY
+ARG VITE_PUSHER_APP_CLUSTER
+ENV VITE_PUSHER_APP_KEY=$VITE_PUSHER_APP_KEY
+ENV VITE_PUSHER_APP_CLUSTER=$VITE_PUSHER_APP_CLUSTER
 COPY package.json package-lock.json ./
 RUN npm ci
 COPY resources ./resources

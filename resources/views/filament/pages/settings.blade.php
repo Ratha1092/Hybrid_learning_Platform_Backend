@@ -728,7 +728,7 @@ html.dark .st {
                 </div>
 
                 <div class="st-card-body">
-                    <form method="POST" action="{{ route('admin.settings.update', ['group' => $key]) }}" id="form-{{ $key }}" data-can-update="{{ $groupData['canUpdate'] ? '1' : '0' }}">
+                    <form method="POST" enctype="multipart/form-data" action="{{ route('admin.settings.update', ['group' => $key]) }}" id="form-{{ $key }}" data-can-update="{{ $groupData['canUpdate'] ? '1' : '0' }}">
                         @csrf
 
                         @if($key === 'finance')
@@ -866,6 +866,60 @@ html.dark .st {
                                                 </span>
                                             </span>
                                         </div>
+                                    @elseif(in_array($setting->key, ['site_logo', 'site_favicon'], true))
+                                        <div class="st-row">
+                                            <span class="st-row-text">
+                                                <span class="st-row-title">{{ \Illuminate\Support\Str::headline($setting->key) }}</span>
+                                                @if($setting->description)<span class="st-row-desc" style="display:block">{{ $setting->description }}</span>@endif
+                                            </span>
+                                            <span class="st-row-control" style="display:grid;gap:10px">
+                                                @if($setting->value)
+                                                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+                                                        <img src="{{ $setting->value }}" alt="{{ $setting->key }} preview" style="max-height:48px;max-width:120px;border:1px solid rgba(255,255,255,.08);border-radius:8px;background:#0f172a;object-fit:contain;padding:6px">
+                                                        <span style="font-size:12px;color:var(--t2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:280px">{{ $setting->value }}</span>
+                                                    </div>
+                                                @endif
+                                                <span class="st-input-wrap">
+                                                    <input
+                                                        type="text"
+                                                        name="{{ $setting->key }}"
+                                                        class="st-input"
+                                                        placeholder="URL or path"
+                                                        value="{{ $setting->value }}"
+                                                    >
+                                                </span>
+                                                <input type="file" name="{{ $setting->key }}_upload" accept="image/*" class="st-input">
+                                                <span class="st-row-desc" style="margin-top:4px">Upload a new image or provide a URL/path. Uploaded files are stored as-is.</span>
+                                            </span>
+                                        </div>
+                                    @elseif($setting->key === 'default_language')
+                                        <div class="st-row">
+                                            <span class="st-row-text">
+                                                <span class="st-row-title">{{ \Illuminate\Support\Str::headline($setting->key) }}</span>
+                                                @if($setting->description)<span class="st-row-desc" style="display:block">{{ $setting->description }}</span>@endif
+                                            </span>
+                                            <span class="st-row-control">
+                                                <select name="{{ $setting->key }}" class="st-input" style="width:100%;max-width:320px">
+                                                    @foreach($availableLanguages as $langKey => $language)
+                                                        <option value="{{ $langKey }}" {{ $setting->value === $langKey ? 'selected' : '' }}>{{ $language }} ({{ $langKey }})</option>
+                                                    @endforeach
+                                                </select>
+                                            </span>
+                                        </div>
+                                    @elseif($setting->key === 'default_timezone')
+                                        <div class="st-row">
+                                            <span class="st-row-text">
+                                                <span class="st-row-title">{{ \Illuminate\Support\Str::headline($setting->key) }}</span>
+                                                @if($setting->description)<span class="st-row-desc" style="display:block">{{ $setting->description }}</span>@endif
+                                            </span>
+                                            <span class="st-row-control">
+                                                <select name="{{ $setting->key }}" class="st-input" style="width:100%;max-width:420px">
+                                                    @foreach($availableTimezones as $timezoneKey => $timezoneLabel)
+                                                        <option value="{{ $timezoneKey }}" {{ $setting->value === $timezoneKey ? 'selected' : '' }}>{{ $timezoneLabel }}</option>
+                                                    @endforeach
+                                                </select>
+                                            </span>
+                                        </div>
                                     @else
                                         <div class="st-row">
                                             <span class="st-row-text">
@@ -961,7 +1015,9 @@ html.dark .st {
     const readonlyNote = document.getElementById('st-readonly-note');
 
     let activeForm = null;
+    let activeGroup = null;
     let dirty = false;
+    const dirtyStates = {};
 
     function updateFooter() {
         if (!activeForm) return;
@@ -980,21 +1036,33 @@ html.dark .st {
     }
 
     function setActiveForm(key) {
+        if (activeGroup) {
+            dirtyStates[activeGroup] = dirty;
+        }
+
+        activeGroup = key;
         activeForm = document.getElementById('form-' + key);
-        dirty = false;
+        dirty = dirtyStates[key] || false;
+        updateFooter();
+    }
+
+    function markDirty() {
+        if (!activeForm) return;
+        dirty = true;
+        if (activeGroup) {
+            dirtyStates[activeGroup] = true;
+        }
         updateFooter();
     }
 
     document.addEventListener('input', function (e) {
         if (activeForm && activeForm.contains(e.target)) {
-            dirty = true;
-            updateFooter();
+            markDirty();
         }
     });
     document.addEventListener('change', function (e) {
         if (activeForm && activeForm.contains(e.target)) {
-            dirty = true;
-            updateFooter();
+            markDirty();
         }
     });
 
@@ -1003,6 +1071,9 @@ html.dark .st {
         activeForm.reset();
         updateCommission(num ? num.defaultValue : 0);
         dirty = false;
+        if (activeGroup) {
+            dirtyStates[activeGroup] = false;
+        }
         updateFooter();
     });
 
@@ -1025,9 +1096,6 @@ html.dark .st {
         const g = groupFromHash();
         if (g) activateGroup(g);
     });
-
-    // Run immediately — script is placed after all DOM content so elements exist.
-    // DOMContentLoaded would never fire on Livewire SPA navigation, so we init here.
     (function init() {
         const g = groupFromHash();
         const activeItem = document.querySelector('.st-nav-item.active');

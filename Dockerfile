@@ -1,5 +1,7 @@
 # ---- PHP base: system deps + extensions (shared by vendor + app stages) ----
-FROM php:8.4-cli-alpine AS php-base
+# FrankenPHP (Caddy-based) replaces `php artisan serve` as the production
+# server — the dev server is single-threaded and blocks on every request.
+FROM dunglas/frankenphp:1-php8.4-alpine AS php-base
 WORKDIR /var/www/html
 
 RUN apk add --no-cache \

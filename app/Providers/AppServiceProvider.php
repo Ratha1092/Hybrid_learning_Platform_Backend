@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -42,6 +43,15 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Behind Railway's proxy, request-based scheme detection (trustProxies)
+        // isn't reliable this early in the boot cycle — some URLs (e.g. the
+        // Filament panel favicon, built during provider boot) get generated
+        // before the TrustProxies middleware has run. Force https explicitly
+        // instead of relying on per-request detection timing.
+        if (app()->environment('production')) {
+            URL::forceScheme('https');
+        }
+
         Course::observe(CourseObserver::class);
         Section::observe(SectionObserver::class);
 

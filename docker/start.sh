@@ -16,7 +16,7 @@ case "$PROCESS_TYPE" in
     php artisan config:cache
     php artisan route:cache
     php artisan view:cache
-    exec php artisan serve --host=0.0.0.0 --port="${PORT:-8080}"
+    exec frankenphp php-server --root public --listen "0.0.0.0:${PORT:-8080}"
     ;;
   horizon)
     exec php artisan horizon

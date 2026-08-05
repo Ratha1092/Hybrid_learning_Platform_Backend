@@ -1,15 +1,5 @@
-# ---- Frontend assets ----
-FROM node:20-alpine AS frontend
-WORKDIR /app
-COPY package.json package-lock.json ./
-RUN npm ci
-COPY resources ./resources
-COPY vite.config.js tailwind.config.js postcss.config.js ./
-COPY public ./public
-RUN npm run build
-
-# ---- PHP application ----
-FROM php:8.4-cli-alpine AS app
+# ---- PHP base: system deps + extensions (shared by vendor + app stages) ----
+FROM php:8.4-cli-alpine AS php-base
 WORKDIR /var/www/html
 
 RUN apk add --no-cache \
@@ -42,10 +32,26 @@ RUN apk add --no-cache \
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
+# ---- Vendor: composer install (produces vendor/, needed by both PHP and the frontend build) ----
+FROM php-base AS vendor
 COPY composer.json composer.lock ./
 RUN composer install --no-dev --no-scripts --no-interaction --optimize-autoloader --no-progress
 
+# ---- Frontend assets ----
+FROM node:20-alpine AS frontend
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci
+COPY resources ./resources
+COPY vite.config.js tailwind.config.js postcss.config.js ./
+COPY public ./public
+COPY --from=vendor /var/www/html/vendor ./vendor
+RUN npm run build
+
+# ---- Final application image ----
+FROM php-base AS app
 COPY . .
+COPY --from=vendor /var/www/html/vendor ./vendor
 COPY --from=frontend /app/public/build ./public/build
 
 RUN composer dump-autoload --no-dev --optimize \

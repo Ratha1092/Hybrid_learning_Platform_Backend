@@ -12,6 +12,7 @@ php artisan package:discover --ansi
 case "$PROCESS_TYPE" in
   web)
     php artisan migrate --force
+    php artisan db:seed --force
     php artisan storage:link || true
     php artisan config:cache
     php artisan route:cache

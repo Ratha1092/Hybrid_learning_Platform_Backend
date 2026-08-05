@@ -155,15 +155,8 @@ class Users extends Page
         $base = fn() => User::withoutTrashed();
 
         $roleMeta = [
-            'super-admin'     => ['label' => 'Super Admin',     'color' => '#dc2626'],
-            'admin'           => ['label' => 'Admin',           'color' => '#a855f7'],
-            'finance-manager' => ['label' => 'Finance Manager', 'color' => '#0d9488'],
-            'accountant'      => ['label' => 'Accountant',      'color' => '#0d9488'],
-            'content-manager' => ['label' => 'Content Manager', 'color' => '#d97706'],
-            'moderator'       => ['label' => 'Moderator',       'color' => '#d97706'],
-            'support-staff'   => ['label' => 'Support Staff',   'color' => '#3b82f6'],
-            'instructor'      => ['label' => 'Instructor',      'color' => '#3b82f6'],
-            'student'         => ['label' => 'Student',         'color' => '#10b981'],
+            'instructor' => ['label' => 'Instructor', 'color' => '#3b82f6'],
+            'student'    => ['label' => 'Student',    'color' => '#10b981'],
         ];
 
         $tabs = [

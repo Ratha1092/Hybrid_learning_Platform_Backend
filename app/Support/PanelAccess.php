@@ -20,4 +20,13 @@ class PanelAccess
     {
         return auth()->user()?->isStaff() ?? false;
     }
+
+    /**
+     * Whether the current user holds the super-admin role specifically — for actions that
+     * must stay off-limits to every other role regardless of what permissions they're granted.
+     */
+    public static function isSuperAdmin(): bool
+    {
+        return auth()->user()?->hasRole('super-admin') ?? false;
+    }
 }

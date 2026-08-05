@@ -67,11 +67,13 @@ class RoleResource extends Resource
     public static function canDelete($record): bool
     {
         return PanelAccess::can('roles.delete')
-            && !in_array($record->name, self::protectedRoleNames(), true);
+            && !in_array($record->name, self::undeletableRoleNames(), true);
     }
 
     /**
-     * The 9 roles the platform seeds and depends on — protected from accidental deletion.
+     * The 9 roles the platform seeds and depends on — their name can't be changed
+     * and they're flagged "System" in the UI, but (aside from super-admin) they can
+     * still be deleted.
      */
     public static function protectedRoleNames(): array
     {
@@ -79,5 +81,13 @@ class RoleResource extends Resource
             'super-admin', 'admin', 'finance-manager', 'accountant',
             'content-manager', 'moderator', 'support-staff', 'instructor', 'student',
         ];
+    }
+
+    /**
+     * Roles that can never be deleted, regardless of the roles.delete permission.
+     */
+    public static function undeletableRoleNames(): array
+    {
+        return ['super-admin'];
     }
 }

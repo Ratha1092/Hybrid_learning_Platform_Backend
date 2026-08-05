@@ -32,10 +32,22 @@ class Settings extends Page
         'email' => ['Email', 'M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75', '#64748b', 'Outgoing mail identity.', 'settings'],
     ];
 
+    public const LANGUAGES = [
+        'en' => 'English',
+        'km' => 'Khmer',
+    ];
+
+    public const TIMEZONES = [
+        'UTC' => 'UTC',
+        'Asia/Phnom_Penh' => 'Asia/Phnom Penh',
+        'Europe/London' => 'Europe/London',
+        'America/New_York' => 'America/New York',
+    ];
+
     public const SECTIONS = [
         'general' => [
             'Site Identity' => ['site_name', 'site_logo', 'site_favicon', 'site_description'],
-            'Contact' => ['support_email', 'support_phone'],
+            'Contact' => ['support_email', 'support_phone', 'contact_address', 'hours_weekday', 'hours_saturday', 'hours_sunday'],
             'Localization' => ['default_language', 'default_timezone'],
             'Platform Status' => ['maintenance_mode', 'registration_enabled'],
         ],
@@ -131,7 +143,10 @@ class Settings extends Page
             'at_rate' => Course::withoutGlobalScopes()->where('commission_percentage', $commissionValue)->count(),
         ];
 
-        return compact('visibleGroups', 'commissionValue', 'courseStats');
+        $availableLanguages = self::LANGUAGES;
+        $availableTimezones = self::TIMEZONES;
+
+        return compact('visibleGroups', 'commissionValue', 'courseStats', 'availableLanguages', 'availableTimezones');
     }
     private function buildSections(string $groupKey, $groupSettings): array
     {

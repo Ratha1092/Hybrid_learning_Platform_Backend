@@ -30,13 +30,18 @@ class AdminPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
     {
+        $brandName = Setting::get('site_name', 'Hybrid Learning');
+        $favicon = Setting::get('site_favicon', '') ?: asset('favicon.svg');
+
+        $siteLogo = Setting::get('site_logo', '');
+
         return $panel
             ->default()
             ->id('admin')
             ->path('admin')
             ->defaultThemeMode(ThemeMode::Dark)
-            ->brandName('Hybrid Learning')
-            ->favicon(asset('favicon.svg'))
+            ->brandName($brandName)
+            ->favicon($favicon)
             ->defaultAvatarProvider(LocalAvatarProvider::class)
             ->spa()
             ->sidebarCollapsibleOnDesktop()
@@ -50,12 +55,16 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->renderHook(
                 PanelsRenderHook::SIDEBAR_LOGO_BEFORE,
-                function () {
+                function () use ($siteLogo) {
                     $brandName = e(filament()->getBrandName());
                     $homeUrl = e(filament()->getHomeUrl() ?? url('/admin'));
                     $environment = e(app()->environment());
                     $isProduction = app()->environment('production');
                     $dotClasses = 'hl-brand-dot'.($isProduction ? ' hl-live' : '');
+
+                    $logoHtml = $siteLogo
+                        ? '<img src="'.e($siteLogo).'" alt="'.e($brandName).' logo" style="max-height:40px;max-width:40px;border-radius:8px;object-fit:contain;" />'
+                        : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2 8l10 5 10-5-10-5Z"/><path d="M5 10v5c0 1.5 3.1 3 7 3s7-1.5 7-3v-5"/></svg>';
 
                     return <<<HTML
                     <div class="hl-sidebar-brand">
@@ -74,12 +83,7 @@ class AdminPanelProvider extends PanelProvider
                         </button>
 
                         <a href="{$homeUrl}" class="hl-brand-lockup" x-show="\$store.sidebar.isOpen" x-cloak>
-                            <span class="hl-brand-icon" aria-hidden="true">
-                                <svg viewBox="0 0 24 24">
-                                    <path d="M12 3 2 8l10 5 10-5-10-5Z"/>
-                                    <path d="M5 10v5c0 1.5 3.1 3 7 3s7-1.5 7-3v-5"/>
-                                </svg>
-                            </span>
+                            <span class="hl-brand-icon" aria-hidden="true">{$logoHtml}</span>
                             <span class="hl-brand-copy">
                                 <span class="hl-brand-name">{$brandName}</span>
                                 <span class="hl-brand-subtitle">
@@ -507,6 +511,10 @@ class AdminPanelProvider extends PanelProvider
                 } // end window._hlSidebarReady guard
                 </script>
                 HTML
+            )
+            ->renderHook(
+                PanelsRenderHook::BODY_END,
+                fn () => view('filament.partials.confirm-modal')
             )
             ->navigationGroups([
                 NavigationGroup::make('Overview')->collapsible(),

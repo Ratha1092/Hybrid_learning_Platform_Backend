@@ -71,7 +71,7 @@ p {
 <body>
 <div class="wrapper">
     <div class="top-bar">
-        <div class="brand">{{ config('app.name') }}</div>
+        <div class="brand">{{ \App\Domains\System\Models\Setting::get('site_name', config('app.name')) }}</div>
     </div>
     <div class="body">
         <h2>Your Payout Has Been Sent!</h2>
@@ -86,11 +86,11 @@ p {
             <div class="row"><span class="label">Date</span><span class="value">{{ $receipt->paid_at?->format('F j, Y \a\t g:i A') }}</span></div>
         </div>
 
-        <p>You can also view this receipt anytime from your instructor dashboard.</p>
-        <p>Thank you for teaching on {{ config('app.name') }}.</p>
+        <p>If you have any questions, contact our support team at <a href="mailto:{{ \App\Domains\System\Models\Setting::get('support_email', config('mail.from.address')) }}">{{ \App\Domains\System\Models\Setting::get('support_email', config('mail.from.address')) }}</a>.</p>
+        <p>Thank you for teaching on {{ \App\Domains\System\Models\Setting::get('site_name', config('app.name')) }}.</p>
     </div>
     <div class="footer">
-        &copy; {{ now()->year }} {{ config('app.name') }}. All rights reserved.
+        {!! \App\Domains\System\Models\Setting::get('footer_text', "&copy; {" . now()->year . "} " . \App\Domains\System\Models\Setting::get('site_name', config('app.name')) . ". All rights reserved.") !!}
     </div>
 </div>
 </body>

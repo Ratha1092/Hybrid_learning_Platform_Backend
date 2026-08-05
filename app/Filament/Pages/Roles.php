@@ -2,8 +2,10 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Resources\Roles\RoleResource;
 use App\Support\PanelAccess;
 use BackedEnum;
+use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
 use Spatie\Permission\Models\Role;
@@ -47,6 +49,27 @@ class Roles extends Page
         $this->page = max(1, $page);
     }
 
+    public function deleteRole(int $roleId): void
+    {
+        $role = Role::find($roleId);
+
+        if (!$role || !RoleResource::canDelete($role)) {
+            Notification::make()
+                ->title('This role cannot be deleted.')
+                ->danger()
+                ->send();
+
+            return;
+        }
+
+        $role->delete();
+
+        Notification::make()
+            ->title('Role deleted.')
+            ->success()
+            ->send();
+    }
+
     protected function getViewData(): array
     {
         $search  = $this->search;
@@ -66,6 +89,8 @@ class Roles extends Page
         $curPage    = min($page, $totalPages);
         $roles      = $query->skip(($curPage - 1) * $perPage)->take($perPage)->get();
 
-        return compact('search', 'roles', 'total', 'totalPages', 'curPage', 'perPage');
+        $canDelete = PanelAccess::can('roles.delete');
+
+        return compact('search', 'roles', 'total', 'totalPages', 'curPage', 'perPage', 'canDelete');
     }
 }

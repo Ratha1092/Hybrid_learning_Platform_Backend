@@ -188,7 +188,7 @@ table.items td.right, table.items th.right {
 
     <div class="header">
         <div class="header-brand">
-            <div class="brand-name">{{ config('app.name') }}</div>
+            <div class="brand-name">{{ \App\Domains\System\Models\Setting::get('site_name', config('app.name')) }}</div>
             <div class="brand-sub">Credit Note</div>
         </div>
         <div class="header-meta">
@@ -262,7 +262,7 @@ table.items td.right, table.items th.right {
     </div>
 
     <div class="footer">
-        This credit note was issued by {{ config('app.name') }} on {{ now()->format('F j, Y') }}.<br>
+        {{ \App\Domains\System\Models\Setting::get('footer_text', "© " . now()->year . " " . \App\Domains\System\Models\Setting::get('site_name', config('app.name')) . ". All rights reserved.") }}<br>
         The original invoice has not been modified.
     </div>
 

@@ -246,8 +246,7 @@ table.items td.amount, table.items th.amount {
     </div>
 
     <div class="footer">
-        Thank you for your purchase on {{ $siteName }}.<br>
-        This receipt was generated on {{ now()->format('F j, Y') }}.
+        {{ \App\Domains\System\Models\Setting::get('footer_text', "Thank you for your purchase on {$siteName}. This receipt was generated on " . now()->format('F j, Y') . ".")) }}
     </div>
 
 </body>

@@ -3,9 +3,11 @@
 namespace App\Filament\Pages;
 
 use App\Domains\Courses\Models\Category;
+use App\Filament\Resources\Categories\CategoryResource;
 use App\Support\NavBadge;
 use App\Support\PanelAccess;
 use BackedEnum;
+use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Support\Number;
 
@@ -70,6 +72,29 @@ class Categories extends Page
     public function gotoPage(int $page): void
     {
         $this->page = max(1, $page);
+    }
+
+    public function deleteCategory(int $categoryId): void
+    {
+        $category = Category::withCount('courses')->find($categoryId);
+
+        if (!$category || !CategoryResource::canDelete($category)) {
+            Notification::make()
+                ->title($category && $category->courses_count > 0
+                    ? 'Move or delete its courses first — this category still has courses assigned.'
+                    : 'This category cannot be deleted.')
+                ->danger()
+                ->send();
+
+            return;
+        }
+
+        $category->delete();
+
+        Notification::make()
+            ->title('Category deleted.')
+            ->success()
+            ->send();
     }
 
     protected function getViewData(): array

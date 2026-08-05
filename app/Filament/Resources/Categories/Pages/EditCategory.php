@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\Categories\Pages;
 
 use App\Filament\Resources\Categories\CategoryResource;
-use Filament\Actions\DeleteAction;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -93,9 +92,25 @@ class EditCategory extends EditRecord
 
     protected function getHeaderActions(): array
     {
-        return [
-            DeleteAction::make(),
-        ];
+        return [];
+    }
+
+    public function deleteCategory(): void
+    {
+        if (!CategoryResource::canDelete($this->record)) {
+            \Filament\Notifications\Notification::make()
+                ->title($this->record->courses()->count() > 0
+                    ? 'Move or delete its courses first — this category still has courses assigned.'
+                    : 'This category cannot be deleted.')
+                ->danger()
+                ->send();
+
+            return;
+        }
+
+        $this->record->delete();
+
+        $this->redirect($this->getRedirectUrl());
     }
 
     protected function getRedirectUrl(): string
@@ -106,8 +121,9 @@ class EditCategory extends EditRecord
     protected function getViewData(): array
     {
         return [
-            'backUrl'     => route('filament.admin.pages.categories'),
-            'courseCount' => $this->record->courses()->count(),
+            'backUrl'      => route('filament.admin.pages.categories'),
+            'courseCount'  => $this->record->courses()->count(),
+            'canDelete'    => CategoryResource::canDelete($this->record),
         ];
     }
 }

@@ -82,11 +82,24 @@ Route::middleware(['web', 'auth'])->group(function () {
 
         foreach ($settings as $setting) {
             $oldState[$setting->key] = $setting->value;
+            $uploadKey = $setting->key . '_upload';
 
             if ($setting->type === 'boolean') {
                 $value = $request->boolean($setting->key) ? 'true' : 'false';
+            } elseif ($request->hasFile($uploadKey)) {
+                $file = $request->file($uploadKey);
+                if ($file && $file->isValid()) {
+                    $path = \Illuminate\Support\Facades\Storage::disk('public')->putFile('settings', $file);
+                    $value = \Illuminate\Support\Facades\Storage::disk('public')->url($path);
+                } else {
+                    $value = $request->input($setting->key, $setting->value);
+                }
             } else {
                 $value = trim((string) $request->input($setting->key, $setting->value));
+
+                if (in_array($setting->key, ['site_logo', 'site_favicon'], true) && $value === '') {
+                    $value = $setting->value;
+                }
 
                 if (in_array($setting->type, ['integer', 'decimal'], true) && $value !== '' && !is_numeric($value)) {
                     return redirect()->to($redirectUrl)->with('settings_error', "\"{$setting->key}\" must be a number.");
@@ -227,6 +240,10 @@ Route::middleware(['web', 'auth'])->group(function () {
 
         if (!$user->hasRole($role->name)) {
             return back()->with('role_error', "{$user->name} does not have the {$role->name} role.");
+        }
+
+        if ($role->name === 'super-admin' && $role->users()->count() <= 1) {
+            return back()->with('role_error', 'The Super Admin role must always have at least one user assigned.');
         }
 
         $oldRoles = $user->getRoleNames()->values()->all();

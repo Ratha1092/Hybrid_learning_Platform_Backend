@@ -5,6 +5,10 @@ set -e
 # Set it per-service in the Railway dashboard: web (default), horizon, scheduler.
 PROCESS_TYPE="${PROCESS_TYPE:-web}"
 
+# Package discovery needs real env vars (e.g. Pusher key), which only exist
+# at runtime, not during the Docker build — so it runs here instead.
+php artisan package:discover --ansi
+
 case "$PROCESS_TYPE" in
   web)
     php artisan migrate --force

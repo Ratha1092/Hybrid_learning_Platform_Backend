@@ -41,7 +41,11 @@ class OAuthService
                     return $this->loginUser($user);
                 }
 
-                $user = User::where('email', $data['email'])->first();
+                $user = User::withTrashed()->where('email', $data['email'])->first();
+
+                if ($user && $user->trashed()) {
+                    throw new RuntimeException('This email is associated with a deleted account. Please contact support.');
+                }
 
                 if (!$user) {
                     $user = User::create([
@@ -107,7 +111,11 @@ class OAuthService
                     return $this->loginUser($oauthAccount->user);
                 }
 
-                $user = User::where('email', $email)->first();
+                $user = User::withTrashed()->where('email', $email)->first();
+
+                if ($user && $user->trashed()) {
+                    throw new RuntimeException('This email is associated with a deleted account. Please contact support.');
+                }
 
                 if (!$user) {
                     $user = User::create([
@@ -158,7 +166,10 @@ class OAuthService
             || str_contains(strtolower($e->getMessage()), 'duplicate key');
 
         if ($isUniqueViolation) {
-            $user = User::where('email', $email)->first();
+            $user = User::withTrashed()->where('email', $email)->first();
+            if ($user && $user->trashed()) {
+                throw new RuntimeException('This email is associated with a deleted account. Please contact support.');
+            }
             if ($user) {
                 return $this->loginUser($user);
             }

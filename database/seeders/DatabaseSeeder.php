@@ -6,10 +6,14 @@ use App\Domains\Users\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class DatabaseSeeder extends Seeder
 {
     use WithoutModelEvents;
+
+    /** @var array<string, string> Passwords generated because no env override was set. */
+    private array $generatedPasswords = [];
 
     public function run(): void
     {
@@ -17,57 +21,36 @@ class DatabaseSeeder extends Seeder
         $this->call(SettingsSeeder::class);
 
         $superAdmin = User::firstOrCreate([
-            'email' => 'superadmin@example.com',
+            'email' => 'superadmin@gmail.com',
         ], [
             'name' => 'Super Admin',
-            'password' => Hash::make('admin123'),
+            'password' => Hash::make($this->resolvePassword('SEED_SUPERADMIN_PASSWORD')),
             'status' => User::STATUS_ACTIVE,
             'email_verified_at' => now(),
         ]);
 
         $superAdmin->syncRoles(['super-admin']);
 
-        $admin = User::firstOrCreate([
-            'email' => 'admin@example.com',
-        ], [
-            'name' => 'Admin',
-            'password' => Hash::make('admin123'),
-            'status' => User::STATUS_ACTIVE,
-            'email_verified_at' => now(),
-        ]);
+        // $this->call(LargeDatasetSeeder::class);
 
-        $admin->syncRoles(['admin']);
+        if ($this->generatedPasswords && $this->command) {
+            $this->command->warn('No env override set for these accounts — generated random passwords (save now, not shown again):');
+            foreach ($this->generatedPasswords as $envKey => $password) {
+                $this->command->line("  {$envKey}: {$password}");
+            }
+        }
+    }
 
-        $staffRoles = [
-            'finance-manager' => 'Finance Manager',
-            'accountant' => 'Accountant',
-            'content-manager' => 'Content Manager',
-            'moderator' => 'Moderator',
-            'support-staff' => 'Support Staff',
-        ];
-
-        foreach ($staffRoles as $roleName => $label) {
-            $staffUser = User::firstOrCreate([
-                'email' => str_replace('-', '.', $roleName) . '@example.com',
-            ], [
-                'name' => $label,
-                'password' => Hash::make('password'),
-                'status' => User::STATUS_ACTIVE,
-                'email_verified_at' => now(),
-            ]);
-            $staffUser->syncRoles([$roleName]);
+    /**
+     * Reads a password from the given env var, or generates a strong random
+     * one and records it so it can be printed once at the end of the run.
+     */
+    private function resolvePassword(string $envKey): string
+    {
+        if ($value = env($envKey)) {
+            return $value;
         }
 
-        $testUser = User::firstOrCreate([
-            'email' => 'www.rathakh1092@gmail.com',
-        ], [
-            'name' => 'Torn Ratha',
-            'password' => Hash::make('Stunz@Ratha56'),
-            'status' => User::STATUS_ACTIVE,
-            'email_verified_at' => now(),
-        ]);
-
-        $testUser->syncRoles(['student']);
-        // $this->call(LargeDatasetSeeder::class);
+        return $this->generatedPasswords[$envKey] = Str::password(20);
     }
 }

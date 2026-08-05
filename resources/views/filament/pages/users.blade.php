@@ -612,7 +612,7 @@ html:not(.dark) .lp-menu {
         </div>
 
         {{-- Table --}}
-        <div style="border-radius:0 0 12px 12px;" wire:loading.class="lp-loading" wire:target="selectTab,gotoPage,search,perPage">
+        <div style="border-radius:0 0 12px 12px;overflow-x:auto;-webkit-overflow-scrolling:touch;" wire:loading.class="lp-loading" wire:target="selectTab,gotoPage,search,perPage">
         <table class="lp-table">
             <thead>
                 <tr>

@@ -7,6 +7,7 @@ use App\Domains\System\Models\Setting;
 use App\Domains\Users\Models\User;
 use App\Domains\Auth\Resources\UserResource;
 use App\Domains\Auth\Services\ActivityLogService;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -22,52 +23,56 @@ class OAuthService
             throw new RuntimeException('Google sign-in is currently disabled.');
         }
 
-        return DB::transaction(function () use ($data) {
-            $provider = 'google';
-            $providerId = $data['provider_id'];
+        try {
+            return DB::transaction(function () use ($data) {
+                $provider = 'google';
+                $providerId = $data['provider_id'];
 
-            $oauthAccount = OAuthAccount::where('provider', $provider)
-                ->where('provider_id', $providerId)
-                ->first();
+                $oauthAccount = OAuthAccount::where('provider', $provider)
+                    ->where('provider_id', $providerId)
+                    ->first();
 
-            if ($oauthAccount) {
-                $user = $oauthAccount->user;
-                // Backfill avatar onto the user row if it was never saved there.
-                if (!$user->avatar && $oauthAccount->avatar) {
-                    $user->update(['avatar' => $oauthAccount->avatar]);
+                if ($oauthAccount) {
+                    $user = $oauthAccount->user;
+                    // Backfill avatar onto the user row if it was never saved there.
+                    if (!$user->avatar && $oauthAccount->avatar) {
+                        $user->update(['avatar' => $oauthAccount->avatar]);
+                    }
+                    return $this->loginUser($user);
                 }
-                return $this->loginUser($user);
-            }
 
-            $user = User::where('email', $data['email'])->first();
+                $user = User::where('email', $data['email'])->first();
 
-            if (!$user) {
-                $user = User::create([
-                    'name' => $data['name'],
+                if (!$user) {
+                    $user = User::create([
+                        'name' => $data['name'],
+                        'email' => $data['email'],
+                        'password' => Hash::make(Str::random(32)),
+                        'email_verified_at' => now(),
+                        'avatar' => $data['avatar'] ?? null,
+                    ]);
+
+                    $user->assignRole('student');
+                } elseif (!$user->avatar && !empty($data['avatar'])) {
+                    // Existing email account linking Google for the first time.
+                    $user->update(['avatar' => $data['avatar']]);
+                }
+
+                OAuthAccount::create([
+                    'user_id' => $user->id,
+                    'provider' => $provider,
+                    'provider_id' => $providerId,
                     'email' => $data['email'],
-                    'password' => Hash::make(Str::random(32)),
-                    'email_verified_at' => now(),
+                    'name' => $data['name'],
                     'avatar' => $data['avatar'] ?? null,
+                    'data' => $data,
                 ]);
 
-                $user->assignRole('student');
-            } elseif (!$user->avatar && !empty($data['avatar'])) {
-                // Existing email account linking Google for the first time.
-                $user->update(['avatar' => $data['avatar']]);
-            }
-
-            OAuthAccount::create([
-                'user_id' => $user->id,
-                'provider' => $provider,
-                'provider_id' => $providerId,
-                'email' => $data['email'],
-                'name' => $data['name'],
-                'avatar' => $data['avatar'] ?? null,
-                'data' => $data,
-            ]);
-
-            return $this->loginUser($user, true);
-        });
+                return $this->loginUser($user, true);
+            });
+        } catch (QueryException $e) {
+            return $this->recoverFromUniqueViolation($e, $data['email']);
+        }
     }
 
     public function handleGithub(string $code): array
@@ -89,43 +94,77 @@ class OAuthService
             throw new RuntimeException('GitHub account has no accessible email address. Please make your email public on GitHub and try again.');
         }
 
-        return DB::transaction(function () use ($socialUser, $email) {
-            $provider   = 'github';
-            $providerId = (string) $socialUser->getId();
+        try {
+            return DB::transaction(function () use ($socialUser, $email) {
+                $provider   = 'github';
+                $providerId = (string) $socialUser->getId();
 
-            $oauthAccount = OAuthAccount::where('provider', $provider)
-                ->where('provider_id', $providerId)
-                ->first();
+                $oauthAccount = OAuthAccount::where('provider', $provider)
+                    ->where('provider_id', $providerId)
+                    ->first();
 
-            if ($oauthAccount) {
-                return $this->loginUser($oauthAccount->user);
-            }
+                if ($oauthAccount) {
+                    return $this->loginUser($oauthAccount->user);
+                }
 
-            $user = User::where('email', $email)->first();
+                $user = User::where('email', $email)->first();
 
-            if (!$user) {
-                $user = User::create([
-                    'name'              => $socialUser->getName() ?? $socialUser->getNickname() ?? 'GitHub User',
-                    'email'             => $email,
-                    'password'          => Hash::make(Str::random(32)),
-                    'email_verified_at' => now(),
+                if (!$user) {
+                    $user = User::create([
+                        'name'              => $socialUser->getName() ?? $socialUser->getNickname() ?? 'GitHub User',
+                        'email'             => $email,
+                        'password'          => Hash::make(Str::random(32)),
+                        'email_verified_at' => now(),
+                    ]);
+
+                    $user->assignRole('student');
+                }
+
+                OAuthAccount::create([
+                    'user_id'     => $user->id,
+                    'provider'    => $provider,
+                    'provider_id' => $providerId,
+                    'email'       => $email,
+                    'name'        => $socialUser->getName() ?? $socialUser->getNickname(),
+                    'avatar'      => $socialUser->getAvatar() ?? null,
+                    'data'        => $socialUser->user,
                 ]);
 
-                $user->assignRole('student');
+                return $this->loginUser($user, true);
+            });
+        } catch (QueryException $e) {
+            return $this->recoverFromUniqueViolation($e, $email);
+        }
+    }
+
+    /**
+     * The check-then-insert flow above already avoids duplicate user/account
+     * rows in the common case, but a concurrent request for the same brand
+     * new email (e.g. a double-click, or the same user racing register +
+     * OAuth login) can still lose the check-then-insert race and hit the
+     * unique index at the database level. Rather than let that surface as
+     * an uncaught QueryException (leaking SQL/bindings in the API response
+     * when APP_DEBUG is on), treat it as "the user now exists" and log in.
+     *
+     * Any other unique-constraint hit that isn't recoverable this way is
+     * re-thrown for the global exception handler to turn into a generic
+     * error response.
+     */
+    private function recoverFromUniqueViolation(QueryException $e, string $email)
+    {
+        $sqlState = $e->errorInfo[0] ?? null;
+        $isUniqueViolation = $sqlState === '23505'
+            || str_contains(strtolower($e->getMessage()), 'unique constraint')
+            || str_contains(strtolower($e->getMessage()), 'duplicate key');
+
+        if ($isUniqueViolation) {
+            $user = User::where('email', $email)->first();
+            if ($user) {
+                return $this->loginUser($user);
             }
+        }
 
-            OAuthAccount::create([
-                'user_id'     => $user->id,
-                'provider'    => $provider,
-                'provider_id' => $providerId,
-                'email'       => $email,
-                'name'        => $socialUser->getName() ?? $socialUser->getNickname(),
-                'avatar'      => $socialUser->getAvatar() ?? null,
-                'data'        => $socialUser->user,
-            ]);
-
-            return $this->loginUser($user, true);
-        });
+        throw $e;
     }
 
     public function link($user, array $data)

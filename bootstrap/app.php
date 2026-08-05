@@ -131,6 +131,17 @@ return Application::configure(basePath: dirname(__DIR__))
                 );
             }
         });
+        $exceptions->render(function (
+            \Throwable $e,
+            $request
+        ) {
+            if (($request->is('api/*') || $request->expectsJson()) && !config('app.debug')) {
+                return ApiResponse::error(
+                    'Something went wrong. Please try again.',
+                    500
+                );
+            }
+        });
     })
 
     ->create();

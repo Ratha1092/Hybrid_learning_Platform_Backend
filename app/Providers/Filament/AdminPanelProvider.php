@@ -32,7 +32,6 @@ class AdminPanelProvider extends PanelProvider
     {
         $brandName = Setting::get('site_name', 'Hybrid Learning');
         $favicon = Setting::get('site_favicon', '') ?: secure_asset('favicon.svg');
-
         $siteLogo = Setting::get('site_logo', '');
 
         return $panel

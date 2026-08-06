@@ -46,7 +46,7 @@ class Dashboard extends BaseDashboard implements Schedulable
     protected function getHeaderWidgets(): array { return []; }
     protected function getFooterWidgets(): array { return []; }
 
-    // ── Schedulable contract ──────────────────────────────────────────────
+    //  Schedulable contract 
 
     public static function reportKey(): string { return 'executive'; }
     public static function reportLabel(): string { return 'Executive Dashboard'; }
@@ -120,9 +120,9 @@ class Dashboard extends BaseDashboard implements Schedulable
         );
     }
 
-    // ─────────────────────────────────────────────────────────────────────
+    //
     // View data
-    // ─────────────────────────────────────────────────────────────────────
+    //
 
     public function getViewData(): array
     {
@@ -147,7 +147,7 @@ class Dashboard extends BaseDashboard implements Schedulable
     {
         $paidStatuses = [PaymentStatus::Paid->value, PaymentStatus::Completed->value];
 
-        // ── Base query builders ───────────────────────────────────────────
+        //  Base query builders 
         $payBase = function () use ($from, $to, $gatewayFilter, $statusFilter) {
             $q = Payment::query();
             $this->applyDateRange($q, 'created_at', $from, $to);
@@ -163,7 +163,7 @@ class Dashboard extends BaseDashboard implements Schedulable
             return $q;
         };
 
-        // ── People ────────────────────────────────────────────────────────
+        //  People
         $studentQ = User::role('student');
         $this->applyDateRange($studentQ, 'created_at', $from, $to);
         $totalStudents    = $studentQ->count();
@@ -177,7 +177,7 @@ class Dashboard extends BaseDashboard implements Schedulable
         $pendingCourseReviews  = Course::where('status', Course::STATUS_PENDING)->count();
         $newUsersToday         = User::whereDate('created_at', today())->count();
 
-        // ── Courses ───────────────────────────────────────────────────────
+        //  Courses
         $courseQ = Course::query();
         $this->applyDateRange($courseQ, 'created_at', $from, $to);
         if ($courseStatus !== 'all') {
@@ -198,7 +198,7 @@ class Dashboard extends BaseDashboard implements Schedulable
             })
             ->latest()->take(6)->get();
 
-        // ── Orders & Finance ──────────────────────────────────────────────
+        //  Orders & Finance 
         $orderQ = Order::query();
         $this->applyDateRange($orderQ, 'created_at', $from, $to);
         $totalOrders   = $orderQ->count();
@@ -223,14 +223,14 @@ class Dashboard extends BaseDashboard implements Schedulable
         $totalInstructorBalance = InstructorWallet::sum('balance');
         $totalPendingBalance    = InstructorWallet::sum('pending_balance');
 
-        // ── Payouts ───────────────────────────────────────────────────────
+        //  Payouts
         $pendingPayoutsCount = PayoutRequest::where('status', 'pending')->count();
 
-        // ── Refunds ───────────────────────────────────────────────────────
+        //  Refunds
         $recentRefundsCount = Refund::count();
         $recentRefunds = Refund::with(['order.user'])->latest()->take(5)->get();
 
-        // ── Enrollments ───────────────────────────────────────────────────
+        //  Enrollments
         $enrollmentsThisMonth = Enrollment::whereMonth('enrolled_at', now()->month)
             ->whereYear('enrolled_at', now()->year)->count();
         $enrollmentsLastMonth = Enrollment::whereMonth('enrolled_at', now()->subMonth()->month)
@@ -250,7 +250,7 @@ class Dashboard extends BaseDashboard implements Schedulable
             ? round($avgCompletionRate - $avgCompletionRatePrev, 1)
             : 0;
 
-        // ── Popular courses (by enrollments) ─────────────────────────────
+        //  Popular courses (by enrollments) 
         $popularCourses = Course::with('instructor')
             ->where('is_published', true)
             ->withCount('enrollments')
@@ -264,7 +264,7 @@ class Dashboard extends BaseDashboard implements Schedulable
             ->take(5)
             ->get();
 
-        // ── Low rated courses (avg < 3, all reviews) ─────────────────────
+        //  Low rated courses (avg < 3, all reviews) 
         $lowRatedCourses = Course::with('instructor')
             ->where('is_published', true)
             ->withAvg('reviews', 'rating')
@@ -276,10 +276,10 @@ class Dashboard extends BaseDashboard implements Schedulable
             ->take(5)
             ->values();
 
-        // ── Top instructors by revenue ────────────────────────────────────
+        //  Top instructors by revenue 
         $topInstructors = $this->buildTopInstructors();
 
-        // ── System health ─────────────────────────────────────────────────
+        //  System health
         try {
             $queueJobsPending = DB::table('jobs')->count();
         } catch (\Throwable) {
@@ -310,18 +310,7 @@ class Dashboard extends BaseDashboard implements Schedulable
             $serverUptime = 'N/A';
         }
 
-        try {
-            $diskTotal = disk_total_space('/');
-            $diskFree  = disk_free_space('/');
-            $diskUsed  = $diskTotal - $diskFree;
-            $diskUsedGb  = round($diskUsed / (1024 ** 3), 1);
-            $diskTotalGb = round($diskTotal / (1024 ** 3), 1);
-            $diskPercent = $diskTotalGb > 0 ? round($diskUsedGb / $diskTotalGb * 100) : 0;
-        } catch (\Throwable) {
-            $diskUsedGb = 0; $diskTotalGb = 0; $diskPercent = 0;
-        }
-
-        // ── Revenue trends ────────────────────────────────────────────────
+        //  Revenue trends
         $trendBase   = $to ?? now();
         $studentTrend = collect(range(5, 0))->map(function ($mo) use ($trendBase) {
             $date = (clone $trendBase)->subMonths($mo);
@@ -349,10 +338,10 @@ class Dashboard extends BaseDashboard implements Schedulable
             ];
         });
 
-        // ── Revenue chart (4 periods) ─────────────────────────────────────
+        //  Revenue chart (4 periods) 
         $revenueChartData = $this->buildRevenueChartData($paidStatuses, $gatewayFilter);
 
-        // ── Payment breakdowns ────────────────────────────────────────────
+        //  Payment breakdowns 
         $paymentStatusBreakdown = [
             'completed' => $paidBase()->count(),
             'pending'   => $payBase()->where('status', PaymentStatus::Pending->value)->count(),
@@ -374,7 +363,7 @@ class Dashboard extends BaseDashboard implements Schedulable
                 ->sum('amount')
         )->toArray();
 
-        // ── Return ────────────────────────────────────────────────────────
+        //  Return
         return [
             // Meta
             'activePreset'       => $preset,
@@ -445,18 +434,15 @@ class Dashboard extends BaseDashboard implements Schedulable
             // System health
             'queueJobsPending' => $queueJobsPending,
             'failedJobsCount'  => $failedJobsCount,
-            'diskUsedGb'       => $diskUsedGb,
-            'diskTotalGb'      => $diskTotalGb,
-            'diskPercent'      => $diskPercent,
             'redisStatus'      => $redisStatus,
             'serverUptime'     => $serverUptime,
             'refreshInterval'  => max(5, (int) Setting::get('dashboard_refresh_interval', 30)),
         ];
     }
 
-    // ─────────────────────────────────────────────────────────────────────
+    //
     // Revenue chart: 4 period series
-    // ─────────────────────────────────────────────────────────────────────
+    //
 
     private function buildRevenueChartData(array $paidStatuses, string $gatewayFilter): array
     {
@@ -564,9 +550,9 @@ class Dashboard extends BaseDashboard implements Schedulable
         ];
     }
 
-    // ─────────────────────────────────────────────────────────────────────
+    //
     // Top instructors by revenue
-    // ─────────────────────────────────────────────────────────────────────
+    //
 
     private function buildTopInstructors(): array
     {

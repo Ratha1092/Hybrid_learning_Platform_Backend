@@ -157,6 +157,29 @@ class AdminPanelProvider extends PanelProvider
             ->renderHook(
                 PanelsRenderHook::HEAD_END,
                 fn () => <<<'HTML'
+                <script>
+                document.addEventListener('livewire:init', () => {
+                    let sessionExpiredShown = false;
+
+                    Livewire.hook('request', ({ fail }) => {
+                        fail(({ status, preventDefault }) => {
+                            if (status !== 419) return;
+                            preventDefault();
+                            if (sessionExpiredShown) return;
+                            sessionExpiredShown = true;
+
+                            if (window.confirm('Your session has expired. Reload the page to continue?')) {
+                                window.location.reload();
+                            }
+                        });
+                    });
+                });
+                </script>
+                HTML
+            )
+            ->renderHook(
+                PanelsRenderHook::HEAD_END,
+                fn () => <<<'HTML'
                 <style>
                     .fi-sidebar-item-btn:focus,
                     .fi-sidebar-item-button:focus,

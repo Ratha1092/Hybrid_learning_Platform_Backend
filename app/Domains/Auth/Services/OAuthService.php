@@ -7,10 +7,12 @@ use App\Domains\System\Models\Setting;
 use App\Domains\Users\Models\User;
 use App\Domains\Auth\Resources\UserResource;
 use App\Domains\Auth\Services\ActivityLogService;
+use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
 use RuntimeException;
@@ -81,17 +83,27 @@ class OAuthService
 
     public function handleGithub(string $code): array
     {
-        $tokenResponse = Socialite::driver('github')
-            ->stateless()
-            ->getAccessTokenResponse($code);
+        try {
+            $tokenResponse = Socialite::driver('github')
+                ->stateless()
+                ->getAccessTokenResponse($code);
+        } catch (GuzzleException $e) {
+            Log::warning('GitHub OAuth token exchange failed', ['error' => $e->getMessage()]);
+            throw new RuntimeException('GitHub sign-in failed. Please try again.');
+        }
 
         if (empty($tokenResponse['access_token'])) {
             throw new RuntimeException('Failed to obtain GitHub access token');
         }
 
-        $socialUser = Socialite::driver('github')
-            ->stateless()
-            ->userFromToken($tokenResponse['access_token']);
+        try {
+            $socialUser = Socialite::driver('github')
+                ->stateless()
+                ->userFromToken($tokenResponse['access_token']);
+        } catch (GuzzleException $e) {
+            Log::warning('GitHub OAuth user fetch failed', ['error' => $e->getMessage()]);
+            throw new RuntimeException('GitHub sign-in failed. Please try again.');
+        }
 
         $email = $socialUser->getEmail();
         if (!$email) {
@@ -145,19 +157,6 @@ class OAuthService
         }
     }
 
-    /**
-     * The check-then-insert flow above already avoids duplicate user/account
-     * rows in the common case, but a concurrent request for the same brand
-     * new email (e.g. a double-click, or the same user racing register +
-     * OAuth login) can still lose the check-then-insert race and hit the
-     * unique index at the database level. Rather than let that surface as
-     * an uncaught QueryException (leaking SQL/bindings in the API response
-     * when APP_DEBUG is on), treat it as "the user now exists" and log in.
-     *
-     * Any other unique-constraint hit that isn't recoverable this way is
-     * re-thrown for the global exception handler to turn into a generic
-     * error response.
-     */
     private function recoverFromUniqueViolation(QueryException $e, string $email)
     {
         $sqlState = $e->errorInfo[0] ?? null;

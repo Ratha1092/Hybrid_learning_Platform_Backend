@@ -1726,18 +1726,6 @@ function dbCustomDate() {
             </div>
             <div class="db-health-row">
                 <div class="db-health-lbl">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="var(--db-t3)" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
-                    Storage Used
-                </div>
-                <div style="text-align:right;">
-                    <div class="db-health-val" style="font-size:.8125rem;">{{ $diskUsedGb }}GB / {{ $diskTotalGb }}GB ({{ $diskPercent }}%)</div>
-                    <div class="db-progress-bar" style="width:160px;margin-top:.3rem;">
-                        <div class="db-progress-fill" style="width:{{ $diskPercent }}%;background:{{ $diskPercent > 85 ? 'var(--db-red)' : ($diskPercent > 65 ? 'var(--db-amber)' : 'var(--db-blue)') }};"></div>
-                    </div>
-                </div>
-            </div>
-            <div class="db-health-row">
-                <div class="db-health-lbl">
                     <svg viewBox="0 0 24 24" fill="none" stroke="var(--db-t3)" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
                     New Users Today
                 </div>

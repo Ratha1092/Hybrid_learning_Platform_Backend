@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Users\Pages;
 
 use App\Domains\Auth\Services\ActivityLogService;
+use App\Domains\Notifications\Notifications\RoleChangedNotification;
 use App\Domains\Users\Mail\AccountSuspendedMail;
 use App\Domains\Users\Models\InstructorVerification;
 use App\Domains\Users\Models\User;
@@ -92,6 +93,8 @@ class EditUser extends EditRecord
                 ['roles' => $this->originalRoles],
                 ['roles' => $newRoles],
             );
+
+            $fresh->notify(new RoleChangedNotification($newRoles));
         }
 
         // When the instructor role is assigned via the admin panel the normal

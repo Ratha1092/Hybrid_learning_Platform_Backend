@@ -103,7 +103,9 @@ class ProfileController extends Controller
             ->where('status', 'active')
             ->with(['course' => fn($q) => $q->select(
                 'id', 'title', 'slug', 'thumbnail', 'level', 'instructor_id'
-            )])
+            )
+                ->withAvg(['reviews as average_rating' => fn ($qq) => $qq->where('is_approved', true)], 'rating')
+                ->withCount(['reviews as reviews_count' => fn ($qq) => $qq->where('is_approved', true)])])
             ->latest('enrolled_at')
             ->get()
             ->map(fn($e) => [
@@ -113,6 +115,8 @@ class ProfileController extends Controller
                 'course_slug'         => $e->course?->slug,
                 'course_thumbnail'    => $e->course?->thumbnail_url,
                 'course_level'        => $e->course?->level,
+                'average_rating'      => $e->course?->average_rating ? round($e->course->average_rating, 1) : null,
+                'reviews_count'       => $e->course?->reviews_count ?? 0,
                 'progress_percentage' => (float) $e->progress_percentage,
                 'enrolled_at'         => $e->enrolled_at,
                 'completed_at'        => $e->completed_at,

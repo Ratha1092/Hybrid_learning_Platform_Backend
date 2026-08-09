@@ -152,7 +152,13 @@ class Users extends Page
         $page    = max(1, $this->page);
         $perPage = in_array($this->perPage, [10, 25, 50], true) ? $this->perPage : 10;
 
-        $base = fn() => User::withoutTrashed();
+        // Super-admin accounts are invisible to everyone except other super-admins.
+        $viewerIsSuperAdmin = auth()->user()?->hasRole('super-admin') ?? false;
+        $hideSuperAdmins = fn ($q) => $viewerIsSuperAdmin
+            ? $q
+            : $q->whereDoesntHave('roles', fn ($r) => $r->where('name', 'super-admin'));
+
+        $base = fn() => $hideSuperAdmins(User::withoutTrashed());
 
         $roleMeta = [
             'instructor' => ['label' => 'Instructor', 'color' => '#3b82f6'],
@@ -172,7 +178,7 @@ class Users extends Page
             ];
         }
 
-        $query = User::withoutTrashed();
+        $query = $hideSuperAdmins(User::withoutTrashed());
 
         if ($tab !== 'all' && array_key_exists($tab, $roleMeta)) {
             $query->role($tab);

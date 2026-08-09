@@ -19,7 +19,12 @@ case "$PROCESS_TYPE" in
     exec frankenphp php-server --root public --listen "0.0.0.0:${PORT:-8080}"
     ;;
   horizon)
-    exec php artisan horizon
+    # Plain queue worker instead of `horizon` — at current traffic, Horizon's
+    # metrics/heartbeat/dashboard bookkeeping is pure Redis overhead compared
+    # to just popping and running jobs. Switch back to `horizon` here (and
+    # revert config/horizon.php's minProcesses/queue.php's block_for tuning if
+    # desired) once real job volume justifies the dashboard and auto-scaling.
+    exec php artisan queue:work redis --queue=high,default,low --sleep=3 --tries=3 --timeout=90
     ;;
   scheduler)
     exec php artisan schedule:work

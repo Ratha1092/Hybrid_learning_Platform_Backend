@@ -283,7 +283,7 @@ html:not(.dark) .lp {
 .lp-table th {
     padding:10px 12px;
     text-align:left;
-    font-size:10.5px;
+    font-size:11.5px;
     font-weight:800;
     letter-spacing:.06em;
     text-transform:uppercase;
@@ -309,7 +309,7 @@ html:not(.dark) .lp {
 }
 
 .lp-id {
-    font-size:11.5px;
+    font-size:12.5px;
     font-weight:700;
     color:var(--t2);
     white-space:nowrap;
@@ -334,12 +334,12 @@ html:not(.dark) .lp {
     box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);
 }
 .lp-user-name {
-    font-size:13px;
+    font-size:14.5px;
     font-weight:650;
     color:var(--t1);
 }
 .lp-email {
-    font-size:12px;
+    font-size:13.5px;
     color:var(--t2);
 }
 .lp-badge {
@@ -348,7 +348,7 @@ html:not(.dark) .lp {
     gap:5px;
     padding:4px 10px;
     border-radius:6px;
-    font-size:11.5px;
+    font-size:12.5px;
     font-weight:700;
     white-space:nowrap;
 }
@@ -621,7 +621,6 @@ html:not(.dark) .lp-menu {
                     <th>Email</th>
                     <th>Role</th>
                     <th>Status</th>
-                    <th>Created</th>
                     <th style="text-align:right">Actions</th>
                 </tr>
             </thead>
@@ -670,7 +669,6 @@ html:not(.dark) .lp-menu {
                         </span>
                     </td>
 
-                    <td><span class="lp-date">{{ $user->created_at?->format('M d, Y') }}</span></td>
 
                     <td onclick="event.stopPropagation()">
                         <div class="lp-actions">
@@ -697,7 +695,7 @@ html:not(.dark) .lp-menu {
                                         Edit
                                     </a>
 
-                                    @if(!$isSelf)
+                                    @if(!$isSelf && !$user->hasRole('super-admin'))
                                     <div class="lp-menu-div"></div>
 
                                     @if($isSuspended)

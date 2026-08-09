@@ -14,13 +14,15 @@ class StatsController extends Controller
 {
     public function index()
     {
-        return ApiResponse::success([
+        $stats = Cache::remember('stats:index', now()->addMinutes(5), fn () => [
             'total_students' => User::role('student')->count(),
             'total_instructors' => User::role('instructor')->count(),
             'total_courses' => Course::where('status', Course::STATUS_PUBLISHED)->count(),
             'total_enrollments' => Enrollment::count(),
             'top_instructor_monthly_earnings' => $this->topInstructorMonthlyEarnings(),
-        ], 'Platform stats retrieved successfully');
+        ]);
+
+        return ApiResponse::success($stats, 'Platform stats retrieved successfully');
     }
 
     private function topInstructorMonthlyEarnings(): float

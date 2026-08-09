@@ -400,10 +400,8 @@ html:not(.dark) .lp {
     position:relative;
 }
 .lp-menu {
-    position:absolute;
-    right:0;
-    top:34px;
-    z-index:50;
+    position:fixed;
+    z-index:100;
     background:var(--p1);
     border:1px solid var(--bd2);
     border-radius:10px;
@@ -672,12 +670,29 @@ html:not(.dark) .lp-menu {
 
                     <td onclick="event.stopPropagation()">
                         <div class="lp-actions">
-                            <div class="lp-menu-wrap" x-data="{ open: false }" @click.outside="open = false" @lp-menu-open.window="if ($event.detail !== {{ $user->id }}) open = false">
-                                <button type="button" class="lp-act-btn" @click.stop="open = !open; if (open) $dispatch('lp-menu-open', {{ $user->id }})" title="Actions">
+                            <div class="lp-menu-wrap"
+                                 x-data="{
+                                    open: false,
+                                    positionMenu() {
+                                        const b = $refs.btn.getBoundingClientRect();
+                                        const m = $refs.menu;
+                                        const spaceBelow = window.innerHeight - b.bottom;
+                                        const top = (spaceBelow < m.offsetHeight + 12 && b.top > m.offsetHeight + 12)
+                                            ? b.top - m.offsetHeight - 6
+                                            : b.bottom + 6;
+                                        const left = Math.min(Math.max(8, b.right - m.offsetWidth), window.innerWidth - m.offsetWidth - 8);
+                                        m.style.top = top + 'px';
+                                        m.style.left = left + 'px';
+                                    }
+                                 }"
+                                 @lp-menu-open.window="if ($event.detail !== {{ $user->id }}) open = false"
+                                 @scroll.window="open = false"
+                                 @resize.window="open = false">
+                                <button type="button" class="lp-act-btn" x-ref="btn" @click.stop="open = !open; if (open) { $dispatch('lp-menu-open', {{ $user->id }}); $nextTick(() => positionMenu()); }" title="Actions">
                                     <svg viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M4.5 12a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0zm6 0a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0zm6 0a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0z" clip-rule="evenodd"/></svg>
                                 </button>
 
-                                <div class="lp-menu" x-show="open"
+                                <div class="lp-menu" x-show="open" x-ref="menu" x-teleport="body" @click.outside="open = false"
                                      x-transition:enter="transition ease-out duration-100"
                                      x-transition:enter-start="opacity-0 scale-95"
                                      x-transition:enter-end="opacity-100 scale-100"

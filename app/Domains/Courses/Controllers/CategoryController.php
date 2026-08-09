@@ -5,19 +5,20 @@ namespace App\Domains\Courses\Controllers;
 use App\Http\Controllers\Controller;
 use App\Domains\Courses\Models\Category;
 use App\Support\ApiResponse;
+use Illuminate\Support\Facades\Cache;
 
 class CategoryController extends Controller
 {
     public function index()
     {
-        $categories = Category::query()
+        $categories = Cache::remember('categories:index', now()->addMinutes(5), fn () => Category::query()
             ->withCount([
                 'courses as courses_count' => fn ($query) => $query
                     ->published()
             ])
             ->orderBy('sort_order')
             ->orderBy('name')
-            ->get();
+            ->get());
 
         return ApiResponse::success(
             $categories,
@@ -32,7 +33,9 @@ class CategoryController extends Controller
             ->with([
                 'courses' => fn ($query) => $query
                     ->published()
-                    ->latest(),
+                    ->latest()
+                    ->withAvg(['reviews as average_rating' => fn ($q) => $q->where('is_approved', true)], 'rating')
+                    ->withCount(['reviews as reviews_count' => fn ($q) => $q->where('is_approved', true)]),
             ])
             ->withCount('courses')
             ->first();
@@ -43,6 +46,11 @@ class CategoryController extends Controller
                 404
             );
         }
+
+        $category->courses->each(function ($course) {
+            $course->average_rating = $course->average_rating ? round($course->average_rating, 1) : null;
+        });
+
         return ApiResponse::success(
             $category,
             'Category retrieved successfully'

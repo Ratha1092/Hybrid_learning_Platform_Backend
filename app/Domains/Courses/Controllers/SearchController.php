@@ -42,19 +42,23 @@ class SearchController extends Controller
                           ->orWhereHas('category',   fn ($c) => $c->where('name', 'ilike', "%{$q}%"));
                 })
                 ->withCount('enrollments')
+                ->withAvg(['reviews as average_rating' => fn ($q) => $q->where('is_approved', true)], 'rating')
+                ->withCount(['reviews as reviews_count' => fn ($q) => $q->where('is_approved', true)])
                 ->orderByDesc('enrollments_count')
                 ->limit($limit)
                 ->get()
                 ->map(fn ($c) => [
-                    'id'          => $c->id,
-                    'title'       => $c->title,
-                    'slug'        => $c->slug,
-                    'thumbnail'   => $c->thumbnail_url,
-                    'price'       => (float) $c->price,
-                    'instructor'  => ['id' => $c->instructor?->id, 'name' => $c->instructor?->name, 'avatar' => $c->instructor?->avatar],
-                    'category'    => ['id' => $c->category?->id,   'name' => $c->category?->name],
-                    'enrollments' => $c->enrollments_count,
-                    'type'        => 'course',
+                    'id'             => $c->id,
+                    'title'          => $c->title,
+                    'slug'           => $c->slug,
+                    'thumbnail'      => $c->thumbnail_url,
+                    'price'          => (float) $c->price,
+                    'instructor'     => ['id' => $c->instructor?->id, 'name' => $c->instructor?->name, 'avatar' => $c->instructor?->avatar],
+                    'category'       => ['id' => $c->category?->id,   'name' => $c->category?->name],
+                    'enrollments'    => $c->enrollments_count,
+                    'average_rating' => $c->average_rating ? round($c->average_rating, 1) : null,
+                    'reviews_count'  => $c->reviews_count,
+                    'type'           => 'course',
                 ]);
         }
 

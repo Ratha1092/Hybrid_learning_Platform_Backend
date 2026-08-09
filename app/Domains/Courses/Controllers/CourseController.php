@@ -17,6 +17,8 @@ class CourseController extends Controller
     public function index()
     {
         $query = Course::with('instructor:id,name,avatar')
+            ->withAvg(['reviews as average_rating' => fn ($q) => $q->where('is_approved', true)], 'rating')
+            ->withCount(['reviews as reviews_count' => fn ($q) => $q->where('is_approved', true)])
             ->where('is_published', true);
 
         if ($instructorId = request('instructor_id')) {
@@ -28,6 +30,10 @@ class CourseController extends Controller
         }
 
         $courses = $query->latest()->get();
+
+        $courses->each(function ($course) {
+            $course->average_rating = $course->average_rating ? round($course->average_rating, 1) : null;
+        });
 
     return ApiResponse::success($courses, 'Courses retrieved successfully');
 }
@@ -45,6 +51,8 @@ class CourseController extends Controller
                     ]);
                 }
             ])
+            ->withAvg(['reviews as average_rating' => fn ($q) => $q->where('is_approved', true)], 'rating')
+            ->withCount(['reviews as reviews_count' => fn ($q) => $q->where('is_approved', true)])
             ->where('slug', $slug)
             ->where('is_published', true)
             ->with(['sections.lessons', 'instructor:id,name,avatar'])
@@ -54,6 +62,8 @@ class CourseController extends Controller
         if (!$course) {
             return ApiResponse::error('Course not found', 404);
         }
+
+        $course->average_rating = $course->average_rating ? round($course->average_rating, 1) : null;
 
         $user = auth('sanctum')->user();
 

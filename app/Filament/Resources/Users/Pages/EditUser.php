@@ -36,6 +36,16 @@ class EditUser extends EditRecord
 
     public ?TemporaryUploadedFile $avatarUpload = null;
 
+    public function mount(int|string $record): void
+    {
+        parent::mount($record);
+
+        // Super-admin accounts are invisible/untouchable to everyone except other super-admins.
+        if ($this->record->hasRole('super-admin') && ! auth()->user()?->hasRole('super-admin')) {
+            abort(404);
+        }
+    }
+
     protected function getHeaderActions(): array
     {
         return [

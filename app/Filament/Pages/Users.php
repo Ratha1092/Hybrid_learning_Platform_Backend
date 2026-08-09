@@ -91,8 +91,8 @@ class Users extends Page
             return;
         }
 
-        if ($user->hasRole('super-admin') && ! auth()->user()?->hasRole('super-admin')) {
-            Notification::make()->title('Insufficient permissions')->danger()->send();
+        if ($user->hasRole('super-admin')) {
+            Notification::make()->title('Super Admin accounts cannot be suspended')->danger()->send();
             return;
         }
 
@@ -131,8 +131,8 @@ class Users extends Page
             return;
         }
 
-        if ($user->hasRole('super-admin') && ! auth()->user()?->hasRole('super-admin')) {
-            Notification::make()->title('Insufficient permissions')->danger()->send();
+        if ($user->hasRole('super-admin')) {
+            Notification::make()->title('Super Admin accounts cannot be removed')->danger()->send();
             return;
         }
 

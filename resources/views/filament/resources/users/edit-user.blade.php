@@ -45,7 +45,7 @@
 
     $isSelf    = $user->id === auth()->id();
     $isSuspended = ($data['status'] ?? $user->status) === 'suspended';
-    $canAct    = !$isSelf && (!$user->hasRole('super-admin') || auth()->user()?->hasRole('super-admin'));
+    $canAct    = !$isSelf && !$user->hasRole('super-admin');
 @endphp
 
 <div class="uv">

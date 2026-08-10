@@ -19,6 +19,24 @@ Route::get('/', function () {
     return redirect('/admin/login');
 });
 
+// Escape hatch for the 403 error page — deliberately outside Filament's own
+// auth/session middleware so it can recover a stuck/stale session that is
+// itself the reason the panel is throwing 403 (e.g. a mismatched session
+// after a deploy). Clears whatever auth state exists and sends the user to
+// a fresh login instead of leaving them stuck manually clearing cookies.
+Route::post('/admin/force-logout', function () {
+    if (auth()->check()) {
+        auth()->guard('web')->logout();
+    }
+
+    if (request()->hasSession()) {
+        request()->session()->invalidate();
+        request()->session()->regenerateToken();
+    }
+
+    return redirect('/admin/login');
+})->name('admin.force-logout');
+
 Route::middleware(['web', 'auth'])->group(function () {
 
     Route::post('/admin/notifications/mark-all-read', function () {

@@ -57,7 +57,7 @@ class EditCategory extends EditRecord
         return $form->components([
             FileUpload::make('image')
                 ->image()
-                ->previewable(false)
+                ->disk('r2')
                 ->directory('categories'),
         ])->statePath('imageData');
     }

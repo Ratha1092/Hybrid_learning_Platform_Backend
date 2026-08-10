@@ -19,6 +19,7 @@ class NotifyAdminsJob implements ShouldQueue
     public function __construct(
         public readonly string $notificationClass,
         public readonly array  $payload,
+        public readonly string $permission,
     ) {}
 
     public function tags(): array
@@ -30,7 +31,10 @@ class NotifyAdminsJob implements ShouldQueue
     {
         $notification = new $this->notificationClass(...$this->payload);
 
-        User::role(['admin', 'super-admin'])
+        // Whoever currently holds this permission — via any role, super-admin
+        // included since it's seeded with every permission — not a fixed role
+        // list that silently goes stale as roles are edited.
+        User::permission($this->permission)
             ->get()
             ->each(fn (User $admin) => $admin->notify($notification));
     }

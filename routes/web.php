@@ -228,9 +228,17 @@ Route::middleware(['web', 'auth'])->group(function () {
             return back()->with('role_error', 'Please enter a name or email to search.');
         }
 
-        $user = \App\Domains\Users\Models\User::where('email', $query)
-            ->orWhere('name', 'like', "%{$query}%")
-            ->first();
+        $user = \App\Domains\Users\Models\User::where('email', $query)->first();
+
+        if (!$user) {
+            $matches = \App\Domains\Users\Models\User::where('name', 'like', "%{$query}%")->limit(2)->get();
+
+            if ($matches->count() > 1) {
+                return back()->with('role_error', "Multiple users match \"{$query}\" — search by their exact email instead.");
+            }
+
+            $user = $matches->first();
+        }
 
         if (!$user) {
             return back()->with('role_error', "No user found matching \"{$query}\".");

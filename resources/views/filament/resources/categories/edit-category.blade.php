@@ -6,7 +6,7 @@
     $iconVal     = $data['icon'] ?? $cat->icon ?? '';
 @endphp
 
-<div class="ec">
+<div class="ec" x-data="{ uploading: false }">
 
 <style>
 .ec,.ec *,.ec *::before,.ec *::after {
@@ -703,9 +703,11 @@ textarea.ec-input {
         @endif
 
         {{-- imageForm: only the FileUpload field, shares data statePath --}}
-        <div class="ec-fi-wrap">
-            {{ $this->imageForm }}
-        </div>
+        <form @submit.prevent @form-processing-started="uploading = true" @form-processing-finished="uploading = false">
+            <div class="ec-fi-wrap">
+                {{ $this->imageForm }}
+            </div>
+        </form>
     </div>
 </div>
 
@@ -715,6 +717,7 @@ textarea.ec-input {
         type="button"
         wire:click="save"
         wire:loading.attr="disabled"
+        :disabled="uploading"
         class="ec-btn ec-btn-amber"
     >
         <span wire:loading.remove wire:target="save">
@@ -726,6 +729,7 @@ textarea.ec-input {
         Save changes
     </button>
     <a href="{{ $backUrl }}" wire:navigate class="ec-btn ec-btn-gray">Cancel</a>
+    <span x-show="uploading" x-cloak class="ec-helper" style="margin:0">Waiting for image upload to finish…</span>
 </div>
 
 </div>

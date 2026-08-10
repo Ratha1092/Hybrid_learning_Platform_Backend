@@ -117,7 +117,11 @@ class OrderService
         });
         ActivityLogService::logChange('order.placed', $order, [], [], $user);
 
-        NotifyAdminsJob::dispatch(AdminNewOrderNotification::class, [$order->id, $user->name]);
+        NotifyAdminsJob::dispatch(
+            AdminNewOrderNotification::class,
+            [$order->id, $user->name],
+            'orders.view'
+        );
         return $order;
     }
 }

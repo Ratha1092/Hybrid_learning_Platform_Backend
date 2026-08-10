@@ -34,6 +34,58 @@ class InstructorStandaloneSectionController extends Controller
         ], 'Section created successfully', 201);
     }
 
+    public function update(Request $request, $id): JsonResponse
+    {
+        $section = Section::where('id', $id)
+            ->where('instructor_id', auth()->id())
+            ->whereNull('course_id')
+            ->first();
+
+        if (!$section) {
+            return ApiResponse::error('Section not found', 404);
+        }
+
+        $validated = $request->validate([
+            'title'      => 'required|string|max:255',
+            'sort_order' => 'nullable|integer|min:0',
+        ]);
+
+        $section->title = $validated['title'];
+        if (array_key_exists('sort_order', $validated) && $validated['sort_order'] !== null) {
+            $section->order = $validated['sort_order'];
+        }
+        $section->save();
+
+        return ApiResponse::success([
+            'id'            => $section->id,
+            'title'         => $section->title,
+            'sort_order'    => $section->order,
+            'course_id'     => null,
+            'lessons_count' => $section->lessons()->count(),
+        ], 'Section updated successfully');
+    }
+
+    public function destroy($id): JsonResponse
+    {
+        $section = Section::where('id', $id)
+            ->where('instructor_id', auth()->id())
+            ->whereNull('course_id')
+            ->withCount('lessons')
+            ->first();
+
+        if (!$section) {
+            return ApiResponse::error('Section not found', 404);
+        }
+
+        if ($section->lessons_count > 0) {
+            return ApiResponse::error('Remove all lessons before deleting this section.', 422);
+        }
+
+        $section->delete();
+
+        return ApiResponse::success(null, 'Section deleted successfully');
+    }
+
     public function standalone(): JsonResponse
     {
         $sections = Section::where('instructor_id', auth()->id())

@@ -354,6 +354,8 @@ html:not(.dark) .iv {
 }
 
 /* Modal */
+/* x-teleport moves this to <body>, outside .iv's DOM subtree, so it can no
+   longer inherit .iv's custom properties — redeclare them here directly. */
 .iv-modal-overlay {
     display:none;
     position:fixed;
@@ -362,6 +364,20 @@ html:not(.dark) .iv {
     z-index:9999;
     align-items:center;
     justify-content:center;
+    --p1:#1e293b;
+    --p2:#263245;
+    --bd:rgba(255,255,255,.07);
+    --bd2:rgba(255,255,255,.13);
+    --t1:#e2e8f0;
+    --t2:#64748b;
+}
+html:not(.dark) .iv-modal-overlay {
+    --p1:#ffffff;
+    --p2:#f8fafc;
+    --bd:rgba(15,23,42,.08);
+    --bd2:rgba(15,23,42,.14);
+    --t1:#0f172a;
+    --t2:#64748b;
 }
 .iv-modal-overlay.open {
     display:flex;

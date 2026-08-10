@@ -88,7 +88,8 @@ class InstructorVerificationService
     ): void {
         NotifyAdminsJob::dispatch(
             NewInstructorVerificationNotification::class,
-            [$verification->id, $user->name]
+            [$verification->id, $user->name],
+            'instructor_verifications.approve'
         );
     }
 }

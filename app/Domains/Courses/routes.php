@@ -52,6 +52,8 @@ Route::middleware(['auth:sanctum', 'verified_instructor', 'throttle:courses'])
     ->group(function () {
         Route::post('/', [InstructorStandaloneSectionController::class, 'store']);
         Route::get('/standalone', [InstructorStandaloneSectionController::class, 'standalone']);
+        Route::put('/{id}', [InstructorStandaloneSectionController::class, 'update']);
+        Route::delete('/{id}', [InstructorStandaloneSectionController::class, 'destroy']);
     });
 
 // Instructor Course Management

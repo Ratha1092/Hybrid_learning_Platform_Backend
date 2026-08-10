@@ -46,7 +46,8 @@ class PayoutAccountService
         if (Setting::get('payout_notification', true)) {
             NotifyAdminsJob::dispatch(
                 NewPayoutAccountSubmittedNotification::class,
-                [$account->id, $instructor->name]
+                [$account->id, $instructor->name],
+                'payout_accounts.approve'
             );
         }
 

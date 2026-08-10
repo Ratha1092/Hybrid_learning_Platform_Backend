@@ -44,7 +44,8 @@ class ContentReportController extends Controller
 
         NotifyAdminsJob::dispatch(
             NewContentReportNotification::class,
-            [$report->id, $request->user()->name, $validated['reportable_type']]
+            [$report->id, $request->user()->name, $validated['reportable_type']],
+            'content_reports.update'
         );
 
         return ApiResponse::success($report, 'Report submitted. Our team will review it shortly.', 201);

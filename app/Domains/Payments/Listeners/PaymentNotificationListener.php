@@ -21,7 +21,7 @@ class PaymentNotificationListener implements ShouldQueue
             ?? $order->items->first()?->course?->title
             ?? 'a course';
         $adminNotification = new AdminPaymentNotification($order);
-        foreach (User::role(['super-admin', 'admin'])->get() as $admin) {
+        foreach (User::permission('payments.view')->get() as $admin) {
             $admin->notify($adminNotification);
         }
         if ($order->user && Setting::get('course_purchase_notification', true)) {

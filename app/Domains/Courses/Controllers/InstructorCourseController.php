@@ -179,7 +179,8 @@ class InstructorCourseController extends Controller
 
         NotifyAdminsJob::dispatch(
             AdminCourseSubmittedNotification::class,
-            [$course->id, $course->title, auth()->user()->name]
+            [$course->id, $course->title, auth()->user()->name],
+            'courses.approve'
         );
 
         return ApiResponse::success(

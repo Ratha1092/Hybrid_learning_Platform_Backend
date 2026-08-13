@@ -16,7 +16,7 @@ class CourseController extends Controller
 {
     public function index()
     {
-        $query = Course::with('instructor:id,name,avatar')
+        $query = Course::with(['instructor:id,name,avatar', 'category:id,name,slug'])
             ->withAvg(['reviews as average_rating' => fn ($q) => $q->where('is_approved', true)], 'rating')
             ->withCount(['reviews as reviews_count' => fn ($q) => $q->where('is_approved', true)])
             ->where('is_published', true);
@@ -43,6 +43,7 @@ class CourseController extends Controller
         $course = Cache::remember("courses.slug.{$slug}", 3600, fn() =>
             Course::with([
                 'instructor:id,name,avatar',
+                'category:id,name,slug',
                 'sections' => function ($q) {
                     $q->orderBy('order')->with([
                         'lessons' => function ($q) {

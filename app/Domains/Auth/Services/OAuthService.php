@@ -3,6 +3,7 @@
 namespace App\Domains\Auth\Services;
 
 use App\Domains\Auth\Models\OAuthAccount;
+use App\Domains\Auth\Models\UserSession;
 use App\Domains\System\Models\Setting;
 use App\Domains\Users\Models\User;
 use App\Domains\Auth\Resources\UserResource;
@@ -215,7 +216,9 @@ class OAuthService
             throw new RuntimeException(User::SUSPENDED_MESSAGE);
         }
 
-        $token = $user->createToken('api-token')->plainTextToken;
+        $newToken = $user->createToken('api-token');
+        $token = $newToken->plainTextToken;
+        UserSession::record($user, $newToken->accessToken);
         if (\Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::fromFrontend(request())) {
             Auth::guard('web')->login($user, true);
         }

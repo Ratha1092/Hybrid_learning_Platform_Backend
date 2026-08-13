@@ -11,8 +11,8 @@
     --p2:#263245;
     --bd:rgba(255,255,255,.07);
     --bd2:rgba(255,255,255,.13);
-    --t1:#e2e8f0;
-    --t2:#64748b;
+    --t1:#f1f5f9;
+    --t2:#94a3b8;
 }
 @media (prefers-color-scheme: light) {
     :root {
@@ -22,7 +22,7 @@
         --bd:rgba(15,23,42,.08);
         --bd2:rgba(15,23,42,.14);
         --t1:#0f172a;
-        --t2:#64748b;
+        --t2:#475569;
     }
 }
 * {
@@ -55,8 +55,8 @@ body {
     height:64px;
     border-radius:16px;
     margin:0 auto 20px;
-    background:rgba(248,113,113,.12);
-    color:#f87171;
+    background:rgba(248,113,113,.16);
+    color:#fca5a5;
     display:grid;
     place-items:center;
 }
@@ -68,6 +68,7 @@ h1 {
     font-size:19px;
     font-weight:780;
     letter-spacing:-.01em;
+    color:var(--t1);
     margin-bottom:8px;
 }
 p {

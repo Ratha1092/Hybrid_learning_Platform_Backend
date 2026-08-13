@@ -284,6 +284,9 @@ html:not(.dark) .cp {
     color:var(--t1);
     line-height:1.3;
     max-width:260px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
 }
 .cp-course-sub {
     font-size:11px;
@@ -970,6 +973,7 @@ html:not(.dark) .cp {
 
         {{-- Table view --}}
         <div x-show="view==='table'">
+        <div style="overflow-x:auto">
         <table class="cp-table">
             <thead>
                 <tr>
@@ -1007,7 +1011,7 @@ html:not(.dark) .cp {
                                 </div>
                             @endif
                             <div>
-                                <div class="cp-course-title">{{ $course->title }}</div>
+                                <div class="cp-course-title" title="{{ $course->title }}">{{ $course->title }}</div>
                                 @if($course->short_description)
                                     <div class="cp-course-sub">{{ Str::limit($course->short_description, 45) }}</div>
                                 @endif
@@ -1116,6 +1120,7 @@ html:not(.dark) .cp {
                 @endforelse
             </tbody>
         </table>
+        </div>
         </div>{{-- end table view --}}
 
         {{-- Card / grid view --}}

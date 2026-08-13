@@ -3,6 +3,7 @@
 namespace App\Domains\Auth\Services;
 
 use App\Domains\Auth\Models\TwoFactorCode;
+use App\Domains\Auth\Models\UserSession;
 use App\Domains\System\Models\Setting;
 use App\Domains\Users\Models\User;
 use App\Jobs\Mail\SendTwoFactorEmailJob;
@@ -183,7 +184,9 @@ class TwoFactorAuthService
 
         Cache::forget($this->loginChallengeCacheKey($data['challenge_token']));
         $user->tokens()->delete();
-        $token = $user->createToken('api-token')->plainTextToken;
+        $newToken = $user->createToken('api-token');
+        $token = $newToken->plainTextToken;
+        UserSession::record($user, $newToken->accessToken);
 
         ActivityLogService::log('login', $user);
 

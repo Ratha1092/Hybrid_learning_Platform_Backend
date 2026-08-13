@@ -11,6 +11,8 @@ use App\Domains\Courses\Controllers\InstructorLessonController;
 use App\Domains\Courses\Controllers\InstructorDashboardController;
 use App\Domains\Courses\Controllers\InstructorLessonResourceController;
 use App\Domains\Courses\Controllers\InstructorStandaloneSectionController;
+use App\Domains\Courses\Controllers\InstructorSectionLessonController;
+use App\Domains\Courses\Controllers\InstructorSectionLessonResourceController;
 use App\Domains\Learning\Controllers\ReviewController;
 
 // Global search
@@ -38,6 +40,7 @@ Route::middleware('throttle:courses')
 Route::middleware(['auth:sanctum', 'throttle:courses'])
     ->post('/courses/{courseId}/reviews', [ReviewController::class, 'store'])
     ->where('courseId', '[0-9]+');
+    
 // Instructor Dashboard
 Route::middleware(['auth:sanctum','verified_instructor','throttle:courses',])
     ->prefix('instructor')
@@ -52,8 +55,26 @@ Route::middleware(['auth:sanctum', 'verified_instructor', 'throttle:courses'])
     ->group(function () {
         Route::post('/', [InstructorStandaloneSectionController::class, 'store']);
         Route::get('/standalone', [InstructorStandaloneSectionController::class, 'standalone']);
+        Route::get('/{id}', [InstructorStandaloneSectionController::class, 'show'])->where('id', '[0-9]+');
         Route::put('/{id}', [InstructorStandaloneSectionController::class, 'update']);
         Route::delete('/{id}', [InstructorStandaloneSectionController::class, 'destroy']);
+
+        // Section-scoped lessons — works for standalone sections (no course
+        // yet) as well as course-attached sections, since a Lesson only ever
+        // belongs to a Section.
+        Route::prefix('{sectionId}/lessons')->where(['sectionId' => '[0-9]+'])->group(function () {
+            Route::get('/', [InstructorSectionLessonController::class, 'index']);
+            Route::post('/', [InstructorSectionLessonController::class, 'store']);
+            Route::put('/{lessonId}', [InstructorSectionLessonController::class, 'update']);
+            Route::delete('/{lessonId}', [InstructorSectionLessonController::class, 'destroy']);
+            Route::post('/{lessonId}/upload-video', [InstructorSectionLessonController::class, 'uploadVideo']);
+
+            Route::prefix('{lessonId}/resources')->group(function () {
+                Route::get('/', [InstructorSectionLessonResourceController::class, 'index']);
+                Route::post('/', [InstructorSectionLessonResourceController::class, 'store']);
+                Route::delete('/{resourceId}', [InstructorSectionLessonResourceController::class, 'destroy']);
+            });
+        });
     });
 
 // Instructor Course Management

@@ -14,6 +14,7 @@ use App\Domains\Finance\Listeners\UpdateInstructorWalletListener;
 use App\Domains\Finance\Listeners\RecordWalletTransactionListener;
 use App\Listeners\ApplyMailSettings;
 use App\Listeners\LogOutSuspendedUser;
+use App\Listeners\TrackUserSessionActivity;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -34,6 +35,7 @@ class EventServiceProvider extends ServiceProvider
         ],
         TokenAuthenticated::class => [
             LogOutSuspendedUser::class . '@handleTokenAuthenticated',
+            TrackUserSessionActivity::class,
         ],
     ];
 }

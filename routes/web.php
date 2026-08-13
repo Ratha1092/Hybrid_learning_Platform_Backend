@@ -11,6 +11,10 @@ use App\Http\Controllers\Admin\ReportCsvController;
 use App\Http\Controllers\Admin\ReportPdfController;
 use Illuminate\Support\Facades\Route;
 
+/*
+     Public
+*/
+
 Route::get('/web', function () {
     return 'Web fallback active';
 });
@@ -19,11 +23,6 @@ Route::get('/', function () {
     return redirect('/admin/login');
 });
 
-// Escape hatch for the 403 error page — deliberately outside Filament's own
-// auth/session middleware so it can recover a stuck/stale session that is
-// itself the reason the panel is throwing 403 (e.g. a mismatched session
-// after a deploy). Clears whatever auth state exists and sends the user to
-// a fresh login instead of leaving them stuck manually clearing cookies.
 Route::post('/admin/force-logout', function () {
     if (auth()->check()) {
         auth()->guard('web')->logout();
@@ -39,6 +38,10 @@ Route::post('/admin/force-logout', function () {
 
 Route::middleware(['web', 'auth'])->group(function () {
 
+    /*
+    | Notifications
+    */
+
     Route::post('/admin/notifications/mark-all-read', function () {
         auth()->user()->unreadNotifications()->update(['read_at' => now()]);
         return response()->json(['ok' => true]);
@@ -48,6 +51,10 @@ Route::middleware(['web', 'auth'])->group(function () {
         auth()->user()->notifications()->where('id', $id)->update(['read_at' => now()]);
         return response()->json(['ok' => true]);
     })->name('admin.notifications.mark-read');
+
+    /*
+    | Courses
+    */
 
     Route::post('/admin/courses/{course}/approve', function (Course $course) {
         if ($course->isPendingReview()) {
@@ -81,6 +88,75 @@ Route::middleware(['web', 'auth'])->group(function () {
         session()->flash('course_success', 'Course returned to draft.');
         return redirect()->back();
     })->name('admin.courses.return-to-draft');
+
+    Route::post('/admin/courses/{course}/archive', function (Course $course) {
+        if ($course->isPublished()) {
+            $course->archive();
+            session()->flash('course_success', 'Course archived.');
+        }
+        return redirect()->to(url('/admin/courses/' . $course->id));
+    })->name('admin.courses.archive');
+
+    Route::get('/admin/export/courses', function () {
+        $tab    = request('tab', 'all');
+        $search = request('search', '');
+
+        $statusMap = [
+            'pending'   => Course::STATUS_PENDING,
+            'published' => Course::STATUS_PUBLISHED,
+            'draft'     => Course::STATUS_DRAFT,
+            'rejected'  => Course::STATUS_REJECTED,
+            'archived'  => Course::STATUS_ARCHIVED,
+        ];
+
+        $query = Course::withoutGlobalScopes()
+            ->with(['instructor:id,name', 'category:id,name'])
+            ->withCount('enrollments');
+
+        if ($tab !== 'all' && isset($statusMap[$tab])) {
+            $query->where('status', $statusMap[$tab]);
+        }
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('short_description', 'like', "%{$search}%")
+                  ->orWhereHas('instructor', fn($q2) => $q2->where('name', 'like', "%{$search}%"))
+                  ->orWhereHas('category',   fn($q2) => $q2->where('name', 'like', "%{$search}%"));
+            });
+        }
+
+        $rows = [['ID', 'Title', 'Instructor', 'Category', 'Price', 'Status', 'Students', 'Created']];
+
+        foreach ($query->orderBy('id', 'desc')->get() as $course) {
+            $rows[] = [
+                $course->id,
+                $course->title,
+                $course->instructor?->name ?? '',
+                $course->category?->name ?? '',
+                number_format((float) $course->price, 2),
+                $course->status,
+                $course->enrollments_count,
+                $course->created_at?->format('M d, Y') ?? '',
+            ];
+        }
+
+        $csv = implode("\n", array_map(
+            fn($row) => implode(',', array_map(fn($v) => '"' . str_replace('"', '""', (string) $v) . '"', $row)),
+            $rows
+        ));
+
+        $filename = 'courses-' . now()->format('Y-m-d') . '.csv';
+
+        return response($csv, 200, [
+            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ]);
+    })->name('admin.export.courses');
+
+    /*
+    | Settings
+    */
 
     Route::post('/admin/settings/{group}', function (string $group, \Illuminate\Http\Request $request) {
         if (!array_key_exists($group, \App\Filament\Pages\Settings::GROUPS)) {
@@ -147,6 +223,10 @@ Route::middleware(['web', 'auth'])->group(function () {
 
         return redirect()->to($redirectUrl)->with('settings_success', "{$label} settings updated successfully.");
     })->name('admin.settings.update');
+
+    /*
+    | Roles
+    */
 
     Route::post('/admin/roles/store', function (\Illuminate\Http\Request $request) {
         if (!auth()->user()->can('roles.create')) {
@@ -284,19 +364,11 @@ Route::middleware(['web', 'auth'])->group(function () {
         return back()->with('role_success', "{$user->name} has been removed from the {$role->name} role.");
     })->name('admin.roles.users.remove');
 
-    Route::post('/admin/courses/{course}/archive', function (Course $course) {
-        if ($course->isPublished()) {
-            $course->archive();
-            session()->flash('course_success', 'Course archived.');
-        }
-        return redirect()->to(url('/admin/courses/' . $course->id));
-    })->name('admin.courses.archive');
+    /*
+    | Billing — Invoices
+    */
 
-});
-
-Route::middleware(['web', 'auth'])->get(
-    '/admin/billing/invoices/{id}/download',
-    function (int $id) {
+    Route::get('/admin/billing/invoices/{id}/download', function (int $id) {
         $invoice = \App\Domains\Billing\Models\Invoice::findOrFail($id);
         abort_unless(auth()->user()->can('invoices.download'), 403);
 
@@ -310,32 +382,27 @@ Route::middleware(['web', 'auth'])->get(
             $invoice->invoice_number . '.pdf',
             ['Content-Type' => 'application/pdf']
         );
-    }
-)->name('admin.billing.invoices.download');
+    })->name('admin.billing.invoices.download');
 
-Route::middleware(['web', 'auth'])->post(
-    '/admin/billing/invoices/{id}/resend',
-    function (int $id) {
+    Route::post('/admin/billing/invoices/{id}/resend', function (int $id) {
         abort_unless(auth()->user()->can('invoices.resend'), 403);
         $invoice = \App\Domains\Billing\Models\Invoice::findOrFail($id);
         app(\App\Domains\Billing\Services\InvoiceService::class)->sendByEmail($invoice);
         return redirect()->back()->with('billing_success', 'Invoice email queued for delivery.');
-    }
-)->name('admin.billing.invoices.resend');
+    })->name('admin.billing.invoices.resend');
 
-Route::middleware(['web', 'auth'])->post(
-    '/admin/billing/invoices/{id}/regenerate',
-    function (int $id) {
+    Route::post('/admin/billing/invoices/{id}/regenerate', function (int $id) {
         abort_unless(auth()->user()->can('invoices.resend'), 403);
         $invoice = \App\Domains\Billing\Models\Invoice::findOrFail($id);
         app(\App\Domains\Billing\Services\InvoiceService::class)->regeneratePdf($invoice);
         return redirect()->back()->with('billing_success', 'PDF regenerated successfully.');
-    }
-)->name('admin.billing.invoices.regenerate');
+    })->name('admin.billing.invoices.regenerate');
 
-Route::middleware(['web', 'auth'])->get(
-    '/admin/billing/receipts/{id}/download',
-    function (int $id) {
+    /*
+    | Billing — Receipts
+    */
+
+    Route::get('/admin/billing/receipts/{id}/download', function (int $id) {
         $receipt = \App\Domains\Billing\Models\Receipt::findOrFail($id);
         abort_unless(auth()->user()->can('receipts.download'), 403);
 
@@ -349,22 +416,20 @@ Route::middleware(['web', 'auth'])->get(
             $receipt->receipt_number . '.pdf',
             ['Content-Type' => 'application/pdf']
         );
-    }
-)->name('admin.billing.receipts.download');
+    })->name('admin.billing.receipts.download');
 
-Route::middleware(['web', 'auth'])->post(
-    '/admin/billing/receipts/{id}/resend',
-    function (int $id) {
+    Route::post('/admin/billing/receipts/{id}/resend', function (int $id) {
         abort_unless(auth()->user()->can('receipts.resend'), 403);
         $receipt = \App\Domains\Billing\Models\Receipt::findOrFail($id);
         app(\App\Domains\Billing\Services\ReceiptService::class)->sendByEmail($receipt);
         return redirect()->back()->with('billing_success', 'Receipt email queued for delivery.');
-    }
-)->name('admin.billing.receipts.resend');
+    })->name('admin.billing.receipts.resend');
 
-Route::middleware(['web', 'auth'])->get(
-    '/admin/finance/payout-receipts/{id}/download',
-    function (int $id) {
+    /*
+    | Finance — Payout Receipts
+    */
+
+    Route::get('/admin/finance/payout-receipts/{id}/download', function (int $id) {
         $receipt = \App\Domains\Finance\Models\PayoutReceipt::findOrFail($id);
         abort_unless(auth()->user()->can('payouts.download'), 403);
 
@@ -378,97 +443,33 @@ Route::middleware(['web', 'auth'])->get(
             $receipt->receipt_number . '.pdf',
             ['Content-Type' => 'application/pdf']
         );
-    }
-)->name('admin.finance.payout-receipts.download');
+    })->name('admin.finance.payout-receipts.download');
 
-Route::middleware(['web', 'auth'])->post(
-    '/admin/finance/payout-receipts/{id}/resend',
-    function (int $id) {
+    Route::post('/admin/finance/payout-receipts/{id}/resend', function (int $id) {
         abort_unless(auth()->user()->can('payouts.download'), 403);
         $receipt = \App\Domains\Finance\Models\PayoutReceipt::findOrFail($id);
         app(\App\Domains\Finance\Services\PayoutReceiptService::class)->sendByEmail($receipt);
         return redirect()->back()->with('billing_success', 'Payout receipt email queued for delivery.');
-    }
-)->name('admin.finance.payout-receipts.resend');
+    })->name('admin.finance.payout-receipts.resend');
 
-Route::middleware(['web', 'auth'])->get(
-    '/admin/reports/{type}/pdf',
-    [ReportPdfController::class, 'show']
-)->name('admin.reports.pdf');
+    /*
+    | Reports & BI
+    */
 
-Route::middleware(['web', 'auth'])->get(
-    '/admin/reports/{type}/csv',
-    [ReportCsvController::class, 'show']
-)->name('admin.reports.csv');
+    Route::get('/admin/reports/{type}/pdf', [ReportPdfController::class, 'show'])
+        ->name('admin.reports.pdf');
 
-Route::middleware(['web', 'auth'])->get(
-    '/admin/bi/{type}/pdf',
-    [BiPdfController::class, 'show']
-)->name('admin.bi.pdf');
+    Route::get('/admin/reports/{type}/csv', [ReportCsvController::class, 'show'])
+        ->name('admin.reports.csv');
 
-Route::middleware(['web', 'auth'])->get(
-    '/admin/export/courses',
-    function () {
-        $tab    = request('tab', 'all');
-        $search = request('search', '');
+    Route::get('/admin/bi/{type}/pdf', [BiPdfController::class, 'show'])
+        ->name('admin.bi.pdf');
 
-        $statusMap = [
-            'pending'   => Course::STATUS_PENDING,
-            'published' => Course::STATUS_PUBLISHED,
-            'draft'     => Course::STATUS_DRAFT,
-            'rejected'  => Course::STATUS_REJECTED,
-            'archived'  => Course::STATUS_ARCHIVED,
-        ];
+    /*
+    | Payments
+    */
 
-        $query = Course::withoutGlobalScopes()
-            ->with(['instructor:id,name', 'category:id,name'])
-            ->withCount('enrollments');
-
-        if ($tab !== 'all' && isset($statusMap[$tab])) {
-            $query->where('status', $statusMap[$tab]);
-        }
-
-        if ($search) {
-            $query->where(function ($q) use ($search) {
-                $q->where('title', 'like', "%{$search}%")
-                  ->orWhere('short_description', 'like', "%{$search}%")
-                  ->orWhereHas('instructor', fn($q2) => $q2->where('name', 'like', "%{$search}%"))
-                  ->orWhereHas('category',   fn($q2) => $q2->where('name', 'like', "%{$search}%"));
-            });
-        }
-
-        $rows = [['ID', 'Title', 'Instructor', 'Category', 'Price', 'Status', 'Students', 'Created']];
-
-        foreach ($query->orderBy('id', 'desc')->get() as $course) {
-            $rows[] = [
-                $course->id,
-                $course->title,
-                $course->instructor?->name ?? '',
-                $course->category?->name ?? '',
-                number_format((float) $course->price, 2),
-                $course->status,
-                $course->enrollments_count,
-                $course->created_at?->format('M d, Y') ?? '',
-            ];
-        }
-
-        $csv = implode("\n", array_map(
-            fn($row) => implode(',', array_map(fn($v) => '"' . str_replace('"', '""', (string) $v) . '"', $row)),
-            $rows
-        ));
-
-        $filename = 'courses-' . now()->format('Y-m-d') . '.csv';
-
-        return response($csv, 200, [
-            'Content-Type'        => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
-        ]);
-    }
-)->name('admin.export.courses');
-
-Route::middleware(['web', 'auth'])->post(
-    '/admin/payments/{payment}/force-verify',
-    function (Payment $payment) {
+    Route::post('/admin/payments/{payment}/force-verify', function (Payment $payment) {
         $result = app(BakongKhqrService::class)->forceVerifyPayment($payment);
 
         if ($result->isPaid()) {
@@ -478,5 +479,6 @@ Route::middleware(['web', 'auth'])->post(
         }
 
         return redirect()->back();
-    }
-)->name('admin.payments.force-verify');
+    })->name('admin.payments.force-verify');
+
+});

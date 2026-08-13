@@ -31,6 +31,12 @@ class Sessions extends Page
             return;
         }
 
+        $session = DB::table('user_sessions')->where('id', $id)->first();
+
+        if ($session?->token_id) {
+            DB::table('personal_access_tokens')->where('id', $session->token_id)->delete();
+        }
+
         DB::table('user_sessions')->where('id', $id)->delete();
 
         \Filament\Notifications\Notification::make()
@@ -44,6 +50,11 @@ class Sessions extends Page
         if (! PanelAccess::can('system.view_security')) {
             return;
         }
+
+        DB::table('personal_access_tokens')
+            ->where('tokenable_type', \App\Domains\Users\Models\User::class)
+            ->where('tokenable_id', $userId)
+            ->delete();
 
         DB::table('user_sessions')->where('user_id', $userId)->delete();
 

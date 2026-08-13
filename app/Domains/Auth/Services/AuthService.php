@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use App\Domains\Auth\Services\ActivityLogService;
 use App\Domains\Auth\Resources\UserResource;
+use App\Domains\Auth\Models\UserSession;
 
 class AuthService
 {
@@ -27,7 +28,9 @@ class AuthService
 
         $user->assignRole('student');
         ActivityLogService::log('registration', $user);
-        $token = $user->createToken('api-token')->plainTextToken;
+        $newToken = $user->createToken('api-token');
+        $token = $newToken->plainTextToken;
+        UserSession::record($user, $newToken->accessToken);
         if (\Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::fromFrontend(request())) {
             Auth::guard('web')->login($user, true);
         }
@@ -78,7 +81,9 @@ class AuthService
         }
 
         $user->tokens()->delete();
-        $token = $user->createToken('api-token')->plainTextToken;
+        $newToken = $user->createToken('api-token');
+        $token = $newToken->plainTextToken;
+        UserSession::record($user, $newToken->accessToken);
         if (\Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::fromFrontend(request())) {
             Auth::guard('web')->login($user, true);
         }

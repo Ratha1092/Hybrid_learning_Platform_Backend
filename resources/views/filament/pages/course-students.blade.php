@@ -439,7 +439,7 @@ html:not(.dark) .cs-menu {
         </div>
 
         {{-- Table --}}
-        <div wire:loading.class="cs-loading" wire:target="gotoPage,search">
+        <div style="overflow-x:auto" wire:loading.class="cs-loading" wire:target="gotoPage,search">
         <table class="cs-table">
             <thead>
                 <tr>

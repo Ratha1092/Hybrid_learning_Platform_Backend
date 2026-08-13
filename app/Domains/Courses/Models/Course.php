@@ -85,10 +85,13 @@ class Course extends Model
         });
         static::saving(function ($course) {
             $course->is_published = $course->status === self::STATUS_PUBLISHED;
+            if ($course->exists) {
+                Cache::forget("courses.slug.{$course->getOriginal('slug')}");
+                Cache::forget("courses.slug.{$course->slug}");
+            }
 
             if ($course->isDirty(['is_published', 'status'])) {
                 Cache::forget('courses.published');
-                Cache::forget("courses.slug.{$course->slug}");
             }
         });
         static::deleting(function ($course) {

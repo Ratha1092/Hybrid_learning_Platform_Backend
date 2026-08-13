@@ -1433,6 +1433,7 @@ function dbCustomDate() {
         </span>
         <a href="{{ route('filament.admin.pages.instructors') }}" class="db-view-all">View All &rsaquo;</a>
     </div>
+    <div style="overflow-x:auto">
     <table class="db-table">
         <thead><tr>
             <th style="width:2.25rem;">#</th>

@@ -239,6 +239,7 @@ html:not(.dark) .sl {
         <div class="sl-card-title">
             ⚠ High-Risk IPs (3+ failed logins in last 24h)
         </div>
+        <div style="overflow-x:auto">
         <table class="sl-table">
             <thead>
                 <tr><th>IP Address</th><th>Failed Attempts</th><th>Last Seen</th><th>Filter</th></tr>
@@ -258,6 +259,7 @@ html:not(.dark) .sl {
                 @endforeach
             </tbody>
         </table>
+        </div>
     </div>
     @endif
 
@@ -293,6 +295,7 @@ html:not(.dark) .sl {
         @if($total === 0)
             <div class="sl-empty">No security events match your filters.</div>
         @else
+            <div style="overflow-x:auto">
             <table class="sl-table">
                 <thead>
                     <tr><th>Event</th><th>User</th><th>IP Address</th><th>User Agent</th><th>Time</th></tr>
@@ -335,6 +338,7 @@ html:not(.dark) .sl {
                     @endforeach
                 </tbody>
             </table>
+            </div>
             <div class="sl-pagination">
                 <span>Showing {{ $total > 0 ? (($curPage-1)*$perPage)+1 : 0 }}–{{ min($curPage*$perPage, $total) }} of {{ number_format($total) }}</span>
                 <div style="display:flex;gap:6px">

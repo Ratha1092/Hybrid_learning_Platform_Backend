@@ -266,7 +266,7 @@ html:not(.dark) .bi {
     background:var(--p1);
     border:1px solid var(--bd);
     border-radius:12px;
-    overflow:hidden;
+    overflow-x:auto;
 }
 
 .bi-table-card h3 {

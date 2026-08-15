@@ -360,6 +360,7 @@ html:not(.dark) .sh {
         @if(count($failedJobs) === 0)
             <div class="sh-empty">No failed jobs — queue is clean.</div>
         @else
+            <div style="overflow-x:auto">
             <table class="sh-table">
                 <thead>
                     <tr><th>Job</th><th>Queue</th><th>Failed At</th><th>Exception</th></tr>
@@ -390,6 +391,7 @@ html:not(.dark) .sh {
                     @endforeach
                 </tbody>
             </table>
+            </div>
         @endif
     </div>
 

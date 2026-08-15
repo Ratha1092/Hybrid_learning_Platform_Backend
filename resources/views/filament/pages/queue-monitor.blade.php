@@ -315,6 +315,7 @@ html:not(.dark) .qm {
         @if(empty($recentFailed))
             <div class="qm-empty">No failed jobs — queue is clean.</div>
         @else
+            <div style="overflow-x:auto">
             <table class="qm-table">
                 <thead>
                     <tr><th>Job</th><th>Queue</th><th>Error</th><th>Failed At</th><th>Actions</th></tr>
@@ -342,6 +343,7 @@ html:not(.dark) .qm {
                     @endforeach
                 </tbody>
             </table>
+            </div>
         @endif
     </div>
 </div>

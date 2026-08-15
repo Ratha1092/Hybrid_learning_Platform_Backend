@@ -172,6 +172,11 @@ use RuntimeException;
                 return $this->expirePayment($payment);
             }
 
+            // Captured before markVerificationStarted forces status to
+            // Processing, so we can tell "just became processing" (log it)
+            // from "polled again, still processing" (skip — see verifyPayment).
+            $wasAlreadyProcessing = $payment->isProcessing();
+
             $payment = $this->markVerificationStarted($payment);
 
             try {
@@ -193,12 +198,14 @@ use RuntimeException;
                 return $this->markAsFailed($payment, $gatewayResponse);
             }
 
-            $payment->transactions()->create([
-                'gateway' => PaymentGateway::Bakong->value,
-                'event_type' => 'payment.force_verify',
-                'status' => $status->value,
-                'payload' => $gatewayResponse,
-            ]);
+            if (! $wasAlreadyProcessing) {
+                $payment->transactions()->create([
+                    'gateway' => PaymentGateway::Bakong->value,
+                    'event_type' => 'payment.force_verify',
+                    'status' => $status->value,
+                    'payload' => $gatewayResponse,
+                ]);
+            }
 
             $payment->update([
                 'status' => PaymentStatus::Processing,
@@ -225,6 +232,13 @@ use RuntimeException;
             ) {
                 return $this->expirePayment($payment);
             }
+
+            // Frontend polls /status every few seconds while the QR is on
+            // screen, which calls this repeatedly for the same payment while
+            // it's still unpaid — only log the transition INTO "processing"
+            // once, not every still-pending poll, or the transactions table
+            // fills up with hundreds of identical "still waiting" rows.
+            $wasAlreadyProcessing = $payment->isProcessing();
 
             $payment = $this->markVerificationStarted($payment);
 
@@ -253,12 +267,14 @@ use RuntimeException;
                 return $this->markAsFailed($payment, $gatewayResponse);
             }
 
-            $payment->transactions()->create([
-                'gateway' => PaymentGateway::Bakong->value,
-                'event_type' => 'payment.verify',
-                'status' => $status->value,
-                'payload' => $gatewayResponse,
-            ]);
+            if (! $wasAlreadyProcessing) {
+                $payment->transactions()->create([
+                    'gateway' => PaymentGateway::Bakong->value,
+                    'event_type' => 'payment.verify',
+                    'status' => $status->value,
+                    'payload' => $gatewayResponse,
+                ]);
+            }
 
             $payment->update([
                 'status' => PaymentStatus::Processing,

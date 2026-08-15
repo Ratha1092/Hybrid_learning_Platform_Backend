@@ -31,6 +31,25 @@ class PaymentController extends Controller
             $payment = $this->bakongKhqrService->expirePayment($payment);
         }
 
+        // The frontend polls this endpoint every few seconds while the QR is
+        // on screen (see the `payments` rate limiter), so piggyback a live
+        // Bakong check here instead of waiting on the once-a-minute cron —
+        // throttled so rapid polling doesn't hammer the Bakong API.
+        if (
+            ($payment->isPending() || $payment->isProcessing())
+            && !$payment->hasExpired()
+            && ($payment->last_verified_at === null || $payment->last_verified_at->lt(now()->subSeconds(3)))
+        ) {
+            try {
+                $payment = $this->bakongKhqrService->verifyPayment($payment);
+            } catch (\Throwable $exception) {
+                \Illuminate\Support\Facades\Log::error('Inline status-check verify failed', [
+                    'payment_id' => $payment->id,
+                    'error' => $exception->getMessage(),
+                ]);
+            }
+        }
+
         return ApiResponse::success($this->paymentStatusPayload($payment), 'Payment status retrieved successfully');
     }
 

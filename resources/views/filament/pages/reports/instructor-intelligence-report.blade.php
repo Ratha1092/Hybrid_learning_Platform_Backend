@@ -113,7 +113,7 @@ html:not(.dark) .rp {
     background:var(--p1);
     border:1px solid var(--bd);
     border-radius:12px;
-    overflow:hidden;
+    overflow-x:auto;
     max-height:600px;
     overflow-y:auto;
 }

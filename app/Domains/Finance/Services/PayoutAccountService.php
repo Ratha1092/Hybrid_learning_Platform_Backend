@@ -30,10 +30,8 @@ class PayoutAccountService
             return InstructorPayoutAccount::updateOrCreate(
                 ['instructor_id' => $instructor->id],
                 [
-                    'method' => $data['method'],
+                    'method' => 'khqr',
                     'account_name' => $data['account_name'],
-                    'account_number' => $data['account_number'] ?? null,
-                    'phone_number' => $data['phone_number'] ?? null,
                     'qr_code_path' => $qrPath,
                     'status' => 'pending',
                     'rejection_reason' => null,

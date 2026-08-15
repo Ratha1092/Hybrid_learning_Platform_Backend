@@ -174,7 +174,7 @@ html:not(.dark) .rp {
     background:var(--p1);
     border:1px solid var(--bd);
     border-radius:12px;
-    overflow:hidden;
+    overflow-x:auto;
 }
 .rp-table {
     width:100%;

@@ -1472,6 +1472,7 @@ function dbCustomDate() {
             @endforelse
         </tbody>
     </table>
+    </div>
 </div>
 
 {{-- Row 6: Most Popular Courses (full-width) --}}
@@ -1483,6 +1484,7 @@ function dbCustomDate() {
         </span>
         <a href="{{ route('filament.admin.pages.moderation') }}" class="db-view-all">View All &rsaquo;</a>
     </div>
+    <div style="overflow-x:auto">
     <table class="db-table">
         <thead><tr>
             <th>Course</th>
@@ -1529,6 +1531,7 @@ function dbCustomDate() {
             @endforelse
         </tbody>
     </table>
+    </div>
 </div>
 
 {{-- Row 7: Recent Orders (wide) + Recent Refunds --}}
@@ -1542,6 +1545,7 @@ function dbCustomDate() {
             </span>
             <a href="{{ route('filament.admin.pages.orders') }}" class="db-view-all">View All &rsaquo;</a>
         </div>
+        <div style="overflow-x:auto">
         <table class="db-table" style="table-layout:fixed;width:100%;">
             <colgroup>
                 <col style="width:16%">{{-- Order # --}}
@@ -1590,6 +1594,7 @@ function dbCustomDate() {
                 @endforelse
             </tbody>
         </table>
+        </div>
     </div>
 
     {{-- Recent Refunds --}}
@@ -1601,6 +1606,7 @@ function dbCustomDate() {
             </span>
             <a href="{{ route('filament.admin.pages.refunds') }}" class="db-view-all">View All &rsaquo;</a>
         </div>
+        <div style="overflow-x:auto">
         <table class="db-table" style="table-layout:fixed;width:100%;">
             <colgroup>
                 <col style="width:22%">{{-- Refund # --}}
@@ -1639,6 +1645,7 @@ function dbCustomDate() {
                     @endforelse
                 </tbody>
         </table>
+        </div>
     </div>
 </div>
 {{-- Row 8: Low Rated Courses + System Health --}}
@@ -1653,6 +1660,7 @@ function dbCustomDate() {
             </span>
             <a href="{{ route('filament.admin.pages.reviews') }}" class="db-view-all">View All &rsaquo;</a>
         </div>
+        <div style="overflow-x:auto">
         <table class="db-table">
             <thead><tr>
                 <th>Course</th>
@@ -1689,6 +1697,7 @@ function dbCustomDate() {
                 @endforelse
             </tbody>
         </table>
+        </div>
     </div>
 
     {{-- System Health --}}

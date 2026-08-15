@@ -9,10 +9,16 @@ use App\Domains\Users\Models\InstructorProfile;
 use App\Jobs\Notifications\NotifyAdminsJob;
 use App\Domains\Users\Models\InstructorVerification;
 use App\Domains\Users\Models\User;
+use App\Domains\Finance\Services\PayoutAccountService;
 use Illuminate\Support\Facades\DB;
 
 class InstructorVerificationService
 {
+    public function __construct(
+        private PayoutAccountService $payoutAccountService
+    ) {
+    }
+
     public function apply(User $user, array $data): InstructorVerification
     {
         if (
@@ -62,6 +68,11 @@ class InstructorVerificationService
                 InstructorProfile::firstOrCreate(['user_id' => $user->id]);
                 $user->syncRoles(['instructor']);
             }
+
+            $this->payoutAccountService->save($user, [
+                'account_name' => $data['account_name'],
+                'qr_code'      => $data['qr_code'],
+            ]);
 
             return $verification;
         });

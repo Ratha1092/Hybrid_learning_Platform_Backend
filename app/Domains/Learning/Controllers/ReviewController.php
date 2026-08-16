@@ -38,7 +38,12 @@ class ReviewController extends Controller
             return ApiResponse::error('You must be enrolled in this course to leave a review.', 403);
         }
 
-        if (Review::where('course_id', $courseId)->where('user_id', $user->id)->exists()) {
+        $existing = Review::withTrashed()
+            ->where('course_id', $courseId)
+            ->where('user_id', $user->id)
+            ->first();
+
+        if ($existing && !$existing->trashed()) {
             return ApiResponse::error('You have already reviewed this course.', 422);
         }
 
@@ -51,14 +56,24 @@ class ReviewController extends Controller
         $autoApprove = !Setting::get('review_moderation_required', true)
             || Setting::get('auto_approve_reviews', false);
 
-        $review = Review::create([
-            'course_id' => $courseId,
-            'user_id' => $user->id,
+        $attributes = [
             'rating' => $validated['rating'],
             'title' => $validated['title'] ?? null,
             'comment' => $validated['comment'] ?? null,
             'is_approved' => $autoApprove,
-        ]);
+        ];
+
+        if ($existing) {
+            $existing->restore();
+            $existing->update($attributes);
+            $review = $existing;
+        } else {
+            $review = Review::create([
+                'course_id' => $courseId,
+                'user_id' => $user->id,
+                ...$attributes,
+            ]);
+        }
 
         return ApiResponse::success(
             $review,

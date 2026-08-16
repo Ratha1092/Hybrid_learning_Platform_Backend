@@ -4,7 +4,6 @@ namespace App\Filament\Resources\Lessons\Schemas;
 
 use App\Domains\Courses\Models\Section as CourseSection;
 use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -38,7 +37,6 @@ class LessonForm
                             ->options([
                                 'video'   => 'Video',
                                 'article' => 'Article',
-                                'quiz'    => 'Quiz',
                                 'file'    => 'File / Document',
                             ])
                             ->default('video')
@@ -86,42 +84,6 @@ class LessonForm
                     ->hidden(fn (Get $get): bool => $get('type') !== 'article')
                     ->schema([
                         RichEditor::make('content')
-                            ->columnSpanFull(),
-                    ]),
-
-                // ── QUIZ ──────────────────────────────────────────────────
-                Section::make('Quiz Questions')
-                    ->description('Add multiple-choice questions for this quiz')
-                    ->icon('heroicon-o-question-mark-circle')
-                    ->hidden(fn (Get $get): bool => $get('type') !== 'quiz')
-                    ->schema([
-                        Repeater::make('quiz_data')
-                            ->label('')
-                            ->schema([
-                                TextInput::make('question')
-                                    ->required()
-                                    ->columnSpanFull(),
-                                TextInput::make('option_a')->label('Option A')->required(),
-                                TextInput::make('option_b')->label('Option B')->required(),
-                                TextInput::make('option_c')->label('Option C'),
-                                TextInput::make('option_d')->label('Option D'),
-                                Select::make('correct')
-                                    ->label('Correct Answer')
-                                    ->options([
-                                        'a' => 'Option A',
-                                        'b' => 'Option B',
-                                        'c' => 'Option C',
-                                        'd' => 'Option D',
-                                    ])
-                                    ->required(),
-                                Textarea::make('explanation')
-                                    ->label('Explanation (optional)')
-                                    ->rows(2)
-                                    ->columnSpanFull(),
-                            ])
-                            ->columns(2)
-                            ->addActionLabel('Add Question')
-                            ->collapsible()
                             ->columnSpanFull(),
                     ]),
 

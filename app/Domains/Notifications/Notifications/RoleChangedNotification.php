@@ -3,6 +3,7 @@
 namespace App\Domains\Notifications\Notifications;
 
 use App\Domains\Notifications\Concerns\BroadcastsAsNotification;
+use App\Domains\Notifications\Enums\NotificationType;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification;
@@ -45,7 +46,7 @@ class RoleChangedNotification extends Notification
         return [
             'title'       => 'Account Role Updated',
             'message'     => $this->message(),
-            'type'        => 'role_changed',
+            'type'        => NotificationType::SYSTEM->value,
             'link'        => $this->link($notifiable),
             'action_text' => 'View Profile',
         ];

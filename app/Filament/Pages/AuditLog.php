@@ -159,10 +159,10 @@ class AuditLog extends Page
 
         if ($search) {
             $query->where(function ($q) use ($search) {
-                $q->where('ip_address', 'like', "%{$search}%")
+                $q->where('ip_address', 'ilike', "%{$search}%")
                   ->orWhereHas('user', fn($u) =>
-                      $u->where('name', 'like', "%{$search}%")
-                        ->orWhere('email', 'like', "%{$search}%")
+                      $u->where('name', 'ilike', "%{$search}%")
+                        ->orWhere('email', 'ilike', "%{$search}%")
                   );
             });
         }

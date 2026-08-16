@@ -183,26 +183,6 @@ html.dark .ov {
     border-color:var(--accent);
     color:var(--accent);
 }
-.ov-btn-link {
-    background:none;
-    border:none;
-    color:var(--accent);
-    font-size:12.5px;
-    font-weight:600;
-    padding:0;
-    cursor:pointer;
-    display:inline-flex;
-    align-items:center;
-    gap:4px;
-}
-.ov-btn-link:hover {
-    opacity:.75;
-}
-.ov-btn-link svg {
-    width:13px;
-    height:13px;
-}
-
 /* Cards */
 .ov-card {
     background:var(--p1);
@@ -537,15 +517,6 @@ html.dark .ov {
     align-items:center;
     gap:6px;
 }
-.ov-payments-footer {
-    display:flex;
-    align-items:center;
-    justify-content:flex-start;
-    padding:12px 20px;
-    border-top:1px solid var(--bd);
-    background:var(--p2);
-}
-
 @keyframes ovUp {
     from {
         opacity:0;
@@ -891,14 +862,6 @@ html.dark .ov {
             </tbody>
         </table>
     </div>
-    @if($order->payments->count() > 1)
-        <div class="ov-payments-footer">
-            <a href="{{ $backUrl }}?order={{ $order->id }}" wire:navigate class="ov-btn-link">
-                View Full History
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"/></svg>
-            </a>
-        </div>
-    @endif
 </div>
 
 </div>

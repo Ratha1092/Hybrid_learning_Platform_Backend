@@ -351,6 +351,12 @@ html:not(.dark) .lp {
         <div class="lp-header-text">
             <h1>Reviews</h1>
             <p>Monitor student feedback and ratings across all courses.</p>
+            @if($courseId && $courseTitle)
+                <div style="display:inline-flex;align-items:center;gap:6px;margin-top:8px;padding:4px 10px;border-radius:999px;background:rgba(37,99,235,.1);border:1px solid rgba(37,99,235,.25);font-size:12px;font-weight:600;color:#2563eb">
+                    Filtered by course: {{ $courseTitle }}
+                    <a href="{{ route('filament.admin.pages.reviews') }}" wire:navigate style="color:inherit;text-decoration:none;font-weight:800" title="Clear filter">&times;</a>
+                </div>
+            @endif
         </div>
     </div>
 

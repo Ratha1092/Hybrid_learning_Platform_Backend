@@ -29,7 +29,6 @@ class EditCourse extends EditRecord
                 TextInput::make('title')->required()->maxLength(255),
                 TextInput::make('slug')->required()->unique(ignoreRecord: true),
                 Textarea::make('short_description')->rows(3)->columnSpanFull(),
-                TextInput::make('preview_video_url')->url()->label('Preview Video URL')->columnSpanFull(),
             ]),
             Section::make()->columns(3)->schema([
                 Select::make('instructor_id')

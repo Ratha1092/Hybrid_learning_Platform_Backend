@@ -31,22 +31,38 @@ class EnrollmentService
     ): void {
         $durationMonths = (int) Setting::get('course_access_duration_months', 6);
 
-        Enrollment::firstOrCreate(
+        $existing = Enrollment::withTrashed()
+            ->where('user_id', $order->user_id)
+            ->where('course_id', $item->course_id)
+            ->first();
 
-            [
-                'user_id' => $order->user_id,
-                'course_id' => $item->course_id,
-            ],
+        if ($existing) {
+            if ($existing->trashed()) {
+                $existing->restore();
+                $existing->update([
+                    'order_id' => $order->id,
+                    'source' => 'purchase',
+                    'status' => 'active',
+                    'progress_percentage' => 0,
+                    'certificate_issued' => false,
+                    'enrolled_at' => now(),
+                    'expires_at' => $durationMonths > 0 ? now()->addMonths($durationMonths) : null,
+                ]);
+            }
 
-            [
-                'order_id' => $order->id,
-                'source' => 'purchase',
-                'status' => 'active',
-                'progress_percentage' => 0,
-                'certificate_issued' => false,
-                'enrolled_at' => now(),
-                'expires_at' => $durationMonths > 0 ? now()->addMonths($durationMonths) : null,
-            ]
-        );
+            return;
+        }
+
+        Enrollment::create([
+            'user_id' => $order->user_id,
+            'course_id' => $item->course_id,
+            'order_id' => $order->id,
+            'source' => 'purchase',
+            'status' => 'active',
+            'progress_percentage' => 0,
+            'certificate_issued' => false,
+            'enrolled_at' => now(),
+            'expires_at' => $durationMonths > 0 ? now()->addMonths($durationMonths) : null,
+        ]);
     }
 }

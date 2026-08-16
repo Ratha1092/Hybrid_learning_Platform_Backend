@@ -6,6 +6,7 @@ use App\Domains\Courses\Models\Course;
 use App\Domains\Courses\Models\Lesson;
 use App\Domains\Courses\Models\Section;
 use App\Domains\Courses\Observers\CourseObserver;
+use App\Domains\Courses\Observers\LessonObserver;
 use App\Domains\Courses\Observers\SectionObserver;
 use App\Domains\Learning\Models\Review;
 use App\Domains\Payments\Services\BakongConfig;
@@ -54,6 +55,7 @@ class AppServiceProvider extends ServiceProvider
 
         Course::observe(CourseObserver::class);
         Section::observe(SectionObserver::class);
+        Lesson::observe(LessonObserver::class);
 
         Relation::morphMap([
             'course' => Course::class,

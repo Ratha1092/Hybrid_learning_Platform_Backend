@@ -109,8 +109,8 @@ class Orders extends Page
 
         if ($search) {
             $query->where(function ($q) use ($search) {
-                $q->where('order_number', 'like', "%{$search}%")
-                  ->orWhereHas('user', fn($q2) => $q2->where('name', 'like', "%{$search}%"));
+                $q->where('order_number', 'ilike', "%{$search}%")
+                  ->orWhereHas('user', fn($q2) => $q2->where('name', 'ilike', "%{$search}%"));
             });
         }
 

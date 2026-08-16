@@ -80,6 +80,11 @@ class Courses extends Page
         $this->currentPage = 1;
     }
 
+    public function updatedSearch(): void
+    {
+        $this->currentPage = 1;
+    }
+
     public function setPage(int $page): void
     {
         $this->currentPage = $page;
@@ -203,10 +208,10 @@ class Courses extends Page
 
         if ($search) {
             $query->where(function ($q) use ($search) {
-                $q->where('title', 'like', "%{$search}%")
-                  ->orWhere('short_description', 'like', "%{$search}%")
-                  ->orWhereHas('instructor', fn($q2) => $q2->where('name', 'like', "%{$search}%"))
-                  ->orWhereHas('category',   fn($q2) => $q2->where('name', 'like', "%{$search}%"));
+                $q->where('title', 'ilike', "%{$search}%")
+                  ->orWhere('short_description', 'ilike', "%{$search}%")
+                  ->orWhereHas('instructor', fn($q2) => $q2->where('name', 'ilike', "%{$search}%"))
+                  ->orWhereHas('category',   fn($q2) => $q2->where('name', 'ilike', "%{$search}%"));
                 if (str_contains(strtolower($search), 'free')) {
                     $q->orWhere('price', 0);
                 }
@@ -275,10 +280,10 @@ class Courses extends Page
 
         if ($search) {
             $query->where(function ($q) use ($search) {
-                $q->where('title', 'like', "%{$search}%")
-                  ->orWhere('short_description', 'like', "%{$search}%")
-                  ->orWhereHas('instructor', fn($q2) => $q2->where('name', 'like', "%{$search}%"))
-                  ->orWhereHas('category',   fn($q2) => $q2->where('name', 'like', "%{$search}%"));
+                $q->where('title', 'ilike', "%{$search}%")
+                  ->orWhere('short_description', 'ilike', "%{$search}%")
+                  ->orWhereHas('instructor', fn($q2) => $q2->where('name', 'ilike', "%{$search}%"))
+                  ->orWhereHas('category',   fn($q2) => $q2->where('name', 'ilike', "%{$search}%"));
                 if (str_contains(strtolower($search), 'free')) {
                     $q->orWhere('price', 0);
                 }

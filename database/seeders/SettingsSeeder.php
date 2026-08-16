@@ -40,7 +40,7 @@ class SettingsSeeder extends Seeder
             'email_verification_required' => ['false', 'boolean', 'Require a verified email before a user can log in. Off by default to preserve existing behavior — enable once your email delivery is confirmed working.', false],
             'enable_google_login'         => ['true', 'boolean', 'Show the Google login option.', true],
             'enable_facebook_login'       => ['false', 'boolean', 'Show the Facebook login option.', true],
-            'enable_2fa'                  => ['false', 'boolean', 'Allow users to enable two-factor authentication.', false],
+            'enable_2fa'                  => ['false', 'boolean', 'Allow users to enable two-factor authentication.', true],
             'max_login_attempts'          => ['5', 'integer', 'Failed login attempts before an account is locked.', false],
             'account_lock_duration'       => ['15', 'integer', 'Lockout duration in minutes after max login attempts.', false],
             'session_timeout'             => ['120', 'integer', 'Session idle timeout in minutes.', false],
@@ -53,6 +53,7 @@ class SettingsSeeder extends Seeder
         ],
         'course' => [
             'course_auto_approval'      => ['false', 'boolean', 'Automatically publish courses without manual review.', false],
+            'free_course_auto_approval' => ['false', 'boolean', 'Automatically publish free ($0) courses without manual review, even if paid courses still require approval.', false],
             'allow_free_courses'        => ['true', 'boolean', 'Allow instructors to publish $0 courses.', true],
             'certificate_enabled'       => ['true', 'boolean', 'Allow completion certificates platform-wide.', true],
             'max_course_thumbnail_size' => ['2048', 'integer', 'Max course thumbnail size in KB.', true],

@@ -33,6 +33,10 @@ class InstructorSectionController extends Controller
             return ApiResponse::error('Course not found', 404);
         }
 
+        if ($course->isPendingReview()) {
+            return ApiResponse::error('This course is pending review and cannot be edited until it is approved or rejected.', 422);
+        }
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
         ]);
@@ -60,6 +64,10 @@ class InstructorSectionController extends Controller
             return ApiResponse::error('Unauthorized', 403);
         }
 
+        if ($section->course->isPendingReview()) {
+            return ApiResponse::error('This course is pending review and cannot be edited until it is approved or rejected.', 422);
+        }
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
         ]);
@@ -81,6 +89,10 @@ class InstructorSectionController extends Controller
 
         if ($section->course->instructor_id !== auth()->id()) {
             return ApiResponse::error('Unauthorized', 403);
+        }
+
+        if ($section->course->isPendingReview()) {
+            return ApiResponse::error('This course is pending review and cannot be edited until it is approved or rejected.', 422);
         }
 
         $section->delete();

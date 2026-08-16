@@ -6,7 +6,6 @@
     $typeMap = [
         'video'   => ['bg'=>'rgba(96,165,250,.12)',  'color'=>'#60a5fa',  'label'=>'Video'],
         'article' => ['bg'=>'rgba(52,211,153,.12)',  'color'=>'#34d399',  'label'=>'Article'],
-        'quiz'    => ['bg'=>'rgba(251,191,36,.12)',  'color'=>'#fbbf24',  'label'=>'Quiz'],
         'file'    => ['bg'=>'rgba(248,113,113,.12)', 'color'=>'#f87171',  'label'=>'File / Document'],
         'live'    => ['bg'=>'rgba(167,139,250,.12)', 'color'=>'#a78bfa',  'label'=>'Live'],
         'assignment' => ['bg'=>'rgba(148,163,184,.1)','color'=>'#94a3b8','label'=>'Assignment'],
@@ -16,7 +15,6 @@
     $typeIcons = [
         'video'   => 'M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z',
         'article' => 'M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25H12',
-        'quiz'    => 'M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0zm-9 5.25h.008v.008H12v-.008z',
         'file'    => 'M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9z',
     ];
     $typeIcon = $typeIcons[$les->type] ?? 'M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9z';
@@ -321,82 +319,6 @@ html:not(.dark) .lv {
     border:none;
 }
 
-/* quiz */
-.lv-quiz-list {
-    display:grid;
-    gap:12px;
-}
-.lv-quiz-q {
-    background:var(--p2);
-    border:1px solid var(--bd2);
-    border-radius:10px;
-    padding:16px 18px;
-    display:grid;
-    gap:10px;
-}
-.lv-quiz-num {
-    font-size:10.5px;
-    font-weight:800;
-    letter-spacing:.06em;
-    text-transform:uppercase;
-    color:var(--t2);
-}
-.lv-quiz-question {
-    font-size:14px;
-    font-weight:700;
-    color:var(--t1);
-}
-.lv-quiz-options {
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:8px;
-}
-@media(max-width:500px) {
-    .lv-quiz-options {
-        grid-template-columns:1fr;
-    }
-}
-.lv-quiz-opt {
-    display:flex;
-    align-items:center;
-    gap:8px;
-    padding:8px 12px;
-    border-radius:8px;
-    font-size:12.5px;
-    border:1px solid var(--bd2);
-    background:var(--p1);
-    color:var(--t1);
-}
-.lv-quiz-opt.correct {
-    background:rgba(52,211,153,.08);
-    border-color:rgba(52,211,153,.3);
-    color:#34d399;
-}
-.lv-quiz-opt-letter {
-    width:20px;
-    height:20px;
-    border-radius:50%;
-    display:grid;
-    place-items:center;
-    font-size:10px;
-    font-weight:800;
-    flex-shrink:0;
-    background:var(--bd2);
-    color:var(--t2);
-}
-.lv-quiz-opt.correct .lv-quiz-opt-letter {
-    background:rgba(52,211,153,.2);
-    color:#34d399;
-}
-.lv-quiz-explanation {
-    font-size:12px;
-    color:var(--t2);
-    padding:8px 12px;
-    border-radius:8px;
-    background:rgba(139,92,246,.06);
-    border:1px solid rgba(139,92,246,.15);
-}
-
 /* file download */
 .lv-file-box {
     display:flex;
@@ -472,9 +394,9 @@ html:not(.dark) .lv {
                 Back to Lessons
             </a>
             @if($les->section?->course)
-            <a href="{{ url('/admin/courses/'.$les->section->course->id) }}" wire:navigate class="lv-btn lv-btn-gray">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 3.741-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5"/></svg>
-                {{ $les->section->course->title }}
+            <a href="{{ url('/admin/courses/'.$les->section->course->id) }}" wire:navigate class="lv-btn lv-btn-gray" title="{{ $les->section->course->title }}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 3.741-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5"/></svg>
+                <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:220px">{{ $les->section->course->title }}</span>
             </a>
             @endif
         </div>
@@ -598,46 +520,6 @@ html:not(.dark) .lv {
         </div>
         <div class="lv-card-body">
             <div style="font-size:13.5px;line-height:1.8;color:var(--t1)">{!! $les->content !!}</div>
-        </div>
-    </div>
-    @endif
-
-    {{-- ── QUIZ ── --}}
-    @if($les->type === 'quiz' && $les->quiz_data)
-    <div class="lv-card">
-        <div class="lv-card-header">
-            <div class="lv-card-icon" style="background:rgba(251,191,36,.12)">
-                <svg viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="1.75"><path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0zm-9 5.25h.008v.008H12v-.008z"/></svg>
-            </div>
-            <div>
-                <div class="lv-card-title">Quiz Questions</div>
-                <div class="lv-card-sub">{{ count($les->quiz_data) }} {{ Str::plural('question', count($les->quiz_data)) }}</div>
-            </div>
-        </div>
-        <div class="lv-card-body">
-            <div class="lv-quiz-list">
-                @foreach($les->quiz_data as $i => $q)
-                <div class="lv-quiz-q">
-                    <div class="lv-quiz-num">Question {{ $i + 1 }}</div>
-                    <div class="lv-quiz-question">{{ $q['question'] ?? '—' }}</div>
-                    <div class="lv-quiz-options">
-                        @foreach(['a','b','c','d'] as $letter)
-                            @if(!empty($q['option_'.$letter]))
-                            <div class="lv-quiz-opt {{ ($q['correct'] ?? '') === $letter ? 'correct' : '' }}">
-                                <span class="lv-quiz-opt-letter">{{ strtoupper($letter) }}</span>
-                                {{ $q['option_'.$letter] }}
-                            </div>
-                            @endif
-                        @endforeach
-                    </div>
-                    @if(!empty($q['explanation']))
-                    <div class="lv-quiz-explanation">
-                        <strong style="color:var(--t1)">Explanation:</strong> {{ $q['explanation'] }}
-                    </div>
-                    @endif
-                </div>
-                @endforeach
-            </div>
         </div>
     </div>
     @endif

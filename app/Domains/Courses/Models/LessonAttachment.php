@@ -17,9 +17,20 @@ class LessonAttachment extends Model
         'title',
         'type',
         'file_path',
+        'deleted_by',
     ];
 
     protected $appends = ['file_url'];
+
+    protected static function booted(): void
+    {
+        static::deleting(function (LessonAttachment $attachment) {
+            if (auth()->check()) {
+                $attachment->deleted_by = auth()->id();
+                $attachment->saveQuietly();
+            }
+        });
+    }
 
     public function lesson(): BelongsTo
     {

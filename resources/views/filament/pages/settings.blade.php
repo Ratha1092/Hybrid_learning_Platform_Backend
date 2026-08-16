@@ -698,7 +698,15 @@ html.dark .st {
 
             <div class="st-nav" id="st-nav">
                 @foreach ($visibleGroups as $key => $groupData)
-                <a href="#{{ $key }}" class="st-nav-item {{ $key === $firstGroup ? 'active' : '' }}" data-group="{{ $key }}" data-label="{{ \Illuminate\Support\Str::lower($groupData['label']) }}">
+                @php
+                    $fieldLabels = $groupData['settings']->map(
+                        fn ($setting) => \Illuminate\Support\Str::headline($setting->key)
+                    )->implode(' ');
+                    $searchable = \Illuminate\Support\Str::lower(
+                        $groupData['label'] . ' ' . $groupData['description'] . ' ' . $fieldLabels
+                    );
+                @endphp
+                <a href="#{{ $key }}" class="st-nav-item {{ $key === $firstGroup ? 'active' : '' }}" data-group="{{ $key }}" data-label="{{ $searchable }}">
                     <span class="st-nav-icon">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path stroke-linecap="round" stroke-linejoin="round" d="{{ $groupData['icon'] }}"/></svg>
                         @if(! $groupData['canUpdate'])

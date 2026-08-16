@@ -47,6 +47,10 @@ class InstructorLessonController extends Controller
             return ApiResponse::error('Unauthorized', 403);
         }
 
+        if ($section->course->isPendingReview()) {
+            return ApiResponse::error('This course is pending review and cannot be edited until it is approved or rejected.', 422);
+        }
+
         $maxLessons = (int) Setting::get('max_lessons_per_course', 200);
         if ($maxLessons > 0 && $section->course->lessons()->count() >= $maxLessons) {
             return ApiResponse::error("This course has reached the maximum of {$maxLessons} lessons.", 422);
@@ -54,7 +58,7 @@ class InstructorLessonController extends Controller
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'type' => 'required|in:video,article,quiz',
+            'type' => 'required|in:video,article',
             'video_url' => 'nullable|url',
             'content' => 'nullable|string',
             'duration' => 'nullable|integer|min:0',
@@ -90,9 +94,13 @@ class InstructorLessonController extends Controller
             return ApiResponse::error('Unauthorized', 403);
         }
 
+        if ($lesson->section->course->isPendingReview()) {
+            return ApiResponse::error('This course is pending review and cannot be edited until it is approved or rejected.', 422);
+        }
+
         $validated = $request->validate([
             'title' => 'nullable|string|max:255',
-            'type' => 'nullable|in:video,article,quiz',
+            'type' => 'nullable|in:video,article',
             'video_url' => 'nullable|url',
             'content' => 'nullable|string',
             'duration' => 'nullable|integer|min:0',
@@ -118,6 +126,10 @@ class InstructorLessonController extends Controller
 
         if ($lesson->section->course->instructor_id !== auth()->id()) {
             return ApiResponse::error('Unauthorized', 403);
+        }
+
+        if ($lesson->section->course->isPendingReview()) {
+            return ApiResponse::error('This course is pending review and cannot be edited until it is approved or rejected.', 422);
         }
 
         $allowedFormats = Setting::get('allowed_video_formats', 'mp4,mov,avi,webm');
@@ -159,6 +171,10 @@ class InstructorLessonController extends Controller
 
         if ($lesson->section->course->instructor_id !== auth()->id()) {
             return ApiResponse::error('Unauthorized', 403);
+        }
+
+        if ($lesson->section->course->isPendingReview()) {
+            return ApiResponse::error('This course is pending review and cannot be edited until it is approved or rejected.', 422);
         }
 
         $lesson->delete();

@@ -34,10 +34,11 @@ class InstructorListController extends Controller
                 ->orderBy('id')
                 ->paginate($perPage, ['*'], 'page', $page)
                 ->through(fn ($u) => [
-                    'id'       => $u->id,
-                    'name'     => $u->name,
-                    'avatar'   => $u->avatar,
-                    'headline' => null,
+                    'id'         => $u->id,
+                    'name'       => $u->name,
+                    'avatar'     => $u->avatar,
+                    'avatar_url' => $u->avatar_url,
+                    'headline'   => null,
                     'bio'      => $u->instructorProfile?->bio,
                     'courses'  => $u->courses_count,
                     'students' => (int) ($u->students_count ?? 0),

@@ -208,10 +208,22 @@ html:not(.dark) .lp {
     font-size:13px;
     font-weight:650;
     color:var(--t1);
+    display:inline-block;
+    max-width:220px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    vertical-align:middle;
 }
 .lp-course-name {
     font-size:12px;
     color:var(--t2);
+    display:inline-block;
+    max-width:220px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    vertical-align:middle;
 }
 .lp-order {
     font-size:12.5px;
@@ -373,6 +385,12 @@ html:not(.dark) .lp {
         <div class="lp-header-text">
             <h1>Sections</h1>
             <p>Manage course sections and their lesson groupings.</p>
+            @if($courseId && $courseTitle)
+                <div style="display:inline-flex;align-items:center;gap:6px;margin-top:8px;padding:4px 10px;border-radius:999px;background:rgba(37,99,235,.1);border:1px solid rgba(37,99,235,.25);font-size:12px;font-weight:600;color:#2563eb">
+                    Filtered by course: {{ $courseTitle }}
+                    <a href="{{ route('filament.admin.pages.sections') }}" wire:navigate style="color:inherit;text-decoration:none;font-weight:800" title="Clear filter">&times;</a>
+                </div>
+            @endif
         </div>
         <div class="lp-header-btns">
             <a href="{{ $createUrl }}" wire:navigate class="lp-btn lp-btn-primary">
@@ -417,9 +435,9 @@ html:not(.dark) .lp {
                 <tr class="lp-row-link" onclick="Livewire.navigate('{{ $viewUrl($section) }}')">
                     <td><span class="lp-id">{{ $section->id }}</span></td>
 
-                    <td><span class="lp-title">{{ $section->title }}</span></td>
+                    <td><span class="lp-title" title="{{ $section->title }}">{{ $section->title }}</span></td>
 
-                    <td><span class="lp-course-name">{{ $section->course?->title ?? '—' }}</span></td>
+                    <td><span class="lp-course-name" title="{{ $section->course?->title }}">{{ $section->course?->title ?? '—' }}</span></td>
 
                     <td><span class="lp-order">#{{ $section->order ?? '—' }}</span></td>
 

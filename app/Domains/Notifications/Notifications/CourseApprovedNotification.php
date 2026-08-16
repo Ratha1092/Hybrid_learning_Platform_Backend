@@ -4,6 +4,7 @@ namespace App\Domains\Notifications\Notifications;
 
 use App\Domains\Courses\Models\Course;
 use App\Domains\Notifications\Concerns\BroadcastsAsNotification;
+use App\Domains\Notifications\Enums\NotificationType;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification;
@@ -25,7 +26,7 @@ class CourseApprovedNotification extends Notification
         return new BroadcastMessage([
             'title'       => 'Course Approved',
             'message'     => "Your course \"{$this->course->title}\" has been approved and is now live.",
-            'type'        => 'course_approved',
+            'type'        => NotificationType::COURSE->value,
             'link'        => env('FRONTEND_URL', 'http://localhost:3000') . '/courses/' . $this->course->slug,
             'action_text' => 'View Course',
         ]);
@@ -36,7 +37,7 @@ class CourseApprovedNotification extends Notification
         return [
             'title'       => 'Course Approved',
             'message'     => "Your course \"{$this->course->title}\" has been approved and is now live.",
-            'type'        => 'course_approved',
+            'type'        => NotificationType::COURSE->value,
             'course_id'   => $this->course->id,
             'link'        => env('FRONTEND_URL', 'http://localhost:3000') . '/courses/' . $this->course->slug,
             'action_text' => 'View Course',

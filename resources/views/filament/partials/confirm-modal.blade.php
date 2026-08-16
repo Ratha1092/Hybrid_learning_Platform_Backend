@@ -165,5 +165,19 @@ if (!window.admConfirm) {
             };
         });
     });
+
+    // Filament's toast Notifications component is mounted once in the persistent
+    // outer shell (never remounted by wire:navigate), so a toast whose auto-dismiss
+    // timer gets interrupted mid-navigation can survive into an unrelated page.
+    // Force it empty on every navigation instead — a toast belongs to the page/action
+    // that triggered it, not to whatever page the user lands on next.
+    document.addEventListener('livewire:navigated', function () {
+        if (typeof Livewire === 'undefined' || typeof Livewire.all !== 'function') return;
+        Livewire.all().forEach(function (component) {
+            if (component.$wire && component.$wire.isFilamentNotificationsComponent) {
+                component.$wire.set('notifications', []);
+            }
+        });
+    });
 }
 </script>

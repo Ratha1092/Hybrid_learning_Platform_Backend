@@ -596,17 +596,12 @@ select.cc-input {
         </div>
         <div>
             <div class="cc-card-title">Media</div>
-            <div class="cc-card-sub">Course thumbnail and preview video URL</div>
+            <div class="cc-card-sub">Course thumbnail</div>
         </div>
     </div>
     <div class="cc-card-body">
         <div class="cc-thumb-wrap">
             {{ $this->thumbnailForm }}
-        </div>
-        <div>
-            <label class="cc-label" for="cc-video-url">Preview Video URL</label>
-            <input id="cc-video-url" type="url" class="cc-input" wire:model="data.preview_video_url" placeholder="https://youtube.com/watch?v=…">
-            @error('data.preview_video_url') <span class="cc-error">{{ $message }}</span> @enderror
         </div>
     </div>
 </div>
@@ -748,16 +743,8 @@ select.cc-input {
                 <div class="cc-toggle-track"><div class="cc-toggle-thumb"></div></div>
             </label>
         </div>
-        <div class="cc-toggle-row">
-            <div class="cc-toggle-info">
-                <div class="cc-toggle-title">Enable Certificate</div>
-                <div class="cc-toggle-desc">Issue completion certificates to students who finish this course</div>
-            </div>
-            <label class="cc-toggle-wrap">
-                <input type="checkbox" wire:model="data.certificate_enabled" value="1">
-                <div class="cc-toggle-track"><div class="cc-toggle-thumb"></div></div>
-            </label>
-        </div>
+        {{-- Enable Certificate — hidden until certificate PDF generation exists.
+             wire:model stays bound so nothing breaks if this is restored later. --}}
     </div>
 </div>
 

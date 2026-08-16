@@ -3,6 +3,7 @@
 namespace App\Domains\Notifications\Notifications;
 
 use App\Domains\Notifications\Concerns\BroadcastsAsNotification;
+use App\Domains\Notifications\Enums\NotificationType;
 use App\Domains\Orders\Models\Order;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification;
@@ -22,7 +23,7 @@ class AdminPaymentNotification extends Notification
         return new BroadcastMessage([
             'title'       => 'Payment Received',
             'message'     => "Order #{$this->order->order_number} — \${$this->order->final_amount} by {$this->order->user?->name}.",
-            'type'        => 'payment',
+            'type'        => NotificationType::PAYMENT->value,
             'link'        => '/admin/payments',
             'action_text' => 'View Payments',
         ]);
@@ -32,7 +33,8 @@ class AdminPaymentNotification extends Notification
     {
         return [
             'title'    => 'Payment Received',
-            'body'     => "Payment for order #{$this->order->order_number} — \${$this->order->final_amount} by {$this->order->user?->name}.",
+            'message'  => "Payment for order #{$this->order->order_number} — \${$this->order->final_amount} by {$this->order->user?->name}.",
+            'type'     => NotificationType::PAYMENT->value,
             'format'   => 'filament',
             'duration' => 'persistent',
             'actions'  => [

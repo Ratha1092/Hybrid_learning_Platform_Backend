@@ -34,8 +34,14 @@ class CategoryController extends Controller
                 'courses' => fn ($query) => $query
                     ->published()
                     ->latest()
+                    ->with(['instructor:id,name,avatar'])
                     ->withAvg(['reviews as average_rating' => fn ($q) => $q->where('is_approved', true)], 'rating')
-                    ->withCount(['reviews as reviews_count' => fn ($q) => $q->where('is_approved', true)]),
+                    ->withCount([
+                        'reviews as reviews_count' => fn ($q) => $q->where('is_approved', true),
+                        'sections',
+                        'enrollments as students_count',
+                    ])
+                    ->withSum('lessons as total_duration_seconds', 'duration'),
             ])
             ->withCount('courses')
             ->first();

@@ -17,6 +17,7 @@ Route::middleware(['auth:sanctum', 'throttle:auth'])->prefix('users')->group(fun
         Route::put('/profile', [ProfileController::class, 'update']);
         Route::post('/avatar', [ProfileController::class, 'uploadAvatar']);
         Route::get('/courses', [ProfileController::class, 'enrolledCourses']);
+        Route::get('/reviews', [ProfileController::class, 'myReviews']);
         Route::get('/courses/{courseId}/enrollment-status', [ProfileController::class, 'checkEnrollment']);
         Route::prefix('instructor')->group(function () {
             Route::get('/application',[InstructorVerificationController::class, 'status']);

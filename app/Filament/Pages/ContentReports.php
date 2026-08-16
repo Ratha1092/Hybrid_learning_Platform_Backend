@@ -126,9 +126,9 @@ class ContentReports extends Page
 
         if ($search) {
             $query->where(function ($q) use ($search) {
-                $q->where('reason', 'like', "%{$search}%")
-                  ->orWhereHas('reporter', fn ($q2) => $q2->where('name', 'like', "%{$search}%"))
-                  ->orWhereHas('reporter', fn ($q2) => $q2->where('email', 'like', "%{$search}%"));
+                $q->where('reason', 'ilike', "%{$search}%")
+                  ->orWhereHas('reporter', fn ($q2) => $q2->where('name', 'ilike', "%{$search}%"))
+                  ->orWhereHas('reporter', fn ($q2) => $q2->where('email', 'ilike', "%{$search}%"));
             });
         }
 

@@ -8,6 +8,7 @@ use App\Domains\Users\Requests\UpdateProfileRequest;
 use App\Domains\Users\Resources\UserResource;
 use App\Domains\Billing\Models\BillingAddress;
 use App\Domains\Learning\Models\Enrollment;
+use App\Domains\Learning\Models\Review;
 use App\Support\ApiResponse;
 use Illuminate\Http\Request;
 
@@ -22,7 +23,7 @@ class ProfileController extends Controller
         $user = $this->userService->getProfile($request->user());
 
         $enrollments = Enrollment::where('user_id', $user->id)
-            ->where('status', 'active')
+            ->whereIn('status', ['active', 'completed'])
             ->with(['course' => fn ($q) => $q->select(
                 'id', 'title', 'slug', 'thumbnail', 'level', 'instructor_id'
             )])
@@ -100,7 +101,7 @@ class ProfileController extends Controller
     public function enrolledCourses(Request $request)
     {
         $enrollments = Enrollment::where('user_id', $request->user()->id)
-            ->where('status', 'active')
+            ->whereIn('status', ['active', 'completed'])
             ->with(['course' => fn($q) => $q->select(
                 'id', 'title', 'slug', 'thumbnail', 'level', 'instructor_id'
             )
@@ -125,6 +126,16 @@ class ProfileController extends Controller
         return ApiResponse::success($enrollments, 'Enrolled courses retrieved successfully');
     }
 
+    public function myReviews(Request $request)
+    {
+        $reviews = Review::where('user_id', $request->user()->id)
+            ->with(['course' => fn ($q) => $q->select('id', 'title', 'slug', 'thumbnail')])
+            ->latest()
+            ->paginate(15);
+
+        return ApiResponse::success($reviews, 'Reviews retrieved successfully');
+    }
+
     public function uploadAvatar(Request $request)
     {
         $request->validate([
@@ -143,7 +154,7 @@ class ProfileController extends Controller
     {
         $enrolled = Enrollment::where('user_id', $request->user()->id)
             ->where('course_id', $courseId)
-            ->where('status', 'active')
+            ->whereIn('status', ['active', 'completed'])
             ->exists();
 
         return ApiResponse::success(['enrolled' => $enrolled], 'Enrollment status retrieved');

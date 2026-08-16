@@ -6,7 +6,6 @@
     $typeMap = [
         'video'      => ['bg' => 'rgba(37,99,235,.12)',   'color' => '#2563eb',  'label' => 'Video'],
         'article'    => ['bg' => 'rgba(22,163,74,.12)',   'color' => '#16a34a',  'label' => 'Article'],
-        'quiz'       => ['bg' => 'rgba(124,58,237,.12)',  'color' => '#7c3aed',  'label' => 'Quiz'],
         'live'       => ['bg' => 'rgba(220,38,38,.12)',   'color' => '#dc2626',  'label' => 'Live'],
         'assignment' => ['bg' => 'rgba(217,119,6,.12)',   'color' => '#d97706',  'label' => 'Assignment'],
     ];
@@ -253,6 +252,12 @@ html:not(.dark) .lp {
     font-size:13px;
     font-weight:650;
     color:var(--t1);
+    display:inline-block;
+    max-width:220px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    vertical-align:middle;
 }
 .lp-badge {
     display:inline-flex;
@@ -266,6 +271,12 @@ html:not(.dark) .lp {
 .lp-section-name {
     font-size:12px;
     color:var(--t2);
+    display:inline-block;
+    max-width:220px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    vertical-align:middle;
 }
 .lp-duration {
     font-size:12.5px;
@@ -422,6 +433,12 @@ html:not(.dark) .lp {
         <div class="lp-header-text">
             <h1>Lessons</h1>
             <p>Browse and manage all lessons across every course.</p>
+            @if($courseId && $courseTitle)
+                <div style="display:inline-flex;align-items:center;gap:6px;margin-top:8px;padding:4px 10px;border-radius:999px;background:rgba(37,99,235,.1);border:1px solid rgba(37,99,235,.25);font-size:12px;font-weight:600;color:#2563eb">
+                    Filtered by course: {{ $courseTitle }}
+                    <a href="{{ route('filament.admin.pages.lessons') }}" wire:navigate style="color:inherit;text-decoration:none;font-weight:800" title="Clear filter">&times;</a>
+                </div>
+            @endif
         </div>
         <div class="lp-header-btns">
             <a href="{{ $createUrl }}" wire:navigate class="lp-btn lp-btn-primary">
@@ -484,7 +501,7 @@ html:not(.dark) .lp {
                 <tr class="lp-row-link" onclick="Livewire.navigate('{{ $viewUrl($lesson) }}')">
                     <td><span class="lp-id">{{ $lesson->id }}</span></td>
 
-                    <td><span class="lp-title">{{ $lesson->title }}</span></td>
+                    <td><span class="lp-title" title="{{ $lesson->title }}">{{ $lesson->title }}</span></td>
 
                     <td>
                         <span class="lp-badge" style="background:{{ $ts['bg'] }};color:{{ $ts['color'] }}">
@@ -492,7 +509,7 @@ html:not(.dark) .lp {
                         </span>
                     </td>
 
-                    <td><span class="lp-section-name">{{ $lesson->section?->title ?? '—' }}</span></td>
+                    <td><span class="lp-section-name" title="{{ $lesson->section?->title }}">{{ $lesson->section?->title ?? '—' }}</span></td>
 
                     <td>
                         <span class="lp-duration">

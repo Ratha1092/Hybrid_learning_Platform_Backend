@@ -3,6 +3,7 @@
 namespace App\Domains\Notifications\Notifications;
 
 use App\Domains\Notifications\Concerns\BroadcastsAsNotification;
+use App\Domains\Notifications\Enums\NotificationType;
 use App\Domains\Orders\Models\Order;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification;
@@ -28,7 +29,7 @@ class AdminNewOrderNotification extends Notification
         return new BroadcastMessage([
             'title'       => $isFree ? 'New Free Enrollment' : 'New Order Placed',
             'message'     => "Order #{$order?->order_number} by {$this->customerName}" . ($isFree ? ' (free).' : " — \${$order?->final_amount}."),
-            'type'        => 'order',
+            'type'        => NotificationType::ORDER->value,
             'link'        => '/admin/orders',
             'action_text' => 'View Orders',
         ]);
@@ -40,7 +41,7 @@ class AdminNewOrderNotification extends Notification
         $isFree = (float) ($order?->final_amount ?? 0) === 0.0;
 
         return [
-            'type'     => 'order',
+            'type'     => NotificationType::ORDER->value,
             'title'    => $isFree ? 'New Free Enrollment' : 'New Order Placed',
             'message'  => "Order #{$order?->order_number} by {$this->customerName}" . ($isFree ? ' (free course).' : " — \${$order?->final_amount}."),
             'format'   => 'filament',

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Domains\Courses\Models\Course;
 use App\Domains\Courses\Models\Section;
 use App\Support\NavBadge;
 use App\Support\PanelAccess;
@@ -25,6 +26,8 @@ class Sections extends Page
 
     public function mount(): void
     {
+        $this->courseId = request()->integer('course_id') ?: null;
+
         NavBadge::markSeen('sections');
     }
 
@@ -87,14 +90,16 @@ class Sections extends Page
 
         $query = Section::with('course:id,title')->withCount('lessons');
 
+        $courseTitle = $courseId ? Course::find($courseId)?->title : null;
+
         if ($courseId) {
             $query->where('course_id', $courseId);
         }
 
         if ($search) {
             $query->where(function ($q) use ($search) {
-                $q->where('title', 'like', "%{$search}%")
-                  ->orWhereHas('course', fn($q2) => $q2->where('title', 'like', "%{$search}%"));
+                $q->where('title', 'ilike', "%{$search}%")
+                  ->orWhereHas('course', fn($q2) => $q2->where('title', 'ilike', "%{$search}%"));
             });
         }
 
@@ -105,6 +110,6 @@ class Sections extends Page
         $curPage    = min($page, $totalPages);
         $sections   = $query->skip(($curPage - 1) * $perPage)->take($perPage)->get();
 
-        return compact('search', 'courseId', 'sections', 'total', 'totalPages', 'curPage', 'perPage');
+        return compact('search', 'courseId', 'courseTitle', 'sections', 'total', 'totalPages', 'curPage', 'perPage');
     }
 }

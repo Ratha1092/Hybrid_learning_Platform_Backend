@@ -35,6 +35,7 @@ class Order extends Model
         'refunded_at',
         'coupon_code',
         'coupon_id',
+        'deleted_by',
     ];
 
     protected $casts = [
@@ -47,6 +48,17 @@ class Order extends Model
         'cancelled_at' => 'datetime',
         'refunded_at' => 'datetime',
     ];
+
+    protected static function booted(): void
+    {
+        static::deleting(function (Order $order) {
+            if (auth()->check()) {
+                $order->deleted_by = auth()->id();
+                $order->saveQuietly();
+            }
+        });
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

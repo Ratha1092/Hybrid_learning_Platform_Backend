@@ -14,9 +14,13 @@ class PayoutAccountService
 {
     public function save(User $instructor, array $data): InstructorPayoutAccount
     {
-        $existing = InstructorPayoutAccount::where('instructor_id', $instructor->id)->first();
+        $existing = InstructorPayoutAccount::withTrashed()->where('instructor_id', $instructor->id)->first();
 
         $account = DB::transaction(function () use ($instructor, $data, $existing) {
+            if ($existing?->trashed()) {
+                $existing->restore();
+            }
+
             $qrPath = $existing?->qr_code_path;
 
             if (isset($data['qr_code'])) {

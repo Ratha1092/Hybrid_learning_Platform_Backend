@@ -70,6 +70,11 @@ class Payments extends Page
         $this->currentPage = 1;
     }
 
+    public function updatedSearch(): void
+    {
+        $this->currentPage = 1;
+    }
+
     public function setPage(int $page): void
     {
         $this->currentPage = $page;
@@ -136,7 +141,7 @@ class Payments extends Page
 
         if ($search) {
             $query->where(function ($q) use ($search) {
-                $q->whereHas('order', fn($q2) => $q2->where('order_number', 'like', "%{$search}%"));
+                $q->whereHas('order', fn($q2) => $q2->where('order_number', 'ilike', "%{$search}%"));
             });
         }
 

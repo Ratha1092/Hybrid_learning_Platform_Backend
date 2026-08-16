@@ -527,9 +527,7 @@ select.cr-input {
             @if($crs->is_published)
                 <span class="cr-pill" style="background:rgba(59,130,246,.1);border-color:rgba(59,130,246,.25);color:#3b82f6">Live</span>
             @endif
-            @if($crs->certificate_enabled)
-                <span class="cr-pill" style="background:rgba(251,191,36,.08);border-color:rgba(251,191,36,.2);color:#d97706">Certificate</span>
-            @endif
+            {{-- Certificate pill hidden until certificate PDF generation exists --}}
         </div>
     </div>
     <div class="cr-hero-stats">
@@ -608,17 +606,12 @@ select.cr-input {
         </div>
         <div>
             <div class="cr-card-title">Media</div>
-            <div class="cr-card-sub">Course thumbnail and preview video</div>
+            <div class="cr-card-sub">Course thumbnail</div>
         </div>
     </div>
     <div class="cr-card-body">
         <div class="cr-thumb-wrap">
             {{ $this->thumbnailForm }}
-        </div>
-        <div>
-            <label class="cr-label" for="cr-video-url">Preview Video URL</label>
-            <input id="cr-video-url" type="url" class="cr-input" wire:model="data.preview_video_url" placeholder="https://youtube.com/…">
-            @error('data.preview_video_url') <span class="cr-error">{{ $message }}</span> @enderror
         </div>
     </div>
 </div>
@@ -775,16 +768,8 @@ select.cr-input {
             </label>
         </div>
 
-        <div class="cr-toggle-row">
-            <div class="cr-toggle-info">
-                <div class="cr-toggle-title">Enable Certificate</div>
-                <div class="cr-toggle-desc">Issue completion certificates to students who finish this course</div>
-            </div>
-            <label class="cr-toggle-wrap">
-                <input type="checkbox" wire:model="data.certificate_enabled" value="1">
-                <div class="cr-toggle-track"><div class="cr-toggle-thumb"></div></div>
-            </label>
-        </div>
+        {{-- Enable Certificate — hidden until certificate PDF generation exists.
+             wire:model stays bound so nothing breaks if this is restored later. --}}
     </div>
 </div>
 

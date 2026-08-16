@@ -108,7 +108,10 @@ class NotificationsTable
                     ->icon('heroicon-o-arrow-top-right-on-square')
                     ->url(fn (
                         DatabaseNotification $record
-                    ) => $record->data['actions'][0]['url'] ?? null)
+                    ) => $record->data['actions'][0]['url'] ?? $record->data['link'] ?? null)
+                    ->visible(fn (
+                        DatabaseNotification $record
+                    ) => filled($record->data['actions'][0]['url'] ?? $record->data['link'] ?? null))
                     ->openUrlInNewTab(),
                 Actions\Action::make('markAsRead')
                     ->label('Mark as read')

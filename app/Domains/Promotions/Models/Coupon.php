@@ -29,6 +29,7 @@ class Coupon extends Model
         'is_active',
         'description',
         'created_by',
+        'deleted_by',
     ];
 
     protected $casts = [
@@ -46,6 +47,12 @@ class Coupon extends Model
     {
         static::saving(function (Coupon $coupon) {
             $coupon->code = strtoupper(trim($coupon->code));
+        });
+        static::deleting(function (Coupon $coupon) {
+            if (auth()->check()) {
+                $coupon->deleted_by = auth()->id();
+                $coupon->saveQuietly();
+            }
         });
     }
 

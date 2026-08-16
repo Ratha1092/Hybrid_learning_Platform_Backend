@@ -3,6 +3,7 @@
 namespace App\Domains\Notifications\Notifications;
 
 use App\Domains\Notifications\Concerns\BroadcastsAsNotification;
+use App\Domains\Notifications\Enums\NotificationType;
 use App\Domains\Notifications\Support\NotificationChannels;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\BroadcastMessage;
@@ -28,8 +29,8 @@ class CourseCompletionNotification extends Notification
         return new BroadcastMessage([
             'title'       => 'Course Completed',
             'message'     => "Congratulations! You've completed \"{$this->courseTitle}\".",
-            'type'        => 'course_completed',
-            'link'        => env('FRONTEND_URL', 'http://localhost:3000') . '/my-courses',
+            'type'        => NotificationType::COURSE->value,
+            'link'        => env('FRONTEND_URL', 'http://localhost:3000') . '/library',
             'action_text' => 'View Certificate',
         ]);
     }
@@ -39,9 +40,9 @@ class CourseCompletionNotification extends Notification
         return [
             'title'       => 'Course Completed',
             'message'     => "Congratulations! You've completed \"{$this->courseTitle}\".",
-            'type'        => 'course_completed',
+            'type'        => NotificationType::COURSE->value,
             'course_id'   => $this->courseId,
-            'link'        => env('FRONTEND_URL', 'http://localhost:3000') . '/my-courses',
+            'link'        => env('FRONTEND_URL', 'http://localhost:3000') . '/library',
             'action_text' => 'View Certificate',
         ];
     }

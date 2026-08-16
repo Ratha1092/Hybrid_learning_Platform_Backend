@@ -645,16 +645,7 @@ html:not(.dark) .cv-modal-overlay {
                         <div class="cv-field-label">Commission</div>
                         <div class="cv-field-value">{{ $course->commission_percentage }}%</div>
                     </div>
-                    <div class="cv-field">
-                        <div class="cv-field-label">Certificate</div>
-                        <div class="cv-field-value">{{ $course->certificate_enabled ? 'Enabled' : 'Disabled' }}</div>
-                    </div>
-                    @if($course->preview_video_url)
-                    <div class="cv-field cv-field-full">
-                        <div class="cv-field-label">Preview Video</div>
-                        <div class="cv-field-value"><a href="{{ $course->preview_video_url }}" target="_blank" style="color:var(--accent)">{{ $course->preview_video_url }}</a></div>
-                    </div>
-                    @endif
+                    {{-- Certificate field hidden until certificate PDF generation exists --}}
                 </div>
             </div>
 

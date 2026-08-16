@@ -19,29 +19,41 @@ class TwoFactorAuthController extends Controller
 
     public function enable()
     {
-        $data = $this->twoFactorService->enable(request()->user());
+        try {
+            $data = $this->twoFactorService->enable(request()->user());
 
-        return ApiResponse::success($data, '2FA code sent');
+            return ApiResponse::success($data, '2FA code sent');
+        } catch (\RuntimeException $e) {
+            return ApiResponse::error($e->getMessage(), 400);
+        }
     }
 
     public function verifyAndEnable(VerifyTwoFactorRequest $request)
     {
-        $this->twoFactorService->verifyAndEnable(
-            $request->user(),
-            $request->validated()
-        );
+        try {
+            $this->twoFactorService->verifyAndEnable(
+                $request->user(),
+                $request->validated()
+            );
 
-        return ApiResponse::success(null, '2FA enabled successfully');
+            return ApiResponse::success(null, '2FA enabled successfully');
+        } catch (\RuntimeException $e) {
+            return ApiResponse::error($e->getMessage(), 400);
+        }
     }
 
     public function disable(DisableTwoFactorRequest $request)
     {
-        $this->twoFactorService->disable(
-            $request->user(),
-            $request->validated()
-        );
+        try {
+            $this->twoFactorService->disable(
+                $request->user(),
+                $request->validated()
+            );
 
-        return ApiResponse::success(null, '2FA disabled successfully');
+            return ApiResponse::success(null, '2FA disabled successfully');
+        } catch (\RuntimeException $e) {
+            return ApiResponse::error($e->getMessage(), 400);
+        }
     }
 
     public function status()
@@ -53,15 +65,23 @@ class TwoFactorAuthController extends Controller
 
     public function sendCode(SendTwoFactorCodeRequest $request)
     {
-        $data = $this->twoFactorService->sendCode($request->validated());
+        try {
+            $data = $this->twoFactorService->sendCode($request->validated());
 
-        return ApiResponse::success($data, '2FA code sent');
+            return ApiResponse::success($data, '2FA code sent');
+        } catch (\RuntimeException $e) {
+            return ApiResponse::error($e->getMessage(), 400);
+        }
     }
 
     public function verifyCode(VerifyLoginTwoFactorRequest $request)
     {
-        $data = $this->twoFactorService->verifyLogin($request->validated());
+        try {
+            $data = $this->twoFactorService->verifyLogin($request->validated());
 
-        return ApiResponse::success($data, 'Login successful');
+            return ApiResponse::success($data, 'Login successful');
+        } catch (\RuntimeException $e) {
+            return ApiResponse::error($e->getMessage(), 400);
+        }
     }
 }

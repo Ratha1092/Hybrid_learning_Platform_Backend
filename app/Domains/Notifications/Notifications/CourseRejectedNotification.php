@@ -4,6 +4,7 @@ namespace App\Domains\Notifications\Notifications;
 
 use App\Domains\Courses\Models\Course;
 use App\Domains\Notifications\Concerns\BroadcastsAsNotification;
+use App\Domains\Notifications\Enums\NotificationType;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification;
@@ -33,7 +34,7 @@ class CourseRejectedNotification extends Notification
         return new BroadcastMessage([
             'title'       => 'Course Rejected',
             'message'     => $message,
-            'type'        => 'course_rejected',
+            'type'        => NotificationType::COURSE->value,
             'link'        => env('FRONTEND_URL', 'http://localhost:3000') . '/instructor/courses',
             'action_text' => 'Edit Course',
         ]);
@@ -50,7 +51,7 @@ class CourseRejectedNotification extends Notification
         return [
             'title'       => 'Course Rejected',
             'message'     => $message,
-            'type'        => 'course_rejected',
+            'type'        => NotificationType::COURSE->value,
             'course_id'   => $this->course->id,
             'link'        => env('FRONTEND_URL', 'http://localhost:3000') . '/instructor/courses',
             'action_text' => 'Edit Course',

@@ -140,8 +140,8 @@ class Verifications extends Page
 
         if ($search) {
             $query->where(function ($q) use ($search) {
-                $q->whereHas('user', fn($q2) => $q2->where('name', 'like', "%{$search}%"))
-                  ->orWhereHas('user', fn($q2) => $q2->where('email', 'like', "%{$search}%"));
+                $q->whereHas('user', fn($q2) => $q2->where('name', 'ilike', "%{$search}%"))
+                  ->orWhereHas('user', fn($q2) => $q2->where('email', 'ilike', "%{$search}%"));
             });
         }
 

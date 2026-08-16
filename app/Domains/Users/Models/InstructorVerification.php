@@ -27,12 +27,23 @@ class InstructorVerification extends Model
         'rejection_reason',
         'reviewed_by',
         'reviewed_at',
+        'deleted_by',
     ];
 
     protected $casts = [
         'reviewed_at' => 'datetime',
         'completion_year' => 'integer',
     ];
+
+    protected static function booted(): void
+    {
+        static::deleting(function (InstructorVerification $verification) {
+            if (auth()->check()) {
+                $verification->deleted_by = auth()->id();
+                $verification->saveQuietly();
+            }
+        });
+    }
 
     /**
      * The user this verification belongs to

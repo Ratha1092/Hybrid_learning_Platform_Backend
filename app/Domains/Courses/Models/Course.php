@@ -51,7 +51,6 @@ class Course extends Model
         'approved_at',
         'approved_by',
         'commission_percentage',
-        'preview_video_url',
         'visibility',
         'certificate_enabled',
         'rejection_reason',
@@ -118,6 +117,7 @@ class Course extends Model
             'is_published' => true,
             'approved_at' => now(),
             'approved_by' => $adminId,
+            'rejection_reason' => null,
         ]);
         Cache::tags(['dashboard'])->flush();
         Cache::forget('courses.published');

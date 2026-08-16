@@ -62,6 +62,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
         'last_login_at',
         'two_factor_enabled',
         'two_factor_secret',
+        'deleted_by',
     ];
     protected $hidden = [
         'password',
@@ -74,10 +75,33 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
         'two_factor_enabled' => 'boolean',
         'password' => 'hashed',
     ];
+    protected $appends = [
+        'avatar_url',
+    ];
 
     protected static function newFactory(): UserFactory
     {
         return UserFactory::new();
+    }
+
+    protected static function booted(): void
+    {
+        static::deleting(function (User $user) {
+            if (auth()->check()) {
+                $user->deleted_by = auth()->id();
+                $user->saveQuietly();
+            }
+        });
+
+        // Permanently deleting a user cascades a hard DELETE (via DB foreign
+        // keys) through their orders/payments/invoices or their courses'
+        // enrollments/reviews. Block it rather than silently destroy that
+        // financial/learning history.
+        static::forceDeleting(function (User $user) {
+            if ($user->orders()->withTrashed()->exists() || $user->courses()->withTrashed()->exists()) {
+                return false;
+            }
+        });
     }
 
     public function courses(): HasMany

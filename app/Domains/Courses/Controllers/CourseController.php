@@ -18,7 +18,12 @@ class CourseController extends Controller
     {
         $query = Course::with(['instructor:id,name,avatar', 'category:id,name,slug'])
             ->withAvg(['reviews as average_rating' => fn ($q) => $q->where('is_approved', true)], 'rating')
-            ->withCount(['reviews as reviews_count' => fn ($q) => $q->where('is_approved', true)])
+            ->withCount([
+                'reviews as reviews_count' => fn ($q) => $q->where('is_approved', true),
+                'sections',
+                'enrollments as students_count',
+            ])
+            ->withSum('lessons as total_duration_seconds', 'duration')
             ->where('is_published', true);
 
         if ($instructorId = request('instructor_id')) {
@@ -81,7 +86,7 @@ class CourseController extends Controller
 
         $isEnrolled = (bool) $enrollment;
         $accessExpired = $enrollment ? $enrollment->isExpired() : false;
-        $hasAccess = $enrollment && $enrollment->status === 'active' && !$accessExpired;
+        $hasAccess = $enrollment && in_array($enrollment->status, ['active', 'completed'], true) && !$accessExpired;
 
         $courseData = $course->toArray();
         $courseData['is_enrolled'] = $isEnrolled;

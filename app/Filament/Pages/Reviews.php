@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Domains\Courses\Models\Course;
 use App\Domains\Learning\Models\Review;
 use App\Support\NavBadge;
 use App\Support\PanelAccess;
@@ -25,6 +26,8 @@ class Reviews extends Page
 
     public function mount(): void
     {
+        $this->courseId = request()->integer('course_id') ?: null;
+
         NavBadge::markSeen('reviews');
     }
 
@@ -99,6 +102,8 @@ class Reviews extends Page
 
         $query = Review::with(['course:id,title', 'user:id,name']);
 
+        $courseTitle = $courseId ? Course::find($courseId)?->title : null;
+
         if ($courseId) {
             $query->where('course_id', $courseId);
         }
@@ -109,9 +114,9 @@ class Reviews extends Page
 
         if ($search) {
             $query->where(function ($q) use ($search) {
-                $q->where('comment', 'like', "%{$search}%")
-                  ->orWhereHas('course', fn($q2) => $q2->where('title', 'like', "%{$search}%"))
-                  ->orWhereHas('user',   fn($q2) => $q2->where('name',  'like', "%{$search}%"));
+                $q->where('comment', 'ilike', "%{$search}%")
+                  ->orWhereHas('course', fn($q2) => $q2->where('title', 'ilike', "%{$search}%"))
+                  ->orWhereHas('user',   fn($q2) => $q2->where('name',  'ilike', "%{$search}%"));
             });
         }
 
@@ -122,6 +127,6 @@ class Reviews extends Page
         $curPage    = min($page, $totalPages);
         $reviews    = $query->skip(($curPage - 1) * $perPage)->take($perPage)->get();
 
-        return compact('tabs', 'tab', 'search', 'courseId', 'reviews', 'total', 'totalPages', 'curPage', 'perPage');
+        return compact('tabs', 'tab', 'search', 'courseId', 'courseTitle', 'reviews', 'total', 'totalPages', 'curPage', 'perPage');
     }
 }

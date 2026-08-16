@@ -18,7 +18,6 @@ class Lesson extends Model
 
     public const TYPE_VIDEO = 'video';
     public const TYPE_ARTICLE = 'article';
-    public const TYPE_QUIZ = 'quiz';
     public const TYPE_FILE = 'file';
     public const TYPE_LIVE = 'live';
     public const TYPE_ASSIGNMENT = 'assignment';
@@ -34,7 +33,6 @@ class Lesson extends Model
         'video_provider',
         'attachment',
         'attachment_name',
-        'quiz_data',
         'duration',
         'is_preview',
         'order',
@@ -42,7 +40,6 @@ class Lesson extends Model
     ];
 
     protected $casts = [
-        'quiz_data' => 'array',
         'is_preview' => 'boolean',
     ];
 
@@ -79,6 +76,11 @@ class Lesson extends Model
             LessonProgress::class
         );
     }
+
+    public function attachments(): HasMany
+    {
+        return $this->hasMany(LessonAttachment::class);
+    }
     public function isVideoLesson(): bool
     {
         return $this->type === self::TYPE_VIDEO;
@@ -87,11 +89,6 @@ class Lesson extends Model
     public function isArticleLesson(): bool
     {
         return $this->type === self::TYPE_ARTICLE;
-    }
-
-    public function isQuizLesson(): bool
-    {
-        return $this->type === self::TYPE_QUIZ;
     }
 
     public function isLiveLesson(): bool

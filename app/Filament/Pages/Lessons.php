@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Domains\Courses\Models\Course;
 use App\Domains\Courses\Models\Lesson;
 use App\Support\NavBadge;
 use App\Support\PanelAccess;
@@ -26,6 +27,8 @@ class Lessons extends Page
 
     public function mount(): void
     {
+        $this->courseId = request()->integer('course_id') ?: null;
+
         NavBadge::markSeen('lessons');
     }
 
@@ -89,7 +92,7 @@ class Lessons extends Page
         $page     = max(1, $this->page);
         $perPage  = in_array($this->perPage, [10, 25, 50], true) ? $this->perPage : 10;
 
-        $types = ['video', 'article', 'quiz', 'live', 'assignment'];
+        $types = ['video', 'article', 'live', 'assignment'];
 
         $base = fn() => Lesson::withoutGlobalScopes([SoftDeletingScope::class])
             ->when($courseId, fn($q) => $q->whereHas('section', fn($q2) => $q2->where('course_id', $courseId)));
@@ -98,13 +101,14 @@ class Lessons extends Page
             ['key' => 'all',        'label' => 'All',        'count' => $base()->count(),                                'color' => '#0891b2'],
             ['key' => 'video',      'label' => 'Video',      'count' => $base()->where('type', 'video')->count(),      'color' => '#2563eb'],
             ['key' => 'article',    'label' => 'Article',    'count' => $base()->where('type', 'article')->count(),    'color' => '#16a34a'],
-            ['key' => 'quiz',       'label' => 'Quiz',       'count' => $base()->where('type', 'quiz')->count(),       'color' => '#7c3aed'],
             ['key' => 'live',       'label' => 'Live',       'count' => $base()->where('type', 'live')->count(),       'color' => '#dc2626'],
             ['key' => 'assignment', 'label' => 'Assignment', 'count' => $base()->where('type', 'assignment')->count(), 'color' => '#d97706'],
         ];
 
         $query = Lesson::withoutGlobalScopes([SoftDeletingScope::class])
             ->with('section:id,title,course_id');
+
+        $courseTitle = $courseId ? Course::find($courseId)?->title : null;
 
         if ($courseId) {
             $query->whereHas('section', fn($q) => $q->where('course_id', $courseId));
@@ -116,9 +120,9 @@ class Lessons extends Page
 
         if ($search) {
             $query->where(function ($q) use ($search) {
-                $q->where('title', 'like', "%{$search}%")
-                  ->orWhereHas('section', fn($q2) => $q2->where('title', 'like', "%{$search}%")
-                      ->orWhereHas('course', fn($q3) => $q3->where('title', 'like', "%{$search}%")));
+                $q->where('title', 'ilike', "%{$search}%")
+                  ->orWhereHas('section', fn($q2) => $q2->where('title', 'ilike', "%{$search}%")
+                      ->orWhereHas('course', fn($q3) => $q3->where('title', 'ilike', "%{$search}%")));
             });
         }
 
@@ -129,6 +133,6 @@ class Lessons extends Page
         $curPage    = min($page, $totalPages);
         $lessons    = $query->skip(($curPage - 1) * $perPage)->take($perPage)->get();
 
-        return compact('tabs', 'tab', 'search', 'courseId', 'lessons', 'total', 'totalPages', 'curPage', 'perPage');
+        return compact('tabs', 'tab', 'search', 'courseId', 'courseTitle', 'lessons', 'total', 'totalPages', 'curPage', 'perPage');
     }
 }

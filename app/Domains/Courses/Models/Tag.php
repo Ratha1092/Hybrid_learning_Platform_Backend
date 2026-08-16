@@ -12,7 +12,8 @@ class Tag extends Model
 
     protected $fillable = [
         'name',
-        'slug'
+        'slug',
+        'deleted_by',
     ];
 
     protected static function booted(): void
@@ -26,6 +27,12 @@ class Tag extends Model
                     $slug = $base . '-' . $i++;
                 }
                 $tag->slug = $slug;
+            }
+        });
+        static::deleting(function (Tag $tag) {
+            if (auth()->check()) {
+                $tag->deleted_by = auth()->id();
+                $tag->saveQuietly();
             }
         });
     }

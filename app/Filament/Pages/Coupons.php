@@ -6,6 +6,7 @@ use App\Domains\Promotions\Models\Coupon;
 use App\Support\NavBadge;
 use App\Support\PanelAccess;
 use BackedEnum;
+use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Number;
@@ -80,6 +81,46 @@ class Coupons extends Page
         $this->page = max(1, $page);
     }
 
+    public function restoreCoupon(int $couponId): void
+    {
+        if (!PanelAccess::can('coupons.delete')) {
+            return;
+        }
+
+        $coupon = Coupon::onlyTrashed()->find($couponId);
+
+        if (!$coupon) {
+            return;
+        }
+
+        $coupon->restore();
+
+        Notification::make()
+            ->title('Coupon restored.')
+            ->success()
+            ->send();
+    }
+
+    public function forceDeleteCoupon(int $couponId): void
+    {
+        if (!PanelAccess::can('coupons.delete')) {
+            return;
+        }
+
+        $coupon = Coupon::onlyTrashed()->find($couponId);
+
+        if (!$coupon) {
+            return;
+        }
+
+        $coupon->forceDelete();
+
+        Notification::make()
+            ->title('Coupon permanently deleted.')
+            ->success()
+            ->send();
+    }
+
     protected function getViewData(): array
     {
         $search  = $this->search;
@@ -96,9 +137,10 @@ class Coupons extends Page
             })->count()],
             ['key' => 'expired',  'label' => 'Expired',  'count' => $base()->whereNotNull('expires_at')->where('expires_at', '<=', now())->count()],
             ['key' => 'disabled', 'label' => 'Disabled', 'count' => $base()->where('is_active', false)->count()],
+            ['key' => 'trashed',  'label' => 'Deleted',  'count' => Coupon::onlyTrashed()->count()],
         ];
 
-        $query = Coupon::query();
+        $query = $status === 'trashed' ? Coupon::onlyTrashed() : Coupon::query();
 
         if ($status === 'active') {
             $query->active()->where(function ($q) {
@@ -111,7 +153,7 @@ class Coupons extends Page
         }
 
         if ($search) {
-            $query->where('code', 'like', "%{$search}%");
+            $query->where('code', 'ilike', "%{$search}%");
         }
 
         $query->orderBy('created_at', 'desc');

@@ -16,12 +16,23 @@ class StudentProfile extends Model
         'learning_goals',
         'interests',
         'github',
-        'linkedin'
+        'linkedin',
+        'deleted_by',
     ];
 
     protected $casts = [
         'interests' => 'array',
     ];
+
+    protected static function booted(): void
+    {
+        static::deleting(function (StudentProfile $profile) {
+            if (auth()->check()) {
+                $profile->deleted_by = auth()->id();
+                $profile->saveQuietly();
+            }
+        });
+    }
 
     public function user()
     {

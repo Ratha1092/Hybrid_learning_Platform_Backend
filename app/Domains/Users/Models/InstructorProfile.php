@@ -16,8 +16,19 @@ class InstructorProfile extends Model
         'website',
         'twitter',
         'linkedin',
-        'youtube'
+        'youtube',
+        'deleted_by',
     ];
+
+    protected static function booted(): void
+    {
+        static::deleting(function (InstructorProfile $profile) {
+            if (auth()->check()) {
+                $profile->deleted_by = auth()->id();
+                $profile->saveQuietly();
+            }
+        });
+    }
 
     public function user()
     {

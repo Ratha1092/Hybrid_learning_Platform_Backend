@@ -38,6 +38,10 @@ class InstructorSectionLessonController extends Controller
             return ApiResponse::error('Section not found', 404);
         }
 
+        if ($locked = $this->pendingReviewError($section)) {
+            return $locked;
+        }
+
         if ($section->course_id) {
             $maxLessons = (int) Setting::get('max_lessons_per_course', 200);
             if ($maxLessons > 0 && $section->course->lessons()->count() >= $maxLessons) {
@@ -47,7 +51,7 @@ class InstructorSectionLessonController extends Controller
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'type' => 'required|in:video,article,quiz',
+            'type' => 'required|in:video,article',
             'video_url' => 'nullable|url',
             'content' => 'nullable|string',
             'duration' => 'nullable|integer|min:0',
@@ -84,9 +88,13 @@ class InstructorSectionLessonController extends Controller
             return ApiResponse::error('Lesson not found', 404);
         }
 
+        if ($locked = $this->pendingReviewError($section)) {
+            return $locked;
+        }
+
         $validated = $request->validate([
             'title' => 'nullable|string|max:255',
-            'type' => 'nullable|in:video,article,quiz',
+            'type' => 'nullable|in:video,article',
             'video_url' => 'nullable|url',
             'content' => 'nullable|string',
             'duration' => 'nullable|integer|min:0',
@@ -112,6 +120,10 @@ class InstructorSectionLessonController extends Controller
 
         if (!$lesson) {
             return ApiResponse::error('Lesson not found', 404);
+        }
+
+        if ($locked = $this->pendingReviewError($section)) {
+            return $locked;
         }
 
         $allowedFormats = Setting::get('allowed_video_formats', 'mp4,mov,avi,webm');
@@ -160,6 +172,10 @@ class InstructorSectionLessonController extends Controller
             return ApiResponse::error('Lesson not found', 404);
         }
 
+        if ($locked = $this->pendingReviewError($section)) {
+            return $locked;
+        }
+
         $lesson->delete();
 
         return ApiResponse::success(null, 'Lesson deleted successfully');
@@ -180,5 +196,17 @@ class InstructorSectionLessonController extends Controller
             : $section->instructor_id;
 
         return $ownerId === auth()->id() ? $section : null;
+    }
+
+    // Standalone sections (no course yet) are always editable. Once attached
+    // to a course, lesson edits are locked while that course awaits review —
+    // same rule as editing the course/section directly.
+    private function pendingReviewError(Section $section): ?\Illuminate\Http\JsonResponse
+    {
+        if ($section->course_id && $section->course?->isPendingReview()) {
+            return ApiResponse::error('This course is pending review and cannot be edited until it is approved or rejected.', 422);
+        }
+
+        return null;
     }
 }

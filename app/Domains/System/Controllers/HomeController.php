@@ -64,7 +64,12 @@ class HomeController extends Controller
     {
         $courses = Course::with('instructor:id,name,avatar')
             ->withAvg(['reviews as average_rating' => fn ($q) => $q->where('is_approved', true)], 'rating')
-            ->withCount(['reviews as reviews_count' => fn ($q) => $q->where('is_approved', true)])
+            ->withCount([
+                'reviews as reviews_count' => fn ($q) => $q->where('is_approved', true),
+                'sections',
+                'enrollments as students_count',
+            ])
+            ->withSum('lessons as total_duration_seconds', 'duration')
             ->where('is_published', true)
             ->latest()
             ->take(9)
@@ -97,6 +102,7 @@ class HomeController extends Controller
                 'id' => $u->id,
                 'name' => $u->name,
                 'avatar' => $u->avatar,
+                'avatar_url' => $u->avatar_url,
                 'bio' => $u->instructorProfile?->bio,
                 'courses' => $u->courses_count,
                 'students' => (int) ($u->students_count ?? 0),

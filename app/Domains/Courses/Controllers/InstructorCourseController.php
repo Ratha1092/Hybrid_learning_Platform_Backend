@@ -75,6 +75,10 @@ class InstructorCourseController extends Controller
             );
         }
 
+        if ($course->isPendingReview()) {
+            return ApiResponse::error('This course is pending review and cannot be edited until it is approved or rejected.', 422);
+        }
+
         $validated = $request->validate([
             'title'               => ['sometimes', 'string', 'max:255'],
             'description'         => ['nullable', 'string'],
@@ -83,7 +87,6 @@ class InstructorCourseController extends Controller
             'level'               => ['nullable', 'string'],
             'language'            => ['nullable', 'string'],
             'category_id'         => ['sometimes', 'exists:categories,id'],
-            'preview_video_url'   => ['nullable', 'url'],
             'requirements'        => ['nullable', 'string'],
             'what_you_will_learn' => ['nullable', 'string'],
             'visibility'          => ['sometimes', 'in:public,private'],
@@ -165,8 +168,10 @@ class InstructorCourseController extends Controller
             return ApiResponse::error('Course is already published.',400);
         }
 
-        $autoApprove = Setting::get('course_auto_approval', false)
-            && !Setting::get('course_review_required', true);
+        $isFree = (float) $course->price <= 0.0;
+
+        $autoApprove = ($isFree && Setting::get('free_course_auto_approval', false))
+            || (Setting::get('course_auto_approval', false) && !Setting::get('course_review_required', true));
 
         if ($autoApprove) {
             $course->publish((int) $course->instructor_id);

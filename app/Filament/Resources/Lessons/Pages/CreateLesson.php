@@ -5,7 +5,6 @@ namespace App\Filament\Resources\Lessons\Pages;
 use App\Domains\Courses\Models\Section as CourseSection;
 use App\Filament\Resources\Lessons\LessonResource;
 use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -47,7 +46,6 @@ class CreateLesson extends CreateRecord
                             ->options([
                                 'video'      => 'Video',
                                 'article'    => 'Article',
-                                'quiz'       => 'Quiz',
                                 'file'       => 'File / Document',
                                 'live'       => 'Live',
                                 'assignment' => 'Assignment',
@@ -93,33 +91,6 @@ class CreateLesson extends CreateRecord
             ->statePath('data')
             ->components([
                 RichEditor::make('content')->columnSpanFull(),
-            ]);
-    }
-
-    // ── Quiz sub-form ───────────────────────────────────────────
-    public function quizForm(Schema $schema): Schema
-    {
-        return $schema
-            ->statePath('data')
-            ->components([
-                Repeater::make('quiz_data')
-                    ->label('')
-                    ->schema([
-                        TextInput::make('question')->required()->columnSpanFull(),
-                        TextInput::make('option_a')->label('Option A')->required(),
-                        TextInput::make('option_b')->label('Option B')->required(),
-                        TextInput::make('option_c')->label('Option C'),
-                        TextInput::make('option_d')->label('Option D'),
-                        Select::make('correct')
-                            ->label('Correct Answer')
-                            ->options(['a'=>'Option A','b'=>'Option B','c'=>'Option C','d'=>'Option D'])
-                            ->required(),
-                        Textarea::make('explanation')->rows(2)->columnSpanFull(),
-                    ])
-                    ->columns(2)
-                    ->addActionLabel('Add Question')
-                    ->collapsible()
-                    ->columnSpanFull(),
             ]);
     }
 
@@ -179,7 +150,7 @@ class CreateLesson extends CreateRecord
 
     protected function getForms(): array
     {
-        return ['form', 'videoForm', 'articleForm', 'quizForm', 'fileForm', 'attachmentForm'];
+        return ['form', 'videoForm', 'articleForm', 'fileForm', 'attachmentForm'];
     }
 
     protected function mutateFormDataBeforeCreate(array $data): array
@@ -188,7 +159,7 @@ class CreateLesson extends CreateRecord
 
         // Merge sub-form states (all share statePath('data') so they may overlap;
         // explicit merge ensures latest values are used)
-        foreach (['videoForm', 'articleForm', 'quizForm', 'fileForm', 'attachmentForm'] as $f) {
+        foreach (['videoForm', 'articleForm', 'fileForm', 'attachmentForm'] as $f) {
             $data = array_merge($data, $this->{$f}->getState());
         }
 
@@ -197,9 +168,6 @@ class CreateLesson extends CreateRecord
             $data['video_path']     = null;
             $data['video_url']      = null;
             $data['video_provider'] = null;
-        }
-        if ($type !== 'quiz') {
-            $data['quiz_data'] = null;
         }
         if ($type === 'video' || $type === 'article') {
             // attachment is allowed for video/article

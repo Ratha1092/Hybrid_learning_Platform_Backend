@@ -53,7 +53,7 @@ class SearchController extends Controller
                     'slug'           => $c->slug,
                     'thumbnail'      => $c->thumbnail_url,
                     'price'          => (float) $c->price,
-                    'instructor'     => ['id' => $c->instructor?->id, 'name' => $c->instructor?->name, 'avatar' => $c->instructor?->avatar],
+                    'instructor'     => ['id' => $c->instructor?->id, 'name' => $c->instructor?->name, 'avatar' => $c->instructor?->avatar, 'avatar_url' => $c->instructor?->avatar_url],
                     'category'       => ['id' => $c->category?->id,   'name' => $c->category?->name],
                     'enrollments'    => $c->enrollments_count,
                     'average_rating' => $c->average_rating ? round($c->average_rating, 1) : null,
@@ -74,11 +74,12 @@ class SearchController extends Controller
                 ->limit($limit)
                 ->get()
                 ->map(fn ($u) => [
-                    'id'      => $u->id,
-                    'name'    => $u->name,
-                    'avatar'  => $u->avatar,
-                    'courses' => $u->courses_count,
-                    'type'    => 'instructor',
+                    'id'         => $u->id,
+                    'name'       => $u->name,
+                    'avatar'     => $u->avatar,
+                    'avatar_url' => $u->avatar_url,
+                    'courses'    => $u->courses_count,
+                    'type'       => 'instructor',
                 ]);
         }
 

@@ -79,7 +79,7 @@ class Roles extends Page
         $query = Role::withCount(['permissions', 'users']);
 
         if ($search) {
-            $query->where('name', 'like', "%{$search}%");
+            $query->where('name', 'ilike', "%{$search}%");
         }
 
         $query->orderBy('name');

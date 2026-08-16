@@ -205,8 +205,8 @@ class Payouts extends Page
 
         if ($search) {
             $query->whereHas('instructor', fn ($q) => $q
-                ->where('name', 'like', "%{$search}%")
-                ->orWhere('email', 'like', "%{$search}%"));
+                ->where('name', 'ilike', "%{$search}%")
+                ->orWhere('email', 'ilike', "%{$search}%"));
         }
 
         $query->orderBy('id', 'desc');

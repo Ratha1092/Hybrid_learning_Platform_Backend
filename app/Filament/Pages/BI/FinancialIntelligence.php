@@ -8,7 +8,6 @@ use App\Domains\Finance\Models\PayoutRequest;
 use App\Domains\Orders\Enums\OrderPaymentStatus;
 use App\Domains\Orders\Models\Order;
 use App\Domains\Orders\Models\OrderItem;
-use App\Domains\Orders\Models\Refund;
 use App\Domains\Payments\Enums\PaymentStatus;
 use App\Domains\Payments\Models\Payment;
 use App\Domains\Users\Models\User;
@@ -100,21 +99,19 @@ class FinancialIntelligence extends Page
             $grossRevenue      = (float) OrderItem::whereIn('order_id', $paidOrderIds)->sum('final_amount');
             $platformProfit    = (float) OrderItem::whereIn('order_id', $paidOrderIds)->sum('platform_amount');
             $instructorEarnings= (float) OrderItem::whereIn('order_id', $paidOrderIds)->sum('instructor_amount');
-            $refundAmount      = (float) static::applyDateRange(Refund::query(), 'created_at', $from, $to)->sum('amount');
             $taxCollected      = (float) static::applyDateRange(Invoice::query(), 'issued_at', $from, $to)->sum('tax_amount');
             $totalWalletBalance= (float) InstructorWallet::sum('balance');
             $pendingPayout     = (float) InstructorWallet::sum('pending_balance');
             $completedPayout   = (float) static::applyDateRange(
                 PayoutRequest::query()->where('status', 'approved'), 'processed_at', $from, $to
             )->sum('amount');
-            $cashFlow          = $grossRevenue - $completedPayout - $refundAmount;
+            $cashFlow          = $grossRevenue - $completedPayout;
             $operatingMargin   = $grossRevenue > 0 ? round(($platformProfit / $grossRevenue) * 100, 1) : 0.0;
 
             // Cash flow monthly (12 months)
             $cfLabels  = [];
             $cfRevenue = [];
             $cfPayouts = [];
-            $cfRefunds = [];
             for ($i = 11; $i >= 0; $i--) {
                 $m    = now()->subMonths($i)->startOfMonth();
                 $mEnd = (clone $m)->endOfMonth();
@@ -124,7 +121,6 @@ class FinancialIntelligence extends Page
                 $cfRevenue[] = (float) OrderItem::whereIn('order_id', $mOrderIds)->sum('final_amount');
                 $cfPayouts[] = (float) PayoutRequest::where('status', 'approved')
                     ->whereBetween('processed_at', [$m, $mEnd])->sum('amount');
-                $cfRefunds[] = (float) Refund::whereBetween('created_at', [$m, $mEnd])->sum('amount');
             }
 
             // Payout trend (6 months)
@@ -161,14 +157,12 @@ class FinancialIntelligence extends Page
                     'completedPayout'    => $completedPayout,
                     'totalWalletBalance' => $totalWalletBalance,
                     'taxCollected'       => $taxCollected,
-                    'refundAmount'       => $refundAmount,
                     'operatingMargin'    => $operatingMargin,
                     'cashFlow'           => $cashFlow,
                 ],
                 'cfLabels'  => $cfLabels,
                 'cfRevenue' => $cfRevenue,
                 'cfPayouts' => $cfPayouts,
-                'cfRefunds' => $cfRefunds,
                 'ptLabels'  => $ptLabels,
                 'ptValues'  => $ptValues,
                 'pendingPayouts'       => $pendingPayouts,

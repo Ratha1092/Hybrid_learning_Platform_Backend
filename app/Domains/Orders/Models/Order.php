@@ -32,7 +32,6 @@ class Order extends Model
         'customer_email',
         'paid_at',
         'cancelled_at',
-        'refunded_at',
         'coupon_code',
         'coupon_id',
         'deleted_by',
@@ -46,7 +45,6 @@ class Order extends Model
         'payment_status' => OrderPaymentStatus::class,
         'paid_at' => 'datetime',
         'cancelled_at' => 'datetime',
-        'refunded_at' => 'datetime',
     ];
 
     protected static function booted(): void
@@ -104,10 +102,6 @@ class Order extends Model
         return $this->status === OrderStatus::Cancelled;
     }
 
-    public function isRefunded(): bool
-    {
-        return $this->status === OrderStatus::Refunded;
-    }
     public function isPaid(): bool
     {
         return $this->payment_status === OrderPaymentStatus::Paid;

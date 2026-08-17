@@ -30,14 +30,11 @@ class LessonsTable
                     ->color(fn (string $state): string => match ($state) {
                         Lesson::TYPE_VIDEO      => 'success',
                         Lesson::TYPE_ARTICLE    => 'info',
-                        Lesson::TYPE_QUIZ       => 'warning',
                         Lesson::TYPE_FILE       => 'danger',
-                        Lesson::TYPE_LIVE       => 'primary',
-                        Lesson::TYPE_ASSIGNMENT => 'gray',
                         default                 => 'gray',
                     }),
                 Tables\Columns\TextColumn::make('duration')
-                    ->suffix(' min'),
+                    ->formatStateUsing(fn (mixed $state): string => filled($state) ? round(((float) $state) / 60) . ' min' : '—'),
                 Tables\Columns\IconColumn::make('is_preview')
                     ->boolean()
                     ->label('Preview'),
@@ -52,10 +49,7 @@ class LessonsTable
                     ->options([
                         Lesson::TYPE_VIDEO      => 'Video',
                         Lesson::TYPE_ARTICLE    => 'Article',
-                        Lesson::TYPE_QUIZ       => 'Quiz',
                         Lesson::TYPE_FILE       => 'File / Document',
-                        Lesson::TYPE_LIVE       => 'Live',
-                        Lesson::TYPE_ASSIGNMENT => 'Assignment',
                     ]),
                 Tables\Filters\TrashedFilter::make(),
             ])

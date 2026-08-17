@@ -11,6 +11,7 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Resources\Pages\CreateRecord;
 
@@ -44,16 +45,20 @@ class CreateLesson extends CreateRecord
                         TextInput::make('title')->required()->maxLength(255),
                         Select::make('type')
                             ->options([
-                                'video'      => 'Video',
-                                'article'    => 'Article',
-                                'file'       => 'File / Document',
-                                'live'       => 'Live',
-                                'assignment' => 'Assignment',
+                                'video'   => 'Video',
+                                'article' => 'Article',
+                                'file'    => 'File / Document',
                             ])
                             ->default('video')
+                            ->live()
                             ->required(),
                         Textarea::make('description')->rows(3)->columnSpanFull(),
-                        TextInput::make('duration')->numeric()->default(null),
+                        TextInput::make('duration')
+                            ->numeric()
+                            ->suffix('minutes')
+                            ->dehydrateStateUsing(fn (mixed $state) => filled($state) ? (int) round(((float) $state) * 60) : null)
+                            ->hidden(fn (Get $get): bool => $get('type') === 'article')
+                            ->default(null),
                         TextInput::make('order')->numeric()->default(1),
                         Toggle::make('is_preview')->default(false),
                     ]),
@@ -168,6 +173,9 @@ class CreateLesson extends CreateRecord
             $data['video_path']     = null;
             $data['video_url']      = null;
             $data['video_provider'] = null;
+        }
+        if ($type === 'article') {
+            $data['duration'] = null;
         }
         if ($type === 'video' || $type === 'article') {
             // attachment is allowed for video/article

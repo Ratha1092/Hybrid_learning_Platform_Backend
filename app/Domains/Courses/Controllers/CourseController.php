@@ -100,6 +100,13 @@ class CourseController extends Controller
 
                 $canWatch = $hasAccess || $lesson->is_preview;
                 $lessonData['video_url'] = $canWatch ? $this->resolveVideoUrl($lesson) : null;
+                unset($lessonData['video_path']);
+
+                if (!$canWatch) {
+                    $lessonData['content'] = null;
+                    $lessonData['attachment'] = null;
+                    $lessonData['attachment_name'] = null;
+                }
 
                 return $lessonData;
             });

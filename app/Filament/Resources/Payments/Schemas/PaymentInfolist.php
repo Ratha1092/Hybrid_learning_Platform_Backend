@@ -39,7 +39,6 @@ class PaymentInfolist
                                 in_array($state?->value ?? $state, ['paid', 'completed']) => 'success',
                                 in_array($state?->value ?? $state, ['pending', 'processing']) => 'warning',
                                 in_array($state?->value ?? $state, ['failed', 'expired']) => 'danger',
-                                ($state?->value ?? $state) === 'refunded' => 'info',
                                 default => 'gray',
                             }),
                         TextEntry::make('payment_gateway')

@@ -9,7 +9,6 @@ use App\Domains\Courses\Models\Section;
 use App\Domains\Users\Models\User;
 use App\Domains\Users\Models\InstructorVerification;
 use App\Domains\Orders\Models\Order;
-use App\Domains\Orders\Models\Refund;
 use App\Domains\Orders\Enums\OrderPaymentStatus;
 use App\Domains\Orders\Enums\OrderStatus;
 use App\Domains\Payments\Enums\PaymentStatus;
@@ -214,21 +213,21 @@ class Dashboard extends BaseDashboard implements Schedulable
 
         $newOrdersToday = Order::whereDate('created_at', today())->count();
 
-        $recentOrders   = Order::with(['user', 'payment', 'items.course'])->latest()->take(5)->get();
-        $recentPayments = Payment::with(['order'])
+        $recentOrdersQ = Order::with(['user', 'payment', 'items.course']);
+        $this->applyDateRange($recentOrdersQ, 'created_at', $from, $to);
+        $recentOrders = $recentOrdersQ->latest()->take(5)->get();
+
+        $recentPaymentsQ = Payment::with(['order'])
             ->when($gatewayFilter !== 'all', fn($q) => $q->where('payment_gateway', $gatewayFilter))
-            ->when($statusFilter  !== 'all', fn($q) => $q->where('status', $statusFilter))
-            ->latest()->take(6)->get();
+            ->when($statusFilter  !== 'all', fn($q) => $q->where('status', $statusFilter));
+        $this->applyDateRange($recentPaymentsQ, 'created_at', $from, $to);
+        $recentPayments = $recentPaymentsQ->latest()->take(6)->get();
 
         $totalInstructorBalance = InstructorWallet::sum('balance');
         $totalPendingBalance    = InstructorWallet::sum('pending_balance');
 
         //  Payouts
         $pendingPayoutsCount = PayoutRequest::where('status', 'pending')->count();
-
-        //  Refunds
-        $recentRefundsCount = Refund::count();
-        $recentRefunds = Refund::with(['order.user'])->latest()->take(5)->get();
 
         //  Enrollments
         $enrollmentsThisMonth = Enrollment::whereMonth('enrolled_at', now()->month)
@@ -239,9 +238,11 @@ class Dashboard extends BaseDashboard implements Schedulable
             ? round(($enrollmentsThisMonth - $enrollmentsLastMonth) / $enrollmentsLastMonth * 100, 1)
             : 0;
 
-        $avgCompletionRate = (int) round(Enrollment::where('status', 'active')->avg('progress_percentage') ?? 0);
+        $avgCompletionRate = (int) round(
+            Enrollment::whereIn('status', ['active', 'completed'])->avg('progress_percentage') ?? 0
+        );
         $avgCompletionRatePrev = (int) round(
-            Enrollment::where('status', 'active')
+            Enrollment::whereIn('status', ['active', 'completed'])
                 ->whereMonth('enrolled_at', now()->subMonth()->month)
                 ->whereYear('enrolled_at', now()->subMonth()->year)
                 ->avg('progress_percentage') ?? 0
@@ -250,34 +251,45 @@ class Dashboard extends BaseDashboard implements Schedulable
             ? round($avgCompletionRate - $avgCompletionRatePrev, 1)
             : 0;
 
-        //  Popular courses (by enrollments) 
+        //  Popular courses (by enrollments)
+        $revenueDateSql = '';
+        $revenueBindings = [];
+        if ($from) {
+            $revenueDateSql   .= ' AND o.created_at >= ?';
+            $revenueBindings[] = $from;
+        }
+        if ($to) {
+            $revenueDateSql   .= ' AND o.created_at < ?';
+            $revenueBindings[] = $to->copy()->addDay()->startOfDay();
+        }
+
         $popularCourses = Course::with('instructor')
             ->where('is_published', true)
-            ->withCount('enrollments')
+            ->withCount(['enrollments' => fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to)])
             ->selectRaw("courses.*, (
                 SELECT COALESCE(SUM(oi.instructor_amount), 0)
                 FROM order_items oi
                 JOIN orders o ON o.id = oi.order_id
-                WHERE oi.course_id = courses.id AND o.payment_status = 'paid'
-            ) as course_revenue")
+                WHERE oi.course_id = courses.id AND o.payment_status = 'paid'{$revenueDateSql}
+            ) as course_revenue", $revenueBindings)
             ->orderByDesc('enrollments_count')
             ->take(5)
             ->get();
 
-        //  Low rated courses (avg < 3, all reviews) 
+        //  Low rated courses (avg < 3, reviews in range)
         $lowRatedCourses = Course::with('instructor')
             ->where('is_published', true)
-            ->withAvg('reviews', 'rating')
-            ->withCount('reviews')
-            ->whereHas('reviews')
+            ->withAvg(['reviews' => fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to)], 'rating')
+            ->withCount(['reviews' => fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to)])
+            ->whereHas('reviews', fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to))
             ->get()
             ->filter(fn($c) => ($c->reviews_avg_rating ?? 5) < 3)
             ->sortBy('reviews_avg_rating')
             ->take(5)
             ->values();
 
-        //  Top instructors by revenue 
-        $topInstructors = $this->buildTopInstructors();
+        //  Top instructors by revenue
+        $topInstructors = $this->buildTopInstructors($from, $to);
 
         //  System health
         try {
@@ -346,7 +358,6 @@ class Dashboard extends BaseDashboard implements Schedulable
             'completed' => $paidBase()->count(),
             'pending'   => $payBase()->where('status', PaymentStatus::Pending->value)->count(),
             'failed'    => $payBase()->where('status', PaymentStatus::Failed->value)->count(),
-            'refunded'  => $payBase()->where('status', PaymentStatus::Refunded->value)->count(),
         ];
 
         $paymentGatewayBreakdown = collect([
@@ -415,11 +426,6 @@ class Dashboard extends BaseDashboard implements Schedulable
             'paymentStatusBreakdown'  => $paymentStatusBreakdown,
             'paymentGatewayBreakdown' => $paymentGatewayBreakdown,
             'pendingPayoutsCount'     => $pendingPayoutsCount,
-
-            // Refunds
-            'recentRefunds'      => $recentRefunds,
-            'recentRefundsCount' => $recentRefundsCount,
-            'refundsThisMonth'   => Refund::whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->count(),
 
             // Enrollments
             'enrollmentsThisMonth'  => $enrollmentsThisMonth,
@@ -554,13 +560,15 @@ class Dashboard extends BaseDashboard implements Schedulable
     // Top instructors by revenue
     //
 
-    private function buildTopInstructors(): array
+    private function buildTopInstructors($from = null, $to = null): array
     {
         try {
             return DB::table('order_items as oi')
                 ->join('orders as o', 'o.id', '=', 'oi.order_id')
                 ->join('users as u', 'u.id', '=', 'oi.instructor_id')
                 ->where('o.payment_status', 'paid')
+                ->when($from, fn ($q) => $q->where('o.created_at', '>=', $from))
+                ->when($to, fn ($q) => $q->where('o.created_at', '<', $to->copy()->addDay()->startOfDay()))
                 ->groupBy('oi.instructor_id', 'u.name', 'u.email')
                 ->selectRaw("
                     oi.instructor_id as id,

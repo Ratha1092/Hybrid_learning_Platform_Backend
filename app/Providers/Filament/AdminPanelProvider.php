@@ -118,13 +118,10 @@ class AdminPanelProvider extends PanelProvider
                         ? $pageClass::getNavigationLabel()
                         : Str::headline(Str::afterLast(request()->route()?->getName() ?? 'Dashboard', '.'));
 
-                    $slug = e(Str::slug(filament()->getBrandName()));
                     $title = e($title);
 
                     return <<<HTML
                     <div class="hl-breadcrumb">
-                        <span class="hl-breadcrumb-slug">{$slug}</span>
-                        <span class="hl-breadcrumb-sep">/</span>
                         <span class="hl-breadcrumb-title">{$title}</span>
                     </div>
                     HTML;

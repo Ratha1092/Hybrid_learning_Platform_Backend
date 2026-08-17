@@ -10,7 +10,6 @@
         'completed' => ['bg' => 'rgba(52,211,153,.14)', 'color' => '#059669', 'dot' => '#10b981', 'label' => 'Completed'],
         'pending'   => ['bg' => 'rgba(251,191,36,.14)', 'color' => '#d97706', 'dot' => '#f59e0b', 'label' => 'Pending'],
         'cancelled' => ['bg' => 'rgba(248,113,113,.14)', 'color' => '#dc2626', 'dot' => '#ef4444', 'label' => 'Cancelled'],
-        'refunded'  => ['bg' => 'rgba(99,102,241,.14)', 'color' => '#6366f1', 'dot' => '#818cf8', 'label' => 'Refunded'],
         default     => ['bg' => 'rgba(148,163,184,.12)', 'color' => '#64748b', 'dot' => '#94a3b8', 'label' => ucfirst($statusVal)],
     };
 
@@ -22,7 +21,6 @@
         'failed'     => ['bg' => 'rgba(248,113,113,.12)', 'color' => '#dc2626', 'label' => 'Failed'],
         'expired'    => ['bg' => 'rgba(248,113,113,.12)', 'color' => '#dc2626', 'label' => 'Expired'],
         'cancelled'  => ['bg' => 'rgba(248,113,113,.12)', 'color' => '#dc2626', 'label' => 'Cancelled'],
-        'refunded'   => ['bg' => 'rgba(99,102,241,.12)', 'color' => '#6366f1', 'label' => 'Refunded'],
         default      => ['bg' => 'rgba(148,163,184,.1)', 'color' => '#64748b', 'label' => ucfirst($payStatusVal)],
     };
 

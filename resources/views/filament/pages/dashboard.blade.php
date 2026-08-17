@@ -787,7 +787,7 @@ html.dark .db-avatar {
         grid-template-columns:1fr;
     }
 }
-/* Orders/refunds wide row */
+/* Orders wide row */
 .db-orders-row {
     display:grid;
     grid-template-columns:3fr 2fr;
@@ -1252,15 +1252,6 @@ function dbCustomDate() {
                 <div class="db-action-lbl">Instructor Verifications<br>Pending</div>
             </div>
         </a>
-        <a href="{{ route('filament.admin.pages.refunds') }}" wire:navigate class="db-action-item">
-            <div class="db-action-icon" style="background:var(--db-amber-l);">
-                <svg viewBox="0 0 24 24" fill="none" stroke="var(--db-amber)" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>
-            </div>
-            <div>
-                <div class="db-action-num">{{ $refundsThisMonth }}</div>
-                <div class="db-action-lbl">Refunds<br>This Month</div>
-            </div>
-        </a>
         <a href="{{ route('filament.admin.pages.courses') }}" wire:navigate class="db-action-item">
             <div class="db-action-icon" style="background:var(--db-amber-l);">
                 <svg viewBox="0 0 24 24" fill="none" stroke="var(--db-amber)" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
@@ -1534,9 +1525,8 @@ function dbCustomDate() {
     </div>
 </div>
 
-{{-- Row 7: Recent Orders (wide) + Recent Refunds --}}
-<div class="db-orders-row">
-    {{-- Recent Orders --}}
+{{-- Row 7: Recent Orders --}}
+<div style="margin-bottom:1rem">
     <div class="db-card">
         <div class="db-card-header">
             <span class="db-card-title">
@@ -1575,7 +1565,6 @@ function dbCustomDate() {
                         'failed'      => ['db-badge-red',    'Failed'],
                         'expired'     => ['db-badge-gray',   'Expired'],
                         'cancelled'   => ['db-badge-gray',   'Cancelled'],
-                        'refunded'    => ['db-badge-purple', 'Refunded'],
                         default       => ['db-badge-gray',   ucfirst($payStatus)],
                     };
                     $gw          = optional($order->payment)->payment_gateway?->value ?? '—';
@@ -1593,57 +1582,6 @@ function dbCustomDate() {
                 <tr><td colspan="6" class="db-empty">No orders yet.</td></tr>
                 @endforelse
             </tbody>
-        </table>
-        </div>
-    </div>
-
-    {{-- Recent Refunds --}}
-    <div class="db-card">
-        <div class="db-card-header">
-            <span class="db-card-title">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--db-red)" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>
-                Recent Refund Requests
-            </span>
-            <a href="{{ route('filament.admin.pages.refunds') }}" class="db-view-all">View All &rsaquo;</a>
-        </div>
-        <div style="overflow-x:auto">
-        <table class="db-table" style="table-layout:fixed;width:100%;">
-            <colgroup>
-                <col style="width:22%">{{-- Refund # --}}
-                <col style="width:24%">{{-- Student --}}
-                <col style="width:18%">{{-- Amount --}}
-                <col style="width:22%">{{-- Reason --}}
-                <col style="width:14%">{{-- Status --}}
-            </colgroup>
-                <thead><tr>
-                    <th>Refund #</th>
-                    <th>Student</th>
-                    <th>Amount</th>
-                    <th>Reason</th>
-                    <th>Status</th>
-                </tr></thead>
-                <tbody>
-                    @forelse($recentRefunds as $refund)
-                    @php
-                        $orderStatus = optional($refund->order)->status?->value ?? 'refunded';
-                        [$rbc, $rlbl] = match($orderStatus) {
-                            'refunded'  => ['db-badge-purple', 'Refunded'],
-                            'completed' => ['db-badge-green',  'Completed'],
-                            'cancelled' => ['db-badge-gray',   'Cancelled'],
-                            default     => ['db-badge-green',  'Processed'],
-                        };
-                    @endphp
-                    <tr>
-                        <td class="db-trunc"><span class="db-link" style="font-size:.75rem;">REF-{{ str_pad($refund->id, 4, '0', STR_PAD_LEFT) }}</span></td>
-                        <td class="db-trunc db-name">{{ optional(optional($refund->order)->user)->name ?? '—' }}</td>
-                        <td class="db-mono db-trunc" style="font-weight:600;color:var(--db-red);">${{ number_format($refund->amount, 2) }}</td>
-                        <td class="db-sub db-trunc" title="{{ $refund->reason }}">{{ $refund->reason ?? '—' }}</td>
-                        <td><span class="db-badge {{ $rbc }}">{{ $rlbl }}</span></td>
-                    </tr>
-                    @empty
-                    <tr><td colspan="5" class="db-empty">No refunds yet.</td></tr>
-                    @endforelse
-                </tbody>
         </table>
         </div>
     </div>

@@ -23,6 +23,7 @@ class InstructorCourseController extends Controller
     {
         $courses = Course::query()
             ->where('instructor_id', auth()->id())
+            ->withCount(['enrollments as student_count' => fn ($q) => $q->whereIn('status', ['active', 'completed'])])
             ->latest()
             ->get();
 

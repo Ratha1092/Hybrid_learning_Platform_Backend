@@ -513,7 +513,7 @@ html:not(.dark) .lp {
 
                     <td>
                         <span class="lp-duration">
-                            {{ $lesson->duration ? $lesson->duration . ' min' : '—' }}
+                            {{ $lesson->duration ? round($lesson->duration / 60) . ' min' : '—' }}
                         </span>
                     </td>
 

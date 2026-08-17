@@ -26,7 +26,8 @@ class LessonInfolist
                         TextEntry::make('type')
                             ->badge(),
                         TextEntry::make('duration')
-                            ->suffix(' minutes'),
+                            ->label('Duration')
+                            ->formatStateUsing(fn (mixed $state): string => filled($state) ? round(((float) $state) / 60) . ' minutes' : '—'),
                         TextEntry::make('is_preview')
                             ->badge()
                             ->formatStateUsing(

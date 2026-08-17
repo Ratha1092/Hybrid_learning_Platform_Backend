@@ -85,11 +85,6 @@
             @endif
         </div>
         <div class="bi-kpi">
-            <div class="bi-kpi-label">Net Revenue</div>
-            <div class="bi-kpi-value">${{ number_format($kpis['netRevenue'], 2) }}</div>
-            <div class="bi-kpi-sub">After refunds</div>
-        </div>
-        <div class="bi-kpi">
             <div class="bi-kpi-label">Platform Commission</div>
             <div class="bi-kpi-value">${{ number_format($kpis['platformRevenue'], 2) }}</div>
             <div class="bi-kpi-sub">Platform earnings</div>
@@ -120,11 +115,6 @@
         <div class="bi-kpi">
             <div class="bi-kpi-label">Published Courses</div>
             <div class="bi-kpi-value">{{ number_format($kpis['publishedCourses']) }}</div>
-        </div>
-        <div class="bi-kpi">
-            <div class="bi-kpi-label">Refund Rate</div>
-            <div class="bi-kpi-value {{ $kpis['refundRate'] > 5 ? '' : '' }}">{{ $kpis['refundRate'] }}%</div>
-            <div class="bi-kpi-sub">{{ $kpis['refundRate'] <= 5 ? 'Healthy' : 'Review needed' }}</div>
         </div>
         <div class="bi-kpi">
             <div class="bi-kpi-label">Completion Rate</div>

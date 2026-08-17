@@ -10,7 +10,6 @@ use App\Domains\Learning\Models\Wishlist;
 use App\Domains\Orders\Enums\OrderPaymentStatus;
 use App\Domains\Orders\Models\Order;
 use App\Domains\Orders\Models\OrderItem;
-use App\Domains\Orders\Models\Refund;
 use App\Domains\Promotions\Models\Coupon;
 use App\Support\Concerns\HasBiCsvExport;
 use App\Support\Concerns\HasDateRangePresets;
@@ -110,8 +109,6 @@ class MarketplaceIntelligence extends Page
             $totalSales       = OrderItem::count();
             $avgRevenuePerCourse = $publishedCount > 0 ? round((float) OrderItem::sum('final_amount') / $publishedCount, 2) : 0.0;
 
-            $refundCount      = (int) static::applyDateRange(Refund::query(), 'created_at', $from, $to)->count();
-            $refundRate       = $totalOrders > 0 ? round($refundCount / $totalOrders * 100, 1) : 0.0;
             $conversionRate   = $uniqueViewers > 0 ? round($totalOrders / $uniqueViewers * 100, 1) : 0.0;
 
             // Coupon usage
@@ -167,7 +164,6 @@ class MarketplaceIntelligence extends Page
                     'platformRevenue'     => $platformCommission,
                     'avgPrice'            => $avgCoursePrice,
                     'avgRevPerCourse'     => $avgRevenuePerCourse,
-                    'refundRate'          => $refundRate,
                     'conversionRate'      => $conversionRate,
                     'couponUsageRate'     => $couponRate,
                 ],

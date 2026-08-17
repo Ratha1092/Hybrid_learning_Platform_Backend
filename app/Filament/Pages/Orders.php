@@ -91,19 +91,25 @@ class Orders extends Page
 
         $base = fn() => Order::withoutTrashed();
 
+        // One grouped query instead of five separate COUNT round-trips for the tab badges.
+        $statusCounts = $base()
+            ->toBase()
+            ->selectRaw('status, count(*) as aggregate')
+            ->groupBy('status')
+            ->pluck('aggregate', 'status');
+
         $tabs = [
-            ['key' => 'all',       'label' => 'All',       'count' => $base()->count(),                            'color' => '#059669'],
-            ['key' => 'pending',   'label' => 'Pending',   'count' => $base()->where('status', 'pending')->count(),   'color' => '#fbbf24'],
-            ['key' => 'completed', 'label' => 'Completed', 'count' => $base()->where('status', 'completed')->count(), 'color' => '#34d399'],
-            ['key' => 'cancelled', 'label' => 'Cancelled', 'count' => $base()->where('status', 'cancelled')->count(), 'color' => '#f87171'],
-            ['key' => 'refunded',  'label' => 'Refunded',  'count' => $base()->where('status', 'refunded')->count(),  'color' => '#a78bfa'],
+            ['key' => 'all',       'label' => 'All',       'count' => $statusCounts->sum(),               'color' => '#059669'],
+            ['key' => 'pending',   'label' => 'Pending',   'count' => $statusCounts['pending'] ?? 0,   'color' => '#fbbf24'],
+            ['key' => 'completed', 'label' => 'Completed', 'count' => $statusCounts['completed'] ?? 0, 'color' => '#34d399'],
+            ['key' => 'cancelled', 'label' => 'Cancelled', 'count' => $statusCounts['cancelled'] ?? 0, 'color' => '#f87171'],
         ];
 
         $query = Order::withoutTrashed()
             ->with('user:id,name')
             ->withCount('items');
 
-        if ($tab !== 'all' && in_array($tab, ['pending', 'completed', 'cancelled', 'refunded'])) {
+        if ($tab !== 'all' && in_array($tab, ['pending', 'completed', 'cancelled'])) {
             $query->where('status', $tab);
         }
 

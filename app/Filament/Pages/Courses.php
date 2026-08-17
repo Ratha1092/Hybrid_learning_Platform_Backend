@@ -261,13 +261,20 @@ class Courses extends Page
             'archived'  => Course::STATUS_ARCHIVED,
         ];
 
+        // One grouped query instead of six separate COUNT round-trips for the tab badges.
+        $statusCounts = Course::withoutGlobalScopes()
+            ->toBase()
+            ->selectRaw('status, count(*) as aggregate')
+            ->groupBy('status')
+            ->pluck('aggregate', 'status');
+
         $tabs = [
-            ['key' => 'all',       'label' => 'All',            'count' => Course::withoutGlobalScopes()->count(),                                                'color' => null],
-            ['key' => 'pending',   'label' => 'Pending Review', 'count' => Course::withoutGlobalScopes()->where('status', Course::STATUS_PENDING)->count(),       'color' => '#fbbf24'],
-            ['key' => 'published', 'label' => 'Published',      'count' => Course::withoutGlobalScopes()->where('status', Course::STATUS_PUBLISHED)->count(),     'color' => '#34d399'],
-            ['key' => 'draft',     'label' => 'Draft',          'count' => Course::withoutGlobalScopes()->where('status', Course::STATUS_DRAFT)->count(),         'color' => '#94a3b8'],
-            ['key' => 'rejected',  'label' => 'Rejected',       'count' => Course::withoutGlobalScopes()->where('status', Course::STATUS_REJECTED)->count(),      'color' => '#f87171'],
-            ['key' => 'archived',  'label' => 'Archived',       'count' => Course::withoutGlobalScopes()->where('status', Course::STATUS_ARCHIVED)->count(),      'color' => '#94a3b8'],
+            ['key' => 'all',       'label' => 'All',            'count' => $statusCounts->sum(),                             'color' => null],
+            ['key' => 'pending',   'label' => 'Pending Review', 'count' => $statusCounts[Course::STATUS_PENDING] ?? 0,   'color' => '#fbbf24'],
+            ['key' => 'published', 'label' => 'Published',      'count' => $statusCounts[Course::STATUS_PUBLISHED] ?? 0, 'color' => '#34d399'],
+            ['key' => 'draft',     'label' => 'Draft',          'count' => $statusCounts[Course::STATUS_DRAFT] ?? 0,     'color' => '#94a3b8'],
+            ['key' => 'rejected',  'label' => 'Rejected',       'count' => $statusCounts[Course::STATUS_REJECTED] ?? 0,  'color' => '#f87171'],
+            ['key' => 'archived',  'label' => 'Archived',       'count' => $statusCounts[Course::STATUS_ARCHIVED] ?? 0,  'color' => '#94a3b8'],
         ];
 
         $query = Course::withoutGlobalScopes()

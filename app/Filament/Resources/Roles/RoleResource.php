@@ -71,16 +71,13 @@ class RoleResource extends Resource
     }
 
     /**
-     * The 9 roles the platform seeds and depends on — their name can't be changed
+     * The 4 roles the platform seeds and depends on — their name can't be changed
      * and they're flagged "System" in the UI, but (aside from super-admin) they can
      * still be deleted.
      */
     public static function protectedRoleNames(): array
     {
-        return [
-            'super-admin', 'admin', 'finance-manager', 'accountant',
-            'content-manager', 'moderator', 'support-staff', 'instructor', 'student',
-        ];
+        return ['super-admin', 'finance', 'instructor', 'student'];
     }
 
     /**

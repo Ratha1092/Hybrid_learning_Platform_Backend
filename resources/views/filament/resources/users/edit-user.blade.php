@@ -26,16 +26,11 @@
     }
 
     $roleStyle = match ($role) {
-        'super-admin'      => ['bg' => 'rgba(220,38,38,.1)',   'color' => '#dc2626', 'label' => 'Super Admin'],
-        'admin'            => ['bg' => 'rgba(124,58,237,.1)',  'color' => '#7c3aed', 'label' => 'Admin'],
-        'finance-manager'  => ['bg' => 'rgba(13,148,136,.1)',  'color' => '#0d9488', 'label' => 'Finance Manager'],
-        'accountant'       => ['bg' => 'rgba(13,148,136,.1)',  'color' => '#0d9488', 'label' => 'Accountant'],
-        'content-manager'  => ['bg' => 'rgba(217,119,6,.1)',   'color' => '#d97706', 'label' => 'Content Manager'],
-        'moderator'        => ['bg' => 'rgba(217,119,6,.1)',   'color' => '#d97706', 'label' => 'Moderator'],
-        'support-staff'    => ['bg' => 'rgba(37,99,235,.1)',   'color' => '#2563eb', 'label' => 'Support Staff'],
-        'instructor'       => ['bg' => 'rgba(245,158,11,.1)',  'color' => '#d97706', 'label' => 'Instructor'],
-        'student'          => ['bg' => 'rgba(37,99,235,.1)',   'color' => '#2563eb', 'label' => 'Student'],
-        default            => ['bg' => 'rgba(148,163,184,.1)', 'color' => '#64748b', 'label' => $role ? ucfirst($role) : '—'],
+        'super-admin' => ['bg' => 'rgba(220,38,38,.1)',   'color' => '#dc2626', 'label' => 'Super Admin'],
+        'finance'     => ['bg' => 'rgba(13,148,136,.1)',  'color' => '#0d9488', 'label' => 'Finance'],
+        'instructor'  => ['bg' => 'rgba(245,158,11,.1)',  'color' => '#d97706', 'label' => 'Instructor'],
+        'student'     => ['bg' => 'rgba(37,99,235,.1)',   'color' => '#2563eb', 'label' => 'Student'],
+        default       => ['bg' => 'rgba(148,163,184,.1)', 'color' => '#64748b', 'label' => $role ? ucfirst($role) : '—'],
     };
 
     $nameParts = explode(' ', trim($user->name ?? '?'));

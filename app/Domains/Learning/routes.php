@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-
 use App\Domains\Learning\Controllers\ContentReportController;
 use App\Domains\Learning\Controllers\LessonProgressController;
 

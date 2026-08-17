@@ -19,6 +19,10 @@ use App\Domains\Learning\Controllers\ReviewController;
 Route::middleware('throttle:courses')
     ->get('/search', SearchController::class);
 
+// Featured reviews (platform-wide, across all courses)
+Route::middleware('throttle:courses')
+    ->get('/reviews/featured', [ReviewController::class, 'featured']);
+
 // Public Categories
 Route::middleware('throttle:courses')
     ->prefix('categories')

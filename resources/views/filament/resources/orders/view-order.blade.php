@@ -667,12 +667,11 @@ html.dark .ov {
                     @php
                         $role = $user?->getRoleNames()->first() ?? '';
                         $roleStyle = match ($role) {
-                            'super-admin', 'admin' => ['bg' => 'rgba(239,68,68,.12)', 'color' => '#dc2626'],
-                            'finance-manager', 'accountant' => ['bg' => 'rgba(13,148,136,.12)', 'color' => '#0d9488'],
-                            'content-manager', 'moderator' => ['bg' => 'rgba(245,158,11,.12)', 'color' => '#d97706'],
-                            'instructor' => ['bg' => 'rgba(245,158,11,.12)', 'color' => '#d97706'],
-                            'student'    => ['bg' => 'rgba(37,99,235,.12)', 'color' => '#2563eb'],
-                            default      => ['bg' => 'rgba(148,163,184,.1)', 'color' => '#64748b'],
+                            'super-admin' => ['bg' => 'rgba(239,68,68,.12)', 'color' => '#dc2626'],
+                            'finance'     => ['bg' => 'rgba(13,148,136,.12)', 'color' => '#0d9488'],
+                            'instructor'  => ['bg' => 'rgba(245,158,11,.12)', 'color' => '#d97706'],
+                            'student'     => ['bg' => 'rgba(37,99,235,.12)', 'color' => '#2563eb'],
+                            default       => ['bg' => 'rgba(148,163,184,.1)', 'color' => '#64748b'],
                         };
                     @endphp
                     @if($role)

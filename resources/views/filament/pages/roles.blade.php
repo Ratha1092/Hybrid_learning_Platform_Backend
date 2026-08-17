@@ -10,13 +10,11 @@
     $undeletableRoles = \App\Filament\Resources\Roles\RoleResource::undeletableRoleNames();
 
     $roleColor = fn($name) => match ($name) {
-        'super-admin'     => '#dc2626',
-        'admin'           => '#a855f7',
-        'finance-manager', 'accountant' => '#0d9488',
-        'content-manager', 'moderator'  => '#d97706',
-        'support-staff', 'instructor'   => '#3b82f6',
-        'student'         => '#10b981',
-        default           => '#6366f1',
+        'super-admin' => '#dc2626',
+        'finance'     => '#0d9488',
+        'instructor'  => '#3b82f6',
+        'student'     => '#10b981',
+        default       => '#6366f1',
     };
 
     $accent = '#6366f1';

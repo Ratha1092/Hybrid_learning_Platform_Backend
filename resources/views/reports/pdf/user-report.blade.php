@@ -18,7 +18,7 @@
     $roleMax   = max(1, max(array_filter($roleBreakdown, fn($c) => $c > 0) ?: [1]));
     $stMax     = max(1, max($statusBreakdown));
     $stColors  = ['active'=>'#34d399','suspended'=>'#f87171'];
-    $roleColors = ['student'=>'#60a5fa','instructor'=>'#D7A441','admin'=>'#a78bfa','super-admin'=>'#f97316','finance-manager'=>'#34d399','moderator'=>'#fb923c','content-manager'=>'#38bdf8','support-staff'=>'#94a3b8'];
+    $roleColors = ['student'=>'#60a5fa','instructor'=>'#D7A441','super-admin'=>'#f97316','finance'=>'#34d399'];
 @endphp
 <table class="charts-row">
     <tr>

@@ -38,6 +38,7 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\ForceHttps::class,
             \App\Http\Middleware\EnsureFrontendRequestsAreStatefulWithSameSite::class,
             \App\Http\Middleware\CheckMaintenanceMode::class,
+            \App\Http\Middleware\CheckIpBlocklist::class,
         ]);
 
         $middleware->web(prepend: [

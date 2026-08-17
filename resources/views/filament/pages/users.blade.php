@@ -4,16 +4,11 @@
     $accent = '#2563eb';
 
     $roleStyle = fn($role) => match($role) {
-        'super-admin'     => ['bg' => 'rgba(220,38,38,.12)',  'color' => '#dc2626', 'label' => 'Super Admin'],
-        'admin'           => ['bg' => 'rgba(168,85,247,.12)', 'color' => '#a855f7', 'label' => 'Admin'],
-        'finance-manager' => ['bg' => 'rgba(13,148,136,.12)', 'color' => '#0d9488', 'label' => 'Finance Manager'],
-        'accountant'      => ['bg' => 'rgba(13,148,136,.12)', 'color' => '#0d9488', 'label' => 'Accountant'],
-        'content-manager' => ['bg' => 'rgba(217,119,6,.12)',  'color' => '#d97706', 'label' => 'Content Manager'],
-        'moderator'       => ['bg' => 'rgba(217,119,6,.12)',  'color' => '#d97706', 'label' => 'Moderator'],
-        'support-staff'   => ['bg' => 'rgba(59,130,246,.12)', 'color' => '#3b82f6', 'label' => 'Support Staff'],
-        'instructor'      => ['bg' => 'rgba(59,130,246,.12)', 'color' => '#3b82f6', 'label' => 'Instructor'],
-        'student'         => ['bg' => 'rgba(16,185,129,.12)', 'color' => '#10b981', 'label' => 'Student'],
-        default           => ['bg' => 'rgba(148,163,184,.1)', 'color' => '#94a3b8', 'label' => $role ? ucfirst($role) : '—'],
+        'super-admin' => ['bg' => 'rgba(220,38,38,.12)',  'color' => '#dc2626', 'label' => 'Super Admin'],
+        'finance'     => ['bg' => 'rgba(13,148,136,.12)', 'color' => '#0d9488', 'label' => 'Finance'],
+        'instructor'  => ['bg' => 'rgba(59,130,246,.12)', 'color' => '#3b82f6', 'label' => 'Instructor'],
+        'student'     => ['bg' => 'rgba(16,185,129,.12)', 'color' => '#10b981', 'label' => 'Student'],
+        default       => ['bg' => 'rgba(148,163,184,.1)', 'color' => '#94a3b8', 'label' => $role ? ucfirst($role) : '—'],
     };
 
     $statusStyle = fn($status) => match($status) {

@@ -203,7 +203,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
 
     public function isAdmin(): bool
     {
-        return $this->hasAnyRole(['super-admin', 'admin']);
+        return $this->hasRole('super-admin');
     }
 
     public function isInstructor(): bool
@@ -219,12 +219,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
     {
         return $this->hasAnyRole([
             'super-admin',
-            'admin',
-            'finance-manager',
-            'accountant',
-            'content-manager',
-            'moderator',
-            'support-staff',
+            'finance',
         ]);
     }
 

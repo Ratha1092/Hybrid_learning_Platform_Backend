@@ -104,8 +104,8 @@ class EditCourse extends EditRecord
         // Read directly from shared Livewire state — avoids triggering RichEditor's internal type check
         $data['description'] = $this->data['description'] ?? null;
 
-        // Only admin / super-admin may change the price — restore original for everyone else
-        if (! auth()->user()?->hasAnyRole(['admin', 'super-admin'])) {
+        // Only super-admin may change the price — restore original for everyone else
+        if (! auth()->user()?->isAdmin()) {
             $data['price'] = $this->record->price;
         }
 
@@ -138,7 +138,7 @@ class EditCourse extends EditRecord
             'avgRating'       => round($record->reviews()->avg('rating') ?? 0, 1),
             'instructors'     => User::role('instructor')->orderBy('name')->pluck('name', 'id'),
             'categories'      => Category::orderBy('name')->pluck('name', 'id'),
-            'canEditPrice'    => auth()->user()?->hasAnyRole(['admin', 'super-admin']) ?? false,
+            'canEditPrice'    => auth()->user()?->isAdmin() ?? false,
         ];
     }
 }

@@ -46,7 +46,7 @@ class MaintenanceModeTest extends TestCase
     public function test_staff_authenticated_api_can_continue_during_maintenance(): void
     {
         $staff = User::factory()->create();
-        $staff->assignRole('admin');
+        $staff->assignRole('super-admin');
 
         Sanctum::actingAs($staff);
 
@@ -61,7 +61,7 @@ class MaintenanceModeTest extends TestCase
             'email' => 'staff-login@example.com',
             'password' => Hash::make('Password1!'),
         ]);
-        $user->assignRole('admin');
+        $user->assignRole('super-admin');
 
         $this->postJson('/api/v1/auth/login', [
             'email' => $user->email,

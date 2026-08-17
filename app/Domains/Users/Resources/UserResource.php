@@ -6,10 +6,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class UserResource extends JsonResource
 {
-    private const ROLE_PRIORITY = [
-        'super-admin', 'admin', 'finance-manager', 'accountant',
-        'content-manager', 'moderator', 'support-staff', 'instructor', 'student',
-    ];
+    private const ROLE_PRIORITY = ['super-admin', 'finance', 'instructor', 'student'];
 
     public function toArray($request): array
     {

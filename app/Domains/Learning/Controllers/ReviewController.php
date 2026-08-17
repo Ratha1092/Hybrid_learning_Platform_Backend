@@ -24,6 +24,20 @@ class ReviewController extends Controller
         return ApiResponse::success($reviews, 'Reviews retrieved successfully');
     }
 
+    public function featured(Request $request): JsonResponse
+    {
+        $limit = min(20, max(1, (int) $request->query('limit', 6)));
+
+        $reviews = Review::where('is_approved', true)
+            ->where('is_featured', true)
+            ->with(['user:id,name,avatar', 'course:id,title,slug'])
+            ->latest()
+            ->take($limit)
+            ->get();
+
+        return ApiResponse::success($reviews, 'Featured reviews retrieved successfully');
+    }
+
     public function store(Request $request, int $courseId): JsonResponse
     {
         $course = Course::find($courseId);

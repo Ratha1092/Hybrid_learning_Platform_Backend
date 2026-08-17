@@ -22,6 +22,7 @@ use App\Domains\System\Models\Setting;
 use App\Support\Concerns\HasDateRangePresets;
 use App\Support\CsvExporter;
 use Filament\Pages\Dashboard as BaseDashboard;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use App\Domains\Payments\Enums\PaymentGateway;
@@ -185,8 +186,7 @@ class Dashboard extends BaseDashboard implements Schedulable
         }
         $totalCourses          = $courseQ->count();
         $publishedCoursesCount = Course::where('is_published', true)->count();
-        $newCoursesThisMonth   = Course::whereMonth('created_at', now()->month)
-            ->whereYear('created_at', now()->year)->count();
+        $newCoursesThisMonth   = $this->applyDateRange(Course::query(), 'created_at', $from, $to)->count();
         $totalSections         = Section::count();
         $totalLessons          = Lesson::count();
 
@@ -208,7 +208,7 @@ class Dashboard extends BaseDashboard implements Schedulable
         $completedPayments = $paidBase()->count();
         $pendingPayments   = $payBase()->where('status', PaymentStatus::Pending->value)->count();
         $failedPayments    = $payBase()->where('status', PaymentStatus::Failed->value)->count();
-        $failedPaymentsToday = Payment::where('status', PaymentStatus::Failed->value)
+        $failedPaymentsToday = Payment::whereIn('status', [PaymentStatus::Failed->value, PaymentStatus::Expired->value])
             ->whereDate('created_at', today())->count();
 
         $newOrdersToday = Order::whereDate('created_at', today())->count();
@@ -230,23 +230,28 @@ class Dashboard extends BaseDashboard implements Schedulable
         $pendingPayoutsCount = PayoutRequest::where('status', 'pending')->count();
 
         //  Enrollments
-        $enrollmentsThisMonth = Enrollment::whereMonth('enrolled_at', now()->month)
-            ->whereYear('enrolled_at', now()->year)->count();
-        $enrollmentsLastMonth = Enrollment::whereMonth('enrolled_at', now()->subMonth()->month)
-            ->whereYear('enrolled_at', now()->subMonth()->year)->count();
+        [$prevFrom, $prevTo] = $this->previousPeriodRange($from, $to);
+
+        $enrollmentsThisMonth = $this->applyDateRange(Enrollment::query(), 'enrolled_at', $from, $to)->count();
+        $enrollmentsLastMonth = $prevFrom
+            ? $this->applyDateRange(Enrollment::query(), 'enrolled_at', $prevFrom, $prevTo)->count()
+            : 0;
         $enrollmentGrowth = $enrollmentsLastMonth > 0
             ? round(($enrollmentsThisMonth - $enrollmentsLastMonth) / $enrollmentsLastMonth * 100, 1)
             : 0;
 
         $avgCompletionRate = (int) round(
-            Enrollment::whereIn('status', ['active', 'completed'])->avg('progress_percentage') ?? 0
+            $this->applyDateRange(
+                Enrollment::whereIn('status', ['active', 'completed']), 'enrolled_at', $from, $to
+            )->avg('progress_percentage') ?? 0
         );
-        $avgCompletionRatePrev = (int) round(
-            Enrollment::whereIn('status', ['active', 'completed'])
-                ->whereMonth('enrolled_at', now()->subMonth()->month)
-                ->whereYear('enrolled_at', now()->subMonth()->year)
-                ->avg('progress_percentage') ?? 0
-        );
+        $avgCompletionRatePrev = $prevFrom
+            ? (int) round(
+                $this->applyDateRange(
+                    Enrollment::whereIn('status', ['active', 'completed']), 'enrolled_at', $prevFrom, $prevTo
+                )->avg('progress_percentage') ?? 0
+            )
+            : 0;
         $completionRateGrowth = $avgCompletionRatePrev > 0
             ? round($avgCompletionRate - $avgCompletionRatePrev, 1)
             : 0;
@@ -350,8 +355,8 @@ class Dashboard extends BaseDashboard implements Schedulable
             ];
         });
 
-        //  Revenue chart (4 periods) 
-        $revenueChartData = $this->buildRevenueChartData($paidStatuses, $gatewayFilter);
+        //  Revenue chart (4 periods)
+        $revenueChartData = $this->buildRevenueChartData($paidStatuses, $gatewayFilter, $to);
 
         //  Payment breakdowns 
         $paymentStatusBreakdown = [
@@ -378,6 +383,7 @@ class Dashboard extends BaseDashboard implements Schedulable
         return [
             // Meta
             'activePreset'       => $preset,
+            'activePeriodLabel'  => static::dateRangePresetOptions()[$preset] ?? ucfirst($preset),
             'activeDateFrom'     => $from ? $from->format('Y-m-d') : null,
             'activeDateTo'       => $to   ? $to->format('Y-m-d')   : null,
             'activeGateway'      => $gatewayFilter,
@@ -446,26 +452,48 @@ class Dashboard extends BaseDashboard implements Schedulable
         ];
     }
 
+    /**
+     * The period of equal length immediately preceding [$from, $to], used as the
+     * comparison baseline for growth badges. Returns [null, null] when the active
+     * filter has no bounded start (e.g. the "All Time" preset), since there is no
+     * meaningful "previous period" to compare against.
+     */
+    private function previousPeriodRange($from, $to): array
+    {
+        if (! $from || ! $to) {
+            return [null, null];
+        }
+
+        $days     = $from->diffInDays($to) + 1;
+        $prevTo   = (clone $from)->subDay()->endOfDay();
+        $prevFrom = (clone $prevTo)->subDays($days - 1)->startOfDay();
+
+        return [$prevFrom, $prevTo];
+    }
+
     //
     // Revenue chart: 4 period series
     //
 
-    private function buildRevenueChartData(array $paidStatuses, string $gatewayFilter): array
+    private function buildRevenueChartData(array $paidStatuses, string $gatewayFilter, $to = null): array
     {
+        $anchorEnd = $to ? Carbon::instance($to) : now();
+
         return [
-            '7d'  => $this->buildDailySeries(7,  $paidStatuses, $gatewayFilter),
-            '30d' => $this->buildDailySeries(30, $paidStatuses, $gatewayFilter),
-            '6m'  => $this->buildMonthlySeries(6,  $paidStatuses, $gatewayFilter),
-            '12m' => $this->buildMonthlySeries(12, $paidStatuses, $gatewayFilter),
+            '7d'  => $this->buildDailySeries(7,  $paidStatuses, $gatewayFilter, $anchorEnd),
+            '30d' => $this->buildDailySeries(30, $paidStatuses, $gatewayFilter, $anchorEnd),
+            '6m'  => $this->buildMonthlySeries(6,  $paidStatuses, $gatewayFilter, $anchorEnd),
+            '12m' => $this->buildMonthlySeries(12, $paidStatuses, $gatewayFilter, $anchorEnd),
         ];
     }
 
-    private function buildDailySeries(int $days, array $paidStatuses, string $gatewayFilter): array
+    private function buildDailySeries(int $days, array $paidStatuses, string $gatewayFilter, $anchorEnd): array
     {
-        $start = now()->subDays($days - 1)->startOfDay();
+        $start = (clone $anchorEnd)->subDays($days - 1)->startOfDay();
+        $end   = (clone $anchorEnd)->endOfDay();
 
         $rows = Payment::whereIn('status', $paidStatuses)
-            ->where('paid_at', '>=', $start)
+            ->whereBetween('paid_at', [$start, $end])
             ->when($gatewayFilter !== 'all', fn($q) => $q->where('payment_gateway', $gatewayFilter))
             ->selectRaw("DATE(paid_at) as day, SUM(amount) as total")
             ->groupBy('day')
@@ -474,7 +502,7 @@ class Dashboard extends BaseDashboard implements Schedulable
         $labels = $gross = $platform = $instructor = [];
 
         for ($i = $days - 1; $i >= 0; $i--) {
-            $date   = now()->subDays($i);
+            $date   = (clone $anchorEnd)->subDays($i);
             $key    = $date->format('Y-m-d');
             $amount = (float) ($rows[$key] ?? 0);
 
@@ -485,8 +513,8 @@ class Dashboard extends BaseDashboard implements Schedulable
         }
 
         $totalGross = array_sum($gross);
-        $prevStart  = now()->subDays($days * 2)->startOfDay();
-        $prevEnd    = now()->subDays($days)->endOfDay();
+        $prevStart  = (clone $anchorEnd)->subDays($days * 2)->startOfDay();
+        $prevEnd    = (clone $anchorEnd)->subDays($days)->endOfDay();
         $prevTotal  = (float) Payment::whereIn('status', $paidStatuses)
             ->whereBetween('paid_at', [$prevStart, $prevEnd])
             ->when($gatewayFilter !== 'all', fn($q) => $q->where('payment_gateway', $gatewayFilter))
@@ -508,12 +536,13 @@ class Dashboard extends BaseDashboard implements Schedulable
         ];
     }
 
-    private function buildMonthlySeries(int $months, array $paidStatuses, string $gatewayFilter): array
+    private function buildMonthlySeries(int $months, array $paidStatuses, string $gatewayFilter, $anchorEnd): array
     {
-        $start = now()->subMonths($months - 1)->startOfMonth();
+        $start = (clone $anchorEnd)->startOfMonth()->subMonths($months - 1);
+        $end   = (clone $anchorEnd)->endOfMonth();
 
         $rows = Payment::whereIn('status', $paidStatuses)
-            ->where('paid_at', '>=', $start)
+            ->whereBetween('paid_at', [$start, $end])
             ->when($gatewayFilter !== 'all', fn($q) => $q->where('payment_gateway', $gatewayFilter))
             ->selectRaw("TO_CHAR(DATE_TRUNC('month', paid_at), 'YYYY-MM') as month, SUM(amount) as total")
             ->groupBy('month')
@@ -522,7 +551,7 @@ class Dashboard extends BaseDashboard implements Schedulable
         $labels = $gross = $platform = $instructor = [];
 
         for ($i = $months - 1; $i >= 0; $i--) {
-            $date   = now()->subMonths($i);
+            $date   = (clone $anchorEnd)->startOfMonth()->subMonths($i);
             $key    = $date->format('Y-m');
             $amount = (float) ($rows[$key] ?? 0);
 
@@ -533,8 +562,8 @@ class Dashboard extends BaseDashboard implements Schedulable
         }
 
         $totalGross = array_sum($gross);
-        $prevStart  = now()->subMonths($months * 2)->startOfMonth();
-        $prevEnd    = now()->subMonths($months)->endOfMonth();
+        $prevStart  = (clone $anchorEnd)->startOfMonth()->subMonths($months * 2);
+        $prevEnd    = (clone $anchorEnd)->startOfMonth()->subMonths($months)->endOfMonth();
         $prevTotal  = (float) Payment::whereIn('status', $paidStatuses)
             ->whereBetween('paid_at', [$prevStart, $prevEnd])
             ->when($gatewayFilter !== 'all', fn($q) => $q->where('payment_gateway', $gatewayFilter))
@@ -563,7 +592,7 @@ class Dashboard extends BaseDashboard implements Schedulable
     private function buildTopInstructors($from = null, $to = null): array
     {
         try {
-            return DB::table('order_items as oi')
+            $rows = DB::table('order_items as oi')
                 ->join('orders as o', 'o.id', '=', 'oi.order_id')
                 ->join('users as u', 'u.id', '=', 'oi.instructor_id')
                 ->where('o.payment_status', 'paid')
@@ -576,25 +605,41 @@ class Dashboard extends BaseDashboard implements Schedulable
                     u.email,
                     SUM(oi.instructor_amount) as revenue,
                     COUNT(DISTINCT o.user_id) as students,
-                    COUNT(DISTINCT oi.course_id) as courses,
-                    SUM(CASE WHEN o.created_at >= NOW() - INTERVAL '30 days'
-                             THEN oi.instructor_amount ELSE 0 END) as rev_30d,
-                    SUM(CASE WHEN o.created_at >= NOW() - INTERVAL '60 days'
-                              AND o.created_at <  NOW() - INTERVAL '30 days'
-                             THEN oi.instructor_amount ELSE 0 END) as rev_prev_30d
+                    COUNT(DISTINCT oi.course_id) as courses
                 ")
                 ->orderByDesc('revenue')
                 ->limit(5)
-                ->get()
-                ->map(function ($row) {
-                    $growth = $row->rev_prev_30d > 0
-                        ? round(($row->rev_30d - $row->rev_prev_30d) / $row->rev_prev_30d * 100, 1)
-                        : ($row->rev_30d > 0 ? 100.0 : 0.0);
-                    $arr = (array) $row;
-                    $arr['growth'] = $growth;
-                    return $arr;
-                })
-                ->toArray();
+                ->get();
+
+            if ($rows->isEmpty()) {
+                return [];
+            }
+
+            // Growth compares this filtered period's revenue against the equal-length
+            // period immediately preceding it, scoped to the same top instructors.
+            [$prevFrom, $prevTo] = $this->previousPeriodRange($from, $to);
+
+            $prevRevenueByInstructor = $prevFrom
+                ? DB::table('order_items as oi')
+                    ->join('orders as o', 'o.id', '=', 'oi.order_id')
+                    ->where('o.payment_status', 'paid')
+                    ->whereIn('oi.instructor_id', $rows->pluck('id'))
+                    ->where('o.created_at', '>=', $prevFrom)
+                    ->where('o.created_at', '<', $prevTo->copy()->addDay()->startOfDay())
+                    ->groupBy('oi.instructor_id')
+                    ->selectRaw('oi.instructor_id as id, SUM(oi.instructor_amount) as revenue')
+                    ->pluck('revenue', 'id')
+                : collect();
+
+            return $rows->map(function ($row) use ($prevRevenueByInstructor) {
+                $prevRevenue = (float) ($prevRevenueByInstructor[$row->id] ?? 0);
+                $growth = $prevRevenue > 0
+                    ? round(($row->revenue - $prevRevenue) / $prevRevenue * 100, 1)
+                    : ((float) $row->revenue > 0 ? 100.0 : 0.0);
+                $arr = (array) $row;
+                $arr['growth'] = $growth;
+                return $arr;
+            })->toArray();
         } catch (\Throwable) {
             return [];
         }

@@ -957,9 +957,9 @@ function dbChart() {
             if (v >= 1000)    return '$'+(v/1000).toFixed(1)+'K';
             return '$'+Number(v).toFixed(0);
         },
-        path(vals, W, H, pL, pR, pT, pB) {
+        path(vals, W, H, pL, pR, pT, pB, sharedMax) {
             if (!vals || vals.length < 2) return '';
-            const max = Math.max(...vals, 1);
+            const max = sharedMax ?? Math.max(...vals, 1);
             const cW = W - pL - pR, cH = H - pT - pB;
             const pts = vals.map((v,i) => [pL + i*(cW/(vals.length-1)), pT + cH - (v/max)*cH]);
             let d = `M${pts[0][0]} ${pts[0][1]}`;
@@ -969,15 +969,15 @@ function dbChart() {
             }
             return d;
         },
-        area(vals, W, H, pL, pR, pT, pB) {
-            const p = this.path(vals, W, H, pL, pR, pT, pB);
+        area(vals, W, H, pL, pR, pT, pB, sharedMax) {
+            const p = this.path(vals, W, H, pL, pR, pT, pB, sharedMax);
             if (!p) return '';
             const cH = H - pT - pB;
             return `${p} L${W-pR} ${pT+cH} L${pL} ${pT+cH} Z`;
         },
-        dots(vals, W, H, pL, pR, pT, pB) {
+        dots(vals, W, H, pL, pR, pT, pB, sharedMax) {
             if (!vals || vals.length < 2) return [];
-            const max = Math.max(...vals, 1);
+            const max = sharedMax ?? Math.max(...vals, 1);
             const cW = W - pL - pR, cH = H - pT - pB;
             return vals.map((v,i) => ({
                 x: pL + i*(cW/(vals.length-1)),
@@ -1026,20 +1026,23 @@ function dbChart() {
                 xEl.innerHTML = html;
             }
 
-            // Paths
+            // Paths — all three series share one scale (gross's max) so platform/instructor
+            // render at their true proportional height instead of each being independently
+            // stretched to fill the chart (which made all three lines overlap identically,
+            // since platform/instructor are always fixed percentages of gross).
             const set = (id, d) => { const el=document.getElementById(id); if(el) el.setAttribute('d',d); };
-            set('db-p-gross-area', this.area(gross, W, H, pL, pR, pT, pB));
-            set('db-p-plat-area',  this.area(plat,  W, H, pL, pR, pT, pB));
-            set('db-p-inst-area',  this.area(inst,  W, H, pL, pR, pT, pB));
-            set('db-p-gross', this.path(gross, W, H, pL, pR, pT, pB));
-            set('db-p-plat',  this.path(plat,  W, H, pL, pR, pT, pB));
-            set('db-p-inst',  this.path(inst,  W, H, pL, pR, pT, pB));
+            set('db-p-gross-area', this.area(gross, W, H, pL, pR, pT, pB, max));
+            set('db-p-plat-area',  this.area(plat,  W, H, pL, pR, pT, pB, max));
+            set('db-p-inst-area',  this.area(inst,  W, H, pL, pR, pT, pB, max));
+            set('db-p-gross', this.path(gross, W, H, pL, pR, pT, pB, max));
+            set('db-p-plat',  this.path(plat,  W, H, pL, pR, pT, pB, max));
+            set('db-p-inst',  this.path(inst,  W, H, pL, pR, pT, pB, max));
 
             // Dots
             const renderDots = (id, vals, color) => {
                 const el = document.getElementById(id);
                 if (!el) return;
-                el.innerHTML = this.dots(vals, W, H, pL, pR, pT, pB)
+                el.innerHTML = this.dots(vals, W, H, pL, pR, pT, pB, max)
                     .map(d => `<circle cx="${d.x}" cy="${d.y}" r="3.5" fill="${color}" stroke="var(--db-card)" stroke-width="2"/>`)
                     .join('');
             };
@@ -1240,10 +1243,10 @@ function dbCustomDate() {
 <div class="db-action-card">
     <div class="db-action-header">
         <div class="db-action-title">Action Required</div>
-        <a href="{{ route('filament.admin.pages.payments') }}" wire:navigate class="db-view-all">View All Alerts &rsaquo;</a>
+        <a href="{{ route('filament.admin.pages.payments', ['tab' => 'failed']) }}" wire:navigate class="db-view-all">View Payments &rsaquo;</a>
     </div>
     <div class="db-action-grid">
-        <a href="{{ route('filament.admin.pages.instructor-verifications') }}" wire:navigate class="db-action-item">
+        <a href="{{ route('filament.admin.pages.instructor-verifications', ['tab' => 'pending']) }}" wire:navigate class="db-action-item">
             <div class="db-action-icon" style="background:var(--db-red-l);">
                 <svg viewBox="0 0 24 24" fill="none" stroke="var(--db-red)" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             </div>
@@ -1252,7 +1255,7 @@ function dbCustomDate() {
                 <div class="db-action-lbl">Instructor Verifications<br>Pending</div>
             </div>
         </a>
-        <a href="{{ route('filament.admin.pages.courses') }}" wire:navigate class="db-action-item">
+        <a href="{{ route('filament.admin.pages.courses', ['tab' => 'pending']) }}" wire:navigate class="db-action-item">
             <div class="db-action-icon" style="background:var(--db-amber-l);">
                 <svg viewBox="0 0 24 24" fill="none" stroke="var(--db-amber)" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
             </div>
@@ -1261,16 +1264,16 @@ function dbCustomDate() {
                 <div class="db-action-lbl">Courses<br>Awaiting Review</div>
             </div>
         </a>
-        <a href="{{ route('filament.admin.pages.payouts') }}" wire:navigate class="db-action-item">
+        <a href="{{ route('filament.admin.pages.payouts', ['tab' => 'pending']) }}" wire:navigate class="db-action-item">
             <div class="db-action-icon" style="background:var(--db-purple-l);">
                 <svg viewBox="0 0 24 24" fill="none" stroke="var(--db-purple)" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
             </div>
             <div>
                 <div class="db-action-num">{{ $pendingPayoutsCount }}</div>
-                <div class="db-action-lbl">Failed Payouts<br>Requires Attention</div>
+                <div class="db-action-lbl">Pending Payouts<br>Requires Attention</div>
             </div>
         </a>
-        <a href="{{ route('filament.admin.pages.payments') }}" wire:navigate class="db-action-item">
+        <a href="{{ route('filament.admin.pages.payments', ['tab' => 'failed']) }}" wire:navigate class="db-action-item">
             <div class="db-action-icon" style="background:var(--db-blue-l);">
                 <svg viewBox="0 0 24 24" fill="none" stroke="var(--db-blue)" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
             </div>
@@ -1284,7 +1287,7 @@ function dbCustomDate() {
 
 {{-- Row 3: Revenue chart + sidebar --}}
 <div class="db-rev-grid">
-    <div class="db-card" wire:ignore x-data="dbChart()" x-init="setTimeout(()=>{ render(); const ro=new ResizeObserver(()=>render()); ro.observe($el); }, 80)">
+    <div class="db-card" wire:key="revenue-chart-{{ $activePreset }}-{{ $activeDateFrom }}-{{ $activeDateTo }}-{{ $activeGateway }}" x-data="dbChart()" x-init="setTimeout(()=>{ render(); const ro=new ResizeObserver(()=>render()); ro.observe($el); }, 80)">
         <div class="db-card-header">
             <span class="db-card-title">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--db-blue)" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
@@ -1375,7 +1378,7 @@ function dbCustomDate() {
             <div class="db-mini-lbl">Published Courses</div>
             <div class="db-mini-val">{{ number_format($publishedCoursesCount) }}</div>
             <div class="db-mini-sub">
-                <span class="db-badge db-badge-green" style="font-size:.625rem;">+{{ $newCoursesThisMonth }} this month</span>
+                <span class="db-badge db-badge-green" style="font-size:.625rem;">+{{ $newCoursesThisMonth }} in {{ $activePeriodLabel }}</span>
             </div>
         </div>
     </div>
@@ -1384,13 +1387,13 @@ function dbCustomDate() {
             <svg viewBox="0 0 24 24" fill="none" stroke="var(--db-blue)" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
         </div>
         <div>
-            <div class="db-mini-lbl">Enrollments (This Month)</div>
+            <div class="db-mini-lbl">Enrollments ({{ $activePeriodLabel }})</div>
             <div class="db-mini-val">{{ number_format($enrollmentsThisMonth) }}</div>
             <div class="db-mini-sub">
                 @if($enrollmentGrowth >= 0)
-                    <span class="db-badge db-badge-green" style="font-size:.625rem;">↑ {{ $enrollmentGrowth }}% this month</span>
+                    <span class="db-badge db-badge-green" style="font-size:.625rem;">↑ {{ $enrollmentGrowth }}% vs previous period</span>
                 @else
-                    <span class="db-badge db-badge-red" style="font-size:.625rem;">↓ {{ abs($enrollmentGrowth) }}% this month</span>
+                    <span class="db-badge db-badge-red" style="font-size:.625rem;">↓ {{ abs($enrollmentGrowth) }}% vs previous period</span>
                 @endif
             </div>
         </div>
@@ -1400,13 +1403,13 @@ function dbCustomDate() {
             <svg viewBox="0 0 24 24" fill="none" stroke="var(--db-amber)" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
         </div>
         <div>
-            <div class="db-mini-lbl">Average Completion Rate</div>
+            <div class="db-mini-lbl">Average Completion Rate ({{ $activePeriodLabel }})</div>
             <div class="db-mini-val">{{ $avgCompletionRate }}%</div>
             <div class="db-mini-sub">
                 @if($completionRateGrowth > 0)
-                    <span class="db-badge db-badge-green" style="font-size:.625rem;">↑ {{ $completionRateGrowth }}% from last month</span>
+                    <span class="db-badge db-badge-green" style="font-size:.625rem;">↑ {{ $completionRateGrowth }}% vs previous period</span>
                 @elseif($completionRateGrowth < 0)
-                    <span class="db-badge db-badge-red" style="font-size:.625rem;">↓ {{ abs($completionRateGrowth) }}% from last month</span>
+                    <span class="db-badge db-badge-red" style="font-size:.625rem;">↓ {{ abs($completionRateGrowth) }}% vs previous period</span>
                 @else
                     <span class="db-badge db-badge-gray" style="font-size:.625rem;">No change</span>
                 @endif
@@ -1473,7 +1476,7 @@ function dbCustomDate() {
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--db-green)" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
             Most Popular Courses
         </span>
-        <a href="{{ route('filament.admin.pages.moderation') }}" class="db-view-all">View All &rsaquo;</a>
+        <a href="{{ route('filament.admin.pages.courses') }}" class="db-view-all">View All &rsaquo;</a>
     </div>
     <div style="overflow-x:auto">
     <table class="db-table">

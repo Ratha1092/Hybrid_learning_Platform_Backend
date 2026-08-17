@@ -1,9 +1,7 @@
 @php
     $roleLabel = fn(string $r) => match($r) {
         'student' => 'Student', 'instructor' => 'Instructor',
-        'admin' => 'Admin', 'super-admin' => 'Super Admin',
-        'finance-manager' => 'Finance Manager', 'moderator' => 'Moderator',
-        'content-manager' => 'Content Manager', 'support-staff' => 'Support Staff',
+        'super-admin' => 'Super Admin', 'finance' => 'Finance',
         default => ucwords(str_replace('-', ' ', $r)),
     };
     $statusColor = fn(string $s) => match($s) {
@@ -459,7 +457,7 @@ html:not(.dark) .rp {
     <div class="rp-filters">
         <select wire:model.live="role" class="rp-filter-select">
             <option value="all">All Roles</option>
-            @foreach(['student','instructor','admin','super-admin','finance-manager','moderator','content-manager','support-staff'] as $r)
+            @foreach(['student','instructor','super-admin','finance'] as $r)
                 <option value="{{ $r }}">{{ $roleLabel($r) }}</option>
             @endforeach
         </select>

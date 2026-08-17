@@ -4,6 +4,7 @@ namespace App\Providers\Filament;
 
 use App\Domains\System\Models\Setting;
 use App\Filament\Pages\Dashboard;
+use App\Http\Middleware\CheckIpBlocklist;
 use App\Support\LocalAvatarProvider;
 use Filament\Enums\ThemeMode;
 use Filament\Http\Middleware\Authenticate;
@@ -11,7 +12,6 @@ use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Navigation\NavigationGroup;
-use Filament\Navigation\NavigationItem;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
@@ -546,14 +546,6 @@ class AdminPanelProvider extends PanelProvider
                 NavigationGroup::make('Security')->collapsible(),
                 NavigationGroup::make('Monitoring')->collapsible(),
             ])
-            ->navigationItems([
-                NavigationItem::make('Horizon')
-                    ->url('/horizon')
-                    ->icon('heroicon-o-chart-bar-square')
-                    ->group('Monitoring')
-                    ->sort(3)
-                    ->visible(fn () => auth()->user()?->hasRole(['super-admin'])),
-            ])
             ->discoverResources(
                 in: app_path('Filament/Resources'),
                 for: 'App\\Filament\\Resources'
@@ -571,6 +563,7 @@ class AdminPanelProvider extends PanelProvider
             )
             ->widgets([])
             ->middleware([
+                CheckIpBlocklist::class,
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
                 StartSession::class,

@@ -7,6 +7,7 @@ use App\Domains\Learning\Models\Review;
 use App\Support\NavBadge;
 use App\Support\PanelAccess;
 use BackedEnum;
+use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Support\Number;
 
@@ -81,6 +82,51 @@ class Reviews extends Page
     public function gotoPage(int $page): void
     {
         $this->page = max(1, $page);
+    }
+
+    public function toggleFeatured(int $reviewId): void
+    {
+        if (!PanelAccess::can('reviews.update')) {
+            Notification::make()->title('You do not have permission to feature reviews.')->danger()->send();
+            return;
+        }
+
+        $review = Review::find($reviewId);
+
+        if (!$review) {
+            return;
+        }
+
+        $review->update(['is_featured' => !$review->is_featured]);
+
+        Notification::make()
+            ->title($review->is_featured ? 'Review featured' : 'Review unfeatured')
+            ->success()
+            ->send();
+    }
+
+    public function toggleApproved(int $reviewId): void
+    {
+        if (!PanelAccess::can('reviews.approve')) {
+            Notification::make()->title('You do not have permission to approve reviews.')->danger()->send();
+            return;
+        }
+
+        $review = Review::find($reviewId);
+
+        if (!$review) {
+            return;
+        }
+
+        $review->update([
+            'is_approved' => !$review->is_approved,
+            'approved_by' => !$review->is_approved ? auth()->id() : $review->approved_by,
+        ]);
+
+        Notification::make()
+            ->title($review->is_approved ? 'Review approved' : 'Review unapproved')
+            ->success()
+            ->send();
     }
 
     protected function getViewData(): array

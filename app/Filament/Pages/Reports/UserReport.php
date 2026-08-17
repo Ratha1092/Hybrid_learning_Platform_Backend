@@ -187,7 +187,9 @@ class UserReport extends Page implements Schedulable
         $preset = $filters['preset'] ?? 'this_month';
         [$from, $to] = static::resolvePreset($preset, 'this_month', $filters['date_from'] ?? null, $filters['date_to'] ?? null);
 
-        $role   = $filters['role']   ?? 'all';
+        $role   = in_array($filters['role'] ?? 'all', ['student', 'instructor', 'super-admin', 'finance'], true)
+            ? $filters['role']
+            : 'all';
         $status = $filters['status'] ?? 'all';
 
         $base = function () use ($from, $to, $role, $status) {
@@ -208,7 +210,7 @@ class UserReport extends Page implements Schedulable
         $verifiedCount = (clone $base())->whereNotNull('email_verified_at')->count();
         $newEnrollments = static::applyDateRange(Enrollment::query(), 'created_at', $from, $to)->count();
 
-        $roleBreakdown = collect(['student', 'instructor', 'admin', 'super-admin', 'finance-manager', 'moderator'])
+        $roleBreakdown = collect(['student', 'instructor', 'super-admin', 'finance'])
             ->mapWithKeys(function (string $r) use ($from, $to, $status) {
                 $q = User::role($r);
                 static::applyDateRange($q, 'created_at', $from, $to);

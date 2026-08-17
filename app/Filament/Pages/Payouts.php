@@ -47,6 +47,13 @@ class Payouts extends Page
     public int $page = 1;
     public int $perPage = 10;
 
+    public function mount(): void
+    {
+        $this->tab = in_array(request('tab'), ['pending', 'approved', 'rejected'], true)
+            ? request('tab')
+            : 'all';
+    }
+
     public function updatedSearch(): void
     {
         $this->page = 1;

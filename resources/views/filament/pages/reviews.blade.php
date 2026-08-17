@@ -398,6 +398,8 @@ html:not(.dark) .lp {
                     <th>Student</th>
                     <th>Rating</th>
                     <th>Comment</th>
+                    <th>Status</th>
+                    <th>Featured</th>
                     <th>Date</th>
                 </tr>
             </thead>
@@ -430,11 +432,25 @@ html:not(.dark) .lp {
                         <span class="lp-comment">{{ $review->comment ? \Illuminate\Support\Str::limit($review->comment, 60) : '—' }}</span>
                     </td>
 
+                    <td>
+                        <button type="button" wire:click="toggleApproved({{ $review->id }})"
+                            style="border:1px solid transparent;border-radius:999px;padding:3px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;{{ $review->is_approved ? 'background:rgba(52,211,153,.15);color:#34d399;' : 'background:rgba(251,191,36,.15);color:#fbbf24;' }}">
+                            {{ $review->is_approved ? 'Approved' : 'Pending' }}
+                        </button>
+                    </td>
+
+                    <td>
+                        <button type="button" wire:click="toggleFeatured({{ $review->id }})" title="{{ $review->is_featured ? 'Unfeature' : 'Feature this review' }}"
+                            style="background:none;border:none;cursor:pointer;padding:2px;line-height:0;color:{{ $review->is_featured ? '#fbbf24' : 'var(--t2)' }}">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="{{ $review->is_featured ? 'currentColor' : 'none' }}" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                        </button>
+                    </td>
+
                     <td><span class="lp-date">{{ $review->created_at?->format('M d, Y') }}</span></td>
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="6">
+                    <td colspan="8">
                         <div class="lp-empty">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5z"/>

@@ -223,6 +223,7 @@ html:not(.dark) .cp {
 /* ── Table ── */
 .cp-table {
     width:100%;
+    min-width:920px;
     border-collapse:collapse;
 }
 .cp-table thead tr {

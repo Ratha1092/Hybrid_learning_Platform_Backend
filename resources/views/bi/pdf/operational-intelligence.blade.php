@@ -12,7 +12,6 @@
         <td class="kpi-cell"><div class="kpi-label">Pending Course Reviews</div><div class="kpi-value">{{ number_format($kpis['pendingCourseReviews']) }}</div></td>
         <td class="kpi-cell"><div class="kpi-label">Pending Verifications</div><div class="kpi-value">{{ number_format($kpis['pendingVerifications']) }}</div></td>
         <td class="kpi-cell"><div class="kpi-label">Failed Payments Today</div><div class="kpi-value">{{ number_format($kpis['failedPaymentsToday']) }}</div></td>
-        <td class="kpi-cell"><div class="kpi-label">Open Refunds</div><div class="kpi-value">{{ number_format($kpis['openRefunds']) }}</div></td>
     </tr>
     <tr>
         <td class="kpi-cell"><div class="kpi-label">Failed Queue Jobs</div><div class="kpi-value">{{ number_format($kpis['failedJobs']) }}</div></td>

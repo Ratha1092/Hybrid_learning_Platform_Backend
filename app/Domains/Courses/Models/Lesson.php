@@ -19,8 +19,6 @@ class Lesson extends Model
     public const TYPE_VIDEO = 'video';
     public const TYPE_ARTICLE = 'article';
     public const TYPE_FILE = 'file';
-    public const TYPE_LIVE = 'live';
-    public const TYPE_ASSIGNMENT = 'assignment';
 
     protected $fillable = [
         'section_id',
@@ -89,16 +87,6 @@ class Lesson extends Model
     public function isArticleLesson(): bool
     {
         return $this->type === self::TYPE_ARTICLE;
-    }
-
-    public function isLiveLesson(): bool
-    {
-        return $this->type === self::TYPE_LIVE;
-    }
-
-    public function isAssignmentLesson(): bool
-    {
-        return $this->type === self::TYPE_ASSIGNMENT;
     }
 
     public function isPreview(): bool

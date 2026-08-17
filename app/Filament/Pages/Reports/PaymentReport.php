@@ -210,7 +210,6 @@ class PaymentReport extends Page implements Schedulable
         $totalPaidAmount = (clone $base())->whereIn('status', $paidStatuses)->sum('amount');
         $failedCount = (clone $base())->where('status', PaymentStatus::Failed->value)->count();
         $pendingCount = (clone $base())->whereIn('status', [PaymentStatus::Pending->value, PaymentStatus::Processing->value])->count();
-        $refundedCount = (clone $base())->where('status', PaymentStatus::Refunded->value)->count();
         $paidCount = (clone $base())->whereIn('status', $paidStatuses)->count();
         $avgVerificationAttempts = round((float) (clone $base())->avg('verification_attempts'), 1);
         $successRate = $total > 0 ? round(($paidCount / $total) * 100) : 0;
@@ -220,7 +219,7 @@ class PaymentReport extends Page implements Schedulable
             return [$gw->value => ['count' => $q->count(), 'amount' => (clone $q)->sum('amount')]];
         })->all();
 
-        $statusBreakdown = collect([PaymentStatus::Paid, PaymentStatus::Pending, PaymentStatus::Failed, PaymentStatus::Refunded])
+        $statusBreakdown = collect([PaymentStatus::Paid, PaymentStatus::Pending, PaymentStatus::Failed])
             ->mapWithKeys(function (PaymentStatus $st) use ($base) {
                 $q = (clone $base())->where('status', $st->value);
                 return [$st->value => ['count' => $q->count(), 'amount' => (clone $q)->sum('amount')]];
@@ -249,7 +248,6 @@ class PaymentReport extends Page implements Schedulable
                 'successRate' => $successRate,
                 'failedCount' => $failedCount,
                 'pendingCount' => $pendingCount,
-                'refundedCount' => $refundedCount,
                 'avgVerificationAttempts' => $avgVerificationAttempts,
             ],
             'gatewayBreakdown' => $gatewayBreakdown,

@@ -74,7 +74,7 @@ class Settings extends Page
         ],
         'finance' => [
             'Payouts & Currency' => ['minimum_payout_amount', 'payout_hold_period_days', 'default_currency', 'wallet_enabled'],
-            'Tax & Refunds' => ['tax_percentage', 'refund_period_days'],
+            'Tax' => ['tax_percentage'],
         ],
         'payment_gateway' => [
             'Checkout Methods' => ['bakong_enabled', 'khqr_enabled', 'paypal_enabled', 'stripe_enabled', 'bank_transfer_enabled'],

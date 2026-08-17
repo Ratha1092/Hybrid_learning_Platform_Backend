@@ -85,7 +85,6 @@
         <div class="bi-kpi"><div class="bi-kpi-label">Conversion Rate</div><div class="bi-kpi-value">{{ $kpis['conversionRate'] }}%</div><div class="bi-kpi-sub">Enrollments / unique viewers</div></div>
         <div class="bi-kpi"><div class="bi-kpi-label">Wishlist Count</div><div class="bi-kpi-value">{{ number_format($kpis['wishlistCount']) }}</div></div>
         <div class="bi-kpi"><div class="bi-kpi-label">Coupon Usage Rate</div><div class="bi-kpi-value">{{ $kpis['couponUsageRate'] }}%</div><div class="bi-kpi-sub">Orders with coupon</div></div>
-        <div class="bi-kpi"><div class="bi-kpi-label">Refund Rate</div><div class="bi-kpi-value">{{ $kpis['refundRate'] }}%</div></div>
         <div class="bi-kpi"><div class="bi-kpi-label">Avg Revenue/Course</div><div class="bi-kpi-value">${{ number_format($kpis['avgRevPerCourse'],2) }}</div></div>
     </div>
 

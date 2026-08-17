@@ -13,7 +13,14 @@ class ViewNotification extends ViewRecord
     public function mount(int|string $record): void
     {
         parent::mount($record);
-        if (is_null($this->record->read_at)) {
+
+        // This page doubles as a platform-wide audit log — an admin viewing
+        // someone else's notification here must not mark it "read" on their
+        // behalf. Only auto-mark it when it actually belongs to the viewer.
+        $belongsToViewer = $this->record->notifiable_type === auth()->user()?->getMorphClass()
+            && (int) $this->record->notifiable_id === (int) auth()->id();
+
+        if ($belongsToViewer && is_null($this->record->read_at)) {
             $this->record->markAsRead();
         }
     }

@@ -51,7 +51,6 @@ class PaymentsTable
                         'processing' => 'info',
                         'failed' => 'danger',
                         'expired' => 'gray',
-                        'refunded' => 'gray',
                         default => 'gray',
                     }),
                 Tables\Columns\TextColumn::make('transaction_id')

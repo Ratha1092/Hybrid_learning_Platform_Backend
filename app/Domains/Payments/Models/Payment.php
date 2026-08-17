@@ -100,8 +100,4 @@ class Payment extends Model
         ], true);
     }
 
-    public function canRefund(): bool
-    {
-        return $this->isPaid();
-    }
 }

@@ -7,7 +7,6 @@ use App\Domains\Finance\Models\InstructorWallet;
 use App\Domains\Orders\Enums\OrderPaymentStatus;
 use App\Domains\Orders\Models\Order;
 use App\Domains\Orders\Models\OrderItem;
-use App\Domains\Orders\Models\Refund;
 
 use App\Domains\Payments\Enums\PaymentStatus;
 use App\Domains\Payments\Models\Payment;
@@ -110,8 +109,6 @@ class RevenueIntelligence extends Page
             $platformRevenue   = (float) OrderItem::whereIn('order_id', $paidOrderIds)->sum('platform_amount');
             $instructorRevenue = (float) OrderItem::whereIn('order_id', $paidOrderIds)->sum('instructor_amount');
             $discounts         = (float) OrderItem::whereIn('order_id', $paidOrderIds)->sum('discount_amount');
-            $refundAmount      = (float) static::applyDateRange(Refund::query(), 'created_at', $from, $to)->sum('amount');
-            $netRevenue        = max(0, $grossRevenue - $refundAmount);
             $orderCount        = count($paidOrderIds);
             $aov               = $orderCount > 0 ? $grossRevenue / $orderCount : 0.0;
             $pendingRevenue    = (float) InstructorWallet::sum('pending_balance');
@@ -201,11 +198,9 @@ class RevenueIntelligence extends Page
             return [
                 'kpis' => [
                     'grossRevenue'       => $grossRevenue,
-                    'netRevenue'         => $netRevenue,
                     'platformRevenue'    => $platformRevenue,
                     'instructorRevenue'  => $instructorRevenue,
                     'discounts'          => $discounts,
-                    'refundAmount'       => $refundAmount,
                     'pendingRevenue'     => $pendingRevenue,
                     'orderCount'         => $orderCount,
                     'aov'                => $aov,

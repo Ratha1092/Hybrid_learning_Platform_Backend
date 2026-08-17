@@ -17,7 +17,6 @@
     <tr>
         <td class="kpi-cell"><div class="kpi-label">Total Orders</div><div class="kpi-value">{{ number_format($kpis['totalOrders']) }}</div></td>
         <td class="kpi-cell"><div class="kpi-label">Avg Price</div><div class="kpi-value">${{ number_format($kpis['avgPrice'], 2) }}</div></td>
-        <td class="kpi-cell"><div class="kpi-label">Refund Rate</div><div class="kpi-value">{{ $kpis['refundRate'] }}%</div></td>
         <td class="kpi-cell"><div class="kpi-label">Coupon Usage</div><div class="kpi-value">{{ $kpis['couponUsageRate'] }}%</div></td>
     </tr>
 </table>

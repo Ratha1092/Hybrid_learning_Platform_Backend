@@ -26,7 +26,7 @@ class EditInstructorVerification extends EditRecord
 
         if ($record->status === 'rejected') {
             $user->removeRole('instructor');
-            $user->notify(new InstructorRejectedNotification());
+            $user->notify(new InstructorRejectedNotification($record->rejection_reason ?? ''));
         }
     }
 

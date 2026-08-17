@@ -92,17 +92,22 @@ class Lessons extends Page
         $page     = max(1, $this->page);
         $perPage  = in_array($this->perPage, [10, 25, 50], true) ? $this->perPage : 10;
 
-        $types = ['video', 'article', 'live', 'assignment'];
+        $types = ['video', 'article'];
 
         $base = fn() => Lesson::withoutGlobalScopes([SoftDeletingScope::class])
             ->when($courseId, fn($q) => $q->whereHas('section', fn($q2) => $q2->where('course_id', $courseId)));
 
+        // One grouped query instead of five separate COUNT round-trips for the tab badges.
+        $typeCounts = $base()
+            ->toBase()
+            ->selectRaw('type, count(*) as aggregate')
+            ->groupBy('type')
+            ->pluck('aggregate', 'type');
+
         $tabs = [
-            ['key' => 'all',        'label' => 'All',        'count' => $base()->count(),                                'color' => '#0891b2'],
-            ['key' => 'video',      'label' => 'Video',      'count' => $base()->where('type', 'video')->count(),      'color' => '#2563eb'],
-            ['key' => 'article',    'label' => 'Article',    'count' => $base()->where('type', 'article')->count(),    'color' => '#16a34a'],
-            ['key' => 'live',       'label' => 'Live',       'count' => $base()->where('type', 'live')->count(),       'color' => '#dc2626'],
-            ['key' => 'assignment', 'label' => 'Assignment', 'count' => $base()->where('type', 'assignment')->count(), 'color' => '#d97706'],
+            ['key' => 'all',     'label' => 'All',     'count' => $typeCounts->sum(),               'color' => '#0891b2'],
+            ['key' => 'video',   'label' => 'Video',   'count' => $typeCounts['video'] ?? 0,   'color' => '#2563eb'],
+            ['key' => 'article', 'label' => 'Article', 'count' => $typeCounts['article'] ?? 0, 'color' => '#16a34a'],
         ];
 
         $query = Lesson::withoutGlobalScopes([SoftDeletingScope::class])

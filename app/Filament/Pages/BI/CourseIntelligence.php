@@ -8,7 +8,6 @@ use App\Domains\Orders\Models\OrderItem;
 use App\Domains\Learning\Models\Enrollment;
 use App\Domains\Learning\Models\Review;
 use App\Domains\Learning\Models\Wishlist;
-use App\Domains\Orders\Models\Refund;
 use App\Support\Concerns\HasBiCsvExport;
 use App\Support\Concerns\HasDateRangePresets;
 use App\Support\PanelAccess;

@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 
 use BackedEnum;
 use Filament\Pages\Page;
+use Illuminate\Notifications\DatabaseNotification;
 
 class Notifications extends Page
 {
@@ -14,6 +15,8 @@ class Notifications extends Page
     protected static ?int $navigationSort = 3;
     protected static ?string $slug = 'notifications';
 
+    // The nav badge stays personal — "things addressed to me" — even though
+    // the page itself is a platform-wide audit log of everyone's notifications.
     public static function getNavigationBadge(): ?string
     {
         $unread = (int) (auth()->user()?->unreadNotifications()->count() ?? 0);
@@ -26,19 +29,20 @@ class Notifications extends Page
         return 'danger';
     }
 
-    public function mount(): void
-    {
-        auth()->user()?->unreadNotifications()->update(['read_at' => now()]);
-    }
-
     public function getHeading(): string|\Illuminate\Contracts\Support\Htmlable
     {
         return '';
     }
 
     public string $tab = 'all';
+    public string $search = '';
     public int $page = 1;
     public int $perPage = 10;
+
+    public function updatedSearch(): void
+    {
+        $this->page = 1;
+    }
 
     public function selectTab(string $tab): void
     {
@@ -60,24 +64,36 @@ class Notifications extends Page
     protected function getViewData(): array
     {
         $tab     = $this->tab;
+        $search  = $this->search;
         $page    = max(1, $this->page);
         $perPage = in_array($this->perPage, [10, 25, 50], true) ? $this->perPage : 10;
 
-        $user = auth()->user();
-        $base = fn() => $user->notifications();
+        // Platform-wide audit log — every notification sent to every user,
+        // not just the currently logged-in admin's own.
+        $base = fn () => DatabaseNotification::query();
 
         $tabs = [
-            ['key' => 'all',    'label' => 'All',    'count' => $base()->count(),                           'color' => '#9333ea'],
+            ['key' => 'all',    'label' => 'All',    'count' => $base()->count(),                          'color' => '#9333ea'],
             ['key' => 'unread', 'label' => 'Unread', 'count' => $base()->whereNull('read_at')->count(),     'color' => '#f87171'],
             ['key' => 'read',   'label' => 'Read',   'count' => $base()->whereNotNull('read_at')->count(),  'color' => '#34d399'],
         ];
 
-        $query = $user->notifications();
+        $query = DatabaseNotification::query()->with('notifiable');
 
         if ($tab === 'unread') {
             $query->whereNull('read_at');
         } elseif ($tab === 'read') {
             $query->whereNotNull('read_at');
+        }
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('data', 'ilike', "%{$search}%")
+                    ->orWhereHasMorph('notifiable', ['App\\Domains\\Users\\Models\\User'], function ($q2) use ($search) {
+                        $q2->where('name', 'ilike', "%{$search}%")
+                            ->orWhere('email', 'ilike', "%{$search}%");
+                    });
+            });
         }
 
         $query->latest();
@@ -87,6 +103,6 @@ class Notifications extends Page
         $curPage       = min($page, $totalPages);
         $notifications = $query->skip(($curPage - 1) * $perPage)->take($perPage)->get();
 
-        return compact('tabs', 'tab', 'notifications', 'total', 'totalPages', 'curPage', 'perPage');
+        return compact('tabs', 'tab', 'search', 'notifications', 'total', 'totalPages', 'curPage', 'perPage');
     }
 }

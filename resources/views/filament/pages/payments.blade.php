@@ -34,13 +34,11 @@
             \App\Domains\Payments\Enums\PaymentStatus::Failed      => ['bg' => 'rgba(248,113,113,.12)', 'color' => '#f87171', 'label' => 'Failed'],
             \App\Domains\Payments\Enums\PaymentStatus::Expired     => ['bg' => 'rgba(248,113,113,.12)', 'color' => '#f87171', 'label' => 'Expired'],
             \App\Domains\Payments\Enums\PaymentStatus::Cancelled   => ['bg' => 'rgba(248,113,113,.12)', 'color' => '#f87171', 'label' => 'Cancelled'],
-            \App\Domains\Payments\Enums\PaymentStatus::Refunded    => ['bg' => 'rgba(167,139,250,.12)', 'color' => '#a78bfa', 'label' => 'Refunded'],
         },
         is_string($payment->status) => match($payment->status) {
             'paid', 'completed'            => ['bg' => 'rgba(52,211,153,.12)',  'color' => '#34d399', 'label' => ucfirst($payment->status)],
             'pending', 'processing'        => ['bg' => 'rgba(251,191,36,.12)',  'color' => '#fbbf24', 'label' => ucfirst($payment->status)],
             'failed', 'expired', 'cancelled' => ['bg' => 'rgba(248,113,113,.12)', 'color' => '#f87171', 'label' => ucfirst($payment->status)],
-            'refunded'                     => ['bg' => 'rgba(167,139,250,.12)', 'color' => '#a78bfa', 'label' => 'Refunded'],
             default                        => ['bg' => 'rgba(148,163,184,.1)',  'color' => '#94a3b8', 'label' => ucfirst($payment->status)],
         },
         default => ['bg' => 'rgba(148,163,184,.1)', 'color' => '#94a3b8', 'label' => '—'],

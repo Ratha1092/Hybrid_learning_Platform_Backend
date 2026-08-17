@@ -148,7 +148,10 @@ class LessonForm
                     ->schema([
                         TextInput::make('duration')
                             ->numeric()
-                            ->suffix('minutes'),
+                            ->suffix('minutes')
+                            ->afterStateHydrated(fn (TextInput $component, mixed $state) => $component->state(filled($state) ? round(((float) $state) / 60) : null))
+                            ->dehydrateStateUsing(fn (mixed $state) => filled($state) ? (int) round(((float) $state) * 60) : null)
+                            ->hidden(fn (Get $get): bool => $get('type') === 'article'),
                         TextInput::make('order')
                             ->numeric()
                             ->default(1),

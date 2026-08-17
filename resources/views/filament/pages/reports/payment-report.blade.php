@@ -4,7 +4,7 @@
         default => ucfirst($gw),
     };
     $statusColor = fn(string $s) => match($s) {
-        'paid' => '#34d399', 'pending' => '#fbbf24', 'failed' => '#f87171', 'refunded' => '#a78bfa',
+        'paid' => '#34d399', 'pending' => '#fbbf24', 'failed' => '#f87171',
         default => '#94a3b8',
     };
 @endphp
@@ -448,7 +448,7 @@ html:not(.dark) .rp {
         </select>
         <select wire:model.live="status" class="rp-filter-select">
             <option value="all">All Statuses</option>
-            @foreach(['paid','pending','failed','refunded'] as $st)
+            @foreach(['paid','pending','failed'] as $st)
                 <option value="{{ $st }}">{{ ucfirst($st) }}</option>
             @endforeach
         </select>

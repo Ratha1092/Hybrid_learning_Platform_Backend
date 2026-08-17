@@ -91,13 +91,20 @@ class Reviews extends Page
         $page     = max(1, $this->page);
         $perPage  = in_array($this->perPage, [10, 25, 50], true) ? $this->perPage : 10;
 
+        // One grouped query instead of six separate COUNT round-trips for the tab badges.
+        $ratingCounts = Review::query()
+            ->toBase()
+            ->selectRaw('rating, count(*) as aggregate')
+            ->groupBy('rating')
+            ->pluck('aggregate', 'rating');
+
         $tabs = [
-            ['key' => 'all', 'label' => 'All',   'count' => Review::count(),                         'color' => '#2563eb'],
-            ['key' => '5',   'label' => '5★',     'count' => Review::where('rating', 5)->count(),    'color' => '#34d399'],
-            ['key' => '4',   'label' => '4★',     'count' => Review::where('rating', 4)->count(),    'color' => '#60a5fa'],
-            ['key' => '3',   'label' => '3★',     'count' => Review::where('rating', 3)->count(),    'color' => '#fbbf24'],
-            ['key' => '2',   'label' => '2★',     'count' => Review::where('rating', 2)->count(),    'color' => '#fb923c'],
-            ['key' => '1',   'label' => '1★',     'count' => Review::where('rating', 1)->count(),    'color' => '#f87171'],
+            ['key' => 'all', 'label' => 'All',   'count' => $ratingCounts->sum(),         'color' => '#2563eb'],
+            ['key' => '5',   'label' => '5★',     'count' => $ratingCounts[5] ?? 0,    'color' => '#34d399'],
+            ['key' => '4',   'label' => '4★',     'count' => $ratingCounts[4] ?? 0,    'color' => '#60a5fa'],
+            ['key' => '3',   'label' => '3★',     'count' => $ratingCounts[3] ?? 0,    'color' => '#fbbf24'],
+            ['key' => '2',   'label' => '2★',     'count' => $ratingCounts[2] ?? 0,    'color' => '#fb923c'],
+            ['key' => '1',   'label' => '1★',     'count' => $ratingCounts[1] ?? 0,    'color' => '#f87171'],
         ];
 
         $query = Review::with(['course:id,title', 'user:id,name']);

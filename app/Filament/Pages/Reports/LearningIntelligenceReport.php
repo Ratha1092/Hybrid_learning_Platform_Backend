@@ -175,18 +175,31 @@ class LearningIntelligenceReport extends Page implements Schedulable
         $dropoutRate = $activeEnrollments > 0 ? round(($dropoutCount / $activeEnrollments) * 100, 1) : 0;
         $certificateRate = $completedEnrollments > 0 ? round(($certificatesIssued / $completedEnrollments) * 100, 1) : 0;
 
-        $courses = Course::withoutGlobalScopes()
-            ->get(['id', 'title'])
-            ->map(function (Course $course) use ($from, $to) {
-                $courseEnrollments = Enrollment::where('course_id', $course->id);
-                static::applyDateRange($courseEnrollments, 'enrolled_at', $from, $to);
-                $enrollCount = $courseEnrollments->count();
-                $completedCount = (clone $courseEnrollments)->whereNotNull('completed_at')->count();
-                $certCount = (clone $courseEnrollments)->where('certificate_issued', true)->count();
-                $avgProgress = (float) (clone $courseEnrollments)->avg('progress_percentage');
+        // Batched per-course aggregates instead of N+1 queries per course.
+        $enrollmentsByCourse = static::applyDateRange(Enrollment::query(), 'enrolled_at', $from, $to)
+            ->selectRaw('course_id, COUNT(*) as total, SUM(CASE WHEN completed_at IS NOT NULL THEN 1 ELSE 0 END) as completed, SUM(CASE WHEN certificate_issued THEN 1 ELSE 0 END) as certs, AVG(progress_percentage) as avg_progress')
+            ->groupBy('course_id')
+            ->get()
+            ->keyBy('course_id');
 
-                $watchSeconds = (float) LessonProgress::where('course_id', $course->id)->sum('watch_time');
-                $learnerCount = LessonProgress::where('course_id', $course->id)->distinct('user_id')->count('user_id');
+        $watchByCourse = LessonProgress::query()
+            ->selectRaw('course_id, SUM(watch_time) as watch_seconds, COUNT(DISTINCT user_id) as learners')
+            ->groupBy('course_id')
+            ->get()
+            ->keyBy('course_id');
+
+        $courses = Course::query()
+            ->get(['id', 'title'])
+            ->map(function (Course $course) use ($enrollmentsByCourse, $watchByCourse) {
+                $eRow = $enrollmentsByCourse->get($course->id);
+                $enrollCount = (int) ($eRow->total ?? 0);
+                $completedCount = (int) ($eRow->completed ?? 0);
+                $certCount = (int) ($eRow->certs ?? 0);
+                $avgProgress = (float) ($eRow->avg_progress ?? 0);
+
+                $wRow = $watchByCourse->get($course->id);
+                $watchSeconds = (float) ($wRow->watch_seconds ?? 0);
+                $learnerCount = (int) ($wRow->learners ?? 0);
 
                 return [
                     'title' => $course->title,

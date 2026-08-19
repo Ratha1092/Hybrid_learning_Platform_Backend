@@ -163,37 +163,58 @@ class InstructorIntelligenceReport extends Page implements Schedulable
         $earningsQuery = OrderItem::whereIn('instructor_id', $instructorIds)
             ->whereHas('order', function ($q) use ($from, $to) {
                 $q->where('payment_status', OrderPaymentStatus::Paid->value);
-                static::applyDateRange($q, 'created_at', $from, $to);
+                static::applyDateRange($q, 'paid_at', $from, $to);
             });
 
         $totalEarnings = (clone $earningsQuery)->sum('instructor_amount');
         $averageEarnings = $totalInstructors > 0 ? $totalEarnings / $totalInstructors : 0;
         $averageRating = round((float) Review::avg('rating'), 2);
 
+        // Batched per-instructor aggregates instead of N+1 queries per instructor.
+        $earningsByInstructor = (clone $earningsQuery)
+            ->selectRaw('instructor_id, SUM(instructor_amount) as earnings')
+            ->groupBy('instructor_id')
+            ->pluck('earnings', 'instructor_id');
+
+        $courseCountsByInstructor = Course::whereIn('instructor_id', $instructorIds)
+            ->selectRaw('instructor_id, COUNT(*) as cnt')
+            ->groupBy('instructor_id')
+            ->pluck('cnt', 'instructor_id');
+
+        $studentCountsByInstructor = Enrollment::query()
+            ->join('courses', 'courses.id', '=', 'enrollments.course_id')
+            ->whereIn('courses.instructor_id', $instructorIds)
+            ->selectRaw('courses.instructor_id as instructor_id, COUNT(DISTINCT enrollments.user_id) as cnt')
+            ->groupBy('courses.instructor_id')
+            ->pluck('cnt', 'instructor_id');
+
+        $avgRatingByInstructor = Review::query()
+            ->join('courses', 'courses.id', '=', 'reviews.course_id')
+            ->whereIn('courses.instructor_id', $instructorIds)
+            ->selectRaw('courses.instructor_id as instructor_id, AVG(reviews.rating) as avg_rating')
+            ->groupBy('courses.instructor_id')
+            ->pluck('avg_rating', 'instructor_id');
+
+        $walletsByInstructor = InstructorWallet::whereIn('instructor_id', $instructorIds)
+            ->get()
+            ->keyBy('instructor_id');
+
         $instructors = User::role('instructor')
             ->get()
-            ->map(function (User $instructor) use ($from, $to) {
-                $courseIds = Course::where('instructor_id', $instructor->id)->pluck('id');
-
-                $earnings = (float) OrderItem::where('instructor_id', $instructor->id)
-                    ->whereHas('order', function ($q) use ($from, $to) {
-                        $q->where('payment_status', OrderPaymentStatus::Paid->value);
-                        static::applyDateRange($q, 'created_at', $from, $to);
-                    })
-                    ->sum('instructor_amount');
-
-                $studentCount = Enrollment::whereIn('course_id', $courseIds)->distinct('user_id')->count('user_id');
-                $avgRating = (float) Review::whereIn('course_id', $courseIds)->avg('rating');
-                $wallet = InstructorWallet::where('instructor_id', $instructor->id)->first();
+            ->map(function (User $instructor) use (
+                $earningsByInstructor, $courseCountsByInstructor,
+                $studentCountsByInstructor, $avgRatingByInstructor, $walletsByInstructor
+            ) {
+                $wallet = $walletsByInstructor->get($instructor->id);
 
                 return [
                     'name' => $instructor->name,
-                    'courseCount' => $courseIds->count(),
-                    'studentCount' => $studentCount,
-                    'earnings' => $earnings,
+                    'courseCount' => (int) ($courseCountsByInstructor[$instructor->id] ?? 0),
+                    'studentCount' => (int) ($studentCountsByInstructor[$instructor->id] ?? 0),
+                    'earnings' => (float) ($earningsByInstructor[$instructor->id] ?? 0),
                     'walletBalance' => (float) ($wallet->balance ?? 0),
                     'pendingBalance' => (float) ($wallet->pending_balance ?? 0),
-                    'avgRating' => round($avgRating, 2),
+                    'avgRating' => round((float) ($avgRatingByInstructor[$instructor->id] ?? 0), 2),
                 ];
             })
             ->sortByDesc('earnings')

@@ -4,6 +4,7 @@ namespace App\Filament\Pages\BI;
 
 use App\Domains\Analytics\Models\CourseView;
 use App\Domains\Courses\Models\Course;
+use App\Domains\Orders\Enums\OrderPaymentStatus;
 use App\Domains\Orders\Models\OrderItem;
 use App\Domains\Learning\Models\Enrollment;
 use App\Domains\Learning\Models\Review;
@@ -95,7 +96,7 @@ class CourseIntelligence extends Page
 
             // Period metrics
             $periodViews       = (int) static::applyDateRange(CourseView::query(), 'created_at', $from, $to)->count();
-            $periodEnrollments = (int) static::applyDateRange(Enrollment::query(), 'created_at', $from, $to)->count();
+            $periodEnrollments = (int) static::applyDateRange(Enrollment::query(), 'enrolled_at', $from, $to)->count();
             $periodWishlists   = (int) static::applyDateRange(Wishlist::query(), 'created_at', $from, $to)->count();
             $avgRating         = round((float) Review::avg('rating'), 2);
             $totalEnrollments  = Enrollment::count();
@@ -107,7 +108,7 @@ class CourseIntelligence extends Page
             for ($i = 11; $i >= 0; $i--) {
                 $m    = now()->subMonths($i)->startOfMonth();
                 $mEnd = (clone $m)->endOfMonth();
-                $eTrend[] = ['label' => $m->format("M 'y"), 'count' => Enrollment::whereBetween('created_at', [$m, $mEnd])->count()];
+                $eTrend[] = ['label' => $m->format("M 'y"), 'count' => Enrollment::whereBetween('enrolled_at', [$m, $mEnd])->count()];
             }
 
             // Rating trend (6 months avg)
@@ -126,8 +127,10 @@ class CourseIntelligence extends Page
                 'Archived'  => $archived,
             ];
 
-            // Top courses by revenue (from order_items)
-            $topRevenueCourses = OrderItem::selectRaw('course_id, SUM(final_amount) as total_revenue, COUNT(*) as total_sales')
+            // Top courses by revenue (from order_items on paid orders only — an
+            // unpaid/pending/cancelled order's items must not count as revenue).
+            $topRevenueCourses = OrderItem::whereHas('order', fn ($q) => $q->where('payment_status', OrderPaymentStatus::Paid->value))
+                ->selectRaw('course_id, SUM(final_amount) as total_revenue, COUNT(*) as total_sales')
                 ->groupBy('course_id')
                 ->orderByRaw('SUM(final_amount) DESC')
                 ->take(10)

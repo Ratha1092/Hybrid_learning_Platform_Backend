@@ -93,7 +93,7 @@ class StudentIntelligence extends Page
 
             // Returning: had enrollments before $from, active in period
             $returningStudents = $from
-                ? (int) Enrollment::where('created_at', '<', $from)
+                ? (int) Enrollment::where('enrolled_at', '<', $from)
                     ->whereHas('user', fn ($q) => $q->role('student'))
                     ->whereIn('user_id', function ($sub) use ($from, $to) {
                         $sub->select('user_id')->from('lesson_progress')
@@ -113,7 +113,7 @@ class StudentIntelligence extends Page
 
             // Dropout rate: enrolled >30 days ago, never completed, no recent activity
             $dropoutCandidates = Enrollment::where('status', '!=', 'completed')
-                ->where('created_at', '<', now()->subDays(30))
+                ->where('enrolled_at', '<', now()->subDays(30))
                 ->whereDoesntHave('user', fn ($q) => $q->whereHas('lessonProgress', fn ($lp) =>
                     $lp->where('last_watched_at', '>=', now()->subDays(30))
                 ))

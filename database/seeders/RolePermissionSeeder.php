@@ -32,13 +32,14 @@ class RolePermissionSeeder extends Seeder
         'reviews'    => ['view', 'create', 'update', 'delete', 'approve', 'reject'],
         'content_reports' => ['view', 'update'],
         'reports'    => ['export', 'view_executive', 'view_revenue', 'view_payment', 'view_payout','view_course_intelligence', 'view_instructor_intelligence','view_learning_intelligence', 'view_user', 'view_audit', 'schedule'],
+        'bi'         => ['view_executive', 'view_students', 'view_courses', 'view_financial', 'view_instructors', 'view_marketplace', 'view_revenue', 'view_operations'],
         'system'     => ['view_logs', 'view_security', 'view_health'],
         'progress'   => ['view-own'],
         'wishlist'   => ['manage'],
         'profile'    => ['manage'],
     ];
     private const ROLE_PERMISSIONS = [
-        'finance' => ['payments.*', 'invoices.*', 'receipts.*', 'wallets.*', 'payouts.*', 'payout_accounts.*', 'coupons.*', 'analytics.view', 'reports.export','reports.view_revenue', 'reports.view_payment', 'reports.view_payout', 'reports.schedule', 'settings_finance.*',],
+        'finance' => ['payments.*', 'invoices.*', 'receipts.*', 'wallets.*', 'payouts.*', 'payout_accounts.*', 'coupons.*', 'analytics.view', 'reports.export','reports.view_revenue', 'reports.view_payment', 'reports.view_payout', 'reports.schedule', 'settings_finance.*', 'bi.view_revenue', 'bi.view_financial',],
         'instructor' => ['courses.create', 'courses.update', 'lessons.create', 'lessons.update','analytics.view-own', 'wallets.view-own', 'payouts.create',],
         'student' => ['courses.enroll', 'progress.view-own', 'reviews.create', 'wishlist.manage', 'profile.manage',],
     ];

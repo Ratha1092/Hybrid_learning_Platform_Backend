@@ -234,7 +234,9 @@ class PaymentReport extends Page implements Schedulable
             $totalPages = max(1, (int) ceil($totalRows / $perPage));
             $payments = $query->skip(($page - 1) * $perPage)->take($perPage)->get();
         } else {
-            $payments = $query->get();
+            // lazy() streams in chunks instead of hydrating the full result
+            // set at once, while still supporting the with() eager loads above.
+            $payments = $query->lazy();
             $totalRows = $payments->count();
             $totalPages = 1;
             $page = 1;

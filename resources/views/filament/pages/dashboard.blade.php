@@ -989,7 +989,7 @@ html.dark .db-avatar {
 <script>
 function dbChart() {
     return {
-        period: '30d',
+        period: 'filtered',
         data: @json($revenueChartData),
         get cur() { return this.data[this.period]; },
         fmtMoney(v) {
@@ -1219,7 +1219,7 @@ function dbCustomDate() {
 
 {{-- Row 1: KPI cards─ --}}
 <div class="db-kpi-grid">
-    @php $revGrowth = $revenueChartData['30d']['gross_growth'] ?? 0; @endphp
+    @php $revGrowth = $revenueChartData['filtered']['gross_growth'] ?? 0; @endphp
     <a href="{{ route('filament.admin.pages.reports.revenue', $dateParams) }}" wire:navigate class="db-kpi">
         <div class="db-kpi-top">
             <div>
@@ -1234,7 +1234,7 @@ function dbCustomDate() {
             <span class="db-badge {{ $revGrowth >= 0 ? 'db-badge-green' : 'db-badge-red' }}">
                 {{ $revGrowth >= 0 ? '↑' : '↓' }} {{ abs($revGrowth) }}%
             </span>
-            <span style="font-size:.75rem;color:var(--db-t3);">from last 30 days</span>
+            <span style="font-size:.75rem;color:var(--db-t3);">vs previous period</span>
         </div>
     </a>
     <a href="{{ route('filament.admin.pages.orders', $dateParams) }}" wire:navigate class="db-kpi">
@@ -1353,6 +1353,7 @@ function dbCustomDate() {
                     <div class="db-legend-item"><span class="db-legend-dot" style="background:#F59E0B;width:.75rem;height:0;border-top:2px dotted #F59E0B;border-radius:0;"></span>Instructor Revenue</div>
                 </div>
                 <div class="db-period-tabs">
+                    <button class="db-period-tab" :class="{active:period==='filtered'}" @click="period='filtered'; $nextTick(()=>render())" type="button" title="Exactly the date range selected above">{{ $activePeriodLabel }}</button>
                     <button class="db-period-tab" :class="{active:period==='7d'}"  @click="period='7d';  $nextTick(()=>render())" type="button">7D</button>
                     <button class="db-period-tab" :class="{active:period==='30d'}" @click="period='30d'; $nextTick(()=>render())" type="button">30D</button>
                     <button class="db-period-tab" :class="{active:period==='6m'}"  @click="period='6m';  $nextTick(()=>render())" type="button">6M</button>
@@ -1384,35 +1385,34 @@ function dbCustomDate() {
 
     <div class="db-rev-stats">
         @php
-            $g30       = $revenueChartData['30d']['gross_growth']      ?? 0;
-            $platGrowth = $revenueChartData['30d']['platform_growth']   ?? 0;
-            $instGrowth = $revenueChartData['30d']['instructor_growth'] ?? 0;
-            $gross30    = $revenueChartData['30d']['total_gross']       ?? 0;
-            $plat30     = $revenueChartData['30d']['total_platform']    ?? 0;
-            $inst30     = $revenueChartData['30d']['total_instructor']  ?? 0;
+            $gFiltered    = $revenueChartData['filtered']['gross_growth']      ?? 0;
+            $platGrowth   = $revenueChartData['filtered']['platform_growth']   ?? 0;
+            $instGrowth   = $revenueChartData['filtered']['instructor_growth'] ?? 0;
+            $grossFiltered = $revenueChartData['filtered']['total_gross']       ?? 0;
+            $platFiltered  = $revenueChartData['filtered']['total_platform']    ?? 0;
+            $instFiltered  = $revenueChartData['filtered']['total_instructor']  ?? 0;
         @endphp
-        @php $rev30Params = ['preset' => 'last_30']; @endphp
-        <a href="{{ route('filament.admin.pages.reports.revenue', $rev30Params) }}" wire:navigate class="db-rev-stat">
-            <div class="db-rev-stat-lbl">Gross Revenue</div>
-            <div class="db-rev-stat-val db-mono">${{ number_format($gross30, 2) }}</div>
+        <a href="{{ route('filament.admin.pages.reports.revenue', $dateParams) }}" wire:navigate class="db-rev-stat">
+            <div class="db-rev-stat-lbl">Gross Revenue ({{ $activePeriodLabel }})</div>
+            <div class="db-rev-stat-val db-mono">${{ number_format($grossFiltered, 2) }}</div>
             <div class="db-rev-stat-sub">
-                <span class="db-badge {{ $g30 >= 0 ? 'db-badge-green' : 'db-badge-red' }}" style="font-size:.625rem;">
-                    {{ $g30 >= 0 ? '↑' : '↓' }} {{ abs($g30) }}%
+                <span class="db-badge {{ $gFiltered >= 0 ? 'db-badge-green' : 'db-badge-red' }}" style="font-size:.625rem;">
+                    {{ $gFiltered >= 0 ? '↑' : '↓' }} {{ abs($gFiltered) }}%
                 </span>
             </div>
         </a>
-        <a href="{{ route('filament.admin.pages.reports.revenue', $rev30Params) }}" wire:navigate class="db-rev-stat">
-            <div class="db-rev-stat-lbl">Platform Revenue</div>
-            <div class="db-rev-stat-val db-mono">${{ number_format($plat30, 2) }}</div>
+        <a href="{{ route('filament.admin.pages.reports.revenue', $dateParams) }}" wire:navigate class="db-rev-stat">
+            <div class="db-rev-stat-lbl">Platform Revenue ({{ $activePeriodLabel }})</div>
+            <div class="db-rev-stat-val db-mono">${{ number_format($platFiltered, 2) }}</div>
             <div class="db-rev-stat-sub">
                 <span class="db-badge {{ $platGrowth >= 0 ? 'db-badge-green' : 'db-badge-red' }}" style="font-size:.625rem;">
                     {{ $platGrowth >= 0 ? '↑' : '↓' }} {{ abs($platGrowth) }}%
                 </span>
             </div>
         </a>
-        <a href="{{ route('filament.admin.pages.reports.revenue', $rev30Params) }}" wire:navigate class="db-rev-stat">
-            <div class="db-rev-stat-lbl">Instructor Revenue</div>
-            <div class="db-rev-stat-val db-mono">${{ number_format($inst30, 2) }}</div>
+        <a href="{{ route('filament.admin.pages.reports.revenue', $dateParams) }}" wire:navigate class="db-rev-stat">
+            <div class="db-rev-stat-lbl">Instructor Revenue ({{ $activePeriodLabel }})</div>
+            <div class="db-rev-stat-val db-mono">${{ number_format($instFiltered, 2) }}</div>
             <div class="db-rev-stat-sub">
                 <span class="db-badge {{ $instGrowth >= 0 ? 'db-badge-green' : 'db-badge-red' }}" style="font-size:.625rem;">
                     {{ $instGrowth >= 0 ? '↑' : '↓' }} {{ abs($instGrowth) }}%
@@ -1576,7 +1576,7 @@ function dbCustomDate() {
                 <td class="db-mono" style="font-weight:700;color:var(--db-green);">${{ number_format($course->course_revenue ?? 0, 2) }}</td>
             </tr>
             @empty
-            <tr><td colspan="4" class="db-empty">No published courses yet.</td></tr>
+            <tr><td colspan="4" class="db-empty">No enrollments in {{ $activePeriodLabel }}.</td></tr>
             @endforelse
         </tbody>
     </table>

@@ -208,7 +208,9 @@ class PayoutReport extends Page implements Schedulable
             $totalPages = max(1, (int) ceil($totalRows / $perPage));
             $payouts = $query->skip(($page - 1) * $perPage)->take($perPage)->get();
         } else {
-            $payouts = $query->get();
+            // lazy() streams in chunks instead of hydrating the full result
+            // set at once, while still supporting the with() eager loads above.
+            $payouts = $query->lazy();
             $totalRows = $payouts->count();
             $totalPages = 1;
             $page = 1;

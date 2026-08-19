@@ -234,7 +234,9 @@ class UserReport extends Page implements Schedulable
             $totalPages = max(1, (int) ceil($totalRows / $perPage));
             $users      = $query->skip(($page - 1) * $perPage)->take($perPage)->get();
         } else {
-            $users      = $query->get();
+            // lazy() streams in chunks instead of hydrating the full result
+            // set at once, while still supporting the with() eager load above.
+            $users      = $query->lazy();
             $totalRows  = $users->count();
             $totalPages = 1;
             $page       = 1;

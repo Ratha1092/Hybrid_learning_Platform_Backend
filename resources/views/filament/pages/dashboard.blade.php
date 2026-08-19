@@ -197,6 +197,25 @@ html.dark {
     display:block;
 }
 
+/* Below this width .db-topbar wraps (the greeting no longer fits beside the
+   pill), and a wrapped flex line with a single item sits at the main-start
+   (left) edge rather than the right — so right:0 positioning relative to the
+   pill can land the panel at a negative x-offset, clipped off-screen. Viewport
+   anchoring guarantees it stays visible regardless of where the pill lands. */
+@media (max-width: 640px) {
+    .db-drp-panel {
+        position:fixed;
+        left:1rem;
+        right:1rem;
+        top:auto;
+        bottom:1rem;
+        width:auto;
+        min-width:0;
+        max-height:70vh;
+        overflow-y:auto;
+    }
+}
+
 .db-drp-presets {
     display:flex;
     flex-direction:column;
@@ -407,6 +426,9 @@ html.dark .db-badge-purple {
     flex-direction:column;
     gap:.625rem;
     transition:box-shadow .15s;
+    text-decoration:none;
+    color:inherit;
+    cursor:pointer;
 }
 .db-kpi:hover {
     box-shadow:var(--db-sh-md);
@@ -603,6 +625,14 @@ html.dark .db-period-tab.active {
     padding:.75rem .875rem;
     box-shadow:var(--db-sh);
     flex:1;
+    display:block;
+    text-decoration:none;
+    color:inherit;
+    cursor:pointer;
+    transition:box-shadow .15s;
+}
+.db-rev-stat:hover {
+    box-shadow:var(--db-sh-md);
 }
 .db-rev-stat-lbl {
     font-size:.625rem;
@@ -648,6 +678,13 @@ html.dark .db-period-tab.active {
     display:flex;
     align-items:center;
     gap:.875rem;
+    text-decoration:none;
+    color:inherit;
+    cursor:pointer;
+    transition:box-shadow .15s;
+}
+.db-mini:hover {
+    box-shadow:var(--db-sh-md);
 }
 .db-mini-icon {
     width:2.5rem;
@@ -712,6 +749,9 @@ html.dark .db-period-tab.active {
 }
 .db-table tbody tr:hover td {
     background:var(--db-bg);
+}
+.db-row-link {
+    cursor:pointer;
 }
 .db-rank {
     width:1.5rem;
@@ -1102,6 +1142,18 @@ function dbCustomDate() {
 
 <div class="db-wrap">
 
+@php
+    // Query params that carry the dashboard's active date-range filter into
+    // date-aware detail pages. Only include date_from/date_to for a custom
+    // range — for named presets the destination page re-resolves the preset
+    // itself, exactly like the picker's own apply() JS does.
+    $dateParams = array_filter([
+        'preset'    => $activePreset,
+        'date_from' => $activePreset === 'custom' ? $activeDateFrom : null,
+        'date_to'   => $activePreset === 'custom' ? $activeDateTo   : null,
+    ]);
+@endphp
+
 {{-- Top ba --}}
 <div class="db-topbar">
     <div class="db-topbar-left">
@@ -1168,7 +1220,7 @@ function dbCustomDate() {
 {{-- Row 1: KPI cards─ --}}
 <div class="db-kpi-grid">
     @php $revGrowth = $revenueChartData['30d']['gross_growth'] ?? 0; @endphp
-    <div class="db-kpi">
+    <a href="{{ route('filament.admin.pages.reports.revenue', $dateParams) }}" wire:navigate class="db-kpi">
         <div class="db-kpi-top">
             <div>
                 <div class="db-kpi-label">Total Revenue</div>
@@ -1184,8 +1236,8 @@ function dbCustomDate() {
             </span>
             <span style="font-size:.75rem;color:var(--db-t3);">from last 30 days</span>
         </div>
-    </div>
-    <div class="db-kpi">
+    </a>
+    <a href="{{ route('filament.admin.pages.orders', $dateParams) }}" wire:navigate class="db-kpi">
         <div class="db-kpi-top">
             <div>
                 <div class="db-kpi-label">Total Orders</div>
@@ -1199,8 +1251,8 @@ function dbCustomDate() {
             <span class="db-badge db-badge-blue">+{{ $newOrdersToday }} today</span>
             <span style="font-size:.75rem;color:var(--db-t3);">{{ $completedPayments }} paid</span>
         </div>
-    </div>
-    <div class="db-kpi">
+    </a>
+    <a href="{{ route('filament.admin.pages.users', $dateParams + ['tab' => 'student']) }}" wire:navigate class="db-kpi">
         <div class="db-kpi-top">
             <div>
                 <div class="db-kpi-label">Total Students</div>
@@ -1218,8 +1270,8 @@ function dbCustomDate() {
                 <span class="db-badge db-badge-red">↓ {{ abs($enrollmentGrowth) }}% enrollments</span>
             @endif
         </div>
-    </div>
-    <div class="db-kpi">
+    </a>
+    <a href="{{ route('filament.admin.pages.instructors') }}" wire:navigate class="db-kpi">
         <div class="db-kpi-top">
             <div>
                 <div class="db-kpi-label">Total Instructors</div>
@@ -1236,7 +1288,7 @@ function dbCustomDate() {
                 <span class="db-badge db-badge-green">All verified</span>
             @endif
         </div>
-    </div>
+    </a>
 </div>
 
 {{-- Row 2: Action Required─ --}}
@@ -1292,6 +1344,7 @@ function dbCustomDate() {
             <span class="db-card-title">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--db-blue)" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
                 Revenue Overview
+                <a href="{{ route('filament.admin.pages.reports.revenue', $dateParams) }}" wire:navigate class="db-view-all" style="font-weight:500;margin-left:.5rem;">View Report &rsaquo;</a>
             </span>
             <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
                 <div class="db-rev-legend">
@@ -1338,7 +1391,8 @@ function dbCustomDate() {
             $plat30     = $revenueChartData['30d']['total_platform']    ?? 0;
             $inst30     = $revenueChartData['30d']['total_instructor']  ?? 0;
         @endphp
-        <div class="db-rev-stat">
+        @php $rev30Params = ['preset' => 'last_30']; @endphp
+        <a href="{{ route('filament.admin.pages.reports.revenue', $rev30Params) }}" wire:navigate class="db-rev-stat">
             <div class="db-rev-stat-lbl">Gross Revenue</div>
             <div class="db-rev-stat-val db-mono">${{ number_format($gross30, 2) }}</div>
             <div class="db-rev-stat-sub">
@@ -1346,8 +1400,8 @@ function dbCustomDate() {
                     {{ $g30 >= 0 ? '↑' : '↓' }} {{ abs($g30) }}%
                 </span>
             </div>
-        </div>
-        <div class="db-rev-stat">
+        </a>
+        <a href="{{ route('filament.admin.pages.reports.revenue', $rev30Params) }}" wire:navigate class="db-rev-stat">
             <div class="db-rev-stat-lbl">Platform Revenue</div>
             <div class="db-rev-stat-val db-mono">${{ number_format($plat30, 2) }}</div>
             <div class="db-rev-stat-sub">
@@ -1355,8 +1409,8 @@ function dbCustomDate() {
                     {{ $platGrowth >= 0 ? '↑' : '↓' }} {{ abs($platGrowth) }}%
                 </span>
             </div>
-        </div>
-        <div class="db-rev-stat">
+        </a>
+        <a href="{{ route('filament.admin.pages.reports.revenue', $rev30Params) }}" wire:navigate class="db-rev-stat">
             <div class="db-rev-stat-lbl">Instructor Revenue</div>
             <div class="db-rev-stat-val db-mono">${{ number_format($inst30, 2) }}</div>
             <div class="db-rev-stat-sub">
@@ -1364,13 +1418,13 @@ function dbCustomDate() {
                     {{ $instGrowth >= 0 ? '↑' : '↓' }} {{ abs($instGrowth) }}%
                 </span>
             </div>
-        </div>
+        </a>
     </div>
 </div>
 
 {{-- Row 4: Mini stats --}}
 <div class="db-mini-grid">
-    <div class="db-mini">
+    <a href="{{ route('filament.admin.pages.courses', ['tab' => 'published']) }}" wire:navigate class="db-mini">
         <div class="db-mini-icon" style="background:var(--db-green-l);">
             <svg viewBox="0 0 24 24" fill="none" stroke="var(--db-green)" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
         </div>
@@ -1381,8 +1435,8 @@ function dbCustomDate() {
                 <span class="db-badge db-badge-green" style="font-size:.625rem;">+{{ $newCoursesThisMonth }} in {{ $activePeriodLabel }}</span>
             </div>
         </div>
-    </div>
-    <div class="db-mini">
+    </a>
+    <a href="{{ route('filament.admin.pages.reports.learning-intelligence', $dateParams) }}" wire:navigate class="db-mini">
         <div class="db-mini-icon" style="background:var(--db-blue-l);">
             <svg viewBox="0 0 24 24" fill="none" stroke="var(--db-blue)" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
         </div>
@@ -1397,8 +1451,8 @@ function dbCustomDate() {
                 @endif
             </div>
         </div>
-    </div>
-    <div class="db-mini">
+    </a>
+    <a href="{{ route('filament.admin.pages.reports.learning-intelligence', $dateParams) }}" wire:navigate class="db-mini">
         <div class="db-mini-icon" style="background:var(--db-amber-l);">
             <svg viewBox="0 0 24 24" fill="none" stroke="var(--db-amber)" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
         </div>
@@ -1415,7 +1469,7 @@ function dbCustomDate() {
                 @endif
             </div>
         </div>
-    </div>
+    </a>
 </div>
 
 {{-- Row 5: Top Instructors─ --}}
@@ -1444,8 +1498,9 @@ function dbCustomDate() {
                 $initials = strtoupper(implode('', array_map(fn($w)=>$w[0], array_slice($words,0,2))));
                 $growth   = $inst['growth'] ?? 0;
                 $rankCls  = match($idx){ 0=>'db-rank-1', 1=>'db-rank-2', 2=>'db-rank-3', default=>'db-rank-n' };
+                $instUrl  = route('filament.admin.resources.users.view', ['record' => $inst['id']]);
             @endphp
-            <tr>
+            <tr class="db-row-link" onclick="Livewire.navigate('{{ $instUrl }}')">
                 <td><span class="db-rank {{ $rankCls }}">{{ $idx+1 }}</span></td>
                 <td>
                     <div class="db-avatar-row">
@@ -1488,7 +1543,7 @@ function dbCustomDate() {
         </tr></thead>
         <tbody>
             @forelse($popularCourses as $course)
-            <tr>
+            <tr class="db-row-link" onclick="Livewire.navigate('{{ route('filament.admin.resources.courses.view', ['record' => $course->id]) }}')">
                 <td>
                     <div style="display:flex;align-items:center;gap:.625rem;">
                         <div class="db-course-thumb" style="background:var(--db-blue-2);color:var(--db-blue-d);width:2.25rem;height:2.25rem;">
@@ -1572,8 +1627,9 @@ function dbCustomDate() {
                     };
                     $gw          = optional($order->payment)->payment_gateway?->value ?? '—';
                     $firstCourse = optional($order->items->first())->course?->title ?? '—';
+                    $orderUrl    = route('filament.admin.resources.orders.view', ['record' => $order->id]);
                 @endphp
-                <tr>
+                <tr class="db-row-link" onclick="Livewire.navigate('{{ $orderUrl }}')">
                     <td class="db-trunc"><span class="db-link" style="font-size:.75rem;">ORD-{{ str_pad($order->id, 4, '0', STR_PAD_LEFT) }}</span></td>
                     <td class="db-trunc db-name">{{ optional($order->user)->name ?? 'Guest' }}</td>
                     <td class="db-trunc db-sub" title="{{ $firstCourse }}">{{ $firstCourse }}</td>
@@ -1612,7 +1668,7 @@ function dbCustomDate() {
             <tbody>
                 @forelse($lowRatedCourses as $course)
                 @php $rating = round($course->reviews_avg_rating ?? 0, 1); @endphp
-                <tr>
+                <tr class="db-row-link" onclick="Livewire.navigate('{{ route('filament.admin.pages.reviews', ['course_id' => $course->id]) }}')">
                     <td>
                         <div style="display:flex;align-items:center;gap:.625rem;">
                             <div class="db-course-thumb" style="background:var(--db-red-l);color:var(--db-red);width:2.25rem;height:2.25rem;">

@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 
 use App\Domains\Users\Mail\AccountSuspendedMail;
 use App\Domains\Users\Models\User;
+use App\Support\Concerns\HasDateRangePresets;
 use App\Support\NavBadge;
 use App\Support\PanelAccess;
 use BackedEnum;
@@ -15,6 +16,8 @@ use Illuminate\Support\Number;
 
 class Users extends Page
 {
+    use HasDateRangePresets;
+
     protected string $view = 'filament.pages.users';
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUsers;
     protected static ?string $navigationLabel = 'Users';
@@ -27,8 +30,16 @@ class Users extends Page
         return PanelAccess::can('users.view');
     }
 
+    public string $preset = 'all_time';
+    public string $dateFrom = '';
+    public string $dateTo = '';
+
     public function mount(): void
     {
+        $this->preset   = request('preset', 'all_time');
+        $this->dateFrom = request('date_from', '');
+        $this->dateTo   = request('date_to', '');
+
         NavBadge::markSeen('users');
     }
 
@@ -152,13 +163,15 @@ class Users extends Page
         $page    = max(1, $this->page);
         $perPage = in_array($this->perPage, [10, 25, 50], true) ? $this->perPage : 10;
 
+        [$from, $to] = static::resolvePreset($this->preset, 'all_time', $this->dateFrom ?: null, $this->dateTo ?: null);
+
         // Super-admin accounts are invisible to everyone except other super-admins.
         $viewerIsSuperAdmin = auth()->user()?->hasRole('super-admin') ?? false;
         $hideSuperAdmins = fn ($q) => $viewerIsSuperAdmin
             ? $q
             : $q->whereDoesntHave('roles', fn ($r) => $r->where('name', 'super-admin'));
 
-        $base = fn() => $hideSuperAdmins(User::withoutTrashed());
+        $base = fn() => static::applyDateRange($hideSuperAdmins(User::withoutTrashed()), 'created_at', $from, $to);
 
         $roleMeta = [
             'instructor' => ['label' => 'Instructor', 'color' => '#3b82f6'],
@@ -178,7 +191,7 @@ class Users extends Page
             ];
         }
 
-        $query = $hideSuperAdmins(User::withoutTrashed());
+        $query = $base();
 
         if ($tab !== 'all' && array_key_exists($tab, $roleMeta)) {
             $query->role($tab);
@@ -198,6 +211,11 @@ class Users extends Page
         $curPage    = min($page, $totalPages);
         $users      = $query->skip(($curPage - 1) * $perPage)->take($perPage)->get();
 
-        return compact('tabs', 'tab', 'search', 'users', 'total', 'totalPages', 'curPage', 'perPage');
+        $activePreset      = $this->preset;
+        $activePeriodLabel = $this->preset !== 'all_time'
+            ? (static::dateRangePresetOptions()[$this->preset] ?? ucfirst($this->preset))
+            : null;
+
+        return compact('tabs', 'tab', 'search', 'users', 'total', 'totalPages', 'curPage', 'perPage', 'activePreset', 'activePeriodLabel');
     }
 }

@@ -408,6 +408,20 @@ html:not(.dark) .bi {
     display:block;
 }
 
+@media (max-width: 640px) {
+    .rp-drp-panel {
+        position:fixed;
+        left:1rem;
+        right:1rem;
+        top:auto;
+        bottom:1rem;
+        width:auto;
+        min-width:0;
+        max-height:70vh;
+        overflow-y:auto;
+    }
+}
+
 .rp-drp-presets {
     display:flex;
     flex-direction:column;

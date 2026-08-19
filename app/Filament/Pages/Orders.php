@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Domains\Orders\Models\Order;
+use App\Support\Concerns\HasDateRangePresets;
 use App\Support\NavBadge;
 use App\Support\PanelAccess;
 use BackedEnum;
@@ -11,6 +12,8 @@ use Illuminate\Support\Number;
 
 class Orders extends Page
 {
+    use HasDateRangePresets;
+
     protected string $view = 'filament.pages.orders';
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-shopping-bag';
     protected static ?string $navigationLabel = 'Orders';
@@ -23,8 +26,16 @@ class Orders extends Page
         return PanelAccess::can('orders.view');
     }
 
+    public string $preset = 'all_time';
+    public string $dateFrom = '';
+    public string $dateTo = '';
+
     public function mount(): void
     {
+        $this->preset   = request('preset', 'all_time');
+        $this->dateFrom = request('date_from', '');
+        $this->dateTo   = request('date_to', '');
+
         NavBadge::markSeen('orders');
 
         auth()->user()?->unreadNotifications()
@@ -89,7 +100,9 @@ class Orders extends Page
         $page    = max(1, $this->page);
         $perPage = in_array($this->perPage, [10, 25, 50], true) ? $this->perPage : 10;
 
-        $base = fn() => Order::withoutTrashed();
+        [$from, $to] = static::resolvePreset($this->preset, 'all_time', $this->dateFrom ?: null, $this->dateTo ?: null);
+
+        $base = fn() => static::applyDateRange(Order::withoutTrashed(), 'created_at', $from, $to);
 
         // One grouped query instead of five separate COUNT round-trips for the tab badges.
         $statusCounts = $base()
@@ -105,7 +118,7 @@ class Orders extends Page
             ['key' => 'cancelled', 'label' => 'Cancelled', 'count' => $statusCounts['cancelled'] ?? 0, 'color' => '#f87171'],
         ];
 
-        $query = Order::withoutTrashed()
+        $query = $base()
             ->with('user:id,name')
             ->withCount('items');
 
@@ -127,6 +140,11 @@ class Orders extends Page
         $curPage    = min($page, $totalPages);
         $orders     = $query->skip(($curPage - 1) * $perPage)->take($perPage)->get();
 
-        return compact('tabs', 'tab', 'search', 'orders', 'total', 'totalPages', 'curPage', 'perPage');
+        $activePreset      = $this->preset;
+        $activePeriodLabel = $this->preset !== 'all_time'
+            ? (static::dateRangePresetOptions()[$this->preset] ?? ucfirst($this->preset))
+            : null;
+
+        return compact('tabs', 'tab', 'search', 'orders', 'total', 'totalPages', 'curPage', 'perPage', 'activePreset', 'activePeriodLabel');
     }
 }

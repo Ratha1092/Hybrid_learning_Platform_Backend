@@ -85,11 +85,11 @@ class RevenueReport extends Page implements Schedulable
     {
         $data = static::buildReportData($filters, paginate: false);
 
-        $header = ['Order #', 'Date', 'Customer', 'Items', 'Subtotal', 'Discount', 'Coupon', 'Final Amount', 'Platform Cut', 'Instructor Cut'];
+        $header = ['Order #', 'Paid At', 'Customer', 'Items', 'Subtotal', 'Discount', 'Coupon', 'Final Amount', 'Platform Cut', 'Instructor Cut'];
 
         $rows = $data['orders']->map(fn (Order $o) => [
             $o->order_number,
-            $o->created_at?->format('M d, Y') ?? '',
+            $o->paid_at?->format('M d, Y') ?? '',
             $o->customer_name ?? $o->user?->name ?? '',
             $o->items->count(),
             number_format((float) $o->total_amount, 2),
@@ -165,7 +165,7 @@ class RevenueReport extends Page implements Schedulable
 
         $paidBase = function () use ($from, $to) {
             $q = Order::where('payment_status', OrderPaymentStatus::Paid->value);
-            static::applyDateRange($q, 'created_at', $from, $to);
+            static::applyDateRange($q, 'paid_at', $from, $to);
             return $q;
         };
 
@@ -176,7 +176,7 @@ class RevenueReport extends Page implements Schedulable
 
         $itemTotals = \App\Domains\Orders\Models\OrderItem::whereHas('order', function ($q) use ($from, $to) {
             $q->where('payment_status', OrderPaymentStatus::Paid->value);
-            static::applyDateRange($q, 'created_at', $from, $to);
+            static::applyDateRange($q, 'paid_at', $from, $to);
         })->selectRaw('SUM(platform_amount) as platform_total, SUM(instructor_amount) as instructor_total')->first();
 
         $platformRevenue = (float) ($itemTotals->platform_total ?? 0);
@@ -194,7 +194,7 @@ class RevenueReport extends Page implements Schedulable
                     $revenueTrend->push([
                         'label'   => $cursor->format('M d'),
                         'revenue' => (float) Order::where('payment_status', OrderPaymentStatus::Paid->value)
-                            ->whereBetween('created_at', [$ds, $de])
+                            ->whereBetween('paid_at', [$ds, $de])
                             ->sum('final_amount'),
                     ]);
                     $cursor->addDay();
@@ -209,8 +209,8 @@ class RevenueReport extends Page implements Schedulable
                     $revenueTrend->push([
                         'label'   => $cursor->format('M \'y'),
                         'revenue' => (float) Order::where('payment_status', OrderPaymentStatus::Paid->value)
-                            ->whereMonth('created_at', $cursor->month)
-                            ->whereYear('created_at', $cursor->year)
+                            ->whereMonth('paid_at', $cursor->month)
+                            ->whereYear('paid_at', $cursor->year)
                             ->sum('final_amount'),
                     ]);
                     $cursor->addMonth();
@@ -224,8 +224,8 @@ class RevenueReport extends Page implements Schedulable
                 return [
                     'label'   => $date->format('M \'y'),
                     'revenue' => (float) Order::where('payment_status', OrderPaymentStatus::Paid->value)
-                        ->whereMonth('created_at', $date->month)
-                        ->whereYear('created_at', $date->year)
+                        ->whereMonth('paid_at', $date->month)
+                        ->whereYear('paid_at', $date->year)
                         ->sum('final_amount'),
                 ];
             });
@@ -239,7 +239,7 @@ class RevenueReport extends Page implements Schedulable
         $query = Order::where('payment_status', OrderPaymentStatus::Paid->value)
             ->with(['items', 'user:id,name'])
             ->orderByDesc('id');
-        static::applyDateRange($query, 'created_at', $from, $to);
+        static::applyDateRange($query, 'paid_at', $from, $to);
 
         if ($paginate) {
             $page = max(1, (int) ($filters['page'] ?? 1));
@@ -248,7 +248,10 @@ class RevenueReport extends Page implements Schedulable
             $totalPages = max(1, (int) ceil($totalRows / $perPage));
             $orders = $query->skip(($page - 1) * $perPage)->take($perPage)->get();
         } else {
-            $orders = $query->get();
+            // lazy() streams in chunks (default 1000) instead of hydrating the
+            // full result set at once, while still supporting the with() eager
+            // loads above — unlike cursor(), which cannot eager-load.
+            $orders = $query->lazy();
             $totalRows = $orders->count();
             $totalPages = 1;
             $page = 1;

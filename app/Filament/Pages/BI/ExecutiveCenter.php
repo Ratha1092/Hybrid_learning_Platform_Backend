@@ -120,7 +120,7 @@ class ExecutiveCenter extends Page
             $activeStudents     = User::role('student')->where('status', 'active')->count();
             $activeInstructors  = User::role('instructor')->where('status', 'active')->count();
             $publishedCourses   = Course::where('is_published', true)->count();
-            $newEnrollments     = (int) static::applyDateRange(Enrollment::query(), 'created_at', $from, $to)->count();
+            $newEnrollments     = (int) static::applyDateRange(Enrollment::query(), 'enrolled_at', $from, $to)->count();
 
             // ── Completion rate ──────────────────────────────────────────────
             $totalEnrollments    = Enrollment::count();
@@ -174,8 +174,9 @@ class ExecutiveCenter extends Page
                     ->whereBetween('created_at', [$month, $monthEnd])->count();
             }
 
-            // ── Top courses by all-time revenue (from order_items) ──────────
-            $topCourses = OrderItem::selectRaw('course_id, SUM(final_amount) as total_revenue, COUNT(*) as total_sales')
+            // ── Top courses by all-time revenue (from order_items on paid orders only) ──
+            $topCourses = OrderItem::whereHas('order', fn ($q) => $q->where('payment_status', OrderPaymentStatus::Paid->value))
+                ->selectRaw('course_id, SUM(final_amount) as total_revenue, COUNT(*) as total_sales')
                 ->groupBy('course_id')
                 ->orderByRaw('SUM(final_amount) DESC')
                 ->take(10)

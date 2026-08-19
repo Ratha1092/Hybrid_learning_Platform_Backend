@@ -9,6 +9,7 @@ use App\Domains\Courses\Models\Section;
 use App\Domains\Users\Models\User;
 use App\Domains\Users\Models\InstructorVerification;
 use App\Domains\Orders\Models\Order;
+use App\Domains\Orders\Models\OrderItem;
 use App\Domains\Orders\Enums\OrderPaymentStatus;
 use App\Domains\Orders\Enums\OrderStatus;
 use App\Domains\Payments\Enums\PaymentStatus;
@@ -201,9 +202,21 @@ class Dashboard extends BaseDashboard implements Schedulable
         $orderQ = Order::query();
         $this->applyDateRange($orderQ, 'created_at', $from, $to);
         $totalOrders   = $orderQ->count();
-        $totalRevenue  = $paidBase()->sum('amount');
-        $platformRevenue   = round((float) $totalRevenue * 0.20, 2);
-        $instructorRevenue = round((float) $totalRevenue * 0.80, 2);
+        $splitTotals = OrderItem::query()
+            ->join('orders', 'orders.id', '=', 'order_items.order_id')
+            ->where('orders.payment_status', OrderPaymentStatus::Paid->value)
+            ->when($from, fn ($q) => $q->where('orders.paid_at', '>=', $from))
+            ->when($to, fn ($q) => $q->where('orders.paid_at', '<', $to->copy()->addDay()->startOfDay()))
+            ->when($gatewayFilter !== 'all', fn ($q) => $q->whereExists(function ($sub) use ($gatewayFilter) {
+                $sub->select(DB::raw(1))->from('payments')
+                    ->whereColumn('payments.order_id', 'orders.id')
+                    ->where('payments.payment_gateway', $gatewayFilter);
+            }))
+            ->selectRaw('SUM(order_items.final_amount) as gross, SUM(order_items.platform_amount) as platform, SUM(order_items.instructor_amount) as instructor')
+            ->first();
+        $totalRevenue       = round((float) ($splitTotals->gross ?? 0), 2);
+        $platformRevenue    = round((float) ($splitTotals->platform ?? 0), 2);
+        $instructorRevenue  = round((float) ($splitTotals->instructor ?? 0), 2);
 
         $completedPayments = $paidBase()->count();
         $pendingPayments   = $payBase()->where('status', PaymentStatus::Pending->value)->count();
@@ -268,9 +281,10 @@ class Dashboard extends BaseDashboard implements Schedulable
             $revenueBindings[] = $to->copy()->addDay()->startOfDay();
         }
 
+        // Ranked by enrollments within the active filter
         $popularCourses = Course::with('instructor')
             ->where('is_published', true)
-            ->withCount(['enrollments' => fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to)])
+            ->withCount(['enrollments' => fn ($q) => $this->applyDateRange($q, 'enrolled_at', $from, $to)])
             ->selectRaw("courses.*, (
                 SELECT COALESCE(SUM(oi.instructor_amount), 0)
                 FROM order_items oi
@@ -278,8 +292,11 @@ class Dashboard extends BaseDashboard implements Schedulable
                 WHERE oi.course_id = courses.id AND o.payment_status = 'paid'{$revenueDateSql}
             ) as course_revenue", $revenueBindings)
             ->orderByDesc('enrollments_count')
+            ->take(50)
+            ->get()
+            ->filter(fn (Course $c) => $c->enrollments_count > 0)
             ->take(5)
-            ->get();
+            ->values();
 
         //  Low rated courses (avg < 3, reviews in range)
         $lowRatedCourses = Course::with('instructor')
@@ -356,7 +373,7 @@ class Dashboard extends BaseDashboard implements Schedulable
         });
 
         //  Revenue chart (4 periods)
-        $revenueChartData = $this->buildRevenueChartData($paidStatuses, $gatewayFilter, $to);
+        $revenueChartData = $this->buildRevenueChartData($paidStatuses, $gatewayFilter, $from, $to);
 
         //  Payment breakdowns 
         $paymentStatusBreakdown = [
@@ -475,15 +492,178 @@ class Dashboard extends BaseDashboard implements Schedulable
     // Revenue chart: 4 period series
     //
 
-    private function buildRevenueChartData(array $paidStatuses, string $gatewayFilter, $to = null): array
+    private function buildRevenueChartData(array $paidStatuses, string $gatewayFilter, $from = null, $to = null): array
     {
         $anchorEnd = $to ? Carbon::instance($to) : now();
 
         return [
-            '7d'  => $this->buildDailySeries(7,  $paidStatuses, $gatewayFilter, $anchorEnd),
-            '30d' => $this->buildDailySeries(30, $paidStatuses, $gatewayFilter, $anchorEnd),
-            '6m'  => $this->buildMonthlySeries(6,  $paidStatuses, $gatewayFilter, $anchorEnd),
-            '12m' => $this->buildMonthlySeries(12, $paidStatuses, $gatewayFilter, $anchorEnd),
+            '7d'       => $this->buildDailySeries(7,  $paidStatuses, $gatewayFilter, $anchorEnd),
+            '30d'      => $this->buildDailySeries(30, $paidStatuses, $gatewayFilter, $anchorEnd),
+            '6m'       => $this->buildMonthlySeries(6,  $paidStatuses, $gatewayFilter, $anchorEnd),
+            '12m'      => $this->buildMonthlySeries(12, $paidStatuses, $gatewayFilter, $anchorEnd),
+            'filtered' => $this->buildFilteredSeries($from, $to, $paidStatuses, $gatewayFilter),
+        ];
+    }
+
+    /**
+     * Series bounded exactly by the dashboard's active date-range filter — unlike
+     * the 7d/30d/6m/12m quick tabs (fixed rolling windows anchored to the filter's
+     * end date), this reflects precisely what the filter selects, so a narrow
+     * range like "today only" shows zeroed-out data instead of a misleading
+     * trailing window that still contains older activity.
+     */
+    private function buildFilteredSeries($from, $to, array $paidStatuses, string $gatewayFilter): array
+    {
+        if (! $from || ! $to) {
+            // "All Time" has no bounded start; fall back to a trailing 12 months
+            // so the chart still shows a meaningful trend instead of an
+            // unbounded query.
+            return $this->buildMonthlySeries(12, $paidStatuses, $gatewayFilter, $to ? Carbon::instance($to) : now());
+        }
+
+        $from = Carbon::instance($from)->startOfDay();
+        $to   = Carbon::instance($to)->endOfDay();
+
+        return $from->diffInDays($to) + 1 <= 62
+            ? $this->buildDailyRangeSeries($from, $to, $paidStatuses, $gatewayFilter)
+            : $this->buildMonthlyRangeSeries($from, $to, $paidStatuses, $gatewayFilter);
+    }
+
+    /**
+     * Real platform/instructor commission sums (from order_items) bucketed by
+     * day or month, for the same paid orders that back the gross Payment
+     * series — replaces the old flat 20/80 guess with actual per-bucket splits.
+     */
+    private function revenueSplitByBucket(string $bucketExpr, string $alias, $start, $end, string $gatewayFilter): \Illuminate\Support\Collection
+    {
+        return OrderItem::query()
+            ->join('orders', 'orders.id', '=', 'order_items.order_id')
+            ->where('orders.payment_status', OrderPaymentStatus::Paid->value)
+            ->whereBetween('orders.paid_at', [$start, $end])
+            ->when($gatewayFilter !== 'all', fn ($q) => $q->whereExists(function ($sub) use ($gatewayFilter) {
+                $sub->select(DB::raw(1))->from('payments')
+                    ->whereColumn('payments.order_id', 'orders.id')
+                    ->where('payments.payment_gateway', $gatewayFilter);
+            }))
+            ->selectRaw("{$bucketExpr} as {$alias}, SUM(order_items.platform_amount) as platform, SUM(order_items.instructor_amount) as instructor")
+            ->groupBy($alias)
+            ->get()
+            ->keyBy($alias);
+    }
+
+    /** Single-total platform/instructor commission sums for a period (used for growth comparisons). */
+    private function revenueSplitTotal($start, $end, string $gatewayFilter): array
+    {
+        $row = OrderItem::query()
+            ->join('orders', 'orders.id', '=', 'order_items.order_id')
+            ->where('orders.payment_status', OrderPaymentStatus::Paid->value)
+            ->whereBetween('orders.paid_at', [$start, $end])
+            ->when($gatewayFilter !== 'all', fn ($q) => $q->whereExists(function ($sub) use ($gatewayFilter) {
+                $sub->select(DB::raw(1))->from('payments')
+                    ->whereColumn('payments.order_id', 'orders.id')
+                    ->where('payments.payment_gateway', $gatewayFilter);
+            }))
+            ->selectRaw('SUM(order_items.platform_amount) as platform, SUM(order_items.instructor_amount) as instructor')
+            ->first();
+
+        return ['platform' => (float) ($row->platform ?? 0), 'instructor' => (float) ($row->instructor ?? 0)];
+    }
+
+    private static function splitGrowth(float $curr, float $prev): float
+    {
+        return $prev > 0 ? round(($curr - $prev) / $prev * 100, 1) : ($curr > 0 ? 100.0 : 0.0);
+    }
+
+    private function buildDailyRangeSeries(Carbon $from, Carbon $to, array $paidStatuses, string $gatewayFilter): array
+    {
+        $rows = Payment::whereIn('status', $paidStatuses)
+            ->whereBetween('paid_at', [$from, $to])
+            ->when($gatewayFilter !== 'all', fn($q) => $q->where('payment_gateway', $gatewayFilter))
+            ->selectRaw("DATE(paid_at) as day, SUM(amount) as total")
+            ->groupBy('day')
+            ->pluck('total', 'day');
+
+        $splitRows = $this->revenueSplitByBucket('DATE(orders.paid_at)', 'day', $from, $to, $gatewayFilter);
+
+        $days = (int) $from->diffInDays($to) + 1;
+        $labels = $gross = $platform = $instructor = [];
+
+        for ($i = 0; $i < $days; $i++) {
+            $date   = (clone $from)->addDays($i);
+            $key    = $date->format('Y-m-d');
+            $amount = (float) ($rows[$key] ?? 0);
+            $split  = $splitRows->get($key);
+
+            $labels[]     = $days <= 14 ? $date->format('D j') : $date->format('M j');
+            $gross[]      = round($amount, 2);
+            $platform[]   = round((float) ($split->platform ?? 0), 2);
+            $instructor[] = round((float) ($split->instructor ?? 0), 2);
+        }
+
+        return $this->summarizeSeries($labels, $gross, $platform, $instructor, $from, $to, $paidStatuses, $gatewayFilter);
+    }
+
+    private function buildMonthlyRangeSeries(Carbon $from, Carbon $to, array $paidStatuses, string $gatewayFilter): array
+    {
+        $rows = Payment::whereIn('status', $paidStatuses)
+            ->whereBetween('paid_at', [$from, $to])
+            ->when($gatewayFilter !== 'all', fn($q) => $q->where('payment_gateway', $gatewayFilter))
+            ->selectRaw("TO_CHAR(DATE_TRUNC('month', paid_at), 'YYYY-MM') as month, SUM(amount) as total")
+            ->groupBy('month')
+            ->pluck('total', 'month');
+
+        $splitRows = $this->revenueSplitByBucket(
+            "TO_CHAR(DATE_TRUNC('month', orders.paid_at), 'YYYY-MM')", 'month', $from, $to, $gatewayFilter
+        );
+
+        $labels = $gross = $platform = $instructor = [];
+        $cursor    = (clone $from)->startOfMonth();
+        $endCursor = (clone $to)->startOfMonth();
+
+        while ($cursor->lte($endCursor)) {
+            $key    = $cursor->format('Y-m');
+            $amount = (float) ($rows[$key] ?? 0);
+            $split  = $splitRows->get($key);
+
+            $labels[]     = $cursor->format('M Y');
+            $gross[]      = round($amount, 2);
+            $platform[]   = round((float) ($split->platform ?? 0), 2);
+            $instructor[] = round((float) ($split->instructor ?? 0), 2);
+
+            $cursor = $cursor->addMonth();
+        }
+
+        return $this->summarizeSeries($labels, $gross, $platform, $instructor, $from, $to, $paidStatuses, $gatewayFilter);
+    }
+
+    private function summarizeSeries(array $labels, array $gross, array $platform, array $instructor, Carbon $from, Carbon $to, array $paidStatuses, string $gatewayFilter): array
+    {
+        $totalGross = array_sum($gross);
+        $totalPlatform = array_sum($platform);
+        $totalInstructor = array_sum($instructor);
+
+        [$prevFrom, $prevTo] = $this->previousPeriodRange($from, $to);
+        $prevTotal = $prevFrom
+            ? (float) Payment::whereIn('status', $paidStatuses)
+                ->whereBetween('paid_at', [$prevFrom, $prevTo])
+                ->when($gatewayFilter !== 'all', fn($q) => $q->where('payment_gateway', $gatewayFilter))
+                ->sum('amount')
+            : 0.0;
+        $prevSplit = $prevFrom ? $this->revenueSplitTotal($prevFrom, $prevTo, $gatewayFilter) : ['platform' => 0.0, 'instructor' => 0.0];
+
+        $growth = self::splitGrowth($totalGross, $prevTotal);
+
+        return [
+            'labels'            => $labels,
+            'gross'             => $gross,
+            'platform'          => $platform,
+            'instructor'        => $instructor,
+            'total_gross'       => round($totalGross, 2),
+            'total_platform'    => round($totalPlatform, 2),
+            'total_instructor'  => round($totalInstructor, 2),
+            'gross_growth'      => $growth,
+            'platform_growth'   => self::splitGrowth($totalPlatform, $prevSplit['platform']),
+            'instructor_growth' => self::splitGrowth($totalInstructor, $prevSplit['instructor']),
         ];
     }
 
@@ -499,28 +679,32 @@ class Dashboard extends BaseDashboard implements Schedulable
             ->groupBy('day')
             ->pluck('total', 'day');
 
+        $splitRows = $this->revenueSplitByBucket('DATE(orders.paid_at)', 'day', $start, $end, $gatewayFilter);
+
         $labels = $gross = $platform = $instructor = [];
 
         for ($i = $days - 1; $i >= 0; $i--) {
             $date   = (clone $anchorEnd)->subDays($i);
             $key    = $date->format('Y-m-d');
             $amount = (float) ($rows[$key] ?? 0);
+            $split  = $splitRows->get($key);
 
             $labels[]     = $days <= 7 ? $date->format('D') : $date->format('M j');
             $gross[]      = round($amount, 2);
-            $platform[]   = round($amount * 0.20, 2);
-            $instructor[] = round($amount * 0.80, 2);
+            $platform[]   = round((float) ($split->platform ?? 0), 2);
+            $instructor[] = round((float) ($split->instructor ?? 0), 2);
         }
 
         $totalGross = array_sum($gross);
+        $totalPlatform = array_sum($platform);
+        $totalInstructor = array_sum($instructor);
         $prevStart  = (clone $anchorEnd)->subDays($days * 2)->startOfDay();
         $prevEnd    = (clone $anchorEnd)->subDays($days)->endOfDay();
         $prevTotal  = (float) Payment::whereIn('status', $paidStatuses)
             ->whereBetween('paid_at', [$prevStart, $prevEnd])
             ->when($gatewayFilter !== 'all', fn($q) => $q->where('payment_gateway', $gatewayFilter))
             ->sum('amount');
-
-        $growth = $prevTotal > 0 ? round(($totalGross - $prevTotal) / $prevTotal * 100, 1) : 0;
+        $prevSplit = $this->revenueSplitTotal($prevStart, $prevEnd, $gatewayFilter);
 
         return [
             'labels'           => $labels,
@@ -528,11 +712,11 @@ class Dashboard extends BaseDashboard implements Schedulable
             'platform'         => $platform,
             'instructor'       => $instructor,
             'total_gross'      => round($totalGross, 2),
-            'total_platform'   => round($totalGross * 0.20, 2),
-            'total_instructor' => round($totalGross * 0.80, 2),
-            'gross_growth'     => $growth,
-            'platform_growth'  => round($growth * 0.85, 1),
-            'instructor_growth'=> round($growth * 1.05, 1),
+            'total_platform'   => round($totalPlatform, 2),
+            'total_instructor' => round($totalInstructor, 2),
+            'gross_growth'     => self::splitGrowth($totalGross, $prevTotal),
+            'platform_growth'  => self::splitGrowth($totalPlatform, $prevSplit['platform']),
+            'instructor_growth'=> self::splitGrowth($totalInstructor, $prevSplit['instructor']),
         ];
     }
 
@@ -548,28 +732,34 @@ class Dashboard extends BaseDashboard implements Schedulable
             ->groupBy('month')
             ->pluck('total', 'month');
 
+        $splitRows = $this->revenueSplitByBucket(
+            "TO_CHAR(DATE_TRUNC('month', orders.paid_at), 'YYYY-MM')", 'month', $start, $end, $gatewayFilter
+        );
+
         $labels = $gross = $platform = $instructor = [];
 
         for ($i = $months - 1; $i >= 0; $i--) {
             $date   = (clone $anchorEnd)->startOfMonth()->subMonths($i);
             $key    = $date->format('Y-m');
             $amount = (float) ($rows[$key] ?? 0);
+            $split  = $splitRows->get($key);
 
             $labels[]     = $months <= 6 ? $date->format('M') : $date->format('M Y');
             $gross[]      = round($amount, 2);
-            $platform[]   = round($amount * 0.20, 2);
-            $instructor[] = round($amount * 0.80, 2);
+            $platform[]   = round((float) ($split->platform ?? 0), 2);
+            $instructor[] = round((float) ($split->instructor ?? 0), 2);
         }
 
         $totalGross = array_sum($gross);
+        $totalPlatform = array_sum($platform);
+        $totalInstructor = array_sum($instructor);
         $prevStart  = (clone $anchorEnd)->startOfMonth()->subMonths($months * 2);
         $prevEnd    = (clone $anchorEnd)->startOfMonth()->subMonths($months)->endOfMonth();
         $prevTotal  = (float) Payment::whereIn('status', $paidStatuses)
             ->whereBetween('paid_at', [$prevStart, $prevEnd])
             ->when($gatewayFilter !== 'all', fn($q) => $q->where('payment_gateway', $gatewayFilter))
             ->sum('amount');
-
-        $growth = $prevTotal > 0 ? round(($totalGross - $prevTotal) / $prevTotal * 100, 1) : 0;
+        $prevSplit = $this->revenueSplitTotal($prevStart, $prevEnd, $gatewayFilter);
 
         return [
             'labels'            => $labels,
@@ -577,11 +767,11 @@ class Dashboard extends BaseDashboard implements Schedulable
             'platform'          => $platform,
             'instructor'        => $instructor,
             'total_gross'       => round($totalGross, 2),
-            'total_platform'    => round($totalGross * 0.20, 2),
-            'total_instructor'  => round($totalGross * 0.80, 2),
-            'gross_growth'      => $growth,
-            'platform_growth'   => round($growth * 0.85, 1),
-            'instructor_growth' => round($growth * 1.05, 1),
+            'total_platform'    => round($totalPlatform, 2),
+            'total_instructor'  => round($totalInstructor, 2),
+            'gross_growth'      => self::splitGrowth($totalGross, $prevTotal),
+            'platform_growth'   => self::splitGrowth($totalPlatform, $prevSplit['platform']),
+            'instructor_growth' => self::splitGrowth($totalInstructor, $prevSplit['instructor']),
         ];
     }
 

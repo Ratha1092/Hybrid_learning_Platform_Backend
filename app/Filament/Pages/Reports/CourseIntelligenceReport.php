@@ -171,21 +171,29 @@ class CourseIntelligenceReport extends Page implements Schedulable
         $certificateRate = $completedEnrollments > 0 ? round(($certificatesIssued / $completedEnrollments) * 100, 1) : 0;
         $avgRating = round((float) \App\Domains\Learning\Models\Review::avg('rating'), 2);
 
-        $courses = Course::withoutGlobalScopes()
+        // Batched per-course aggregates instead of N+1 queries per course.
+        $viewsByCourse = static::applyDateRange(CourseView::query(), 'created_at', $from, $to)
+            ->selectRaw('course_id, COUNT(*) as cnt')
+            ->groupBy('course_id')
+            ->pluck('cnt', 'course_id');
+
+        $enrollmentsByCourse = static::applyDateRange(Enrollment::query(), 'enrolled_at', $from, $to)
+            ->selectRaw('course_id, COUNT(*) as total, SUM(CASE WHEN completed_at IS NOT NULL THEN 1 ELSE 0 END) as completed, SUM(CASE WHEN certificate_issued THEN 1 ELSE 0 END) as certs')
+            ->groupBy('course_id')
+            ->get()
+            ->keyBy('course_id');
+
+        $courses = Course::query()
             ->with(['instructor:id,name', 'category:id,name'])
             ->withCount(['enrollments', 'reviews'])
             ->withAvg('reviews', 'rating')
             ->get()
-            ->map(function (Course $course) use ($from, $to) {
-                $views = CourseView::where('course_id', $course->id);
-                static::applyDateRange($views, 'created_at', $from, $to);
-                $viewCount = $views->count();
-
-                $courseEnrollments = Enrollment::where('course_id', $course->id);
-                static::applyDateRange($courseEnrollments, 'enrolled_at', $from, $to);
-                $enrollCount = $courseEnrollments->count();
-                $completedCount = (clone $courseEnrollments)->whereNotNull('completed_at')->count();
-                $certCount = (clone $courseEnrollments)->where('certificate_issued', true)->count();
+            ->map(function (Course $course) use ($viewsByCourse, $enrollmentsByCourse) {
+                $viewCount = (int) ($viewsByCourse[$course->id] ?? 0);
+                $row = $enrollmentsByCourse->get($course->id);
+                $enrollCount = (int) ($row->total ?? 0);
+                $completedCount = (int) ($row->completed ?? 0);
+                $certCount = (int) ($row->certs ?? 0);
 
                 return [
                     'title' => $course->title,

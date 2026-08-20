@@ -37,7 +37,9 @@ Route::middleware('throttle:courses')
     ->group(function () {
         Route::get('/',[CourseController::class, 'index']);
         Route::get('/{slug}',[CourseController::class, 'show']);
-        Route::get('/{courseId}/reviews', [ReviewController::class, 'index'])->where('courseId', '[0-9]+');
+        Route::get('/{courseId}/reviews', [ReviewController::class, 'index'])
+            ->middleware('optional_auth')
+            ->where('courseId', '[0-9]+');
     });
 
 // Student review submission

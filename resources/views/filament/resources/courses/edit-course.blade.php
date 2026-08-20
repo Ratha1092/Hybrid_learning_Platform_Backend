@@ -527,7 +527,6 @@ select.cr-input {
             @if($crs->is_published)
                 <span class="cr-pill" style="background:rgba(59,130,246,.1);border-color:rgba(59,130,246,.25);color:#3b82f6">Live</span>
             @endif
-            {{-- Certificate pill hidden until certificate PDF generation exists --}}
         </div>
     </div>
     <div class="cr-hero-stats">
@@ -767,9 +766,6 @@ select.cr-input {
                 <div class="cr-toggle-track"><div class="cr-toggle-thumb"></div></div>
             </label>
         </div>
-
-        {{-- Enable Certificate — hidden until certificate PDF generation exists.
-             wire:model stays bound so nothing breaks if this is restored later. --}}
     </div>
 </div>
 

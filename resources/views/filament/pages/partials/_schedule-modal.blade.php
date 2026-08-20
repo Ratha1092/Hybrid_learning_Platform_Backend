@@ -23,6 +23,7 @@ html:not(.dark) .hl-schedule-modal-backdrop {
     --sm-muted:#64748b;
 }
 </style>
+<template x-teleport="body">
 <div
     class="hl-schedule-modal-backdrop"
     x-data="{ open: false }"
@@ -61,3 +62,4 @@ html:not(.dark) .hl-schedule-modal-backdrop {
         </div>
     </div>
 </div>
+</template>

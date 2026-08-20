@@ -203,6 +203,17 @@ class CoursesTable
                             Notification::make()->title('Course Archived')->warning()->send();
                         }),
 
+                    Actions\Action::make('unarchive')
+                        ->label('Restore to Published')
+                        ->icon('heroicon-o-arrow-uturn-left')
+                        ->color('success')
+                        ->visible(fn (Course $record) => $record->isArchived())
+                        ->requiresConfirmation()
+                        ->action(function (Course $record) {
+                            $record->unarchive(auth()->id());
+                            Notification::make()->title('Course Restored to Published')->success()->send();
+                        }),
+
                     Actions\Action::make('returnDraft')
                         ->label('Return to Draft')
                         ->icon('heroicon-o-arrow-uturn-left')

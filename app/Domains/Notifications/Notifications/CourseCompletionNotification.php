@@ -31,7 +31,7 @@ class CourseCompletionNotification extends Notification
             'message'     => "Congratulations! You've completed \"{$this->courseTitle}\".",
             'type'        => NotificationType::COURSE->value,
             'link'        => env('FRONTEND_URL', 'http://localhost:3000') . '/library',
-            'action_text' => 'View Certificate',
+            'action_text' => 'View in Library',
         ]);
     }
 
@@ -43,7 +43,7 @@ class CourseCompletionNotification extends Notification
             'type'        => NotificationType::COURSE->value,
             'course_id'   => $this->courseId,
             'link'        => env('FRONTEND_URL', 'http://localhost:3000') . '/library',
-            'action_text' => 'View Certificate',
+            'action_text' => 'View in Library',
         ];
     }
 }

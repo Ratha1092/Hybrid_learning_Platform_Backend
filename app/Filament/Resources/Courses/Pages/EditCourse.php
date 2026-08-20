@@ -58,7 +58,6 @@ class EditCourse extends EditRecord
                     ->options(['public' => 'Public', 'private' => 'Private', 'unlisted' => 'Unlisted'])
                     ->required(),
                 Toggle::make('is_published')->label('Published'),
-                Toggle::make('certificate_enabled')->label('Enable Certificate'),
                 TextInput::make('commission_percentage')->numeric()->suffix('%')->default(20)->columnSpanFull(),
                 Textarea::make('rejection_reason')->rows(3)->columnSpanFull(),
             ]),

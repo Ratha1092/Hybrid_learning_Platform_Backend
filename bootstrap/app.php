@@ -32,6 +32,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'is_instructor'      => \App\Http\Middleware\IsInstructor::class,
             'verified_instructor'=> \App\Http\Middleware\VerifiedInstructor::class,
             'instructor'         => \App\Http\Middleware\EnsureUserIsInstructor::class,
+            'optional_auth'      => \App\Http\Middleware\OptionalSanctumAuth::class,
         ]);
 
         $middleware->api(prepend: [

@@ -81,6 +81,26 @@ class Coupons extends Page
         $this->page = max(1, $page);
     }
 
+    public function deleteCoupon(int $couponId): void
+    {
+        if (!PanelAccess::can('coupons.delete')) {
+            return;
+        }
+
+        $coupon = Coupon::find($couponId);
+
+        if (!$coupon) {
+            return;
+        }
+
+        $coupon->delete();
+
+        Notification::make()
+            ->title('Coupon deleted.')
+            ->success()
+            ->send();
+    }
+
     public function restoreCoupon(int $couponId): void
     {
         if (!PanelAccess::can('coupons.delete')) {

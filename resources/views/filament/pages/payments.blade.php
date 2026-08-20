@@ -494,7 +494,7 @@ html:not(.dark) .lp {
                     $bgHex = substr(md5($customer), 0, 6);
                     $avUrl = 'https://ui-avatars.com/api/?name=' . urlencode($customer) . '&background=' . $bgHex . '&color=fff&bold=true&size=64';
                 @endphp
-                <tr class="lp-row-link" onclick="Livewire.navigate('{{ $viewUrl($payment) }}')">
+                <tr class="lp-row-link" wire:key="payment-row-{{ $payment->id }}" onclick="Livewire.navigate('{{ $viewUrl($payment) }}')">
                     <td><span class="lp-id">{{ $payment->id }}</span></td>
 
                     <td><span class="lp-order-num">{{ $payment->order?->order_number ?? '—' }}</span></td>

@@ -66,8 +66,6 @@ class Settings extends Page
             'Profile' => ['allow_instructor_profile_edit', 'featured_instructor_limit'],
         ],
         'course' => [
-            // 'certificate_enabled' hidden until certificate PDF generation exists — the toggle
-            // currently only flips a DB flag with nothing for a student to actually download.
             'Approval' => ['course_auto_approval', 'free_course_auto_approval', 'allow_free_courses'],
             'Upload Limits' => ['max_course_thumbnail_size', 'max_video_upload_size', 'allowed_video_formats', 'max_lessons_per_course'],
             'Access' => ['course_access_duration_months'],

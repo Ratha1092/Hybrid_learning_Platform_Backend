@@ -44,7 +44,6 @@ class EnrollmentService
                     'source' => 'purchase',
                     'status' => 'active',
                     'progress_percentage' => 0,
-                    'certificate_issued' => false,
                     'enrolled_at' => now(),
                     'expires_at' => $durationMonths > 0 ? now()->addMonths($durationMonths) : null,
                 ]);
@@ -60,7 +59,6 @@ class EnrollmentService
             'source' => 'purchase',
             'status' => 'active',
             'progress_percentage' => 0,
-            'certificate_issued' => false,
             'enrolled_at' => now(),
             'expires_at' => $durationMonths > 0 ? now()->addMonths($durationMonths) : null,
         ]);

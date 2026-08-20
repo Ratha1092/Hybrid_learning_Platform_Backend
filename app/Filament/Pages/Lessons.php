@@ -84,6 +84,40 @@ class Lessons extends Page
         $this->page = max(1, $page);
     }
 
+    public function restoreLesson(int $lessonId): void
+    {
+        if (!PanelAccess::can('lessons.delete')) {
+            return;
+        }
+
+        $lesson = Lesson::onlyTrashed()->find($lessonId);
+
+        if (!$lesson) {
+            return;
+        }
+
+        $lesson->restore();
+
+        \Filament\Notifications\Notification::make()->title('Lesson restored.')->success()->send();
+    }
+
+    public function forceDeleteLesson(int $lessonId): void
+    {
+        if (!PanelAccess::can('lessons.delete')) {
+            return;
+        }
+
+        $lesson = Lesson::onlyTrashed()->find($lessonId);
+
+        if (!$lesson) {
+            return;
+        }
+
+        $lesson->forceDelete();
+
+        \Filament\Notifications\Notification::make()->title('Lesson permanently deleted.')->success()->send();
+    }
+
     protected function getViewData(): array
     {
         $tab      = $this->tab;
@@ -104,14 +138,20 @@ class Lessons extends Page
             ->groupBy('type')
             ->pluck('aggregate', 'type');
 
+        $trashedCount = Lesson::onlyTrashed()
+            ->when($courseId, fn($q) => $q->whereHas('section', fn($q2) => $q2->where('course_id', $courseId)))
+            ->count();
+
         $tabs = [
             ['key' => 'all',     'label' => 'All',     'count' => $typeCounts->sum(),               'color' => '#0891b2'],
             ['key' => 'video',   'label' => 'Video',   'count' => $typeCounts['video'] ?? 0,   'color' => '#2563eb'],
             ['key' => 'article', 'label' => 'Article', 'count' => $typeCounts['article'] ?? 0, 'color' => '#16a34a'],
+            ['key' => 'trashed', 'label' => 'Deleted', 'count' => $trashedCount,               'color' => '#94a3b8'],
         ];
 
-        $query = Lesson::withoutGlobalScopes([SoftDeletingScope::class])
-            ->with('section:id,title,course_id');
+        $query = $tab === 'trashed'
+            ? Lesson::onlyTrashed()->with('section:id,title,course_id')
+            : Lesson::withoutGlobalScopes([SoftDeletingScope::class])->with('section:id,title,course_id');
 
         $courseTitle = $courseId ? Course::find($courseId)?->title : null;
 
@@ -119,7 +159,7 @@ class Lessons extends Page
             $query->whereHas('section', fn($q) => $q->where('course_id', $courseId));
         }
 
-        if ($tab !== 'all' && in_array($tab, $types)) {
+        if ($tab !== 'all' && $tab !== 'trashed' && in_array($tab, $types)) {
             $query->where('type', $tab);
         }
 

@@ -20,7 +20,6 @@ class Enrollment extends Model
         'status',
         'progress_percentage',
         'expires_at',
-        'certificate_issued',
         'enrolled_at',
         'completed_at',
         'last_accessed_at',
@@ -33,7 +32,6 @@ class Enrollment extends Model
         'expires_at' => 'datetime',
         'last_accessed_at' => 'datetime',
         'progress_percentage' => 'decimal:2',
-        'certificate_issued' => 'boolean',
     ];
 
     protected static function booted(): void

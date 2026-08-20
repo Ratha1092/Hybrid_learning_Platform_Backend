@@ -546,7 +546,7 @@ html:not(.dark) .lp {
                     $avUrl = 'https://ui-avatars.com/api/?name=' . urlencode($order->user?->name ?? '?') . '&background=' . $bgHex . '&color=fff&bold=true&size=64';
                     $amount = $order->final_amount ?? $order->total_amount ?? 0;
                 @endphp
-                <tr class="lp-row-link" onclick="Livewire.navigate('{{ $viewUrl($order) }}')">
+                <tr class="lp-row-link" wire:key="order-row-{{ $order->id }}" onclick="Livewire.navigate('{{ $viewUrl($order) }}')">
                     <td><span class="lp-id">{{ $order->id }}</span></td>
 
                     <td><span class="lp-order-num">{{ $order->order_number ?? '—' }}</span></td>

@@ -662,7 +662,7 @@ html:not(.dark) .lp-menu {
                     $isSelf = $user->id === auth()->id();
                     $isSuspended = $user->status === 'suspended';
                 @endphp
-                <tr class="lp-row-link" onclick="Livewire.navigate('{{ $viewUrl($user) }}')">
+                <tr class="lp-row-link" wire:key="user-row-{{ $user->id }}" onclick="Livewire.navigate('{{ $viewUrl($user) }}')">
                     <td><span class="lp-id">{{ $user->id }}</span></td>
 
                     <td>
@@ -738,7 +738,16 @@ html:not(.dark) .lp-menu {
                                         Edit
                                     </a>
 
-                                    @if(!$isSelf && !$user->hasRole('super-admin'))
+                                    @if($user->trashed())
+                                    <div class="lp-menu-div"></div>
+                                    <button type="button" class="lp-menu-item ok"
+                                        @click="open=false"
+                                        wire:click="restoreUser({{ $user->id }})"
+                                        wire:confirm="Restore {{ $user->name }}'s account?">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"/></svg>
+                                        Restore
+                                    </button>
+                                    @elseif(!$isSelf && !$user->hasRole('super-admin'))
                                     <div class="lp-menu-div"></div>
 
                                     @if($isSuspended)

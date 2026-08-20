@@ -110,9 +110,6 @@ class CourseForm
                             ->required(),
                         Toggle::make('is_published')
                             ->label('Published'),
-
-                        Toggle::make('certificate_enabled')
-                            ->label('Enable Certificate'),
                     ])
                     ->columns(2),
                 Section::make('Platform Settings')

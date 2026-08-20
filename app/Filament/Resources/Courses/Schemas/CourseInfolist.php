@@ -59,13 +59,6 @@ class CourseInfolist
                                             ->badge(),
                                             TextEntry::make('visibility')
                                             ->badge(),
-
-                                        TextEntry::make('certificate_enabled')
-                                            ->badge()
-                                            ->formatStateUsing(
-                                                fn (bool $state): string =>
-                                                $state ? 'Enabled' : 'Disabled'
-                                            ),
                                     ]),
                             ]),
                     ]),

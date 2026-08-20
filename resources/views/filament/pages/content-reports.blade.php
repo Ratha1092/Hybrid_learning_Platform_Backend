@@ -592,7 +592,7 @@ html:not(.dark) .lp {
                         'pending' => $report->status === 'pending',
                     ]), ENT_QUOTES, 'UTF-8');
                 @endphp
-                <tr class="lp-row-link" onclick='openViewModal({{ $detailsJson }})'>
+                <tr class="lp-row-link" wire:key="content-report-row-{{ $report->id }}" onclick='openViewModal({{ $detailsJson }})'>
                     <td><span class="lp-id">{{ $report->id }}</span></td>
 
                     <td>

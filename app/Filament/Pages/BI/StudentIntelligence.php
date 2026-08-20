@@ -106,7 +106,6 @@ class StudentIntelligence extends Page
             $totalEnrollments    = Enrollment::count();
             $completedEnrollments = Enrollment::where('status', 'completed')->count();
             $completionRate      = $totalEnrollments > 0 ? round($completedEnrollments / $totalEnrollments * 100, 1) : 0.0;
-            $certificates        = (int) Enrollment::where('certificate_issued', true)->count();
             $totalWatchHours     = round((float) LessonProgress::sum('watch_time') / 3600, 1);
             $distinctLearners    = (int) LessonProgress::distinct('user_id')->count('user_id');
             $avgWatchHours       = $distinctLearners > 0 ? round($totalWatchHours / $distinctLearners, 1) : 0.0;
@@ -147,7 +146,12 @@ class StudentIntelligence extends Page
                 $hoursValues[] = round((float) LessonProgress::whereBetween('last_watched_at', [$m, $mEnd])->sum('watch_time') / 3600, 1);
             }
 
-            // Active vs dormant for donut
+            // Active vs dormant for donut — status-based and all-time on both sides
+            // deliberately, so the pair always sums to totalStudents regardless of
+            // the date filter. (Previously this donut paired the period-filtered
+            // activeLearners with totalStudents-activeLearners as "dormant", which
+            // made "dormant" swing with whatever date range happened to be selected
+            // instead of reflecting actual account status.)
             $activeCount  = (int) User::role('student')->where('status', 'active')->count();
             $dormantCount = (int) User::role('student')->where('status', '!=', 'active')->count();
 
@@ -181,10 +185,10 @@ class StudentIntelligence extends Page
                     'totalStudents'     => $totalStudents,
                     'newStudents'       => $newStudents,
                     'activeLearners'    => $activeLearners,
-                    'dormantStudents'   => max(0, $totalStudents - $activeLearners),
+                    'activeStudents'    => $activeCount,
+                    'dormantStudents'   => $dormantCount,
                     'returningStudents' => $returningStudents,
                     'completionRate'    => $completionRate,
-                    'certificates'      => $certificates,
                     'avgLearningHours'  => $avgWatchHours,
                     'dropoutRate'       => $dropoutRate,
                 ],

@@ -13,10 +13,17 @@ use Illuminate\Http\Request;
 
 class ReviewController extends Controller
 {
-    public function index(int $courseId): JsonResponse
+    public function index(Request $request, int $courseId): JsonResponse
     {
+        $userId = optional($request->user())->id;
+
         $reviews = Review::where('course_id', $courseId)
-            ->where('is_approved', true)
+            ->where(function ($q) use ($userId) {
+                $q->where('is_approved', true);
+                if ($userId) {
+                    $q->orWhere('user_id', $userId);
+                }
+            })
             ->with('user:id,name,avatar')
             ->latest()
             ->paginate(15);

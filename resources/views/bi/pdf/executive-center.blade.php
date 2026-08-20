@@ -153,8 +153,8 @@
     <tbody>
         @forelse($topCourses as $sale)
             <tr>
-                <td>{{ $sale->course?->title ?? '—' }}</td>
-                <td>{{ $sale->course?->instructor?->name ?? '—' }}</td>
+                <td>{{ $sale->display_title }}{{ !$sale->course ? ' (deleted)' : '' }}</td>
+                <td>{{ $sale->display_instructor ?? '—' }}</td>
                 <td class="amount">${{ number_format((float) $sale->total_revenue, 2) }}</td>
                 <td class="amount">{{ number_format((int) $sale->total_sales) }}</td>
             </tr>

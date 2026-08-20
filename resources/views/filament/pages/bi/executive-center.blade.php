@@ -200,8 +200,8 @@
                 @forelse($topCourses as $i => $sale)
                 <tr>
                     <td><span class="bi-rank">{{ $i + 1 }}</span></td>
-                    <td>{{ $sale->course?->title ?? '—' }}</td>
-                    <td style="color:var(--t2)">{{ $sale->course?->instructor?->name ?? '—' }}</td>
+                    <td>{{ $sale->display_title }}{{ !$sale->course ? ' (deleted)' : '' }}</td>
+                    <td style="color:var(--t2)">{{ $sale->display_instructor ?? '—' }}</td>
                     <td>${{ number_format((float)$sale->total_revenue, 2) }}</td>
                     <td>{{ number_format((int)$sale->total_sales) }}</td>
                 </tr>

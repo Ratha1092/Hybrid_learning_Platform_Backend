@@ -17,6 +17,7 @@ class UserResource extends JsonResource
             'role' => collect(self::ROLE_PRIORITY)->first(fn ($r) => $this->hasRole($r)) ?? 'student',
             'instructor_status' => $this->instructorVerification?->status,
             'avatar_url' => $this->avatar_url,
+            'has_password' => (bool) $this->has_password,
             'email_verified_at' => $this->email_verified_at
                 ? $this->email_verified_at->toIso8601String()
                 : null,

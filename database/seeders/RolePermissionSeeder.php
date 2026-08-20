@@ -31,6 +31,7 @@ class RolePermissionSeeder extends Seeder
         'roles'      => ['view', 'create', 'update', 'delete'],
         'reviews'    => ['view', 'create', 'update', 'delete', 'approve', 'reject'],
         'content_reports' => ['view', 'update'],
+        'contact_messages' => ['view', 'update'],
         'reports'    => ['export', 'view_executive', 'view_revenue', 'view_payment', 'view_payout','view_course_intelligence', 'view_instructor_intelligence','view_learning_intelligence', 'view_user', 'view_audit', 'schedule'],
         'bi'         => ['view_executive', 'view_students', 'view_courses', 'view_financial', 'view_instructors', 'view_marketplace', 'view_revenue', 'view_operations'],
         'system'     => ['view_logs', 'view_security', 'view_health'],

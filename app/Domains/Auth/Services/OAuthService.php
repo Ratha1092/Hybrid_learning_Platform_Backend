@@ -55,6 +55,7 @@ class OAuthService
                         'name' => $data['name'],
                         'email' => $data['email'],
                         'password' => Hash::make(Str::random(32)),
+                        'has_password' => false,
                         'email_verified_at' => now(),
                         'avatar' => $data['avatar'] ?? null,
                     ]);
@@ -135,6 +136,7 @@ class OAuthService
                         'name'              => $socialUser->getName() ?? $socialUser->getNickname() ?? 'GitHub User',
                         'email'             => $email,
                         'password'          => Hash::make(Str::random(32)),
+                        'has_password'      => false,
                         'email_verified_at' => now(),
                     ]);
 
@@ -196,8 +198,12 @@ class OAuthService
 
     public function unlink($user, string $provider)
     {
-        if (!$user->password) {
-            throw new \RuntimeException('Set password before unlinking');
+        // A random placeholder password is set for every OAuth sign-up (it's
+        // never null), so this can't check "does password exist" — it has to
+        // check has_password, and only block when this is the user's last
+        // remaining way to log in (no real password AND no other provider left).
+        if (!$user->has_password && $user->oauthAccounts()->count() <= 1) {
+            throw new \RuntimeException('Set a password before unlinking your only sign-in method.');
         }
 
         $user->oauthAccounts()->where('provider', $provider)->delete();

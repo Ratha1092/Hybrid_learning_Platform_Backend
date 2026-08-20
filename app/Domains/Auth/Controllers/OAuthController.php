@@ -43,7 +43,11 @@ class OAuthController extends Controller
 
     public function unlinkOAuthAccount(Request $request, string $provider)
     {
-        $this->oauthService->unlink($request->user(), $provider);
+        try {
+            $this->oauthService->unlink($request->user(), $provider);
+        } catch (RuntimeException $e) {
+            return ApiResponse::error($e->getMessage(), 422);
+        }
 
         return ApiResponse::success(null, 'OAuth account unlinked');
     }

@@ -22,8 +22,6 @@ class SecurityLog extends Page
         'account_locked'   => ['label' => 'Account Locked',    'color' => '#ef4444', 'severity' => 'critical'],
         'login'            => ['label' => 'Login',             'color' => '#10b981', 'severity' => 'low'],
         'password_changed' => ['label' => 'Password Changed',  'color' => '#f59e0b', 'severity' => 'medium'],
-        '2fa_enabled'      => ['label' => '2FA Enabled',       'color' => '#8b5cf6', 'severity' => 'low'],
-        '2fa_disabled'     => ['label' => '2FA Disabled',      'color' => '#ec4899', 'severity' => 'medium'],
         'user.banned'      => ['label' => 'User Banned',       'color' => '#ef4444', 'severity' => 'high'],
         'user.unbanned'    => ['label' => 'User Unbanned',     'color' => '#3b82f6', 'severity' => 'medium'],
     ];

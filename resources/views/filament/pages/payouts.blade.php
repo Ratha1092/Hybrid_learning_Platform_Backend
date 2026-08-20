@@ -723,8 +723,10 @@ html:not(.dark) .po {
         </div>
     </div>
 
-    {{-- Payout Account Modal --}}
-    <div class="po-modal-overlay" id="po-account-modal" onclick="if(event.target===this)closeAccountModal()">
+    {{-- Payout Account Modal — wire:ignore keeps this subtree untouched by the
+         wire:poll re-render above, which otherwise fights the vanilla-JS
+         .open toggle and can leave the overlay half-repainted while open. --}}
+    <div class="po-modal-overlay" id="po-account-modal" wire:ignore onclick="if(event.target===this)closeAccountModal()">
         <div class="po-modal">
             <h3>Payout Destination</h3>
             <p>Use these details to send the instructor their funds.</p>
@@ -736,8 +738,8 @@ html:not(.dark) .po {
     </div>
 
     @if($canUpdate)
-    {{-- Approve Modal --}}
-    <div class="po-modal-overlay" id="po-approve-modal" onclick="if(event.target===this)closeApproveModal()">
+    {{-- Approve Modal — see wire:ignore note above. --}}
+    <div class="po-modal-overlay" id="po-approve-modal" wire:ignore onclick="if(event.target===this)closeApproveModal()">
         <div class="po-modal">
             <h3>Approve Payout</h3>
             <p id="po-approve-name-text">Are you sure you want to approve this payout request?</p>
@@ -752,8 +754,8 @@ html:not(.dark) .po {
         </div>
     </div>
 
-    {{-- Reject Modal --}}
-    <div class="po-modal-overlay" id="po-reject-modal" onclick="if(event.target===this)closeRejectModal()">
+    {{-- Reject Modal — see wire:ignore note above. --}}
+    <div class="po-modal-overlay" id="po-reject-modal" wire:ignore onclick="if(event.target===this)closeRejectModal()">
         <div class="po-modal">
             <h3>Reject Payout</h3>
             <p id="po-reject-name-text">Explain why this payout is being rejected. The funds will be returned to the instructor's wallet.</p>

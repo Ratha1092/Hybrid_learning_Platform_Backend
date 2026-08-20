@@ -57,7 +57,7 @@ class Settings extends Page
             'Social Links' => ['social_facebook', 'social_linkedin', 'social_youtube', 'social_twitter'],
         ],
         'auth' => [
-            'Verification & Security' => ['email_verification_required', 'enable_2fa'],
+            'Verification & Security' => ['email_verification_required'],
             'Social Login' => ['enable_google_login', 'enable_facebook_login'],
             'Login Protection' => ['max_login_attempts', 'account_lock_duration', 'session_timeout'],
         ],
@@ -73,7 +73,7 @@ class Settings extends Page
             'Access' => ['course_access_duration_months'],
         ],
         'finance' => [
-            'Payouts & Currency' => ['minimum_payout_amount', 'payout_hold_period_days', 'default_currency', 'wallet_enabled'],
+            'Payouts & Currency' => ['minimum_payout_amount', 'payout_hold_period_days', 'default_currency', 'wallet_enabled', 'auto_verify_payout_accounts'],
             'Tax' => ['tax_percentage'],
         ],
         'payment_gateway' => [

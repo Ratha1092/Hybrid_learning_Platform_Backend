@@ -468,16 +468,6 @@ html.dark .uv {
             </span>
         </div>
         @endif
-        <div class="uv-field-row">
-            <span class="uv-field-label">2FA</span>
-            <span class="uv-field-value">
-                @if($user->two_factor_enabled)
-                    <span class="uv-badge" style="background:rgba(22,163,74,.1);color:#16a34a">Enabled</span>
-                @else
-                    <span class="uv-field-value muted">Disabled</span>
-                @endif
-            </span>
-        </div>
     </div>
 
     {{-- Account --}}

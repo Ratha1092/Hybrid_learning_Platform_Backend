@@ -25,8 +25,6 @@ class AuditLog extends Page
         'account_locked'   => ['label' => 'Account Locked',   'color' => '#ef4444'],
         'password_changed' => ['label' => 'Password Changed', 'color' => '#f59e0b'],
         'email_verified'   => ['label' => 'Email Verified',   'color' => '#06b6d4'],
-        '2fa_enabled'      => ['label' => '2FA Enabled',      'color' => '#8b5cf6'],
-        '2fa_disabled'     => ['label' => '2FA Disabled',     'color' => '#ec4899'],
         // Users & roles
         'role.created'     => ['label' => 'Role Created',     'color' => '#7c3aed'],
         'role.updated'     => ['label' => 'Role Updated',     'color' => '#7c3aed'],

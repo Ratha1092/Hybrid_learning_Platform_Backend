@@ -39,6 +39,11 @@ Route::prefix('auth')->group(function () {
     Route::middleware(['auth:sanctum','throttle:auth',])->group(function () {
         Route::post('/logout',[AuthController::class, 'logout']
         );
+        // Also doubles as "set up a password" for OAuth-only accounts — see
+        // UpdatePasswordRequest, which skips the current_password check when
+        // the user has no real password yet.
+        Route::put('/password',[AuthController::class, 'updatePassword']
+        );
 
         //Email Management
         Route::prefix('email')->group(function () {

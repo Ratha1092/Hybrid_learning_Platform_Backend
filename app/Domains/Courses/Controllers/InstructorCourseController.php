@@ -91,7 +91,6 @@ class InstructorCourseController extends Controller
             'requirements'        => ['nullable', 'string'],
             'what_you_will_learn' => ['nullable', 'string'],
             'visibility'          => ['sometimes', 'in:public,private'],
-            'certificate_enabled' => ['sometimes', 'boolean'],
             'thumbnail'           => [
                 'nullable', 'image', 'mimes:jpg,jpeg,png,webp',
                 'max:' . (int) Setting::get('max_course_thumbnail_size', 2048),

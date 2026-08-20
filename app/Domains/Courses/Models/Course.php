@@ -52,7 +52,6 @@ class Course extends Model
         'approved_by',
         'commission_percentage',
         'visibility',
-        'certificate_enabled',
         'rejection_reason',
         'deleted_by',
     ];
@@ -140,6 +139,24 @@ class Course extends Model
         $this->update([
             'status' => self::STATUS_ARCHIVED,
             'is_published' => false,
+        ]);
+        Cache::tags(['dashboard'])->flush();
+        Cache::forget('courses.published');
+        Cache::forget("courses.slug.{$this->slug}");
+    }
+
+    /**
+     * Restores an archived course directly back to Published — unlike
+     * returnToDraft(), this doesn't require the course to go through
+     * review again, since it was already approved before being archived.
+     */
+    public function unarchive(int $adminId): void
+    {
+        $this->update([
+            'status' => self::STATUS_PUBLISHED,
+            'is_published' => true,
+            'approved_at' => now(),
+            'approved_by' => $adminId,
         ]);
         Cache::tags(['dashboard'])->flush();
         Cache::forget('courses.published');

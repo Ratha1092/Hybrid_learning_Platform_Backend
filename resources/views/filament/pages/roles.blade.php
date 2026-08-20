@@ -459,7 +459,7 @@ html:not(.dark) .lp {
                     $isSystem = in_array($role->name, $protectedRoles, true);
                     $isUndeletable = in_array($role->name, $undeletableRoles, true);
                 @endphp
-                <tr class="lp-row-link" onclick="Livewire.navigate('{{ $viewUrl($role) }}')">
+                <tr class="lp-row-link" wire:key="role-row-{{ $role->id }}" onclick="Livewire.navigate('{{ $viewUrl($role) }}')">
                     <td><span class="lp-id">{{ $role->id }}</span></td>
 
                     <td>

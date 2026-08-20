@@ -465,7 +465,7 @@ html:not(.dark) .cs-menu {
                     $studentViewUrl = $user ? route('filament.admin.resources.users.view', ['record' => $user->id]) : null;
                     $isSuspended = $enrollment->status === 'suspended';
                 @endphp
-                <tr @if($studentViewUrl) class="cs-row-link" onclick="Livewire.navigate('{{ $studentViewUrl }}')" @endif>
+                <tr wire:key="enrollment-row-{{ $enrollment->id }}" @if($studentViewUrl) class="cs-row-link" onclick="Livewire.navigate('{{ $studentViewUrl }}')" @endif>
                     <td><span style="font-size:11.5px;color:var(--t2);font-weight:700">{{ ($curPage - 1) * $perPage + $i + 1 }}</span></td>
 
                     <td>

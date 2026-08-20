@@ -274,6 +274,9 @@ html:not(.dark) .cv {
     font-weight:800;
     color:var(--t1);
 }
+.cv-price-free {
+    color:#34d399;
+}
 .cv-meta-row {
     display:flex;
     align-items:center;
@@ -502,6 +505,13 @@ html:not(.dark) .cv-modal-overlay {
                 <span wire:loading wire:target="archiveCourse">Archiving…</span>
             </button>
             @endif
+            @if($course->isArchived())
+            <button type="button" wire:click="unarchiveCourse" wire:loading.attr="disabled" class="cv-btn cv-btn-success">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"/></svg>
+                <span wire:loading.remove wire:target="unarchiveCourse">Restore to Published</span>
+                <span wire:loading wire:target="unarchiveCourse">Restoring…</span>
+            </button>
+            @endif
             @unless($course->isPendingReview())
             <a href="{{ $editUrl }}" wire:navigate class="cv-btn cv-btn-primary">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487z"/></svg>
@@ -545,7 +555,11 @@ html:not(.dark) .cv-modal-overlay {
                         <span class="cv-badge" style="background:rgba(148,163,184,.1);color:#94a3b8">{{ ucfirst($course->visibility) }}</span>
                         @endif
                     </div>
-                    <div class="cv-price">${{ number_format((float)$course->price, 2) }}</div>
+                    @if($course->price > 0)
+                        <div class="cv-price">${{ number_format((float) $course->price, 2) }}</div>
+                    @else
+                        <div class="cv-price cv-price-free">Free</div>
+                    @endif
                     <div class="cv-meta-row">
                         @if($course->instructor)
                         <div class="cv-meta-item">
@@ -645,7 +659,6 @@ html:not(.dark) .cv-modal-overlay {
                         <div class="cv-field-label">Commission</div>
                         <div class="cv-field-value">{{ $course->commission_percentage }}%</div>
                     </div>
-                    {{-- Certificate field hidden until certificate PDF generation exists --}}
                 </div>
             </div>
 

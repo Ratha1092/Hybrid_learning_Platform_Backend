@@ -55,7 +55,6 @@ class SettingsSeeder extends Seeder
             'course_auto_approval'      => ['false', 'boolean', 'Automatically publish courses without manual review.', false],
             'free_course_auto_approval' => ['false', 'boolean', 'Automatically publish free ($0) courses without manual review, even if paid courses still require approval.', false],
             'allow_free_courses'        => ['true', 'boolean', 'Allow instructors to publish $0 courses.', true],
-            'certificate_enabled'       => ['true', 'boolean', 'Allow completion certificates platform-wide.', true],
             'max_course_thumbnail_size' => ['2048', 'integer', 'Max course thumbnail size in KB.', true],
             'max_video_upload_size'     => ['512000', 'integer', 'Max lesson video upload size in KB.', true],
             'allowed_video_formats'     => ['mp4,mov,avi,webm', 'string', 'Comma-separated list of accepted video formats.', true],

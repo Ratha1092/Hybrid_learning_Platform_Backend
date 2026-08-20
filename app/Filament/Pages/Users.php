@@ -156,6 +156,23 @@ class Users extends Page
             ->send();
     }
 
+    public function restoreUser(int $id): void
+    {
+        $user = User::onlyTrashed()->find($id);
+
+        if (!$user) {
+            return;
+        }
+
+        $user->restore();
+
+        Notification::make()
+            ->title('User restored')
+            ->body("{$user->name} has been restored.")
+            ->success()
+            ->send();
+    }
+
     protected function getViewData(): array
     {
         $tab     = $this->tab;
@@ -178,6 +195,8 @@ class Users extends Page
             'student'    => ['label' => 'Student',    'color' => '#10b981'],
         ];
 
+        $trashedQuery = $hideSuperAdmins(User::onlyTrashed());
+
         $tabs = [
             ['key' => 'all', 'label' => 'All', 'count' => $base()->count(), 'color' => '#2563eb'],
         ];
@@ -191,9 +210,11 @@ class Users extends Page
             ];
         }
 
-        $query = $base();
+        $tabs[] = ['key' => 'trashed', 'label' => 'Deleted', 'count' => (clone $trashedQuery)->count(), 'color' => '#94a3b8'];
 
-        if ($tab !== 'all' && array_key_exists($tab, $roleMeta)) {
+        $query = $tab === 'trashed' ? $trashedQuery : $base();
+
+        if ($tab !== 'all' && $tab !== 'trashed' && array_key_exists($tab, $roleMeta)) {
             $query->role($tab);
         }
 

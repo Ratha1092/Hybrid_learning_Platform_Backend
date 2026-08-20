@@ -372,7 +372,6 @@ html.dark .rp-kpi-soon-badge {
         <div class="rp-kpi-card"><div class="rp-kpi-label">Active Learners</div><div class="rp-kpi-value">{{ number_format($kpis['activeLearners']) }}</div></div>
         <div class="rp-kpi-card"><div class="rp-kpi-label">Completion Rate</div><div class="rp-kpi-value">{{ $kpis['completionRate'] }}%</div></div>
         <div class="rp-kpi-card"><div class="rp-kpi-label">Dropout Rate</div><div class="rp-kpi-value">{{ $kpis['dropoutRate'] }}%</div></div>
-        <div class="rp-kpi-card"><div class="rp-kpi-label">Certificate Rate</div><div class="rp-kpi-value">{{ $kpis['certificateRate'] }}%</div></div>
         <div class="rp-kpi-card soon">
             <div class="rp-kpi-label">Avg. Quiz Score</div>
             <div class="rp-kpi-value">—</div>
@@ -383,7 +382,7 @@ html.dark .rp-kpi-soon-badge {
     <div class="rp-table-card">
         <table class="rp-table">
             <thead>
-                <tr><th>Course</th><th>Enrollments</th><th>Avg Progress</th><th>Completion %</th><th>Certificate %</th><th>Watch Hours</th><th>Hrs/Learner</th></tr>
+                <tr><th>Course</th><th>Enrollments</th><th>Avg Progress</th><th>Completion %</th><th>Watch Hours</th><th>Hrs/Learner</th></tr>
             </thead>
             <tbody>
                 @forelse($courses as $course)
@@ -392,7 +391,6 @@ html.dark .rp-kpi-soon-badge {
                         <td>{{ number_format($course['enrollments']) }}</td>
                         <td>{{ $course['avgProgress'] }}%</td>
                         <td>{{ $course['completionRate'] }}%</td>
-                        <td>{{ $course['certificateRate'] }}%</td>
                         <td>{{ $course['totalWatchHours'] }}h</td>
                         <td>{{ $course['avgWatchHoursPerLearner'] }}h</td>
                     </tr>

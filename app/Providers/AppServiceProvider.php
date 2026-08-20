@@ -171,5 +171,10 @@ class AppServiceProvider extends ServiceProvider
 
         // email rate limit for Resend API
         RateLimiter::for('resend-emails', fn () => Limit::perMinute(20));
+
+        // Public contact form — unauthenticated, so keyed by IP only.
+        RateLimiter::for('contact', function (Request $request) {
+            return Limit::perMinute(5)->by($request->ip());
+        });
     }
 }

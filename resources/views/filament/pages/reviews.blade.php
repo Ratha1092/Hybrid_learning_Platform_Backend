@@ -410,7 +410,7 @@ html:not(.dark) .lp {
                     $bgHex = substr(md5($review->user?->name ?? ''), 0, 6);
                     $avUrl = 'https://ui-avatars.com/api/?name=' . urlencode($review->user?->name ?? '?') . '&background=' . $bgHex . '&color=fff&bold=true&size=64';
                 @endphp
-                <tr>
+                <tr wire:key="review-row-{{ $review->id }}">
                     <td><span class="lp-id">{{ $review->id }}</span></td>
 
                     <td>

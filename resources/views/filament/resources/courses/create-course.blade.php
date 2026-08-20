@@ -743,8 +743,6 @@ select.cc-input {
                 <div class="cc-toggle-track"><div class="cc-toggle-thumb"></div></div>
             </label>
         </div>
-        {{-- Enable Certificate — hidden until certificate PDF generation exists.
-             wire:model stays bound so nothing breaks if this is restored later. --}}
     </div>
 </div>
 

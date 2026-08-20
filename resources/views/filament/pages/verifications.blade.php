@@ -541,7 +541,7 @@ html:not(.dark) .lp {
                     $avUrl = 'https://ui-avatars.com/api/?name=' . urlencode($verification->user?->name ?? '?') . '&background=' . $bgHex . '&color=fff&bold=true&size=64';
                     $qual  = ucfirst(str_replace('_', ' ', $verification->qualification_type ?? '—'));
                 @endphp
-                <tr class="lp-row-link" onclick="Livewire.navigate('{{ $viewUrl($verification) }}')">
+                <tr class="lp-row-link" wire:key="verification-row-{{ $verification->id }}" onclick="Livewire.navigate('{{ $viewUrl($verification) }}')">
                     <td><span class="lp-id">{{ $verification->id }}</span></td>
 
                     <td>

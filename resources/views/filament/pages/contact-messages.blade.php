@@ -581,7 +581,7 @@ html:not(.dark) .lp {
                         'canReply' => $message->status !== 'replied',
                     ]), ENT_QUOTES, 'UTF-8');
                 @endphp
-                <tr class="lp-row-link" onclick='openViewModal({{ $detailsJson }})'>
+                <tr class="lp-row-link" wire:key="contact-message-row-{{ $message->id }}" onclick='openViewModal({{ $detailsJson }})'>
                     <td><span class="lp-id">{{ $message->id }}</span></td>
 
                     <td>

@@ -82,7 +82,7 @@ class CourseIntelligenceReport extends Page implements Schedulable
     {
         $data = static::buildReportData($filters);
 
-        $header = ['Course', 'Instructor', 'Category', 'Views', 'Enrollments', 'Conversion %', 'Avg Rating', 'Completion %', 'Certificates'];
+        $header = ['Course', 'Instructor', 'Category', 'Views', 'Enrollments', 'Conversion %', 'Avg Rating', 'Completion %'];
 
         $rows = $data['courses']->map(fn (array $c) => [
             $c['title'],
@@ -93,7 +93,6 @@ class CourseIntelligenceReport extends Page implements Schedulable
             $c['conversionRate'],
             $c['avgRating'],
             $c['completionRate'],
-            $c['certificatesIssued'],
         ])->all();
 
         return [$header, $rows];
@@ -164,11 +163,9 @@ class CourseIntelligenceReport extends Page implements Schedulable
         static::applyDateRange($enrollmentsQuery, 'enrolled_at', $from, $to);
         $totalEnrollments = (clone $enrollmentsQuery)->count();
         $completedEnrollments = (clone $enrollmentsQuery)->whereNotNull('completed_at')->count();
-        $certificatesIssued = (clone $enrollmentsQuery)->where('certificate_issued', true)->count();
 
         $conversionRate = $totalViews > 0 ? round(($totalEnrollments / $totalViews) * 100, 1) : 0;
         $completionRate = $totalEnrollments > 0 ? round(($completedEnrollments / $totalEnrollments) * 100, 1) : 0;
-        $certificateRate = $completedEnrollments > 0 ? round(($certificatesIssued / $completedEnrollments) * 100, 1) : 0;
         $avgRating = round((float) \App\Domains\Learning\Models\Review::avg('rating'), 2);
 
         // Batched per-course aggregates instead of N+1 queries per course.
@@ -178,7 +175,7 @@ class CourseIntelligenceReport extends Page implements Schedulable
             ->pluck('cnt', 'course_id');
 
         $enrollmentsByCourse = static::applyDateRange(Enrollment::query(), 'enrolled_at', $from, $to)
-            ->selectRaw('course_id, COUNT(*) as total, SUM(CASE WHEN completed_at IS NOT NULL THEN 1 ELSE 0 END) as completed, SUM(CASE WHEN certificate_issued THEN 1 ELSE 0 END) as certs')
+            ->selectRaw('course_id, COUNT(*) as total, SUM(CASE WHEN completed_at IS NOT NULL THEN 1 ELSE 0 END) as completed')
             ->groupBy('course_id')
             ->get()
             ->keyBy('course_id');
@@ -193,7 +190,6 @@ class CourseIntelligenceReport extends Page implements Schedulable
                 $row = $enrollmentsByCourse->get($course->id);
                 $enrollCount = (int) ($row->total ?? 0);
                 $completedCount = (int) ($row->completed ?? 0);
-                $certCount = (int) ($row->certs ?? 0);
 
                 return [
                     'title' => $course->title,
@@ -204,7 +200,6 @@ class CourseIntelligenceReport extends Page implements Schedulable
                     'conversionRate' => $viewCount > 0 ? round(($enrollCount / $viewCount) * 100, 1) : 0,
                     'avgRating' => round((float) ($course->reviews_avg_rating ?? 0), 2),
                     'completionRate' => $enrollCount > 0 ? round(($completedCount / $enrollCount) * 100, 1) : 0,
-                    'certificatesIssued' => $certCount,
                 ];
             })
             ->sortByDesc('views')
@@ -218,7 +213,6 @@ class CourseIntelligenceReport extends Page implements Schedulable
                 'conversionRate' => $conversionRate,
                 'avgRating' => $avgRating,
                 'completionRate' => $completionRate,
-                'certificateRate' => $certificateRate,
             ],
             'courses' => $courses,
         ];

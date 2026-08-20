@@ -318,6 +318,9 @@ html.dark .cc-status-badge {
     font-weight:500;
     white-space:nowrap;
 }
+.cc-price-free {
+    color:#34d399;
+}
 .cc-price {
     font-size:.8125rem;
     font-weight:700;
@@ -587,7 +590,7 @@ html.dark .cc-status-badge {
                     $statusKey   = $course->status ?? 'draft';
                     $st          = $statusMap[$statusKey] ?? ['bg' => '#F1F5F9', 'color' => '#475569', 'dot' => '#94A3B8', 'label' => ucfirst($statusKey)];
                 @endphp
-                <tr onclick="Livewire.navigate('{{ $viewUrl($course) }}')">
+                <tr wire:key="cat-course-row-{{ $course->id }}" onclick="Livewire.navigate('{{ $viewUrl($course) }}')">
                     <td><span class="cc-id">#{{ $course->id }}</span></td>
 
                     <td>
@@ -613,7 +616,13 @@ html.dark .cc-status-badge {
                         </div>
                     </td>
 
-                    <td><span class="cc-price">${{ number_format((float)$course->price, 2) }}</span></td>
+                    <td>
+                        @if($course->price > 0)
+                            <span class="cc-price">${{ number_format((float) $course->price, 2) }}</span>
+                        @else
+                            <span class="cc-price cc-price-free">Free</span>
+                        @endif
+                    </td>
 
                     <td>
                         <span class="cc-status-badge" style="background:{{ $st['bg'] }};color:{{ $st['color'] }}">

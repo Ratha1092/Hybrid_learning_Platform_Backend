@@ -133,10 +133,6 @@ class ProgressService
 
             $enrollment->markCompleted();
 
-            if (Setting::get('certificate_enabled', true) && $course->certificate_enabled) {
-                $enrollment->update(['certificate_issued' => true]);
-            }
-
             if (!$wasAlreadyCompleted && Setting::get('course_completion_notification', true)) {
                 $user->notify(new CourseCompletionNotification($course->id, $course->title));
             }

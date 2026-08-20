@@ -271,6 +271,42 @@ html.dark {
     overflow:hidden;
 }
 
+/* Status tabs */
+.cat-tabs {
+    display:flex;
+    align-items:center;
+    gap:.375rem;
+    padding:.75rem 1.125rem 0;
+}
+.cat-tab {
+    display:inline-flex;
+    align-items:center;
+    gap:.375rem;
+    padding:.4375rem .75rem;
+    border-radius:8px;
+    border:1px solid transparent;
+    background:none;
+    cursor:pointer;
+    font-family:inherit;
+    font-size:.8125rem;
+    font-weight:600;
+    color:var(--cat-t3);
+}
+.cat-tab:hover {
+    background:var(--cat-bg);
+}
+.cat-tab.active {
+    background:var(--cat-bg);
+    border-color:var(--cat-bd);
+    color:var(--cat-t1);
+}
+.cat-tab-badge {
+    font-size:.6875rem;
+    font-weight:700;
+    padding:.0625rem .375rem;
+    border-radius:9999px;
+}
+
 /* Toolbar */
 .cat-toolbar {
     display:flex;
@@ -582,6 +618,15 @@ html.dark {
         </div>
     </div>
 
+    <div class="cat-tabs">
+        @foreach ($tabs as $t)
+        <button type="button" wire:click="selectStatus('{{ $t['key'] }}')" class="cat-tab {{ $status === $t['key'] ? 'active' : '' }}">
+            {{ $t['label'] }}
+            <span class="cat-tab-badge" style="background:{{ $t['color'] }}20;color:{{ $t['color'] }}">{{ $t['count'] }}</span>
+        </button>
+        @endforeach
+    </div>
+
     {{-- Table card --}}
     <div class="cat-card">
 
@@ -625,7 +670,7 @@ html.dark {
                     $hue      = abs(crc32($cat->name)) % 360;
                     $bgColor  = "hsl({$hue},55%,42%)";
                 @endphp
-                <tr onclick="Livewire.navigate('{{ $viewUrl($cat) }}')">
+                <tr wire:key="category-row-{{ $cat->id }}" onclick="Livewire.navigate('{{ $viewUrl($cat) }}')">
                     <td><span class="cat-id">{{ $cat->id }}</span></td>
 
                     <td>
@@ -658,25 +703,46 @@ html.dark {
 
                     <td onclick="event.stopPropagation()">
                         <div class="cat-actions">
-                            <a href="{{ $editUrl($cat) }}" wire:navigate class="cat-act" title="Edit">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487z"/>
-                                </svg>
-                            </a>
-                            @if($isSuperAdmin && $cat->courses_count === 0)
-                            <button type="button" class="cat-act cat-act-danger" title="Delete"
-                                wire:click="deleteCategory({{ $cat->id }})"
-                                wire:confirm="Delete the &quot;{{ addslashes($cat->name) }}&quot; category? This cannot be undone.">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/>
-                                </svg>
-                            </button>
-                            @elseif($isSuperAdmin && $cat->courses_count > 0)
-                            <span class="cat-act" title="Move or delete its courses first to enable deletion" style="cursor:default;opacity:.4">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/>
-                                </svg>
-                            </span>
+                            @if($cat->trashed())
+                                @if($isSuperAdmin)
+                                <button type="button" class="cat-act" title="Restore"
+                                    wire:click="restoreCategory({{ $cat->id }})"
+                                    wire:confirm="Restore the &quot;{{ addslashes($cat->name) }}&quot; category?">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"/>
+                                    </svg>
+                                </button>
+                                @if($cat->courses_count === 0)
+                                <button type="button" class="cat-act cat-act-danger" title="Delete permanently"
+                                    wire:click="forceDeleteCategory({{ $cat->id }})"
+                                    wire:confirm="Permanently delete the &quot;{{ addslashes($cat->name) }}&quot; category? This cannot be undone.">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/>
+                                    </svg>
+                                </button>
+                                @endif
+                                @endif
+                            @else
+                                <a href="{{ $editUrl($cat) }}" wire:navigate class="cat-act" title="Edit">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487z"/>
+                                    </svg>
+                                </a>
+                                @if($isSuperAdmin && $cat->courses_count === 0)
+                                <button type="button" class="cat-act cat-act-danger" title="Delete"
+                                    wire:click="deleteCategory({{ $cat->id }})"
+                                    wire:confirm="Delete the &quot;{{ addslashes($cat->name) }}&quot; category? This cannot be undone.">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/>
+                                    </svg>
+                                </button>
+                                @elseif($isSuperAdmin && $cat->courses_count > 0)
+                                <span class="cat-act" title="Move or delete its courses first to enable deletion" style="cursor:default;opacity:.4">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/>
+                                    </svg>
+                                </span>
+                                @endif
                             @endif
                         </div>
                     </td>
@@ -738,6 +804,26 @@ html.dark {
                         {{ number_format($cat->courses_count) }}
                     </a>
                     <div class="cat-item-actions">
+                        @if($cat->trashed())
+                            @if($isSuperAdmin)
+                            <button type="button" class="cat-act" title="Restore"
+                                wire:click="restoreCategory({{ $cat->id }})"
+                                wire:confirm="Restore the &quot;{{ addslashes($cat->name) }}&quot; category?">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"/>
+                                </svg>
+                            </button>
+                            @if($cat->courses_count === 0)
+                            <button type="button" class="cat-act cat-act-danger" title="Delete permanently"
+                                wire:click="forceDeleteCategory({{ $cat->id }})"
+                                wire:confirm="Permanently delete the &quot;{{ addslashes($cat->name) }}&quot; category? This cannot be undone.">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/>
+                                </svg>
+                            </button>
+                            @endif
+                        @endif
+                        @else
                         <a href="{{ $editUrl($cat) }}" wire:navigate class="cat-act" title="Edit">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487z"/>
@@ -757,6 +843,7 @@ html.dark {
                                 <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/>
                             </svg>
                         </span>
+                        @endif
                         @endif
                     </div>
                 </div>

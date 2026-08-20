@@ -565,7 +565,7 @@ html:not(.dark) .pq {
                     $ss    = $statusStyle($account->status);
                     $qrUrl = $account->qr_code_path ? \Illuminate\Support\Facades\Storage::disk('r2')->url($account->qr_code_path) : null;
                 @endphp
-                <tr class="pq-row-link" onclick="Livewire.navigate('{{ $viewUrl($account) }}')">
+                <tr class="pq-row-link" wire:key="payout-account-row-{{ $account->id }}" onclick="Livewire.navigate('{{ $viewUrl($account) }}')">
                     <td><span class="pq-id">{{ $account->id }}</span></td>
 
                     <td onclick="event.stopPropagation()">

@@ -457,7 +457,7 @@ html:not(.dark) .lp {
                     $avUrl = 'https://ui-avatars.com/api/?name=' . urlencode($userName) . '&background=' . $bgHex . '&color=fff&bold=true&size=64';
                     $shortId = substr($notification->id, 0, 8);
                 @endphp
-                <tr class="lp-row-link" onclick="Livewire.navigate('{{ $viewUrl($notification) }}')">
+                <tr class="lp-row-link" wire:key="notification-row-{{ $notification->id }}" onclick="Livewire.navigate('{{ $viewUrl($notification) }}')">
                     <td><span class="lp-id">{{ $shortId }}…</span></td>
 
                     <td>

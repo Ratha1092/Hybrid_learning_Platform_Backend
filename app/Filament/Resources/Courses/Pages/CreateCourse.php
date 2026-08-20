@@ -61,7 +61,6 @@ class CreateCourse extends CreateRecord
                     ->default('public')
                     ->required(),
                 Toggle::make('is_published')->label('Published'),
-                Toggle::make('certificate_enabled')->label('Enable Certificate'),
             ]),
         ])->statePath('data');
     }

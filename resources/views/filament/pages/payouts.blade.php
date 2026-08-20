@@ -608,7 +608,7 @@ html:not(.dark) .po {
                         'transaction_reference' => $payout->transaction_reference,
                     ];
                 @endphp
-                <tr class="po-row-link" onclick='openAccountModal(@json($accountData))'>
+                <tr class="po-row-link" wire:key="payout-row-{{ $payout->id }}" onclick='openAccountModal(@json($accountData))'>
                     <td><span class="po-id">{{ $payout->id }}</span></td>
 
                     <td>

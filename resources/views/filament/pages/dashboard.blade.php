@@ -764,7 +764,7 @@ html.dark .db-period-tab.active {
     font-weight:700;
 }
 .db-rank-1 {
-    background:#FEF3C7;
+    background:var(--db-amber-l);
     color:#92400E;
 }
 .db-rank-2 {
@@ -1339,7 +1339,13 @@ function dbCustomDate() {
 
 {{-- Row 3: Revenue chart + sidebar --}}
 <div class="db-rev-grid">
-    <div class="db-card" wire:key="revenue-chart-{{ $activePreset }}-{{ $activeDateFrom }}-{{ $activeDateTo }}-{{ $activeGateway }}" x-data="dbChart()" x-init="setTimeout(()=>{ render(); const ro=new ResizeObserver(()=>render()); ro.observe($el); }, 80)">
+    {{-- wire:ignore: the SVG paths below are drawn by client-side JS (render()),
+         always server-rendered empty (d=""). Without this, the wire:poll tick
+         above morphs this same-keyed node back to its empty starting state and
+         wipes the chart, since Alpine's x-init only fires on a fresh mount —
+         it won't refire on an in-place morph. A real wire:key change (the user
+         picking a new date range) still fully replaces this node as normal. --}}
+    <div class="db-card" wire:ignore wire:key="revenue-chart-{{ $activePreset }}-{{ $activeDateFrom }}-{{ $activeDateTo }}-{{ $activeGateway }}" x-data="dbChart()" x-init="setTimeout(()=>{ render(); const ro=new ResizeObserver(()=>render()); ro.observe($el); }, 80)">
         <div class="db-card-header">
             <span class="db-card-title">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--db-blue)" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>

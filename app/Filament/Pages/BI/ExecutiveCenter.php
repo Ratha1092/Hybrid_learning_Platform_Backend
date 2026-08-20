@@ -175,13 +175,29 @@ class ExecutiveCenter extends Page
             }
 
             // ── Top courses by all-time revenue (from order_items on paid orders only) ──
+            // course_title/instructor_id are snapshotted on the order item at purchase
+            // time specifically so a course (or its instructor) that's since been
+            // deleted still shows up correctly in historical revenue reports instead
+            // of collapsing to "—". withTrashed() covers a still-soft-deleted course
+            // row; the snapshot columns cover it having been hard-deleted entirely.
             $topCourses = OrderItem::whereHas('order', fn ($q) => $q->where('payment_status', OrderPaymentStatus::Paid->value))
-                ->selectRaw('course_id, SUM(final_amount) as total_revenue, COUNT(*) as total_sales')
+                ->selectRaw('course_id, MAX(course_title) as course_title, MAX(instructor_id) as instructor_id, SUM(final_amount) as total_revenue, COUNT(*) as total_sales')
                 ->groupBy('course_id')
                 ->orderByRaw('SUM(final_amount) DESC')
                 ->take(10)
-                ->with(['course' => fn ($q) => $q->with('instructor:id,name')])
+                ->with(['course' => fn ($q) => $q->withTrashed()->with(['instructor' => fn ($iq) => $iq->withTrashed()])])
                 ->get();
+
+            $fallbackInstructorIds = $topCourses->whereNull('course')->pluck('instructor_id')->filter()->unique();
+            $fallbackInstructorNames = $fallbackInstructorIds->isEmpty()
+                ? collect()
+                : User::withTrashed()->whereIn('id', $fallbackInstructorIds)->pluck('name', 'id');
+
+            $topCourses = $topCourses->map(function ($row) use ($fallbackInstructorNames) {
+                $row->display_title      = $row->course?->title ?? $row->course_title ?? 'Deleted course';
+                $row->display_instructor = $row->course?->instructor?->name ?? $fallbackInstructorNames[$row->instructor_id] ?? null;
+                return $row;
+            });
 
             // ── Top 10 instructors by period earnings ────────────────────────
             $instructorEarningsRows = OrderItem::whereIn('order_id', $paidOrderIds)
@@ -230,7 +246,7 @@ class ExecutiveCenter extends Page
                     'students'    => $studentGrowth,
                     'instructors' => $instructorGrowth,
                 ],
-                'topCoursesChartLabels' => $topCourses->take(5)->values()->map(fn ($c) => substr($c->course?->title ?? '?', 0, 28))->values()->toArray(),
+                'topCoursesChartLabels' => $topCourses->take(5)->values()->map(fn ($c) => substr($c->display_title, 0, 28))->values()->toArray(),
                 'topCoursesChartValues' => $topCourses->take(5)->values()->map(fn ($c) => (float) $c->total_revenue)->values()->toArray(),
                 'topCourses'     => $topCourses,
                 'topInstructors' => $topInstructors,

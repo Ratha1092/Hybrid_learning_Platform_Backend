@@ -330,6 +330,7 @@ html:not(.dark) .pq {
     position:fixed;
     inset:0;
     background:rgba(0,0,0,.55);
+    backdrop-filter:blur(3px);
     z-index:9999;
     align-items:center;
     justify-content:center;
@@ -681,8 +682,10 @@ html:not(.dark) .pq {
     </div>
 
     @if($canUpdate)
-    {{-- Approve Modal --}}
-    <div class="pq-modal-overlay" id="pq-approve-modal" onclick="if(event.target===this)closeApproveModal()">
+    {{-- Approve Modal — wire:ignore keeps this subtree untouched by the
+         wire:poll re-render above, which otherwise fights the vanilla-JS
+         .open toggle and can leave the overlay half-repainted while open. --}}
+    <div class="pq-modal-overlay" id="pq-approve-modal" wire:ignore onclick="if(event.target===this)closeApproveModal()">
         <div class="pq-modal">
             <h3>Verify Payout Account</h3>
             <p id="pq-approve-name-text">Are you sure you want to verify this payout account?</p>
@@ -693,8 +696,8 @@ html:not(.dark) .pq {
         </div>
     </div>
 
-    {{-- Reject Modal --}}
-    <div class="pq-modal-overlay" id="pq-reject-modal" onclick="if(event.target===this)closeRejectModal()">
+    {{-- Reject Modal — see wire:ignore note on the Approve Modal above. --}}
+    <div class="pq-modal-overlay" id="pq-reject-modal" wire:ignore onclick="if(event.target===this)closeRejectModal()">
         <div class="pq-modal">
             <h3>Reject Payout Account</h3>
             <p id="pq-reject-name-text">Explain why this payout account is being rejected. The instructor will be notified.</p>

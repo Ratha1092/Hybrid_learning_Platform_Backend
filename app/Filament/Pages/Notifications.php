@@ -34,6 +34,15 @@ class Notifications extends Page
         return '';
     }
 
+    // Mirrors the mark-as-read the bell dropdown does, and the same pattern
+    // Orders/Payouts/etc. use for their own nav badges — visiting this page
+    // is itself an acknowledgment. Only ever touches the viewing admin's own
+    // notifications, never anyone else's shown further down the audit table.
+    public function mount(): void
+    {
+        auth()->user()?->unreadNotifications()->update(['read_at' => now()]);
+    }
+
     public string $tab = 'all';
     public string $search = '';
     public int $page = 1;

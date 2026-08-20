@@ -2,10 +2,11 @@
 
 namespace App\Domains\System\Controllers;
 
+use App\Domains\System\Models\ContactMessage;
 use App\Http\Controllers\Controller;
+use App\Jobs\Mail\SendContactMessageReceivedEmailJob;
 use App\Support\ApiResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class ContactController extends Controller
 {
@@ -18,15 +19,15 @@ class ContactController extends Controller
             'message' => ['required', 'string', 'max:5000'],
         ]);
 
-        DB::table('contact_messages')->insert([
-            'name'       => $validated['name'],
-            'email'      => $validated['email'],
-            'subject'    => $validated['subject'],
-            'message'    => $validated['message'],
-            'status'     => 'unread',
-            'created_at' => now(),
-            'updated_at' => now(),
+        $contactMessage = ContactMessage::create([
+            'name'    => $validated['name'],
+            'email'   => $validated['email'],
+            'subject' => $validated['subject'],
+            'message' => $validated['message'],
+            'status'  => 'unread',
         ]);
+
+        SendContactMessageReceivedEmailJob::dispatch($contactMessage->id);
 
         return ApiResponse::success(null, 'Your message has been received. We will get back to you soon.');
     }

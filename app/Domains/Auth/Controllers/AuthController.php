@@ -7,6 +7,7 @@ use Illuminate\Validation\ValidationException;
 use App\Domains\Auth\Services\AuthService;
 use App\Domains\Auth\Requests\LoginRequest;
 use App\Domains\Auth\Requests\RegisterRequest;
+use App\Domains\Auth\Requests\UpdatePasswordRequest;
 use App\Support\ApiResponse;
 
 class AuthController extends Controller
@@ -40,5 +41,19 @@ class AuthController extends Controller
         $this->authService->logout(request()->user());
 
         return ApiResponse::success(null, 'Logged out successfully');
+    }
+
+    public function updatePassword(UpdatePasswordRequest $request)
+    {
+        try {
+            $this->authService->updatePassword($request->user(), $request->validated());
+        } catch (ValidationException $exception) {
+            $errors = $exception->errors();
+            $message = collect($errors)->flatten()->first() ?? 'Unable to update password';
+
+            return ApiResponse::error($message, 400, $errors);
+        }
+
+        return ApiResponse::success(null, 'Password updated successfully');
     }
 }

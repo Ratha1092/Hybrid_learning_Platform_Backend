@@ -2,6 +2,8 @@
 
 namespace App\Domains\Orders\Models;
 
+use App\Domains\Billing\Models\Invoice;
+use App\Domains\Billing\Models\Receipt;
 use App\Domains\Orders\Enums\OrderPaymentStatus;
 use App\Domains\Orders\Enums\OrderStatus;
 use App\Domains\Payments\Models\Payment;
@@ -16,6 +18,15 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 class Order extends Model
 {
     use SoftDeletes;
+
+    // Only computed/exposed when the invoice/receipt relations are eager
+    // loaded (see the accessors below) — not present on every Order fetch.
+    protected $appends = [
+        'invoice_id',
+        'invoice_number',
+        'receipt_id',
+        'receipt_number',
+    ];
 
     protected $fillable = [
 
@@ -87,6 +98,39 @@ class Order extends Model
             \App\Domains\Learning\Models\Enrollment::class
         );
     }
+
+    // Excludes credit notes, which also belongTo an Order via the same
+    // order_id — this is specifically "the" invoice document for the order.
+    public function invoice(): HasOne
+    {
+        return $this->hasOne(Invoice::class)->where('type', Invoice::TYPE_INVOICE);
+    }
+
+    public function receipt(): HasOne
+    {
+        return $this->hasOne(Receipt::class);
+    }
+
+    public function getInvoiceIdAttribute(): ?int
+    {
+        return $this->relationLoaded('invoice') ? $this->invoice?->id : null;
+    }
+
+    public function getInvoiceNumberAttribute(): ?string
+    {
+        return $this->relationLoaded('invoice') ? $this->invoice?->invoice_number : null;
+    }
+
+    public function getReceiptIdAttribute(): ?int
+    {
+        return $this->relationLoaded('receipt') ? $this->receipt?->id : null;
+    }
+
+    public function getReceiptNumberAttribute(): ?string
+    {
+        return $this->relationLoaded('receipt') ? $this->receipt?->receipt_number : null;
+    }
+
     public function isPending(): bool
     {
         return $this->status === OrderStatus::Pending;

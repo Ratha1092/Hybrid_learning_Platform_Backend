@@ -67,9 +67,9 @@ class SettingsSeeder extends Seeder
             'minimum_payout_amount'         => ['50', 'decimal', 'Minimum wallet balance required to request a payout.', false],
             'default_currency'              => ['USD', 'string', 'Default platform currency.', true],
             'tax_percentage'                => ['0', 'decimal', 'Tax percentage applied at checkout.', true],
-            'refund_period_days'            => ['14', 'integer', 'Number of days a purchase remains eligible for refund.', true],
             'wallet_enabled'                => ['true', 'boolean', 'Enable the instructor wallet system.', false],
             'payout_hold_period_days'       => ['14', 'integer', 'Days to hold new earnings in pending balance before they become withdrawable.', false],
+            'auto_verify_payout_accounts'   => ['false', 'boolean', 'Automatically verify instructor payout account submissions (bank details/QR code) without manual review.', false],
         ],
         'payment_gateway' => [
             'bakong_enabled'        => ['true', 'boolean', 'Enable the Bakong payment gateway.', true],

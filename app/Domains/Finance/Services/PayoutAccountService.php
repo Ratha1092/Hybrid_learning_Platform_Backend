@@ -31,21 +31,24 @@ class PayoutAccountService
                 }
             }
 
+            $autoVerify = Setting::get('auto_verify_payout_accounts', false);
+
             return InstructorPayoutAccount::updateOrCreate(
                 ['instructor_id' => $instructor->id],
                 [
                     'method' => 'khqr',
                     'account_name' => $data['account_name'],
                     'qr_code_path' => $qrPath,
-                    'status' => 'pending',
+                    'status' => $autoVerify ? 'verified' : 'pending',
                     'rejection_reason' => null,
                     'reviewed_by' => null,
-                    'reviewed_at' => null,
+                    'reviewed_at' => $autoVerify ? now() : null,
                 ]
             );
         });
 
-        if (Setting::get('payout_notification', true)) {
+        // Nothing for an admin to review when it was auto-verified — skip the "needs approval" notice.
+        if ($account->status === 'pending' && Setting::get('payout_notification', true)) {
             NotifyAdminsJob::dispatch(
                 NewPayoutAccountSubmittedNotification::class,
                 [$account->id, $instructor->name],

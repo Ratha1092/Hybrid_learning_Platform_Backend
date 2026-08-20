@@ -21,6 +21,7 @@ class UserFactory extends Factory
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
+            'has_password' => true,
             'remember_token' => Str::random(10),
         ];
     }
@@ -29,6 +30,15 @@ class UserFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'email_verified_at' => null,
+        ]);
+    }
+
+    /** Simulates an OAuth-only sign-up: a random, unusable password hash and has_password = false. */
+    public function oauthOnly(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'password' => Hash::make(Str::random(32)),
+            'has_password' => false,
         ]);
     }
 }

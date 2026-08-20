@@ -2,17 +2,15 @@
     $accent = '#2563eb';
 
     $statusStyle = fn($status) => match($status) {
-        'pending'  => ['bg' => 'rgba(251,191,36,.12)',  'color' => '#fbbf24', 'label' => 'Pending'],
-        'approved' => ['bg' => 'rgba(52,211,153,.12)',  'color' => '#34d399', 'label' => 'Approved'],
-        'rejected' => ['bg' => 'rgba(248,113,113,.12)', 'color' => '#f87171', 'label' => 'Rejected'],
-        default    => ['bg' => 'rgba(148,163,184,.1)',  'color' => '#94a3b8', 'label' => ucfirst($status ?? '—')],
+        'unread'  => ['bg' => 'rgba(251,191,36,.12)', 'color' => '#fbbf24', 'label' => 'Unread'],
+        'read'    => ['bg' => 'rgba(56,189,248,.12)', 'color' => '#38bdf8', 'label' => 'Read'],
+        'replied' => ['bg' => 'rgba(52,211,153,.12)', 'color' => '#34d399', 'label' => 'Replied'],
+        default   => ['bg' => 'rgba(148,163,184,.1)', 'color' => '#94a3b8', 'label' => ucfirst($status ?? '—')],
     };
-
-    $viewUrl = fn($v) => route('filament.admin.resources.instructor-verifications.view', ['record' => $v->id]);
 @endphp
 
 <div wire:poll.15s>
-<div class="lp" id="lp-verifications" style="--accent:{{ $accent }};">
+<div class="lp" id="lp-contact-messages" style="--accent:{{ $accent }};">
 
 <style>
 .lp, .lp *, .lp *::before, .lp *::after {
@@ -249,9 +247,14 @@ html:not(.dark) .lp {
     color:var(--t2);
     white-space:nowrap;
 }
-.lp-qual {
+.lp-subject {
     font-size:12px;
     color:var(--t1);
+    max-width:240px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    display:block;
 }
 
 .lp-actions {
@@ -283,24 +286,16 @@ html:not(.dark) .lp {
     width:18px;
     height:18px;
 }
-.lp-act-btn-approve {
+.lp-act-btn-reply {
     color:#34d399;
 }
-.lp-act-btn-approve:hover {
+.lp-act-btn-reply:hover {
     background:rgba(52,211,153,.12) !important;
     border-color:rgba(52,211,153,.3) !important;
     color:#34d399 !important;
 }
-.lp-act-btn-reject {
-    color:#f87171;
-}
-.lp-act-btn-reject:hover {
-    background:rgba(248,113,113,.12) !important;
-    border-color:rgba(248,113,113,.3) !important;
-    color:#f87171 !important;
-}
 
-/* Reject modal */
+/* Modals */
 .lp-modal-overlay {
     display:none;
     position:fixed;
@@ -310,6 +305,7 @@ html:not(.dark) .lp {
     z-index:9999;
     align-items:center;
     justify-content:center;
+    padding:20px;
 }
 .lp-modal-overlay.open {
     display:flex;
@@ -333,22 +329,6 @@ html:not(.dark) .lp {
     font-size:12.5px;
     color:var(--t2);
     margin-bottom:16px;
-}
-.lp-modal textarea {
-    width:100%;
-    background:var(--p2);
-    border:1px solid var(--bd2);
-    border-radius:9px;
-    padding:10px 13px;
-    color:var(--t1);
-    font-size:13px;
-    font-family:inherit;
-    resize:vertical;
-    min-height:90px;
-    outline:none;
-}
-.lp-modal textarea:focus {
-    border-color:#2563eb;
 }
 .lp-modal-footer {
     display:flex;
@@ -374,15 +354,65 @@ html:not(.dark) .lp {
     border:1px solid var(--bd2);
     color:var(--t2);
 }
-.lp-modal-btn-danger {
-    background:rgba(248,113,113,.15);
-    color:#f87171;
-    border:1px solid rgba(248,113,113,.3);
-}
 .lp-modal-btn-success {
     background:rgba(52,211,153,.15);
     color:#34d399;
     border:1px solid rgba(52,211,153,.3);
+}
+.lp-modal-btn:disabled {
+    opacity:.5;
+    cursor:not-allowed;
+}
+.lp-textarea {
+    width:100%;
+    min-height:120px;
+    resize:vertical;
+    background:var(--p2);
+    border:1px solid var(--bd2);
+    border-radius:8px;
+    padding:10px 12px;
+    color:var(--t1);
+    font-size:13px;
+    font-family:inherit;
+    outline:none;
+}
+.lp-textarea:focus {
+    border-color:var(--accent);
+}
+
+/* View details modal */
+.lp-view-modal {
+    max-width:560px;
+}
+.lp-vm-row {
+    display:grid;
+    grid-template-columns:120px 1fr;
+    gap:10px;
+    padding:9px 0;
+    border-bottom:1px solid var(--bd);
+}
+.lp-vm-row:last-child {
+    border-bottom:none;
+}
+.lp-vm-key {
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:.03em;
+    text-transform:uppercase;
+    color:var(--t2);
+}
+.lp-vm-val {
+    font-size:13px;
+    color:var(--t1);
+    word-break:break-word;
+    white-space:pre-wrap;
+}
+.lp-vm-val a {
+    color:var(--accent);
+    text-decoration:none;
+}
+.lp-vm-val a:hover {
+    text-decoration:underline;
 }
 
 .lp-empty {
@@ -486,8 +516,8 @@ html:not(.dark) .lp {
     {{-- Header --}}
     <div class="lp-header lpa lp1">
         <div class="lp-header-text">
-            <h1>Instructor Verifications</h1>
-            <p>Review and manage instructor verification applications.</p>
+            <h1>Contact Messages</h1>
+            <p>Messages submitted through the public contact form.</p>
         </div>
     </div>
 
@@ -515,7 +545,7 @@ html:not(.dark) .lp {
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607z"/>
                 </svg>
-                <input type="text" wire:model.live.debounce.500ms="search" placeholder="Search name or email...">
+                <input type="text" wire:model.live.debounce.500ms="search" placeholder="Search name, email or subject...">
             </div>
         </div>
 
@@ -525,35 +555,45 @@ html:not(.dark) .lp {
             <thead>
                 <tr>
                     <th>ID</th>
-                    <th>Instructor</th>
-                    <th>Email</th>
-                    <th>Qualification</th>
+                    <th>From</th>
+                    <th>Subject</th>
                     <th>Status</th>
-                    <th>Applied</th>
+                    <th>Received</th>
                     <th style="text-align:right">Actions</th>
                 </tr>
             </thead>
             <tbody>
-                @forelse ($verifications as $verification)
+                @forelse ($messages as $message)
                 @php
-                    $ss    = $statusStyle($verification->status);
-                    $bgHex = substr(md5($verification->user?->name ?? ''), 0, 6);
-                    $avUrl = 'https://ui-avatars.com/api/?name=' . urlencode($verification->user?->name ?? '?') . '&background=' . $bgHex . '&color=fff&bold=true&size=64';
-                    $qual  = ucfirst(str_replace('_', ' ', $verification->qualification_type ?? '—'));
+                    $ss = $statusStyle($message->status);
+                    $detailsJson = htmlspecialchars(json_encode([
+                        'id' => $message->id,
+                        'name' => $message->name,
+                        'email' => $message->email,
+                        'subject' => $message->subject,
+                        'message' => $message->message,
+                        'status' => $ss['label'],
+                        'statusColor' => $ss['color'],
+                        'replyMessage' => $message->reply_message,
+                        'replierName' => $message->replier?->name,
+                        'repliedAt' => $message->replied_at?->format('M d, Y · H:i'),
+                        'receivedAt' => $message->created_at?->format('M d, Y · H:i'),
+                        'canReply' => $message->status !== 'replied',
+                    ]), ENT_QUOTES, 'UTF-8');
                 @endphp
-                <tr class="lp-row-link" onclick="Livewire.navigate('{{ $viewUrl($verification) }}')">
-                    <td><span class="lp-id">{{ $verification->id }}</span></td>
+                <tr class="lp-row-link" onclick='openViewModal({{ $detailsJson }})'>
+                    <td><span class="lp-id">{{ $message->id }}</span></td>
 
                     <td>
                         <div class="lp-user-cell">
-                            <img src="{{ $avUrl }}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;flex-shrink:0" alt="">
-                            <span class="lp-user-name">{{ $verification->user?->name ?? '—' }}</span>
+                            <div>
+                                <div class="lp-user-name">{{ $message->name }}</div>
+                                <div class="lp-email">{{ $message->email }}</div>
+                            </div>
                         </div>
                     </td>
 
-                    <td><span class="lp-email">{{ $verification->user?->email ?? '—' }}</span></td>
-
-                    <td><span class="lp-qual">{{ $qual }}</span></td>
+                    <td><span class="lp-subject" title="{{ $message->subject }}">{{ $message->subject }}</span></td>
 
                     <td>
                         <span class="lp-badge" style="background:{{ $ss['bg'] }};color:{{ $ss['color'] }}">
@@ -562,40 +602,34 @@ html:not(.dark) .lp {
                         </span>
                     </td>
 
-                    <td><span class="lp-date">{{ $verification->created_at?->format('M d, Y') }}</span></td>
+                    <td><span class="lp-date">{{ $message->created_at?->format('M d, Y') }}</span></td>
 
                     <td onclick="event.stopPropagation()">
                         <div class="lp-actions">
-                            @if($verification->status === 'pending')
-                            <button onclick="openApproveModal({{ $verification->id }}, '{{ addslashes($verification->user?->name) }}')"
-                                    class="lp-act-btn lp-act-btn-approve" title="Approve">
+                            @if($message->status !== 'replied')
+                            <button onclick='openReplyModal({{ $detailsJson }})'
+                                    class="lp-act-btn lp-act-btn-reply" title="Reply">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/>
-                                </svg>
-                            </button>
-                            <button onclick="openRejectModal({{ $verification->id }}, '{{ addslashes($verification->user?->name) }}')"
-                                    class="lp-act-btn lp-act-btn-reject" title="Reject">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 6 6v3"/>
                                 </svg>
                             </button>
                             @endif
-                            <a href="{{ $viewUrl($verification) }}" wire:navigate class="lp-act-btn" title="View">
+                            <button onclick='openViewModal({{ $detailsJson }})' class="lp-act-btn" title="View">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><circle cx="12" cy="12" r="3"/>
                                 </svg>
-                            </a>
+                            </button>
                         </div>
                     </td>
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="7">
+                    <td colspan="6">
                         <div class="lp-empty">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"/>
                             </svg>
-                            <p>No verifications found{{ $search ? ' for "' . $search . '"' : '' }}.</p>
+                            <p>No contact messages found{{ $search ? ' for "' . $search . '"' : '' }}.</p>
                         </div>
                     </td>
                 </tr>
@@ -608,7 +642,7 @@ html:not(.dark) .lp {
         <div class="lp-footer">
             <div class="lp-footer-info">
                 @if($total > 0)
-                    Showing {{ ($curPage - 1) * $perPage + 1 }} to {{ min($curPage * $perPage, $total) }} of {{ number_format($total) }} verifications
+                    Showing {{ ($curPage - 1) * $perPage + 1 }} to {{ min($curPage * $perPage, $total) }} of {{ number_format($total) }} messages
                 @else
                     No results
                 @endif
@@ -644,76 +678,107 @@ html:not(.dark) .lp {
         </div>
     </div>
 
-    {{-- Approve Modal — wire:ignore keeps this subtree untouched by the
+    {{-- Reply Modal — wire:ignore keeps this subtree untouched by the
          wire:poll re-render above, which otherwise fights the vanilla-JS
          .open toggle and can leave the overlay half-repainted while open. --}}
-    <div class="lp-modal-overlay" id="lp-approve-modal" wire:ignore onclick="if(event.target===this)closeApproveModal()">
+    <div class="lp-modal-overlay" id="lp-reply-modal" wire:ignore onclick="if(event.target===this)closeReplyModal()">
         <div class="lp-modal">
-            <h3>Approve Application</h3>
-            <p id="lp-approve-name-text">Are you sure you want to approve this application? The instructor will be notified.</p>
+            <h3 id="lp-reply-title">Reply</h3>
+            <p id="lp-reply-subtitle">Your reply will be emailed to the sender.</p>
+            <textarea id="lp-reply-textarea" class="lp-textarea" placeholder="Type your reply here..." oninput="document.getElementById('lp-reply-send').disabled = this.value.trim().length === 0"></textarea>
             <div class="lp-modal-footer">
-                <button class="lp-modal-btn lp-modal-btn-gray" onclick="closeApproveModal()">Cancel</button>
-                <button class="lp-modal-btn lp-modal-btn-success" onclick="submitApprove()">Approve Application</button>
+                <button class="lp-modal-btn lp-modal-btn-gray" onclick="closeReplyModal()">Cancel</button>
+                <button id="lp-reply-send" class="lp-modal-btn lp-modal-btn-success" onclick="submitReply()" disabled>Send Reply</button>
             </div>
         </div>
     </div>
 
-    {{-- Reject Modal — inside .lp so CSS vars (--p1, --t1 etc.) are accessible.
-         See wire:ignore note above. --}}
-    <div class="lp-modal-overlay" id="lp-reject-modal" wire:ignore onclick="if(event.target===this)closeRejectModal()">
-        <div class="lp-modal">
-            <h3>Reject Application</h3>
-            <p id="lp-reject-name-text">Explain why this application is being rejected. The instructor will be notified.</p>
-            <textarea id="lp-reject-reason" placeholder="e.g. Insufficient qualifications, invalid documents..."></textarea>
-            <div class="lp-modal-footer">
-                <button class="lp-modal-btn lp-modal-btn-gray" onclick="closeRejectModal()">Cancel</button>
-                <button class="lp-modal-btn lp-modal-btn-danger" onclick="submitReject()">Reject Application</button>
-            </div>
+    {{-- View Details Modal — see wire:ignore note above. --}}
+    <div class="lp-modal-overlay" id="lp-view-modal" wire:ignore onclick="if(event.target===this)closeViewModal()">
+        <div class="lp-modal lp-view-modal">
+            <h3 id="lp-view-title">Message #</h3>
+            <p>Full details of this contact message.</p>
+            <div id="lp-view-body"></div>
+            <div class="lp-modal-footer" id="lp-view-footer"></div>
         </div>
     </div>
 
 </div>
 
 <script>
-    var approveId = null;
-    function openApproveModal(id, name) {
-        approveId = id;
-        document.getElementById('lp-approve-name-text').textContent = 'Are you sure you want to approve ' + name + '\'s application? They will be notified.';
-        document.getElementById('lp-approve-modal').classList.add('open');
-    }
-    function closeApproveModal() {
-        document.getElementById('lp-approve-modal').classList.remove('open');
-        approveId = null;
-    }
-    function submitApprove() {
-        if (!approveId) return;
-        const id = approveId;
-        closeApproveModal();
-        @this.call('approve', id);
+    function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str ?? '';
+        return div.innerHTML;
     }
 
-    var rejectId = null;
-    function openRejectModal(id, name) {
-        rejectId = id;
-        document.getElementById('lp-reject-name-text').textContent ='Explain why ' + name + '\'s application is being rejected. They will be notified.';
-        document.getElementById('lp-reject-reason').value = '';
-        document.getElementById('lp-reject-modal').classList.add('open');
-        setTimeout(() => document.getElementById('lp-reject-reason').focus(), 100);
+    var replyId = null;
+    function openReplyModal(r) {
+        replyId = r.id;
+        document.getElementById('lp-reply-title').textContent = 'Reply to ' + r.name;
+        document.getElementById('lp-reply-subtitle').textContent = 'Your reply will be emailed to ' + r.email + '.';
+        document.getElementById('lp-reply-textarea').value = '';
+        document.getElementById('lp-reply-send').disabled = true;
+        document.getElementById('lp-reply-modal').classList.add('open');
+    }
+    function closeReplyModal() {
+        document.getElementById('lp-reply-modal').classList.remove('open');
+        replyId = null;
+    }
+    function submitReply() {
+        if (!replyId) return;
+        const id = replyId;
+        const text = document.getElementById('lp-reply-textarea').value.trim();
+        if (!text) return;
+        closeReplyModal();
+        closeViewModal();
+        @this.call('reply', id, text);
     }
 
-    function closeRejectModal() {
-        document.getElementById('lp-reject-modal').classList.remove('open');
-        rejectId = null;
-    }   
-    function submitReject() {
-        const reason = document.getElementById('lp-reject-reason').value.trim();
-        if (!reason) {
-            alert('Please provide a rejection reason.');
-            return;
+    function openViewModal(r) {
+        if (r.status === 'Unread' || r.status === undefined) {
+            // mark read as soon as it's opened, best-effort, ignored if already read/replied
         }
-        const id = rejectId;
-        closeRejectModal();
-        @this.call('reject', id, reason);
+        @this.call('markRead', r.id);
+
+        document.getElementById('lp-view-title').textContent = 'Message #' + r.id;
+
+        let rows = [
+            ['From', escapeHtml(r.name) + ' <span style="color:var(--t2)">(' + escapeHtml(r.email) + ')</span>'],
+            ['Subject', escapeHtml(r.subject)],
+            ['Message', escapeHtml(r.message)],
+            ['Status', '<span class="lp-badge" style="background:' + r.statusColor + '20;color:' + r.statusColor + '">' + escapeHtml(r.status) + '</span>'],
+            ['Received', escapeHtml(r.receivedAt)],
+        ];
+        if (r.replyMessage) {
+            rows.push(['Reply Sent', escapeHtml(r.replyMessage)]);
+            rows.push(['Replied By', escapeHtml(r.replierName ?? '—') + ' · ' + escapeHtml(r.repliedAt ?? '—')]);
+        }
+
+        document.getElementById('lp-view-body').innerHTML = rows.map(([k, v]) =>
+            '<div class="lp-vm-row"><div class="lp-vm-key">' + k + '</div><div class="lp-vm-val">' + v + '</div></div>'
+        ).join('');
+
+        const footer = document.getElementById('lp-view-footer');
+        footer.innerHTML = '';
+        const closeBtn = document.createElement('button');
+        closeBtn.className = 'lp-modal-btn lp-modal-btn-gray';
+        closeBtn.textContent = 'Close';
+        closeBtn.onclick = closeViewModal;
+        footer.appendChild(closeBtn);
+
+        if (r.canReply) {
+            const replyBtn = document.createElement('button');
+            replyBtn.className = 'lp-modal-btn lp-modal-btn-success';
+            replyBtn.textContent = 'Reply';
+            replyBtn.onclick = function () { openReplyModal(r); };
+            footer.appendChild(replyBtn);
+        }
+
+        document.getElementById('lp-view-modal').classList.add('open');
+    }
+    function closeViewModal() {
+        document.getElementById('lp-view-modal').classList.remove('open');
     }
 </script>
 </div>{{-- end single root --}}

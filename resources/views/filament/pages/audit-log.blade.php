@@ -9,8 +9,6 @@
         'failed_login'     => ['bg' => 'rgba(248,113,113,.13)', 'color' => '#f87171', 'icon' => 'fail'],
         'password_changed' => ['bg' => 'rgba(245,158,11,.13)',  'color' => '#f59e0b', 'icon' => 'pw'],
         'email_verified'   => ['bg' => 'rgba(6,182,212,.13)',   'color' => '#06b6d4', 'icon' => 'email'],
-        '2fa_enabled'      => ['bg' => 'rgba(139,92,246,.13)',  'color' => '#8b5cf6', 'icon' => '2fa'],
-        '2fa_disabled'     => ['bg' => 'rgba(236,72,153,.13)',  'color' => '#ec4899', 'icon' => '2fa'],
         default            => str_starts_with($act, 'settings.')
             ? ['bg' => 'rgba(249,115,22,.12)', 'color' => '#fb923c', 'icon' => 'settings']
             : ['bg' => 'rgba(148,163,184,.1)',  'color' => '#94a3b8', 'icon' => 'default'],

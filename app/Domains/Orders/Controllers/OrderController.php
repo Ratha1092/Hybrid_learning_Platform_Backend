@@ -40,7 +40,7 @@ class OrderController extends Controller
         $perPage = (int) $request->input('per_page', 15);
         $perPage = in_array($perPage, [10, 15, 25, 50], true) ? $perPage : 15;
 
-        $orders = Order::with('items', 'payment')
+        $orders = Order::with('items', 'payment', 'invoice', 'receipt')
             ->where('user_id', $request->user()->id)
             ->orderByDesc('id')
             ->paginate($perPage);
@@ -50,7 +50,7 @@ class OrderController extends Controller
 
     public function show(Request $request, $id)
     {
-        $order = Order::with('items', 'payment')
+        $order = Order::with('items', 'payment', 'invoice', 'receipt')
             ->where('id', $id)
             ->where('user_id', $request->user()->id)
             ->first();

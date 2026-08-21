@@ -88,6 +88,7 @@ html:not(.dark) .rc {
     border-radius:12px;
     overflow:hidden;
     box-shadow:var(--sh);
+    min-width:0;
 }
 .rc-toolbar {
     display:flex;

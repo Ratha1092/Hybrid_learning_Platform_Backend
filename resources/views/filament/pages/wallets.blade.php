@@ -115,6 +115,7 @@ html:not(.dark) .wl {
     border-radius:12px;
     overflow:hidden;
     box-shadow:var(--sh);
+    min-width:0;
 }
 .wl-toolbar {
     display:flex;

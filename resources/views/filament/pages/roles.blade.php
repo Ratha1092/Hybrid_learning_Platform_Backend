@@ -143,6 +143,7 @@ html:not(.dark) .lp {
     border:1px solid var(--bd);
     border-radius:12px;
     box-shadow:var(--sh);
+    min-width:0;
 }
 
 .lp-toolbar {

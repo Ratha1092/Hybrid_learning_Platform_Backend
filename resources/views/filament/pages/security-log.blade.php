@@ -98,6 +98,7 @@ html:not(.dark) .sl {
     border:1px solid var(--bd);
     border-radius:12px;
     overflow:hidden;
+    min-width:0;
 }
 .sl-card-title {
     padding:14px 16px;

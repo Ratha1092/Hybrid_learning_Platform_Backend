@@ -90,6 +90,7 @@ html:not(.dark) .sh {
     border:1px solid var(--bd);
     border-radius:14px;
     padding:20px;
+    min-width:0;
 }
 .sh-card-header {
     display:flex;

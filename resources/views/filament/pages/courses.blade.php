@@ -80,7 +80,7 @@ html:not(.dark) .cp {
     animation-delay:.09s;
 }
 
-/* ── Page header ── */
+/* Page header */
 .cp-header {
     display:flex;
     align-items:center;
@@ -138,15 +138,16 @@ html:not(.dark) .cp {
     border:1px solid var(--bd2);
 }
 
-/* ── Table container ── */
+/* Table container */
 .cp-card {
     background:var(--p1);
     border:1px solid var(--bd);
     border-radius:12px;
     box-shadow:var(--sh);
+    min-width:0;
 }
 
-/* ── Tabs + search toolbar ── */
+/* Tabs + search toolbar */
 .cp-toolbar {
     display:flex;
     align-items:center;
@@ -220,7 +221,7 @@ html:not(.dark) .cp {
     color:var(--t2);
 }
 
-/* ── Table ── */
+/* Table */
 .cp-table {
     width:100%;
     min-width:920px;
@@ -260,7 +261,7 @@ html:not(.dark) .cp {
     vertical-align:middle;
 }
 
-/* ── Cells ── */
+/* Cells */
 .cp-id {
     font-size:11.5px;
     font-weight:700;
@@ -383,7 +384,7 @@ html:not(.dark) .cp {
     white-space:nowrap;
 }
 
-/* ── Action buttons ── */
+/* Action buttons */
 .cp-actions {
     display:flex;
     align-items:center;
@@ -481,7 +482,7 @@ html:not(.dark) .cp {
     flex-shrink:0;
 }
 
-/* ── Empty state ── */
+/* Empty state */
 .cp-empty {
     display:flex;
     flex-direction:column;
@@ -500,7 +501,7 @@ html:not(.dark) .cp {
     font-size:13px;
 }
 
-/* ── Pagination ── */
+/* Pagination */
 .cp-footer {
     display:flex;
     align-items:center;
@@ -573,7 +574,7 @@ html:not(.dark) .cp {
     outline:none;
 }
 
-/* ── Reject modal ── */
+/* Reject modal */
 .cp-modal-overlay {
     display:none;
     position:fixed;
@@ -624,7 +625,7 @@ html:not(.dark) .cp {
     margin-top:14px;
 }
 
-/* ── View toggle ── */
+/* View toggle */
 .cp-view-toggle {
     display:flex;
     align-items:center;
@@ -657,7 +658,7 @@ html:not(.dark) .cp {
     height:15px;
 }
 
-/* ── Card grid ── */
+/* Card grid */
 .cp-grid {
     display:grid;
     grid-template-columns:repeat(5, 1fr);
@@ -848,7 +849,7 @@ html:not(.dark) .cp {
     background:rgba(248,113,113,.2);
 }
 
-/* ── Mobile responsive ── */
+/* Mobile responsive */
 @media (max-width: 640px) {
     .cp-header {
         flex-direction:column;
@@ -910,7 +911,7 @@ html:not(.dark) .cp {
 </style>
 <div class="cp" id="cp-root">
 
-    {{-- ── Header ── --}}
+    {{-- Header --}}
     <div class="cp-header cpa cp1">
         <div class="cp-header-text">
             <h1>Courses</h1>
@@ -940,7 +941,7 @@ html:not(.dark) .cp {
         </div>
     </div>
 
-    {{-- ── Table card ── --}}
+    {{-- Table card --}}
     <div class="cp-card cpa cp2">
 
         {{-- Toolbar: tabs + search --}}

@@ -74,6 +74,10 @@ class Payment extends Model
     {
         return $this->status === PaymentStatus::Expired;
     }
+    public function isCancelled(): bool
+    {
+        return $this->status === PaymentStatus::Cancelled;
+    }
     public function isKhqr(): bool
     {
         return $this->payment_gateway === PaymentGateway::Khqr;

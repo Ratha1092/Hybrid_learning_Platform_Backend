@@ -109,10 +109,10 @@ class ProgressService
             ->where('is_completed', true)
             ->count();
 
-        $percentage = round(
+        $percentage = min(100, round(
             ($completedLessons / $totalLessons) * 100,
             2
-        );
+        ));
 
         $enrollment = Enrollment::query()
             ->where('user_id', $user->id)

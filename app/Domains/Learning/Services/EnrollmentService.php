@@ -6,6 +6,7 @@ use App\Domains\Learning\Models\Enrollment;
 
 use App\Domains\Orders\Models\Order;
 use App\Domains\Orders\Models\OrderItem;
+use App\Domains\Promotions\Models\Coupon;
 use App\Domains\System\Models\Setting;
 
 use Illuminate\Support\Facades\DB;
@@ -23,6 +24,13 @@ class EnrollmentService
                     $item
                 );
             }
+
+            // Counted as "used" only once the order that redeemed it is
+            // actually paid/completed — locked so two orders redeeming the
+            // last remaining use can't both slip past the limit.
+            if ($order->coupon_id) {
+                Coupon::where('id', $order->coupon_id)->lockForUpdate()->increment('used_count');
+            }
         });
     }
     protected function createEnrollment(
@@ -37,8 +45,13 @@ class EnrollmentService
             ->first();
 
         if ($existing) {
-            if ($existing->trashed()) {
+            $wasTrashed = $existing->trashed();
+
+            if ($wasTrashed) {
                 $existing->restore();
+            }
+
+            if ($wasTrashed || $existing->isExpired()) {
                 $existing->update([
                     'order_id' => $order->id,
                     'source' => 'purchase',

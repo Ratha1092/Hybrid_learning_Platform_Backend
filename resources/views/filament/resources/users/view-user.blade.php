@@ -235,6 +235,25 @@ html.dark .uv {
     color:var(--t1);
     letter-spacing:-.01em;
 }
+@media(max-width:640px) {
+    /* .uv-hero-meta's margin-left:auto keeps it sharing the first flex line
+       (next to the avatar/name) until there's truly no room left — but by
+       then the name has often already wrapped to two lines, so the stats
+       block lands on top of it instead of cleanly below. Forcing a column
+       stack here sidesteps that instead of relying on wrap timing. */
+    .uv-hero {
+        flex-direction:column;
+        align-items:flex-start;
+    }
+    .uv-hero-meta {
+        margin-left:0;
+        width:100%;
+        justify-content:flex-start;
+    }
+    .uv-hero-stat {
+        text-align:left;
+    }
+}
 
 /* Cards */
 .uv-grid-2 {

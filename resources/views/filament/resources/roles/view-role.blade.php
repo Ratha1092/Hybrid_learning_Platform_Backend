@@ -220,6 +220,24 @@ html:not(.dark) .rv {
     height:32px;
     background:var(--bd);
 }
+@media (max-width:640px) {
+    /* .rv-stats' margin-left:auto keeps it sharing the .rv-hero row until
+       there's no room left, by which point wrapped title text has often
+       already grown taller than expected, so the stats land on top of it
+       instead of below. Force a column stack instead of relying on wrap timing. */
+    .rv-hero {
+        flex-direction:column;
+        align-items:flex-start;
+    }
+    .rv-stats {
+        margin-left:0;
+        width:100%;
+        justify-content:flex-start;
+    }
+    .rv-stat {
+        text-align:left;
+    }
+}
 
 .rv-card-title {
     font-size:14px;

@@ -154,6 +154,11 @@ html:not(.dark) .lp {
     border:1px solid var(--bd);
     border-radius:12px;
     box-shadow:var(--sh);
+    /* .lp is display:grid — without this, a grid item defaults to
+       min-width:auto, so a wide nowrap table inside forces this card (and the
+       whole page) wider than the viewport instead of just scrolling inside
+       the .lp-table-scroll div below. */
+    min-width:0;
 }
 .lp-toolbar {
     display:flex;

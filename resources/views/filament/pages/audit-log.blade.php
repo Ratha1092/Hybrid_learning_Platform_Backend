@@ -921,7 +921,11 @@ html:not(.dark) .al {
 
 
 {{-- ── JSON Data Modal ─────────────────────────────────────────── --}}
-<div class="al-modal-backdrop" id="al-modal" onclick="if(event.target===this)alCloseModal()"
+{{-- wire:ignore: this modal is opened/populated by plain JS (alOpenModal),
+     untracked by Livewire. Without wire:ignore, any wire:click elsewhere on
+     the page (pagination, filters) re-renders and morphs this div back to
+     its server-rendered closed state while it's open. --}}
+<div class="al-modal-backdrop" id="al-modal" wire:ignore onclick="if(event.target===this)alCloseModal()"
      style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9998;align-items:center;justify-content:center;">
     <div class="al-modal">
         <div class="al-modal-head">

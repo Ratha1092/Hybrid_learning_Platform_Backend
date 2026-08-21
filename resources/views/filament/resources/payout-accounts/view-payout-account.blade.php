@@ -629,8 +629,11 @@ html:not(.dark) .pa-modal-overlay {
         </div>
     </div>
 
-    {{-- Image lightbox (teleported to <body> so it centers on the real viewport) --}}
-    <template x-teleport="body">
+    {{-- Image lightbox (teleported to <body> so it centers on the real viewport).
+         wire:ignore: without it, a wire:click-triggered re-render elsewhere on
+         the page makes Livewire's DOM morph try to reconcile this block at its
+         original position, which conflicts with Alpine's already-teleported copy. --}}
+    <template x-teleport="body" wire:ignore>
     <div class="pa-lightbox-overlay" id="pa-lightbox" onclick="if(event.target===this)closeLightbox()">
         <div class="pa-lightbox-close" onclick="closeLightbox()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -643,8 +646,8 @@ html:not(.dark) .pa-modal-overlay {
 
     @if($a->status === 'pending')
     {{-- Approve Modal (teleported to <body> so it centers on the real viewport,
-         not inside any transformed page wrapper) --}}
-    <template x-teleport="body">
+         not inside any transformed page wrapper). See wire:ignore note above. --}}
+    <template x-teleport="body" wire:ignore>
     <div class="pa-modal-overlay" id="pa-approve-modal" onclick="if(event.target===this)closeApproveModal()">
         <div class="pa-modal">
             <h3>Verify Payout Account</h3>
@@ -657,8 +660,8 @@ html:not(.dark) .pa-modal-overlay {
     </div>
     </template>
 
-    {{-- Reject Modal --}}
-    <template x-teleport="body">
+    {{-- Reject Modal — see wire:ignore note above. --}}
+    <template x-teleport="body" wire:ignore>
     <div class="pa-modal-overlay" id="pa-reject-modal" onclick="if(event.target===this)closeRejectModal()">
         <div class="pa-modal">
             <h3>Reject Payout Account</h3>

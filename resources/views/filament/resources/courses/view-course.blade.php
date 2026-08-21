@@ -700,9 +700,12 @@ html:not(.dark) .cv-modal-overlay {
     </div>
 
     {{-- Reject modal (teleported to <body> so it centers on the real viewport,
-         not inside any transformed page wrapper) --}}
+         not inside any transformed page wrapper). wire:ignore: without it, a
+         wire:click-triggered re-render elsewhere on the page makes Livewire's
+         DOM morph try to reconcile this block at its original position, which
+         conflicts with Alpine's already-teleported copy. --}}
     @if($course->isPendingReview())
-    <template x-teleport="body">
+    <template x-teleport="body" wire:ignore>
     <div class="cv-modal-overlay" id="cv-reject-modal" onclick="if(event.target===this)this.classList.remove('open')">
         <div class="cv-modal">
             <h3>Reject Course</h3>

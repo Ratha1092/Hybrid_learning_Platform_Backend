@@ -52,7 +52,7 @@ class CourseController extends Controller
                 'sections' => function ($q) {
                     $q->orderBy('order')->with([
                         'lessons' => function ($q) {
-                            $q->orderBy('order');
+                            $q->orderBy('order')->with('attachments');
                         }
                     ]);
                 }
@@ -93,14 +93,27 @@ class CourseController extends Controller
         $courseData['access_expired'] = $accessExpired;
         $courseData['access_expires_at'] = $enrollment?->expires_at?->toIso8601String();
 
-        $courseData['sections'] = $course->sections->map(function ($section) use ($hasAccess) {
+        $resourcesDownloadable = Setting::get('lesson_resources_downloadable', true);
+
+        $courseData['sections'] = $course->sections->map(function ($section) use ($hasAccess, $resourcesDownloadable) {
             $sectionData = $section->toArray();
-            $sectionData['lessons'] = $section->lessons->map(function ($lesson) use ($hasAccess) {
+            $sectionData['lessons'] = $section->lessons->map(function ($lesson) use ($hasAccess, $resourcesDownloadable) {
                 $lessonData = $lesson->toArray();
 
                 $canWatch = $hasAccess || $lesson->is_preview;
                 $lessonData['video_url'] = $canWatch ? $this->resolveVideoUrl($lesson) : null;
                 unset($lessonData['video_path']);
+
+                if (!$canWatch || !$resourcesDownloadable) {
+                    $lessonData['attachments'] = [];
+                } else {
+                    $lessonData['attachments'] = $lesson->attachments->map(fn ($a) => [
+                        'id' => $a->id,
+                        'title' => $a->title,
+                        'type' => $a->type,
+                        'file_url' => $a->file_url,
+                    ])->values();
+                }
 
                 if (!$canWatch) {
                     $lessonData['content'] = null;

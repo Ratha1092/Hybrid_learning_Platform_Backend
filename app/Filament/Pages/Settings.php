@@ -68,7 +68,7 @@ class Settings extends Page
         'course' => [
             'Approval' => ['course_auto_approval', 'free_course_auto_approval', 'allow_free_courses'],
             'Upload Limits' => ['max_course_thumbnail_size', 'max_video_upload_size', 'allowed_video_formats', 'max_lessons_per_course'],
-            'Access' => ['course_access_duration_months'],
+            'Access' => ['course_access_duration_months', 'lesson_resources_downloadable'],
         ],
         'finance' => [
             'Payouts & Currency' => ['minimum_payout_amount', 'payout_hold_period_days', 'default_currency', 'wallet_enabled', 'auto_verify_payout_accounts'],

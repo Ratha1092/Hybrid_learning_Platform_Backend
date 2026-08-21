@@ -100,6 +100,9 @@ Route::middleware(['auth:sanctum','verified_instructor','throttle:courses',])
 
         //Attach standalone sections to a course
         Route::post('/{id}/attach-sections', [InstructorCourseController::class, 'attachSections']);
+
+        //Course-level preview video upload
+        Route::post('/{id}/upload-preview-video', [InstructorCourseController::class, 'uploadPreviewVideo']);
         Route::prefix('{courseId}/sections')->group(function () {
                 Route::get('/',[InstructorSectionController::class, 'index']);
                 Route::post('/',[InstructorSectionController::class, 'store']);

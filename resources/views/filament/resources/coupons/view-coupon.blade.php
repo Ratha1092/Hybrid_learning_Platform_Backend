@@ -222,6 +222,24 @@ html:not(.dark) .cv {
     height:32px;
     background:var(--bd);
 }
+@media (max-width:640px) {
+    /* .cv-stats' margin-left:auto keeps it sharing the .cv-hero row until
+       there's no room left, by which point wrapped title text has often
+       already grown taller than expected, so the stats land on top of it
+       instead of below. Force a column stack instead of relying on wrap timing. */
+    .cv-hero {
+        flex-direction:column;
+        align-items:flex-start;
+    }
+    .cv-stats {
+        margin-left:0;
+        width:100%;
+        justify-content:flex-start;
+    }
+    .cv-stat {
+        text-align:left;
+    }
+}
 
 .cv-card-title {
     font-size:14px;

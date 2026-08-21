@@ -60,6 +60,7 @@ class SettingsSeeder extends Seeder
             'allowed_video_formats'     => ['mp4,mov,avi,webm', 'string', 'Comma-separated list of accepted video formats.', true],
             'max_lessons_per_course'    => ['200', 'integer', 'Maximum number of lessons allowed per course.', true],
             'course_access_duration_months' => ['6', 'integer', 'Months a student keeps access to a purchased course before it expires. Set to 0 for lifetime access.', true],
+            'lesson_resources_downloadable' => ['true', 'boolean', 'Allow enrolled students to download lesson resource files (PDFs, slides, etc). When off, the resources list is hidden from students entirely.', false],
         ],
         'finance' => [
             'default_commission_percentage' => ['20', 'decimal', 'Platform commission percentage taken from each sale.', false],

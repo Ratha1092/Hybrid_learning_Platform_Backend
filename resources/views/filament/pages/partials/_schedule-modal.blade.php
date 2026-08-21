@@ -23,7 +23,14 @@ html:not(.dark) .hl-schedule-modal-backdrop {
     --sm-muted:#64748b;
 }
 </style>
-<template x-teleport="body">
+{{-- wire:ignore: x-teleport physically moves this element's content to
+     <body> once Alpine initializes, detaching it from where Livewire's
+     server-rendered output expects to find it. Without wire:ignore, a
+     wire:click-triggered re-render anywhere on the page (e.g. pagination)
+     makes Livewire's DOM morph try to reconcile this block at its original
+     position — which can conflict with Alpine's already-teleported copy and
+     break the morph for the rest of the page, not just this modal. --}}
+<template x-teleport="body" wire:ignore>
 <div
     class="hl-schedule-modal-backdrop"
     x-data="{ open: false }"

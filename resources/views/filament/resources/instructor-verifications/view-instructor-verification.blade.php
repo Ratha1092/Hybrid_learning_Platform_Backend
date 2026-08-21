@@ -681,8 +681,11 @@ html:not(.dark) .iv-modal-overlay {
 
     @if($v->status === 'pending')
     {{-- Approve Modal (teleported to <body> so it centers on the real viewport,
-         not inside any transformed page wrapper) --}}
-    <template x-teleport="body">
+         not inside any transformed page wrapper). wire:ignore: without it, a
+         wire:click-triggered re-render elsewhere on the page makes Livewire's
+         DOM morph try to reconcile this block at its original position, which
+         conflicts with Alpine's already-teleported copy. --}}
+    <template x-teleport="body" wire:ignore>
     <div class="iv-modal-overlay" id="iv-approve-modal" onclick="if(event.target===this)closeApproveModal()">
         <div class="iv-modal">
             <h3>Approve Application</h3>
@@ -695,8 +698,8 @@ html:not(.dark) .iv-modal-overlay {
     </div>
     </template>
 
-    {{-- Reject Modal --}}
-    <template x-teleport="body">
+    {{-- Reject Modal — see wire:ignore note on the Approve Modal above. --}}
+    <template x-teleport="body" wire:ignore>
     <div class="iv-modal-overlay" id="iv-reject-modal" onclick="if(event.target===this)closeRejectModal()">
         <div class="iv-modal">
             <h3>Reject Application</h3>

@@ -40,6 +40,7 @@ class Course extends Model
         'short_description',
         'description',
         'thumbnail',
+        'preview_video_path',
         'price',
         'level',
         'language',
@@ -62,6 +63,7 @@ class Course extends Model
     ];
     protected $appends = [
         'thumbnail_url',
+        'preview_video_url',
     ];
     protected static function booted(): void
     {
@@ -267,6 +269,14 @@ class Course extends Model
         }
 
         return \Storage::disk('r2')->url($this->thumbnail);
+    }
+    public function getPreviewVideoUrlAttribute(): ?string
+    {
+        if (!$this->preview_video_path) {
+            return null;
+        }
+
+        return \Storage::disk('r2-private')->temporaryUrl($this->preview_video_path, now()->addMinutes(30));
     }
     public function scopePublished($query)
     {

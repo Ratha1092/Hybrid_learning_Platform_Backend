@@ -98,6 +98,7 @@ html:not(.dark) .pq {
     border-radius:12px;
     overflow:hidden;
     box-shadow:var(--sh);
+    min-width:0;
 }
 .pq-toolbar {
     display:flex;

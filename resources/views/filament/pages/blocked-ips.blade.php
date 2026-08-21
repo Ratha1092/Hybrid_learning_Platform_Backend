@@ -87,6 +87,7 @@ html:not(.dark) .bi {
     border:1px solid var(--bd);
     border-radius:12px;
     padding:20px;
+    min-width:0;
 }
 .bi-card h3 {
     font-size:13px;

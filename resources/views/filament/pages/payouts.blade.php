@@ -96,6 +96,7 @@ html:not(.dark) .po {
     border-radius:12px;
     overflow:hidden;
     box-shadow:var(--sh);
+    min-width:0;
 }
 .po-toolbar {
     display:flex;

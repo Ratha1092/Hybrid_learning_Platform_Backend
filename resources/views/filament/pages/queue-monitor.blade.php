@@ -123,6 +123,7 @@ html:not(.dark) .qm {
     border:1px solid var(--bd);
     border-radius:12px;
     overflow:hidden;
+    min-width:0;
 }
 .qm-card-title {
     padding:14px 16px;

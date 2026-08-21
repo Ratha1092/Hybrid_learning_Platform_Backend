@@ -237,7 +237,7 @@ html:not(.dark) .qm {
         <div class="qm-actions">
             <a href="{{ url()->current() }}" class="qm-btn">Refresh</a>
             @if(count($recentFailed) > 0)
-                <button wire:click="clearAllFailed" wire:confirm="Delete all failed jobs? This cannot be undone." class="qm-btn qm-btn-danger">
+                <button type="button" wire:click="clearAllFailed" wire:confirm="Delete all failed jobs? This cannot be undone." class="qm-btn qm-btn-danger">
                     Clear All Failed
                 </button>
             @endif
@@ -323,21 +323,21 @@ html:not(.dark) .qm {
                 </thead>
                 <tbody>
                     @foreach($recentFailed as $i => $job)
-                        <tr>
+                        <tr wire:key="failed-job-{{ $job['uuid'] }}">
                             <td style="font-family:monospace;font-size:11px;max-width:200px;word-break:break-all">{{ \Illuminate\Support\Str::limit($job['job'], 50) }}</td>
                             <td><span style="background:var(--p2);color:var(--t2);padding:2px 8px;border-radius:6px;font-size:11px">{{ $job['queue'] }}</span></td>
                             <td>
                                 <div style="color:#f87171;font-size:11px">{{ $job['error'] }}</div>
                                 @if(strlen($job['exception'] ?? '') > strlen($job['error']))
-                                    <button class="qm-trace-toggle" onclick="var t=document.getElementById('qt-{{ $i }}');t.classList.toggle('open');this.textContent=t.classList.contains('open')?'Hide':'Show trace'">Show trace</button>
+                                    <button type="button" class="qm-trace-toggle" onclick="var t=document.getElementById('qt-{{ $i }}');t.classList.toggle('open');this.textContent=t.classList.contains('open')?'Hide':'Show trace'">Show trace</button>
                                     <pre class="qm-trace" id="qt-{{ $i }}">{{ $job['exception'] }}</pre>
                                 @endif
                             </td>
                             <td style="color:var(--t2);font-size:11px;white-space:nowrap">{{ $job['failed_at'] }}</td>
                             <td>
                                 <div style="display:flex;gap:6px;flex-wrap:wrap">
-                                    <button wire:click="retryJob('{{ $job['uuid'] }}')" class="qm-btn qm-btn-warn" style="padding:4px 10px;font-size:11px">Retry</button>
-                                    <button wire:click="deleteFailedJob('{{ $job['uuid'] }}')" wire:confirm="Delete this failed job?" class="qm-btn qm-btn-danger" style="padding:4px 10px;font-size:11px">Delete</button>
+                                    <button type="button" wire:click="retryJob('{{ $job['uuid'] }}')" class="qm-btn qm-btn-warn" style="padding:4px 10px;font-size:11px">Retry</button>
+                                    <button type="button" wire:click="deleteFailedJob('{{ $job['uuid'] }}')" wire:confirm="Delete this failed job?" class="qm-btn qm-btn-danger" style="padding:4px 10px;font-size:11px">Delete</button>
                                 </div>
                             </td>
                         </tr>

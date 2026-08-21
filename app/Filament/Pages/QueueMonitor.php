@@ -32,13 +32,33 @@ class QueueMonitor extends Page
 
     public function retryJob(string $uuid): void
     {
-        \Illuminate\Support\Facades\Artisan::call('queue:retry', ['id' => [$uuid]]);
+        $exitCode = \Illuminate\Support\Facades\Artisan::call('queue:retry', ['id' => [$uuid]]);
+
+        if ($exitCode !== 0) {
+            Notification::make()
+                ->title('Failed to queue job for retry.')
+                ->body(trim(\Illuminate\Support\Facades\Artisan::output()))
+                ->danger()
+                ->send();
+            return;
+        }
+
         Notification::make()->title('Job queued for retry.')->success()->send();
     }
 
     public function deleteFailedJob(string $uuid): void
     {
-        \Illuminate\Support\Facades\Artisan::call('queue:forget', ['id' => $uuid]);
+        $exitCode = \Illuminate\Support\Facades\Artisan::call('queue:forget', ['id' => $uuid]);
+
+        if ($exitCode !== 0) {
+            Notification::make()
+                ->title('Failed to delete job.')
+                ->body(trim(\Illuminate\Support\Facades\Artisan::output()))
+                ->danger()
+                ->send();
+            return;
+        }
+
         Notification::make()->title('Failed job deleted.')->success()->send();
     }
 

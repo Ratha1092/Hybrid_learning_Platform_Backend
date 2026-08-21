@@ -59,7 +59,6 @@ class QrCodeService
         );
 
         $result = $builder->build();
-
         return $result->getString();
     }
 }

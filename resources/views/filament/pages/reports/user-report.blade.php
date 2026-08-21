@@ -527,8 +527,8 @@ html:not(.dark) .rp {
                         </td>
                         <td>{{ number_format($user->enrollments_count) }}</td>
                         <td>{{ number_format($user->orders_count) }}</td>
-                        <td>{{ $user->last_login_at?->format('M d, Y') ?? '—' }}</td>
-                        <td>{{ $user->created_at->format('M d, Y') }}</td>
+                        <td>{{ $user->last_login_at?->setTimezone(config('app.timezone'))->format('M d, Y') ?? '—' }}</td>
+                        <td>{{ $user->created_at->setTimezone(config('app.timezone'))->format('M d, Y') }}</td>
                     </tr>
                 @empty
                     <tr><td colspan="8" style="text-align:center;color:var(--t2);padding:24px;">No users found for this filter.</td></tr>

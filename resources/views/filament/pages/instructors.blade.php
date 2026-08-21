@@ -461,7 +461,7 @@ html:not(.dark) .lp {
                         </span>
                     </td>
 
-                    <td><span class="lp-date">{{ $instructor->created_at?->format('M d, Y') }}</span></td>
+                    <td><span class="lp-date">{{ $instructor->created_at?->setTimezone(config('app.timezone'))->format('M d, Y') }}</span></td>
                 </tr>
                 @empty
                 <tr>

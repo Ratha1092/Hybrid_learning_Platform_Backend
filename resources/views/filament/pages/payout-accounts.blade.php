@@ -598,7 +598,7 @@ html:not(.dark) .pq {
                         </span>
                     </td>
 
-                    <td><span class="pq-date">{{ $account->created_at?->format('M d, Y') }}</span></td>
+                    <td><span class="pq-date">{{ $account->created_at?->setTimezone(config('app.timezone'))->format('M d, Y') }}</span></td>
 
                     @if($canUpdate)
                     <td onclick="event.stopPropagation()">

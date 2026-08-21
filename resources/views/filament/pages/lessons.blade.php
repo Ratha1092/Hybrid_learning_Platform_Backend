@@ -529,7 +529,7 @@ html:not(.dark) .lp {
                         @endif
                     </td>
 
-                    <td><span class="lp-date">{{ $lesson->created_at?->format('M d, Y') }}</span></td>
+                    <td><span class="lp-date">{{ $lesson->created_at?->setTimezone(config('app.timezone'))->format('M d, Y') }}</span></td>
 
                     <td onclick="event.stopPropagation()">
                         <div class="lp-actions">

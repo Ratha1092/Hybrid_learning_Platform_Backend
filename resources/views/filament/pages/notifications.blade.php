@@ -492,7 +492,7 @@ html:not(.dark) .lp {
                         @endif
                     </td>
 
-                    <td><span class="lp-date">{{ $notification->created_at?->format('M d, Y H:i') }}</span></td>
+                    <td><span class="lp-date">{{ $notification->created_at?->setTimezone(config('app.timezone'))->format('M d, Y H:i') }}</span></td>
 
                     <td onclick="event.stopPropagation()">
                         <div class="lp-actions">

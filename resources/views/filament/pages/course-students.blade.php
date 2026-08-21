@@ -494,11 +494,11 @@ html:not(.dark) .cs-menu {
                         </div>
                     </td>
 
-                    <td><span class="cs-date">{{ $enrollment->enrolled_at?->format('M d, Y') ?? '—' }}</span></td>
+                    <td><span class="cs-date">{{ $enrollment->enrolled_at?->setTimezone(config('app.timezone'))->format('M d, Y') ?? '—' }}</span></td>
                     <td><span class="cs-date">{{ $enrollment->last_accessed_at?->diffForHumans() ?? '—' }}</span></td>
                     <td>
                         @if($enrollment->completed_at)
-                            <span class="cs-date" style="color:#34d399">{{ $enrollment->completed_at->format('M d, Y') }}</span>
+                            <span class="cs-date" style="color:#34d399">{{ $enrollment->completed_at->setTimezone(config('app.timezone'))->format('M d, Y') }}</span>
                         @else
                             <span class="cs-date">—</span>
                         @endif

@@ -403,7 +403,7 @@ html:not(.dark) .cv {
             </div>
             <div class="cv-stat-divider"></div>
             <div class="cv-stat">
-                <div class="cv-stat-val">{{ $coupon->created_at?->format('M d, Y') ?? '—' }}</div>
+                <div class="cv-stat-val">{{ $coupon->created_at?->setTimezone(config('app.timezone'))->format('M d, Y') ?? '—' }}</div>
                 <div class="cv-stat-label">Created</div>
             </div>
         </div>
@@ -450,11 +450,11 @@ html:not(.dark) .cv {
             </div>
             <div class="cv-detail-row">
                 <span class="cv-detail-label">Starts</span>
-                <span class="cv-detail-value">{{ $coupon->starts_at?->format('M d, Y H:i') ?? 'Immediately' }}</span>
+                <span class="cv-detail-value">{{ $coupon->starts_at?->setTimezone(config('app.timezone'))->format('M d, Y H:i') ?? 'Immediately' }}</span>
             </div>
             <div class="cv-detail-row">
                 <span class="cv-detail-label">Expires</span>
-                <span class="cv-detail-value">{{ $coupon->expires_at?->format('M d, Y H:i') ?? 'Never' }}</span>
+                <span class="cv-detail-value">{{ $coupon->expires_at?->setTimezone(config('app.timezone'))->format('M d, Y H:i') ?? 'Never' }}</span>
             </div>
             <div class="cv-detail-row">
                 <span class="cv-detail-label">Created by</span>
@@ -484,7 +484,7 @@ html:not(.dark) .cv {
                     <img src="{{ $avUrl }}" class="cv-order-avatar" alt="">
                     <div>
                         <div class="cv-order-name">{{ $orderUser->name ?? 'Unknown' }}</div>
-                        <div class="cv-order-meta">{{ $order->order_number }} &middot; {{ $order->created_at?->format('M d, Y') }}</div>
+                        <div class="cv-order-meta">{{ $order->order_number }} &middot; {{ $order->created_at?->setTimezone(config('app.timezone'))->format('M d, Y') }}</div>
                     </div>
                     <div class="cv-order-amount">-${{ number_format((float) $order->discount_amount, 2) }}</div>
                 </a>

@@ -331,7 +331,7 @@ html:not(.dark) .sl {
                                 {{ \Illuminate\Support\Str::limit($event->user_agent ?? '—', 40) }}
                             </td>
                             <td style="color:var(--t2);white-space:nowrap">
-                                <span title="{{ $event->created_at?->format('Y-m-d H:i:s') }}">
+                                <span title="{{ $event->created_at?->setTimezone(config('app.timezone'))->format('Y-m-d H:i:s') }}">
                                     {{ $event->created_at?->diffForHumans() }}
                                 </span>
                             </td>

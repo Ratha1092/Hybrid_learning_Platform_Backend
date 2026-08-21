@@ -637,7 +637,7 @@ html:not(.dark) .po {
                         </span>
                     </td>
 
-                    <td><span class="po-date">{{ $payout->created_at?->format('M d, Y') }}</span></td>
+                    <td><span class="po-date">{{ $payout->created_at?->setTimezone(config('app.timezone'))->format('M d, Y') }}</span></td>
 
                     @if($canUpdate || $canDownload)
                     <td onclick="event.stopPropagation()">

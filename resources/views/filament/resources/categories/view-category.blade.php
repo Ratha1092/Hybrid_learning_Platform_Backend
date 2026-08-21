@@ -366,7 +366,7 @@ html:not(.dark) .vc {
                         </div>
                         <div class="vc-meta-item">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/></svg>
-                            Created {{ $category->created_at?->format('M d, Y') }}
+                            Created {{ $category->created_at?->setTimezone(config('app.timezone'))->format('M d, Y') }}
                         </div>
                     </div>
                 </div>
@@ -417,11 +417,11 @@ html:not(.dark) .vc {
             </div>
             <div class="vc-field">
                 <div class="vc-field-label">Created</div>
-                <div class="vc-field-value">{{ $category->created_at?->format('M d, Y H:i') }}</div>
+                <div class="vc-field-value">{{ $category->created_at?->setTimezone(config('app.timezone'))->format('M d, Y H:i') }}</div>
             </div>
             <div class="vc-field">
                 <div class="vc-field-label">Updated</div>
-                <div class="vc-field-value">{{ $category->updated_at?->format('M d, Y H:i') }}</div>
+                <div class="vc-field-value">{{ $category->updated_at?->setTimezone(config('app.timezone'))->format('M d, Y H:i') }}</div>
             </div>
             <div class="vc-field" style="grid-column:1/-1;border-bottom:none">
                 <div class="vc-field-label">Description</div>

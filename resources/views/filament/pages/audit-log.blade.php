@@ -829,8 +829,8 @@ html:not(.dark) .al {
 
                 {{-- Date --}}
                 <td>
-                    <div class="al-date">{{ $log->created_at?->format('M d, Y') }}</div>
-                    <div class="al-time">{{ $log->created_at?->format('H:i:s') }}</div>
+                    <div class="al-date">{{ $log->created_at?->setTimezone(config('app.timezone'))->format('M d, Y') }}</div>
+                    <div class="al-time">{{ $log->created_at?->setTimezone(config('app.timezone'))->format('H:i:s') }}</div>
                 </td>
 
                 {{-- Data button --}}

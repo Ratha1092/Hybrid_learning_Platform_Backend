@@ -458,7 +458,7 @@ html:not(.dark) .rp {
                 @forelse($orders as $order)
                     <tr>
                         <td>{{ $order->order_number }}</td>
-                        <td>{{ $order->paid_at?->format('M d, Y') ?? '—' }}</td>
+                        <td>{{ $order->paid_at?->setTimezone(config('app.timezone'))->format('M d, Y') ?? '—' }}</td>
                         <td>{{ $order->customer_name ?? $order->user?->name ?? '—' }}</td>
                         <td>{{ $order->items->count() }}</td>
                         <td>{{ $order->discount_amount > 0 ? '-$' . number_format((float) $order->discount_amount, 2) : '—' }}</td>

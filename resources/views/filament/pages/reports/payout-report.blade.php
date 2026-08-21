@@ -466,8 +466,8 @@ html:not(.dark) .rp {
                         <td>${{ number_format((float) $payout->amount, 2) }}</td>
                         <td>{{ $payout->payment_method }}</td>
                         <td><span class="rp-status-pill" style="background:{{ $statusColor($payout->status) }}22;color:{{ $statusColor($payout->status) }}">{{ ucfirst($payout->status) }}</span></td>
-                        <td>{{ $payout->created_at?->format('M d, Y') ?? '—' }}</td>
-                        <td>{{ $payout->processed_at?->format('M d, Y') ?? '—' }}</td>
+                        <td>{{ $payout->created_at?->setTimezone(config('app.timezone'))->format('M d, Y') ?? '—' }}</td>
+                        <td>{{ $payout->processed_at?->setTimezone(config('app.timezone'))->format('M d, Y') ?? '—' }}</td>
                     </tr>
                 @empty
                     <tr><td colspan="6" style="text-align:center;color:var(--t2);padding:24px;">No payouts found for this filter.</td></tr>

@@ -478,7 +478,7 @@ html:not(.dark) .pa-modal-overlay {
             </a>
             <div class="pa-header-title">
                 <h1>Payout Account #{{ $a->id }}</h1>
-                <p>Submitted {{ $a->created_at?->format('M d, Y \a\t H:i') }}</p>
+                <p>Submitted {{ $a->created_at?->setTimezone(config('app.timezone'))->format('M d, Y \a\t H:i') }}</p>
             </div>
         </div>
 
@@ -530,7 +530,7 @@ html:not(.dark) .pa-modal-overlay {
                 </div>
                 <div class="pa-field">
                     <span class="pa-label">Submitted</span>
-                    <span class="pa-value">{{ $a->created_at?->format('M d, Y') ?? '—' }}</span>
+                    <span class="pa-value">{{ $a->created_at?->setTimezone(config('app.timezone'))->format('M d, Y') ?? '—' }}</span>
                 </div>
                 <div class="pa-field">
                     <span class="pa-label">Status</span>
@@ -617,7 +617,7 @@ html:not(.dark) .pa-modal-overlay {
                 </div>
                 <div class="pa-field">
                     <span class="pa-label">Reviewed At</span>
-                    <span class="pa-value">{{ $a->reviewed_at?->format('M d, Y H:i') ?? '—' }}</span>
+                    <span class="pa-value">{{ $a->reviewed_at?->setTimezone(config('app.timezone'))->format('M d, Y H:i') ?? '—' }}</span>
                 </div>
             </div>
             @if($a->rejection_reason)

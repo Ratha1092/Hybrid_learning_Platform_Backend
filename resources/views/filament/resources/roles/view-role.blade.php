@@ -402,7 +402,7 @@ html:not(.dark) .rv {
             </div>
             <div class="rv-stat-divider"></div>
             <div class="rv-stat">
-                <div class="rv-stat-val">{{ $role->created_at?->format('M d, Y') ?? '—' }}</div>
+                <div class="rv-stat-val">{{ $role->created_at?->setTimezone(config('app.timezone'))->format('M d, Y') ?? '—' }}</div>
                 <div class="rv-stat-label">Created</div>
             </div>
         </div>

@@ -553,7 +553,7 @@ html.dark .ov {
                 {{ $statusStyle['label'] }}
             </span>
         </div>
-        <p class="ov-subtitle">Placed on {{ $order->created_at?->format('M d, Y') }} at {{ $order->created_at?->format('H:i') }}</p>
+        <p class="ov-subtitle">Placed on {{ $order->created_at?->setTimezone(config('app.timezone'))->format('M d, Y') }} at {{ $order->created_at?->setTimezone(config('app.timezone'))->format('H:i') }}</p>
     </div>
     <div class="ov-header-actions">
         <a href="{{ $backUrl }}" wire:navigate class="ov-btn ov-btn-gray">
@@ -624,7 +624,7 @@ html.dark .ov {
                     <svg class="ov-date-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/></svg>
                     <div>
                         <div style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--t2);margin-bottom:2px">Created</div>
-                        <div style="font-size:12.5px;color:var(--t1);font-weight:500">{{ $order->created_at?->format('M d, Y') }} at {{ $order->created_at?->format('H:i') }}</div>
+                        <div style="font-size:12.5px;color:var(--t1);font-weight:500">{{ $order->created_at?->setTimezone(config('app.timezone'))->format('M d, Y') }} at {{ $order->created_at?->setTimezone(config('app.timezone'))->format('H:i') }}</div>
                     </div>
                 </div>
                 <div class="ov-date-item">
@@ -636,7 +636,7 @@ html.dark .ov {
                     <div>
                         <div style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--t2);margin-bottom:2px">Paid At</div>
                         @if($order->paid_at)
-                            <div style="font-size:12.5px;color:var(--t1);font-weight:500">{{ $order->paid_at->format('M d, Y') }} at {{ $order->paid_at->format('H:i') }}</div>
+                            <div style="font-size:12.5px;color:var(--t1);font-weight:500">{{ $order->paid_at->setTimezone(config('app.timezone'))->format('M d, Y') }} at {{ $order->paid_at->setTimezone(config('app.timezone'))->format('H:i') }}</div>
                         @else
                             <div style="font-size:12.5px;color:var(--t2);font-style:italic">Not yet paid</div>
                         @endif
@@ -848,7 +848,7 @@ html.dark .ov {
                             </div>
                         </td>
                         <td style="font-size:12.5px;color:var(--t2);white-space:nowrap">
-                            {{ $payment->paid_at?->format('M d, Y') }} at {{ $payment->paid_at?->format('H:i') ?? '—' }}
+                            {{ $payment->paid_at?->setTimezone(config('app.timezone'))->format('M d, Y') }} at {{ $payment->paid_at?->setTimezone(config('app.timezone'))->format('H:i') ?? '—' }}
                         </td>
                     </tr>
                 @empty

@@ -76,26 +76,6 @@ Several background tasks run on Laravel's scheduler (`routes/console.php`) — p
 * * * * * php artisan schedule:run >> /dev/null 2>&1
 ```
 
-## Environment variables
-
-Grouped reference of the variables this app reads (see the relevant `config/*.php` file for each group). No values are listed here — get real values from your team's secret store; never commit `.env`.
-
-| Group | Variables |
-|---|---|
-| App | `APP_NAME`, `APP_ENV`, `APP_KEY`, `APP_DEBUG`, `APP_URL`, `APP_LOCALE`, `APP_FALLBACK_LOCALE`, `APP_MAINTENANCE_DRIVER`, `FRONTEND_URL` |
-| Database | `DB_CONNECTION`, `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` |
-| Cache / Queue / Session | `CACHE_STORE`, `QUEUE_CONNECTION`, `SESSION_DRIVER`, `SESSION_LIFETIME`, `SESSION_DOMAIN`, `SESSION_ENCRYPT`, `REDIS_CLIENT`, `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD` |
-| Auth | `SANCTUM_STATEFUL_DOMAINS`, `BCRYPT_ROUNDS` |
-| OAuth | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`, `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `GITHUB_REDIRECT_URI` |
-| Payments (Bakong/KHQR) | `BAKONG_MERCHANT_NAME`, `BAKONG_MERCHANT_CITY`, `BAKONG_MERCHANT_ACCOUNT_ID`, `BAKONG_MERCHANT_CATEGORY_CODE`, `BAKONG_COUNTRY_CODE`, `BAKONG_CURRENCY`, `BAKONG_QR_TTL_MINUTES`, `BAKONG_VERIFY_URL`, `BAKONG_API_TOKEN`, `BAKONG_TIMEOUT` |
-| File storage | `FILESYSTEM_DISK`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`, `R2_ENDPOINT`, `R2_URL`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_DEFAULT_REGION`, `AWS_BUCKET`, `AWS_USE_PATH_STYLE_ENDPOINT` |
-| Mail | `MAIL_MAILER`, `MAIL_FROM_ADDRESS`, `MAIL_FROM_NAME`, `RESEND_API_KEY` |
-| Real-time | `BROADCAST_CONNECTION`, `PUSHER_APP_ID`, `PUSHER_APP_KEY`, `PUSHER_APP_SECRET`, `PUSHER_APP_CLUSTER`, `PUSHER_HOST`, `PUSHER_PORT`, `PUSHER_SCHEME`, `VITE_PUSHER_APP_KEY`, `VITE_PUSHER_APP_CLUSTER` |
-| Logging | `LOG_CHANNEL`, `LOG_STACK`, `LOG_LEVEL`, `LOG_DEPRECATIONS_CHANNEL` |
-| Misc | `APP_VERSION`, `VITE_APP_NAME` |
-
-> No `.env.example` currently exists in this repository. Consider adding one (with placeholder values, no secrets) so new environments can be set up without guessing variable names.
-
 ## Project structure
 
 The app is organized as domain modules rather than Laravel's default flat structure:

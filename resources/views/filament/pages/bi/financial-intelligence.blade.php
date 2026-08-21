@@ -44,7 +44,7 @@
                         <td>{{ $payout->instructor?->name ?? '—' }}</td>
                         <td>${{ number_format((float)$payout->amount,2) }}</td>
                         <td style="color:var(--t2)">{{ $payout->payment_method ?? '—' }}</td>
-                        <td style="color:var(--t2)">{{ $payout->created_at?->format('M d, Y') ?? '—' }}</td>
+                        <td style="color:var(--t2)">{{ $payout->created_at?->setTimezone(config('app.timezone'))->format('M d, Y') ?? '—' }}</td>
                     </tr>
                     @empty
                     <tr><td colspan="4" style="text-align:center;color:var(--t2);padding:20px">No pending payouts</td></tr>

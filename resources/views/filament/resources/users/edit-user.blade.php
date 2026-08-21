@@ -760,7 +760,7 @@ html.dark .uv-select-option:hover {
         <div style="width:1px;height:36px;background:var(--bd)"></div>
         <div class="uv-hero-stat">
             <div class="uv-hero-stat-label">Member Since</div>
-            <div class="uv-hero-stat-value">{{ $user->created_at?->format('M Y') }}</div>
+            <div class="uv-hero-stat-value">{{ $user->created_at?->setTimezone(config('app.timezone'))->format('M Y') }}</div>
         </div>
     </div>
 </div>

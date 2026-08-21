@@ -699,7 +699,7 @@ html.dark {
                         </a>
                     </td>
 
-                    <td><span class="cat-date">{{ $cat->created_at?->format('M d, Y') }}</span></td>
+                    <td><span class="cat-date">{{ $cat->created_at?->setTimezone(config('app.timezone'))->format('M d, Y') }}</span></td>
 
                     <td onclick="event.stopPropagation()">
                         <div class="cat-actions">

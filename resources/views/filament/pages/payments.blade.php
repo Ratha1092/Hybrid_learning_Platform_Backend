@@ -522,9 +522,9 @@ html:not(.dark) .lp {
                         </span>
                     </td>
 
-                    <td><span class="lp-date">{{ $payment->paid_at?->format('M d, Y H:i') ?? '—' }}</span></td>
+                    <td><span class="lp-date">{{ $payment->paid_at?->setTimezone(config('app.timezone'))->format('M d, Y H:i') ?? '—' }}</span></td>
 
-                    <td><span class="lp-date">{{ $payment->created_at?->format('M d, Y') }}</span></td>
+                    <td><span class="lp-date">{{ $payment->created_at?->setTimezone(config('app.timezone'))->format('M d, Y') }}</span></td>
 
                     <td onclick="event.stopPropagation()">
                         <div class="lp-actions">

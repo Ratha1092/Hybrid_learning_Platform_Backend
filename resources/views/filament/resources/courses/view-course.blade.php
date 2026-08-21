@@ -581,7 +581,7 @@ html:not(.dark) .cv-modal-overlay {
                         @endif
                         <div class="cv-meta-item">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/></svg>
-                            {{ $course->created_at?->format('M d, Y') }}
+                            {{ $course->created_at?->setTimezone(config('app.timezone'))->format('M d, Y') }}
                         </div>
                     </div>
                 </div>
@@ -677,15 +677,15 @@ html:not(.dark) .cv-modal-overlay {
                     </div>
                     <div class="cv-field">
                         <div class="cv-field-label">Approved At</div>
-                        <div class="cv-field-value {{ !$course->approved_at ? 'muted' : '' }}">{{ $course->approved_at?->format('M d, Y H:i') ?? 'Not approved' }}</div>
+                        <div class="cv-field-value {{ !$course->approved_at ? 'muted' : '' }}">{{ $course->approved_at?->setTimezone(config('app.timezone'))->format('M d, Y H:i') ?? 'Not approved' }}</div>
                     </div>
                     <div class="cv-field">
                         <div class="cv-field-label">Created</div>
-                        <div class="cv-field-value">{{ $course->created_at?->format('M d, Y H:i') }}</div>
+                        <div class="cv-field-value">{{ $course->created_at?->setTimezone(config('app.timezone'))->format('M d, Y H:i') }}</div>
                     </div>
                     <div class="cv-field">
                         <div class="cv-field-label">Updated</div>
-                        <div class="cv-field-value">{{ $course->updated_at?->format('M d, Y H:i') }}</div>
+                        <div class="cv-field-value">{{ $course->updated_at?->setTimezone(config('app.timezone'))->format('M d, Y H:i') }}</div>
                     </div>
                     @if($course->isRejected() && $course->rejection_reason)
                     <div class="cv-field cv-field-full" style="grid-column:1/-1;border-bottom:none">

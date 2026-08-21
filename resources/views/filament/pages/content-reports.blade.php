@@ -588,8 +588,8 @@ html:not(.dark) .lp {
                         'status' => $ss['label'],
                         'statusColor' => $ss['color'],
                         'reviewerName' => $report->reviewer?->name,
-                        'reviewedAt' => $report->reviewed_at?->format('M d, Y · H:i'),
-                        'reportedAt' => $report->created_at?->format('M d, Y · H:i'),
+                        'reviewedAt' => $report->reviewed_at?->setTimezone(config('app.timezone'))->format('M d, Y · H:i'),
+                        'reportedAt' => $report->created_at?->setTimezone(config('app.timezone'))->format('M d, Y · H:i'),
                         'pending' => $report->status === 'pending',
                     ]), ENT_QUOTES, 'UTF-8');
                 @endphp
@@ -619,7 +619,7 @@ html:not(.dark) .lp {
                         </span>
                     </td>
 
-                    <td><span class="lp-date">{{ $report->created_at?->format('M d, Y') }}</span></td>
+                    <td><span class="lp-date">{{ $report->created_at?->setTimezone(config('app.timezone'))->format('M d, Y') }}</span></td>
 
                     <td onclick="event.stopPropagation()">
                         <div class="lp-actions">

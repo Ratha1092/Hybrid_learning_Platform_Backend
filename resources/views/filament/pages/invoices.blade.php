@@ -444,7 +444,7 @@ html:not(.dark) .iv {
                     </td>
                     <td>
                         <span style="font-size:12px;color:var(--t2);">
-                            {{ $invoice->issued_at?->format('M d, Y') ?? '—' }}
+                            {{ $invoice->issued_at?->setTimezone(config('app.timezone'))->format('M d, Y') ?? '—' }}
                         </span>
                     </td>
                     <td>

@@ -436,7 +436,7 @@ html.dark .uv {
         <div style="width:1px;height:36px;background:var(--bd)"></div>
         <div class="uv-hero-stat">
             <div class="uv-hero-stat-label">Member Since</div>
-            <div class="uv-hero-stat-value">{{ $user->created_at?->format('M Y') }}</div>
+            <div class="uv-hero-stat-value">{{ $user->created_at?->setTimezone(config('app.timezone'))->format('M Y') }}</div>
         </div>
     </div>
 </div>
@@ -510,9 +510,9 @@ html.dark .uv {
             <span class="uv-field-value">
                 @if($user->email_verified_at)
                     <span class="uv-datetime">
-                        <span class="uv-datetime-date">{{ $user->email_verified_at->format('M d, Y') }}</span>
+                        <span class="uv-datetime-date">{{ $user->email_verified_at->setTimezone(config('app.timezone'))->format('M d, Y') }}</span>
                         <span class="uv-datetime-sep">·</span>
-                        <span class="uv-datetime-time">{{ $user->email_verified_at->format('H:i') }}</span>
+                        <span class="uv-datetime-time">{{ $user->email_verified_at->setTimezone(config('app.timezone'))->format('H:i') }}</span>
                     </span>
                 @else
                     <span class="uv-field-value muted">Not verified</span>
@@ -523,9 +523,9 @@ html.dark .uv {
             <span class="uv-field-label">Created</span>
             <span class="uv-field-value">
                 <span class="uv-datetime">
-                    <span class="uv-datetime-date">{{ $user->created_at?->format('M d, Y') }}</span>
+                    <span class="uv-datetime-date">{{ $user->created_at?->setTimezone(config('app.timezone'))->format('M d, Y') }}</span>
                     <span class="uv-datetime-sep">·</span>
-                    <span class="uv-datetime-time">{{ $user->created_at?->format('H:i') }}</span>
+                    <span class="uv-datetime-time">{{ $user->created_at?->setTimezone(config('app.timezone'))->format('H:i') }}</span>
                 </span>
             </span>
         </div>
@@ -533,9 +533,9 @@ html.dark .uv {
             <span class="uv-field-label">Updated</span>
             <span class="uv-field-value">
                 <span class="uv-datetime">
-                    <span class="uv-datetime-date">{{ $user->updated_at?->format('M d, Y') }}</span>
+                    <span class="uv-datetime-date">{{ $user->updated_at?->setTimezone(config('app.timezone'))->format('M d, Y') }}</span>
                     <span class="uv-datetime-sep">·</span>
-                    <span class="uv-datetime-time">{{ $user->updated_at?->format('H:i') }}</span>
+                    <span class="uv-datetime-time">{{ $user->updated_at?->setTimezone(config('app.timezone'))->format('H:i') }}</span>
                 </span>
             </span>
         </div>
@@ -552,9 +552,9 @@ html.dark .uv {
             @if($user->last_login_at)
                 <span class="uv-field-value">
                     <span class="uv-datetime">
-                        <span class="uv-datetime-date">{{ $user->last_login_at->format('M d, Y') }}</span>
+                        <span class="uv-datetime-date">{{ $user->last_login_at->setTimezone(config('app.timezone'))->format('M d, Y') }}</span>
                         <span class="uv-datetime-sep">·</span>
-                        <span class="uv-datetime-time">{{ $user->last_login_at->format('H:i') }}</span>
+                        <span class="uv-datetime-time">{{ $user->last_login_at->setTimezone(config('app.timezone'))->format('H:i') }}</span>
                     </span>
                 </span>
             @else

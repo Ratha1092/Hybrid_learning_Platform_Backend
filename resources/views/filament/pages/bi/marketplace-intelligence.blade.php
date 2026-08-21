@@ -165,7 +165,7 @@
                     <td>{{ $coupon->discount_type === 'percentage' ? $coupon->discount_value.'%' : '$'.number_format($coupon->discount_value,2) }}</td>
                     <td style="color:var(--t2)">{{ $coupon->used_count ?? 0 }}</td>
                     <td>${{ number_format((float)($coupon->total_revenue ?? 0),2) }}</td>
-                    <td style="color:var(--t2)">{{ $coupon->expires_at?->format('M d, Y') ?? '—' }}</td>
+                    <td style="color:var(--t2)">{{ $coupon->expires_at?->setTimezone(config('app.timezone'))->format('M d, Y') ?? '—' }}</td>
                 </tr>
                 @endforeach
             </tbody>

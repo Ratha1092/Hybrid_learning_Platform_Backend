@@ -468,7 +468,7 @@ html:not(.dark) .iv-modal-overlay {
             </a>
             <div class="iv-header-title">
                 <h1>Instructor Verification #{{ $v->id }}</h1>
-                <p>Submitted {{ $v->created_at?->format('M d, Y \a\t H:i') }}</p>
+                <p>Submitted {{ $v->created_at?->setTimezone(config('app.timezone'))->format('M d, Y \a\t H:i') }}</p>
             </div>
         </div>
 
@@ -524,7 +524,7 @@ html:not(.dark) .iv-modal-overlay {
                 </div>
                 <div class="iv-field">
                     <span class="iv-label">Applied</span>
-                    <span class="iv-value">{{ $v->created_at?->format('M d, Y') ?? '—' }}</span>
+                    <span class="iv-value">{{ $v->created_at?->setTimezone(config('app.timezone'))->format('M d, Y') ?? '—' }}</span>
                 </div>
                 <div class="iv-field">
                     <span class="iv-label">Application Status</span>
@@ -667,7 +667,7 @@ html:not(.dark) .iv-modal-overlay {
                 </div>
                 <div class="iv-field">
                     <span class="iv-label">Reviewed At</span>
-                    <span class="iv-value">{{ $v->reviewed_at?->format('M d, Y H:i') ?? '—' }}</span>
+                    <span class="iv-value">{{ $v->reviewed_at?->setTimezone(config('app.timezone'))->format('M d, Y H:i') ?? '—' }}</span>
                 </div>
             </div>
             @if($v->rejection_reason)

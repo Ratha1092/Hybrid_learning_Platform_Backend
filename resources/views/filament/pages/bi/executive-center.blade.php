@@ -181,7 +181,7 @@
                         <td style="font-family:monospace;font-size:11px">{{ $order->order_number }}</td>
                         <td>{{ $order->customer_name ?? $order->user?->name ?? '—' }}</td>
                         <td>${{ number_format((float)$order->final_amount, 2) }}</td>
-                        <td style="color:var(--t2)">{{ $order->paid_at?->format('M d') ?? '—' }}</td>
+                        <td style="color:var(--t2)">{{ $order->paid_at?->setTimezone(config('app.timezone'))->format('M d') ?? '—' }}</td>
                     </tr>
                     @empty
                     <tr><td colspan="4" style="text-align:center;color:var(--t2);padding:20px">No orders yet</td></tr>

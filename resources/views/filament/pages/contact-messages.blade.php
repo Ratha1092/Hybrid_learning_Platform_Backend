@@ -577,8 +577,8 @@ html:not(.dark) .lp {
                         'statusColor' => $ss['color'],
                         'replyMessage' => $message->reply_message,
                         'replierName' => $message->replier?->name,
-                        'repliedAt' => $message->replied_at?->format('M d, Y · H:i'),
-                        'receivedAt' => $message->created_at?->format('M d, Y · H:i'),
+                        'repliedAt' => $message->replied_at?->setTimezone(config('app.timezone'))->format('M d, Y · H:i'),
+                        'receivedAt' => $message->created_at?->setTimezone(config('app.timezone'))->format('M d, Y · H:i'),
                         'canReply' => $message->status !== 'replied',
                     ]), ENT_QUOTES, 'UTF-8');
                 @endphp
@@ -603,7 +603,7 @@ html:not(.dark) .lp {
                         </span>
                     </td>
 
-                    <td><span class="lp-date">{{ $message->created_at?->format('M d, Y') }}</span></td>
+                    <td><span class="lp-date">{{ $message->created_at?->setTimezone(config('app.timezone'))->format('M d, Y') }}</span></td>
 
                     <td onclick="event.stopPropagation()">
                         <div class="lp-actions">

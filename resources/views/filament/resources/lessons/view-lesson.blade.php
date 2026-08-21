@@ -430,7 +430,7 @@ html:not(.dark) .lv {
                         </div>
                         <div class="lv-hero-meta-item">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25"/></svg>
-                            {{ $les->created_at?->format('M d, Y') }}
+                            {{ $les->created_at?->setTimezone(config('app.timezone'))->format('M d, Y') }}
                         </div>
                         <span class="lv-badge" style="background:{{ $tc['bg'] }};color:{{ $tc['color'] }}">{{ $tc['label'] }}</span>
                         @if($les->is_preview)
@@ -615,11 +615,11 @@ html:not(.dark) .lv {
                 </div>
                 <div class="lv-field">
                     <span class="lv-label">Created</span>
-                    <span class="lv-value">{{ $les->created_at?->format('M d, Y H:i') ?? '—' }}</span>
+                    <span class="lv-value">{{ $les->created_at?->setTimezone(config('app.timezone'))->format('M d, Y H:i') ?? '—' }}</span>
                 </div>
                 <div class="lv-field">
                     <span class="lv-label">Last Updated</span>
-                    <span class="lv-value">{{ $les->updated_at?->format('M d, Y H:i') ?? '—' }}</span>
+                    <span class="lv-value">{{ $les->updated_at?->setTimezone(config('app.timezone'))->format('M d, Y H:i') ?? '—' }}</span>
                 </div>
             </div>
         </div>

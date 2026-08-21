@@ -261,7 +261,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
     public function hasEnrolledCourse(int $courseId): bool {
             return $this->enrollments()
                 ->where('course_id', $courseId)
-                ->where('status', 'active')
+                ->whereIn('status', ['active', 'completed'])
                 ->where(function ($query) {
                     $query->whereNull('expires_at')
                         ->orWhere('expires_at', '>', now());

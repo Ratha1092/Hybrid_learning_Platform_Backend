@@ -3,7 +3,6 @@
 namespace App\Domains\Learning\Listeners;
 
 use App\Domains\Payments\Events\PaymentSuccessEvent;
-use App\Domains\Learning\Models\Enrollment;
 use App\Domains\Analytics\Services\AnalyticsService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Log;
@@ -27,21 +26,12 @@ class EnrollStudentListener implements ShouldQueue
                 return;
             }
 
-            foreach ($order->items as $item) {
-
-                Enrollment::updateOrCreate(
-                    [
-                        'user_id' => $order->user_id,
-                        'course_id' => $item->course_id,
-                    ],
-                    [
-                        'order_id' => $order->id,
-                        'status' => 'active',
-                        'source' => 'purchase',
-                        'enrolled_at' => now(),
-                    ]
-                );
-            }
+            // Enrollment creation itself is handled synchronously by
+            // EnrollmentService::enrollFromOrder (called from the payment
+            // success path before this event fires) — it already covers
+            // expires_at, trashed-row restore, and expired-row renewal.
+            // Duplicating that here as a separate queued write raced with
+            // it and could create a second, incomplete enrollment record.
 
             // ✅ NEW: Analytics tracking
             dispatch(new RecordEnrollmentJob());

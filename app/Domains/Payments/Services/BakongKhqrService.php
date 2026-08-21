@@ -164,7 +164,7 @@ use RuntimeException;
                 return $payment->refresh();
             }
 
-            if ($payment->isFailed() || $payment->isExpired()) {
+            if ($payment->isFailed() || $payment->isExpired() || $payment->isCancelled()) {
                 return $payment->refresh();
             }
 
@@ -222,7 +222,7 @@ use RuntimeException;
                 return $payment->refresh();
             }
 
-            if ($payment->isFailed() || $payment->isExpired()) {
+            if ($payment->isFailed() || $payment->isExpired() || $payment->isCancelled()) {
                 return $payment->refresh();
             }
 
@@ -287,7 +287,7 @@ use RuntimeException;
 
         public function expirePayment(Payment $payment): Payment
         {
-            if ($payment->isPaid() || $payment->isExpired()) {
+            if ($payment->isPaid() || $payment->isExpired() || $payment->isCancelled()) {
                 return $payment->refresh();
             }
 
@@ -321,6 +321,10 @@ use RuntimeException;
 
                 if ($payment->isPaid()) {
                     return $payment->refresh();
+                }
+
+                if ($payment->isCancelled()) {
+                    throw new RuntimeException('Cannot mark a cancelled payment as paid.');
                 }
 
                 $this->assertGatewayAmountMatches(

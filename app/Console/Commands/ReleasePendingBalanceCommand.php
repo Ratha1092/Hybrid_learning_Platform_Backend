@@ -18,32 +18,50 @@ class ReleasePendingBalanceCommand extends Command
     {
         $holdDays = (int) Setting::get('payout_hold_period_days', 14);
 
-        $shares = RevenueShare::where('status', 'pending')
+        $instructorIds = RevenueShare::where('status', 'pending')
             ->where('created_at', '<=', now()->subDays($holdDays))
-            ->get()
-            ->groupBy('instructor_id');
+            ->distinct()
+            ->pluck('instructor_id');
 
         $released = 0;
 
-        foreach ($shares as $instructorId => $instructorShares) {
-            $amount = $instructorShares->sum('instructor_amount');
-            $ids    = $instructorShares->pluck('id');
-
+        foreach ($instructorIds as $instructorId) {
             try {
-                DB::transaction(function () use ($instructorId, $amount, $ids) {
+                $amount = DB::transaction(function () use ($instructorId, $holdDays) {
                     $wallet = InstructorWallet::where('instructor_id', $instructorId)
                         ->lockForUpdate()
                         ->first();
 
                     if (!$wallet) {
-                        return;
+                        return null;
                     }
+
+                    // Re-select and lock under the transaction so a concurrent run
+                    // (or manual admin action) can't have already distributed these
+                    // rows between the outer query above and this update.
+                    $shares = RevenueShare::where('instructor_id', $instructorId)
+                        ->where('status', 'pending')
+                        ->where('created_at', '<=', now()->subDays($holdDays))
+                        ->lockForUpdate()
+                        ->get();
+
+                    if ($shares->isEmpty()) {
+                        return null;
+                    }
+
+                    $amount = $shares->sum('instructor_amount');
 
                     $wallet->decrement('pending_balance', $amount);
                     $wallet->increment('balance', $amount);
 
-                    RevenueShare::whereIn('id', $ids)->update(['status' => 'distributed']);
+                    RevenueShare::whereIn('id', $shares->pluck('id'))->update(['status' => 'distributed']);
+
+                    return $amount;
                 });
+
+                if ($amount === null) {
+                    continue;
+                }
 
                 ++$released;
                 $this->line(sprintf('  instructor #%d  released  %s', $instructorId, $amount));

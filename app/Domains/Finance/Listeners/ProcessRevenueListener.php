@@ -48,9 +48,9 @@ class ProcessRevenueListener implements ShouldQueue
                         ['order_item_id' => $item->id],
                         [
                             'instructor_id' => $item->instructor_id,
-                            'total_amount' => $item->price,
-                            'platform_amount' => ($item->price * $item->commission_percentage) / 100,
-                            'instructor_amount' => $item->price * (1 - $item->commission_percentage / 100),
+                            'total_amount' => $item->final_amount,
+                            'platform_amount' => $item->platform_amount,
+                            'instructor_amount' => $item->instructor_amount,
                             'commission_percentage' => $item->commission_percentage,
                             'status' => 'pending',
                         ]
@@ -65,8 +65,6 @@ class ProcessRevenueListener implements ShouldQueue
                         ]
                     );
 
-                    // Only credit a wallet once. Retried payment jobs reuse the
-                    // same revenue share and therefore cannot double-credit it.
                     $transaction = WalletTransaction::firstOrCreate(
                         ['revenue_share_id' => $share->id, 'type' => 'credit'],
                         [

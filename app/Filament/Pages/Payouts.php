@@ -86,14 +86,15 @@ class Payouts extends Page
             return;
         }
 
-        $payout = PayoutRequest::findOrFail($id);
-        if ($payout->status !== 'pending') {
-            return;
-        }
-
         $reference = trim((string) $reference);
 
-        DB::transaction(function () use ($payout, $reference) {
+        $payout = DB::transaction(function () use ($id, $reference) {
+            $payout = PayoutRequest::where('id', $id)->lockForUpdate()->firstOrFail();
+
+            if ($payout->status !== 'pending') {
+                return null;
+            }
+
             $payout->update([
                 'status' => 'approved',
                 'processed_at' => now(),
@@ -104,7 +105,13 @@ class Payouts extends Page
             WalletTransaction::where('payout_request_id', $payout->id)
                 ->where('type', 'debit')
                 ->update(['status' => 'completed']);
+
+            return $payout;
         });
+
+        if (!$payout) {
+            return;
+        }
 
         ActivityLogService::logChange('payout.approved', $payout);
 
@@ -134,18 +141,19 @@ class Payouts extends Page
             return;
         }
 
-        $payout = PayoutRequest::findOrFail($id);
-        if ($payout->status !== 'pending') {
-            return;
-        }
-
         $reason = trim($reason);
         if ($reason === '') {
             Notification::make()->title('Rejection reason is required.')->danger()->send();
             return;
         }
 
-        DB::transaction(function () use ($payout, $reason) {
+        $payout = DB::transaction(function () use ($id, $reason) {
+            $payout = PayoutRequest::where('id', $id)->lockForUpdate()->firstOrFail();
+
+            if ($payout->status !== 'pending') {
+                return null;
+            }
+
             $payout->update([
                 'status' => 'rejected',
                 'processed_at' => now(),
@@ -173,7 +181,13 @@ class Payouts extends Page
                 'payout_request_id' => $payout->id,
                 'description' => 'Payout request rejected — funds returned to wallet',
             ]);
+
+            return $payout;
         });
+
+        if (!$payout) {
+            return;
+        }
 
         ActivityLogService::logChange('payout.rejected', $payout, [], ['reason' => $reason]);
 

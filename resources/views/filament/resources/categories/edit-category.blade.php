@@ -3,7 +3,6 @@
     $cat         = $record;
     $imageUrl    = $cat->image_url;
     $isFeatured  = $data['is_featured'] ?? $cat->is_featured;
-    $iconVal     = $data['icon'] ?? $cat->icon ?? '';
 @endphp
 
 <div class="ec" x-data="{ uploading: false }">
@@ -548,12 +547,6 @@ textarea.ec-input {
                     Featured
                 </span>
             @endif
-            @if ($iconVal)
-                <span class="ec-pill ec-pill-slate">
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-                    {{ $iconVal }}
-                </span>
-            @endif
             <span class="ec-pill ec-pill-blue">
                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"/></svg>
                 {{ $courseCount }} {{ Str::plural('course', $courseCount) }}
@@ -561,10 +554,6 @@ textarea.ec-input {
         </div>
     </div>
     <div class="ec-hero-stats">
-        <div class="ec-stat">
-            <div class="ec-stat-val">{{ $cat->sort_order ?? 0 }}</div>
-            <div class="ec-stat-label">Sort Order</div>
-        </div>
         <div class="ec-stat">
             <div class="ec-stat-val">{{ $courseCount }}</div>
             <div class="ec-stat-label">Courses</div>
@@ -625,39 +614,6 @@ textarea.ec-input {
                     rows="3"
                 ></textarea>
                 @error('data.description') <span class="ec-error">{{ $message }}</span> @enderror
-            </div>
-
-            {{-- Icon + Sort Order --}}
-            <div class="ec-grid ec-grid-2">
-                <div>
-                    <label class="ec-label" for="ec-icon">Icon</label>
-                    <div class="ec-input-icon-wrap">
-                        <span class="ec-input-prefix">heroicon-o-</span>
-                        <input
-                            id="ec-icon"
-                            type="text"
-                            class="ec-input"
-                            wire:model="data.icon"
-                            placeholder="academic-cap"
-                            style="font-family:ui-monospace,monospace;font-size:12.5px;padding-left:118px"
-                        >
-                    </div>
-                    <p class="ec-helper">Heroicon name, e.g. <code style="font-family:ui-monospace,monospace;background:var(--p2);padding:1px 5px;border-radius:4px;border:1px solid var(--bd2)">academic-cap</code></p>
-                    @error('data.icon') <span class="ec-error">{{ $message }}</span> @enderror
-                </div>
-                <div>
-                    <label class="ec-label" for="ec-sort">Sort Order</label>
-                    <input
-                        id="ec-sort"
-                        type="number"
-                        class="ec-input"
-                        wire:model="data.sort_order"
-                        placeholder="0"
-                        min="0"
-                    >
-                    <p class="ec-helper">Lower numbers appear first</p>
-                    @error('data.sort_order') <span class="ec-error">{{ $message }}</span> @enderror
-                </div>
             </div>
 
             {{-- Featured toggle --}}

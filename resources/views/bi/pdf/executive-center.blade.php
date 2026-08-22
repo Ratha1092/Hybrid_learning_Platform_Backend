@@ -34,7 +34,7 @@
     </tr>
 </table>
 
-@php $revMax = max(1, ...$revenueTrendData['revenue']); @endphp
+@php $revMax = empty($revenueTrendData['revenue']) ? 1 : max(1, ...$revenueTrendData['revenue']); @endphp
 <table class="charts-row">
     <tr>
         <td class="chart-card full">
@@ -59,8 +59,9 @@
 </table>
 
 @php
-    $growthMax = max(1, ...$growthData['students'], ...$growthData['instructors']);
-    $topCourseMax = max(1, ...$topCoursesChartValues);
+    $growthValues = array_merge($growthData['students'] ?? [], $growthData['instructors'] ?? []);
+    $growthMax = empty($growthValues) ? 1 : max(1, ...$growthValues);
+    $topCourseMax = empty($topCoursesChartValues) ? 1 : max(1, ...$topCoursesChartValues);
 @endphp
 <table class="charts-row">
     <tr>

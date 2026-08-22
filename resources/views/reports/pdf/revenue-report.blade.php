@@ -31,7 +31,7 @@
                             <div style="height:60px; display:block; vertical-align:bottom; position:relative;">
                                 <div style="position:absolute; bottom:0; left:0; right:0; background:#D7A441; border-radius:3px 3px 0 0; height:{{ $point['revenue'] > 0 ? max(4, ($point['revenue']/$trendMax)*100) : 0 }}%;"></div>
                             </div>
-                            <div style="font-size:8.5px; color:#9ca3af; margin-top:4px; text-align:center;">{{ $point['month'] }}</div>
+                            <div style="font-size:8.5px; color:#9ca3af; margin-top:4px; text-align:center;">{{ $point['label'] }}</div>
                         </td>
                     @endforeach
                 </tr>

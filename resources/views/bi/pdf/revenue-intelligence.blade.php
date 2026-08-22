@@ -20,7 +20,7 @@
     </tr>
 </table>
 
-@php $trendMax = max(1, ...$trendValues); @endphp
+@php $trendMax = empty($trendValues) ? 1 : max(1, ...$trendValues); @endphp
 <table class="charts-row">
     <tr>
         <td class="chart-card full">

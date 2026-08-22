@@ -20,7 +20,7 @@
     </tr>
 </table>
 
-@php $osMax = max(1, ...array_values($orderStatusBreakdown)); @endphp
+@php $osMax = empty($orderStatusBreakdown) ? 1 : max(1, ...array_values($orderStatusBreakdown)); @endphp
 <table class="charts-row">
     <tr>
         <td class="chart-card full">

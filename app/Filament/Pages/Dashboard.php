@@ -804,9 +804,6 @@ class Dashboard extends BaseDashboard implements Schedulable
             if ($rows->isEmpty()) {
                 return [];
             }
-
-            // Growth compares this filtered period's revenue against the equal-length
-            // period immediately preceding it, scoped to the same top instructors.
             [$prevFrom, $prevTo] = $this->previousPeriodRange($from, $to);
 
             $prevRevenueByInstructor = $prevFrom

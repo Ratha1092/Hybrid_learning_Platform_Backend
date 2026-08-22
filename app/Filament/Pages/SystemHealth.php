@@ -6,7 +6,6 @@ use App\Support\PanelAccess;
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 
 class SystemHealth extends Page
 {
@@ -39,7 +38,6 @@ class SystemHealth extends Page
             'queue'      => $this->queueStats(),
             'database'   => $this->databaseStats(),
             'cache'      => $this->cacheStats(),
-            'storage'    => $this->storageStats(),
             'logs'       => $this->logStats(),
             'failedJobs' => $this->recentFailedJobs(),
             'app'        => $this->appInfo(),
@@ -90,25 +88,6 @@ class SystemHealth extends Page
             ];
         } catch (\Throwable $e) {
             return ['status' => 'error', 'driver' => config('cache.default'), 'error' => $e->getMessage()];
-        }
-    }
-
-    private function storageStats(): array
-    {
-        $path = storage_path();
-        try {
-            $free  = disk_free_space($path);
-            $total = disk_total_space($path);
-            $used  = $total - $free;
-
-            return [
-                'free_gb'  => round($free / 1073741824, 2),
-                'total_gb' => round($total / 1073741824, 2),
-                'used_pct' => $total > 0 ? round(($used / $total) * 100, 1) : 0,
-                'status'   => 'ok',
-            ];
-        } catch (\Throwable $e) {
-            return ['free_gb' => 0, 'total_gb' => 0, 'used_pct' => 0, 'status' => 'error', 'error' => $e->getMessage()];
         }
     }
 

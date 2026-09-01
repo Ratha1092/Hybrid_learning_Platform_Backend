@@ -16,6 +16,7 @@ use App\Domains\Courses\Controllers\InstructorSectionLessonResourceController;
 use App\Domains\Courses\Controllers\InstructorLessonVideoController;
 use App\Domains\Courses\Controllers\InstructorSectionLessonVideoController;
 use App\Domains\Learning\Controllers\ReviewController;
+use App\Domains\Learning\Controllers\WishlistController;
 
 // Global search
 Route::middleware('throttle:courses')
@@ -48,7 +49,12 @@ Route::middleware('throttle:courses')
 Route::middleware(['auth:sanctum', 'throttle:courses'])
     ->post('/courses/{courseId}/reviews', [ReviewController::class, 'store'])
     ->where('courseId', '[0-9]+');
-    
+
+// Wishlist toggle (add/remove a course from the current user's wishlist)
+Route::middleware(['auth:sanctum', 'throttle:courses'])
+    ->post('/courses/{course}/wishlist/toggle', [WishlistController::class, 'toggle']);
+
+
 // Instructor Dashboard
 Route::middleware(['auth:sanctum','verified_instructor','throttle:courses',])
     ->prefix('instructor')
@@ -67,9 +73,7 @@ Route::middleware(['auth:sanctum', 'verified_instructor', 'throttle:courses'])
         Route::put('/{id}', [InstructorStandaloneSectionController::class, 'update']);
         Route::delete('/{id}', [InstructorStandaloneSectionController::class, 'destroy']);
 
-        // Section-scoped lessons — works for standalone sections (no course
-        // yet) as well as course-attached sections, since a Lesson only ever
-        // belongs to a Section.
+        // Section-scoped lessons 
         Route::prefix('{sectionId}/lessons')->where(['sectionId' => '[0-9]+'])->group(function () {
             Route::get('/', [InstructorSectionLessonController::class, 'index']);
             Route::post('/', [InstructorSectionLessonController::class, 'store']);

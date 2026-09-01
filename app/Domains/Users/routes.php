@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Domains\Users\Controllers\ProfileController;
 use App\Domains\Users\Controllers\InstructorVerificationController;
 use App\Domains\Users\Controllers\InstructorListController;
+use App\Domains\Learning\Controllers\WishlistController;
 
 Route::middleware('throttle:courses')->get('/instructors', [InstructorListController::class, 'index']);
 Route::middleware(['auth:sanctum', 'throttle:profile'])
@@ -18,6 +19,7 @@ Route::middleware(['auth:sanctum', 'throttle:auth'])->prefix('users')->group(fun
         Route::post('/avatar', [ProfileController::class, 'uploadAvatar']);
         Route::get('/courses', [ProfileController::class, 'enrolledCourses']);
         Route::get('/reviews', [ProfileController::class, 'myReviews']);
+        Route::get('/wishlist', [WishlistController::class, 'index']);
         Route::get('/courses/{courseId}/enrollment-status', [ProfileController::class, 'checkEnrollment']);
         Route::prefix('instructor')->group(function () {
             Route::get('/application',[InstructorVerificationController::class, 'status']);

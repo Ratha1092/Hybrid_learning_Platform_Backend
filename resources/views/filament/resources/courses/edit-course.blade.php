@@ -531,7 +531,7 @@ select.cr-input {
     </div>
     <div class="cr-hero-stats">
         <div class="cr-stat">
-            <div class="cr-stat-val">${{ number_format($crs->price ?? 0, 2) }}</div>
+            <div class="cr-stat-val">{{ ($crs->price ?? 0) > 0 ? '$' . number_format($crs->price, 2) : 'Free' }}</div>
             <div class="cr-stat-label">Price</div>
         </div>
         <div class="cr-stat">
@@ -663,7 +663,7 @@ select.cr-input {
                 @else
                     <div style="display:flex;align-items:center;gap:10px;background:var(--p2);border:1px solid var(--bd2);border-radius:9px;padding:10px 13px">
                         <svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" style="width:15px;height:15px;flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25z"/></svg>
-                        <span style="font-size:15px;font-weight:700;color:var(--t1)">${{ number_format($crs->price ?? 0, 2) }}</span>
+                        <span style="font-size:15px;font-weight:700;color:var(--t1)">{{ ($crs->price ?? 0) > 0 ? '$' . number_format($crs->price, 2) : 'Free' }}</span>
                         <span style="font-size:11px;color:var(--t2);margin-left:auto">Contact admin to change</span>
                     </div>
                 @endif

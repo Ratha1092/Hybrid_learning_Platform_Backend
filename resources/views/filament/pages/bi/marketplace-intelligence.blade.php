@@ -124,7 +124,7 @@
                         <td><span class="bi-rank">{{ $i+1 }}</span></td>
                         <td>{{ $row->course?->title ?? '—' }}</td>
                         <td>{{ number_format($row->wish_count) }}</td>
-                        <td style="color:var(--t2)">${{ number_format((float)($row->course?->price ?? 0),2) }}</td>
+                        <td style="color:var(--t2)">{{ (float)($row->course?->price ?? 0) > 0 ? '$' . number_format((float) $row->course->price, 2) : 'Free' }}</td>
                     </tr>
                     @empty
                     <tr><td colspan="4" style="text-align:center;color:var(--t2);padding:20px">No wishlist data</td></tr>

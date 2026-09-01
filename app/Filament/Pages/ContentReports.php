@@ -118,7 +118,7 @@ class ContentReports extends Page
             ['key' => 'dismissed', 'label' => 'Dismissed', 'count' => $base()->where('status', 'dismissed')->count(), 'color' => '#f87171'],
         ];
 
-        $query = ContentReport::query()->with(['reporter:id,name,email', 'reviewer:id,name']);
+        $query = ContentReport::query()->with(['reporter:id,name,email', 'reviewer:id,name', 'reportable']);
 
         if ($tab !== 'all' && in_array($tab, ['pending', 'reviewed', 'dismissed'])) {
             $query->where('status', $tab);

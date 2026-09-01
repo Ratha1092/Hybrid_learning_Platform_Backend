@@ -79,6 +79,11 @@ class Lesson extends Model
     {
         return $this->hasMany(LessonAttachment::class);
     }
+
+    public function videos(): HasMany
+    {
+        return $this->hasMany(LessonVideo::class)->orderBy('order');
+    }
     public function isVideoLesson(): bool
     {
         return $this->type === self::TYPE_VIDEO;

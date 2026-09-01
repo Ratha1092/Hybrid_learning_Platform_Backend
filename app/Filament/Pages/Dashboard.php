@@ -22,6 +22,7 @@ use App\Domains\Reports\Contracts\Schedulable;
 use App\Domains\System\Models\Setting;
 use App\Support\Concerns\HasDateRangePresets;
 use App\Support\CsvExporter;
+use App\Support\PanelAccess;
 use Filament\Pages\Dashboard as BaseDashboard;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
@@ -135,7 +136,14 @@ class Dashboard extends BaseDashboard implements Schedulable
 
         $fromKey  = $from ? $from->format('Ymd') : 'null';
         $toKey    = $to   ? $to->format('Ymd')   : 'null';
-        $cacheKey = "dashboard.v2.{$preset}.{$gatewayFilter}.{$statusFilter}.{$courseStatus}.{$fromKey}.{$toKey}";
+        // Permission gate string keeps the cache from leaking a permission-restricted
+        // response to a viewer who should see the fuller (or different) data — the
+        // underlying data varies by viewer permission, not just by preset/filters.
+        $permKey  = implode('-', array_map(
+            fn (bool $allowed) => $allowed ? '1' : '0',
+            [PanelAccess::can('users.view'), PanelAccess::can('courses.view'), PanelAccess::can('system.view_health')]
+        ));
+        $cacheKey = "dashboard.v2.{$preset}.{$gatewayFilter}.{$statusFilter}.{$courseStatus}.{$fromKey}.{$toKey}.{$permKey}";
 
         return Cache::tags(['dashboard'])->remember($cacheKey, 300, function () use (
             $from, $to, $preset, $gatewayFilter, $statusFilter, $courseStatus
@@ -147,6 +155,13 @@ class Dashboard extends BaseDashboard implements Schedulable
     private function buildViewData($from, $to, $preset, $gatewayFilter, $statusFilter, $courseStatus): array
     {
         $paidStatuses = [PaymentStatus::Paid->value, PaymentStatus::Completed->value];
+
+        //  Section-level permission gates (Dashboard aggregates data from several
+        //  domains, so unlike single-purpose pages it can't gate access as a whole —
+        //  each sensitive section is gated individually against the viewer's permissions).
+        $canViewUsers        = PanelAccess::can('users.view');
+        $canViewCourseDetail = PanelAccess::can('courses.view');
+        $canViewSystemHealth = PanelAccess::can('system.view_health');
 
         //  Base query builders 
         $payBase = function () use ($from, $to, $gatewayFilter, $statusFilter) {
@@ -173,8 +188,10 @@ class Dashboard extends BaseDashboard implements Schedulable
         // Students growth vs last period
         $newStudentsToday      = User::role('student')->whereDate('created_at', today())->count();
         $pendingVerifications  = InstructorVerification::pending()->count();
-        $pendingInstructors    = User::whereHas('instructorVerification', fn($q) => $q->where('status', 'pending'))
-            ->latest()->take(5)->get();
+        $pendingInstructors    = $canViewUsers
+            ? User::whereHas('instructorVerification', fn($q) => $q->where('status', 'pending'))
+                ->latest()->take(5)->get()
+            : collect();
         $pendingCourseReviews  = Course::where('status', Course::STATUS_PENDING)->count();
         $newUsersToday         = User::whereDate('created_at', today())->count();
 
@@ -282,66 +299,78 @@ class Dashboard extends BaseDashboard implements Schedulable
         }
 
         // Ranked by enrollments within the active filter
-        $popularCourses = Course::with('instructor')
-            ->where('is_published', true)
-            ->withCount(['enrollments' => fn ($q) => $this->applyDateRange($q, 'enrolled_at', $from, $to)])
-            ->selectRaw("courses.*, (
-                SELECT COALESCE(SUM(oi.instructor_amount), 0)
-                FROM order_items oi
-                JOIN orders o ON o.id = oi.order_id
-                WHERE oi.course_id = courses.id AND o.payment_status = 'paid'{$revenueDateSql}
-            ) as course_revenue", $revenueBindings)
-            ->orderByDesc('enrollments_count')
-            ->take(50)
-            ->get()
-            ->filter(fn (Course $c) => $c->enrollments_count > 0)
-            ->take(5)
-            ->values();
+        $popularCourses = $canViewCourseDetail
+            ? Course::with('instructor')
+                ->where('is_published', true)
+                ->withCount(['enrollments' => fn ($q) => $this->applyDateRange($q, 'enrolled_at', $from, $to)])
+                ->selectRaw("courses.*, (
+                    SELECT COALESCE(SUM(oi.instructor_amount), 0)
+                    FROM order_items oi
+                    JOIN orders o ON o.id = oi.order_id
+                    WHERE oi.course_id = courses.id AND o.payment_status = 'paid'{$revenueDateSql}
+                ) as course_revenue", $revenueBindings)
+                ->orderByDesc('enrollments_count')
+                ->take(50)
+                ->get()
+                ->filter(fn (Course $c) => $c->enrollments_count > 0)
+                ->take(5)
+                ->values()
+            : collect();
 
         //  Low rated courses (avg < 3, reviews in range)
-        $lowRatedCourses = Course::with('instructor')
-            ->where('is_published', true)
-            ->withAvg(['reviews' => fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to)], 'rating')
-            ->withCount(['reviews' => fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to)])
-            ->whereHas('reviews', fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to))
-            ->get()
-            ->filter(fn($c) => ($c->reviews_avg_rating ?? 5) < 3)
-            ->sortBy('reviews_avg_rating')
-            ->take(5)
-            ->values();
+        $lowRatedCourses = $canViewCourseDetail
+            ? Course::with('instructor')
+                ->where('is_published', true)
+                ->withAvg(['reviews' => fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to)], 'rating')
+                ->withCount(['reviews' => fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to)])
+                ->whereHas('reviews', fn ($q) => $this->applyDateRange($q, 'created_at', $from, $to))
+                ->get()
+                ->filter(fn($c) => ($c->reviews_avg_rating ?? 5) < 3)
+                ->sortBy('reviews_avg_rating')
+                ->take(5)
+                ->values()
+            : collect();
 
         //  Top instructors by revenue
         $topInstructors = $this->buildTopInstructors($from, $to);
 
-        //  System health
-        try {
-            $queueJobsPending = DB::table('jobs')->count();
-        } catch (\Throwable) {
+        //  System health (restricted to system.view_health — see dashboard.blade.php,
+        //  which hides the whole card rather than showing these placeholder values)
+        if ($canViewSystemHealth) {
+            try {
+                $queueJobsPending = DB::table('jobs')->count();
+            } catch (\Throwable) {
+                $queueJobsPending = 0;
+            }
+            try {
+                $failedJobsCount = DB::table('failed_jobs')->count();
+            } catch (\Throwable) {
+                $failedJobsCount = 0;
+            }
+
+            // Redis status
+            try {
+                \Illuminate\Support\Facades\Redis::ping();
+                $redisStatus = 'connected';
+            } catch (\Throwable) {
+                $redisStatus = 'disconnected';
+            }
+
+            // Server uptime
+            try {
+                $uptimeRaw     = (float) explode(' ', file_get_contents('/proc/uptime'))[0];
+                $uptimeDays    = (int) floor($uptimeRaw / 86400);
+                $uptimeHours   = (int) floor(($uptimeRaw % 86400) / 3600);
+                $uptimeMinutes = (int) floor(($uptimeRaw % 3600) / 60);
+                $serverUptime  = "{$uptimeDays}d {$uptimeHours}h {$uptimeMinutes}m";
+            } catch (\Throwable) {
+                $serverUptime = 'N/A';
+            }
+        } else {
             $queueJobsPending = 0;
-        }
-        try {
-            $failedJobsCount = DB::table('failed_jobs')->count();
-        } catch (\Throwable) {
-            $failedJobsCount = 0;
-        }
-
-        // Redis status
-        try {
-            \Illuminate\Support\Facades\Redis::ping();
-            $redisStatus = 'connected';
-        } catch (\Throwable) {
-            $redisStatus = 'disconnected';
-        }
-
-        // Server uptime
-        try {
-            $uptimeRaw     = (float) explode(' ', file_get_contents('/proc/uptime'))[0];
-            $uptimeDays    = (int) floor($uptimeRaw / 86400);
-            $uptimeHours   = (int) floor(($uptimeRaw % 86400) / 3600);
-            $uptimeMinutes = (int) floor(($uptimeRaw % 3600) / 60);
-            $serverUptime  = "{$uptimeDays}d {$uptimeHours}h {$uptimeMinutes}m";
-        } catch (\Throwable) {
-            $serverUptime = 'N/A';
+            $failedJobsCount  = 0;
+            $redisStatus      = 'unknown';
+            $serverUptime     = 'N/A';
         }
 
         //  Revenue trends
@@ -392,7 +421,7 @@ class Dashboard extends BaseDashboard implements Schedulable
             Payment::whereIn('status', $paidStatuses)
                 ->where('payment_gateway', $gw->value)
                 ->when($from, fn($q) => $q->where('paid_at', '>=', $from))
-                ->when($to,   fn($q) => $q->where('paid_at', '<=', $to))
+                ->when($to,   fn($q) => $q->where('paid_at', '<', $to->copy()->addDay()->startOfDay()))
                 ->sum('amount')
         )->toArray();
 
@@ -417,7 +446,7 @@ class Dashboard extends BaseDashboard implements Schedulable
             'pendingCourseReviews' => $pendingCourseReviews,
             'pendingInstructors'   => $pendingInstructors,
             'studentTrend'         => $studentTrend,
-            'recentUsers'          => User::latest()->take(6)->get(),
+            'recentUsers'          => $canViewUsers ? User::latest()->take(6)->get() : collect(),
 
             // Courses
             'totalCourses'          => $totalCourses,

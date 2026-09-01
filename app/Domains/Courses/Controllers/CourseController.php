@@ -86,7 +86,9 @@ class CourseController extends Controller
 
         $isEnrolled = (bool) $enrollment;
         $accessExpired = $enrollment ? $enrollment->isExpired() : false;
-        $hasAccess = $enrollment && in_array($enrollment->status, ['active', 'completed'], true) && !$accessExpired;
+        $isFree = (float) $course->price === 0.0;
+        $hasAccess = $isFree
+            || ($enrollment && in_array($enrollment->status, ['active', 'completed'], true) && !$accessExpired);
 
         $courseData = $course->toArray();
         $courseData['is_enrolled'] = $isEnrolled;
@@ -110,9 +112,6 @@ class CourseController extends Controller
                         'order' => $v->order,
                     ])->values();
                     $lessonData['videos'] = $videos;
-                    // Back-compat: existing frontend code reads a single video_url off
-                    // the lesson — fall back to the legacy columns when no lesson_videos
-                    // rows exist yet, otherwise use the first uploaded video.
                     $lessonData['video_url'] = $videos->first()['video_url'] ?? $this->resolveVideoUrl($lesson);
                 } else {
                     $lessonData['videos'] = [];

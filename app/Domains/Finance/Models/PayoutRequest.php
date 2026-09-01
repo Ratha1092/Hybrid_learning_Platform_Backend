@@ -29,6 +29,16 @@ class PayoutRequest extends Model
         'processed_at' => 'datetime',
     ];
 
+    // The frontend reads a flat receipt_id off a payout request (there is no
+    // such column — a payout's receipt is a separate hasOne row), so this
+    // must stay in sync with the receipt() relation whenever it's eager-loaded.
+    protected $appends = ['receipt_id'];
+
+    public function getReceiptIdAttribute(): ?int
+    {
+        return $this->receipt?->id;
+    }
+
     public function instructor()
     {
         return $this->belongsTo(User::class, 'instructor_id');

@@ -24,10 +24,6 @@ class EnrollmentService
                     $item
                 );
             }
-
-            // Counted as "used" only once the order that redeemed it is
-            // actually paid/completed — locked so two orders redeeming the
-            // last remaining use can't both slip past the limit.
             if ($order->coupon_id) {
                 Coupon::where('id', $order->coupon_id)->lockForUpdate()->increment('used_count');
             }
@@ -37,7 +33,8 @@ class EnrollmentService
         Order $order,
         OrderItem $item
     ): void {
-        $durationMonths = (int) Setting::get('course_access_duration_months', 6);
+        $isFreeCourse   = (float) $item->price <= 0;
+        $durationMonths = $isFreeCourse ? 0 : (int) Setting::get('course_access_duration_months', 6);
 
         $existing = Enrollment::withTrashed()
             ->where('user_id', $order->user_id)

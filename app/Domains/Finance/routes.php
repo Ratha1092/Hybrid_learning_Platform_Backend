@@ -13,6 +13,7 @@ Route::middleware(['auth:sanctum', 'is_instructor', 'throttle:finance'])
         Route::get('/transactions', [FinanceController::class, 'transactions']);
         Route::post('/payout-request', [FinanceController::class, 'requestPayout']);
         Route::get('/payout-requests', [FinanceController::class, 'payoutRequests']);
+        Route::get('/payout-requests/{id}', [FinanceController::class, 'payoutRequest']);
         Route::get('/payout-account', [PayoutAccountController::class, 'show']);
         Route::post('/payout-account', [PayoutAccountController::class, 'store']);
         Route::get('/payout-receipts', [PayoutReceiptController::class, 'index']);

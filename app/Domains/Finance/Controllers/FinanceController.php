@@ -130,4 +130,17 @@ class FinanceController extends Controller
 
         return ApiResponse::success($payouts, 'Payout requests retrieved successfully');
     }
+
+    public function payoutRequest(int $id, Request $request): JsonResponse
+    {
+        $payout = PayoutRequest::where('instructor_id', $request->user()->id)
+            ->with(['receipt', 'payoutAccount'])
+            ->find($id);
+
+        if (!$payout) {
+            return ApiResponse::error('Payout request not found', 404);
+        }
+
+        return ApiResponse::success($payout, 'Payout request retrieved successfully');
+    }
 }

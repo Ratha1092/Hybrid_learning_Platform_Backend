@@ -14,6 +14,7 @@
         "filament/spatie-laravel-media-library-plugin": "^5.3",
         "filament/spatie-laravel-settings-plugin": "^5.3",
         "filament/spatie-laravel-tags-plugin": "^5.3",
+        "firebase/php-jwt": "^7.1",
         "khqr-gateway/bakong-khqr-php": "^1.0",
         "laravel/framework": "^12.0",
         "laravel/horizon": "^5.45",

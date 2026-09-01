@@ -20,11 +20,17 @@ use RuntimeException;
 
 class OAuthService
 {
+    public function __construct(
+        private GoogleTokenVerifier $googleTokenVerifier
+    ) {}
+
     public function handleGoogle(array $data)
     {
         if (!Setting::get('enable_google_login', true)) {
             throw new RuntimeException('Google sign-in is currently disabled.');
         }
+
+        $data = $this->googleTokenVerifier->verify($data['id_token']);
 
         try {
             return DB::transaction(function () use ($data) {

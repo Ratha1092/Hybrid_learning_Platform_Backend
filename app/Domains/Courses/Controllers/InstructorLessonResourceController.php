@@ -62,6 +62,10 @@ class InstructorLessonResourceController extends Controller
             return ApiResponse::error('This course is pending review and cannot be edited until it is approved or rejected.', 422);
         }
 
+        if (Course::find($courseId)?->isPublished()) {
+            return ApiResponse::error('This course is public, so its content can\'t be deleted.', 422);
+        }
+
         $resource = LessonAttachment::where('id', $resourceId)
             ->where('lesson_id', $lessonId)
             ->first();

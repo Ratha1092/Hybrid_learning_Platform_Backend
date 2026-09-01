@@ -13,6 +13,8 @@ use App\Domains\Courses\Controllers\InstructorLessonResourceController;
 use App\Domains\Courses\Controllers\InstructorStandaloneSectionController;
 use App\Domains\Courses\Controllers\InstructorSectionLessonController;
 use App\Domains\Courses\Controllers\InstructorSectionLessonResourceController;
+use App\Domains\Courses\Controllers\InstructorLessonVideoController;
+use App\Domains\Courses\Controllers\InstructorSectionLessonVideoController;
 use App\Domains\Learning\Controllers\ReviewController;
 
 // Global search
@@ -80,6 +82,12 @@ Route::middleware(['auth:sanctum', 'verified_instructor', 'throttle:courses'])
                 Route::post('/', [InstructorSectionLessonResourceController::class, 'store']);
                 Route::delete('/{resourceId}', [InstructorSectionLessonResourceController::class, 'destroy']);
             });
+
+            Route::prefix('{lessonId}/videos')->group(function () {
+                Route::get('/', [InstructorSectionLessonVideoController::class, 'index']);
+                Route::post('/', [InstructorSectionLessonVideoController::class, 'store']);
+                Route::delete('/{videoId}', [InstructorSectionLessonVideoController::class, 'destroy']);
+            });
         });
     });
 
@@ -122,6 +130,13 @@ Route::middleware(['auth:sanctum','verified_instructor','throttle:courses',])
                             Route::get('/', [InstructorLessonResourceController::class, 'index']);
                             Route::post('/', [InstructorLessonResourceController::class, 'store']);
                             Route::delete('/{resourceId}', [InstructorLessonResourceController::class, 'destroy']);
+                        });
+
+                        // Upload Videos (a lesson may have multiple)
+                        Route::prefix('{lessonId}/videos')->group(function () {
+                            Route::get('/', [InstructorLessonVideoController::class, 'index']);
+                            Route::post('/', [InstructorLessonVideoController::class, 'store']);
+                            Route::delete('/{videoId}', [InstructorLessonVideoController::class, 'destroy']);
                         });
                     });
             });

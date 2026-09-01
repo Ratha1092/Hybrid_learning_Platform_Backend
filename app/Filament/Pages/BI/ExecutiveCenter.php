@@ -128,7 +128,10 @@ class ExecutiveCenter extends Page
             $completionRate      = $totalEnrollments > 0 ? round(($completedEnrollments / $totalEnrollments) * 100, 1) : 0.0;
 
             // ── Marketplace Health Score (composite 0-100) ───────────────────
-            $prevFrom = $from ? (clone $from)->subMonth() : null;
+            // Comparison window sized to the selected period's length, not a fixed
+            // month — matches Dashboard::previousPeriodRange() / RevenueIntelligence.
+            $periodDays = $from && $to ? $from->diffInDays($to) + 1 : 30;
+            $prevFrom = $from ? (clone $from)->subDays($periodDays) : null;
             $prevTo   = $from ? (clone $from)->subSecond() : null;
             $prevRevenue = $prevFrom ? (float) Order::where('payment_status', OrderPaymentStatus::Paid->value)
                 ->where('paid_at', '>=', $prevFrom)->where('paid_at', '<', $from)->sum('final_amount') : 0;

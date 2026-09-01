@@ -41,7 +41,7 @@ class ListCourses extends ListRecords
                                 '"' . str_replace('"', '""', $course->title) . '"',
                                 '"' . ($course->instructor?->name ?? '') . '"',
                                 '"' . ($course->category?->name ?? '') . '"',
-                                $course->price,
+                                $course->price > 0 ? number_format($course->price, 2) : 'Free',
                                 $course->status,
                                 $course->enrollments_count,
                                 $course->created_at?->format('Y-m-d'),

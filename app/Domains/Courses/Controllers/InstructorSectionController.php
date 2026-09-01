@@ -96,6 +96,10 @@ class InstructorSectionController extends Controller
             return ApiResponse::error('This course is pending review and cannot be edited until it is approved or rejected.', 422);
         }
 
+        if ($section->course->isPublished()) {
+            return ApiResponse::error('This course is public, so its content can\'t be deleted.', 422);
+        }
+
         $section->delete();
 
         return ApiResponse::success(null, 'Section deleted successfully');

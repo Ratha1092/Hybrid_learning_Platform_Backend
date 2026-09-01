@@ -52,7 +52,7 @@ class CourseController extends Controller
                 'sections' => function ($q) {
                     $q->orderBy('order')->with([
                         'lessons' => function ($q) {
-                            $q->orderBy('order')->with('attachments');
+                            $q->orderBy('order')->with(['attachments', 'videos']);
                         }
                     ]);
                 }
@@ -101,7 +101,23 @@ class CourseController extends Controller
                 $lessonData = $lesson->toArray();
 
                 $canWatch = $hasAccess || $lesson->is_preview;
-                $lessonData['video_url'] = $canWatch ? $this->resolveVideoUrl($lesson) : null;
+
+                if ($canWatch) {
+                    $videos = $lesson->videos->map(fn ($v) => [
+                        'id' => $v->id,
+                        'video_url' => $v->video_source,
+                        'duration' => $v->duration,
+                        'order' => $v->order,
+                    ])->values();
+                    $lessonData['videos'] = $videos;
+                    // Back-compat: existing frontend code reads a single video_url off
+                    // the lesson — fall back to the legacy columns when no lesson_videos
+                    // rows exist yet, otherwise use the first uploaded video.
+                    $lessonData['video_url'] = $videos->first()['video_url'] ?? $this->resolveVideoUrl($lesson);
+                } else {
+                    $lessonData['videos'] = [];
+                    $lessonData['video_url'] = null;
+                }
                 unset($lessonData['video_path']);
 
                 if (!$canWatch || !$resourcesDownloadable) {

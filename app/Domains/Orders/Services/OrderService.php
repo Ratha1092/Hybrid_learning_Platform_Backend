@@ -85,7 +85,8 @@ class OrderService
             // (see EnrollmentService::enrollFromOrder / BakongKhqrService::markAsPaid)
             // — not here, so an abandoned or expired checkout never consumes a use.
 
-            $commissionPercentage = 20;
+            $commissionPercentage = $course->commission_percentage
+                ?? (float) Setting::get('default_commission_percentage', 20);
             $platformAmount = ($finalAmount * $commissionPercentage) / 100;
             $instructorAmount = $finalAmount - $platformAmount;
             OrderItem::create([

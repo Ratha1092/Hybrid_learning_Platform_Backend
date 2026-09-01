@@ -24,6 +24,7 @@ class InstructorSectionLessonController extends Controller
         }
 
         $lessons = Lesson::where('section_id', $sectionId)
+            ->withCount('videos')
             ->orderBy('order')
             ->get();
 
@@ -174,6 +175,10 @@ class InstructorSectionLessonController extends Controller
 
         if ($locked = $this->pendingReviewError($section)) {
             return $locked;
+        }
+
+        if ($section->course_id && $section->course?->isPublished()) {
+            return ApiResponse::error('This course is public, so its content can\'t be deleted.', 422);
         }
 
         $lesson->delete();

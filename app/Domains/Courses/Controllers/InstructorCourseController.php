@@ -154,6 +154,10 @@ class InstructorCourseController extends Controller
             );
         }
 
+        if ($course->isPublished()) {
+            return ApiResponse::error('This course is public, so it can\'t be deleted.', 422);
+        }
+
         $this->courseService->delete($course);
         return ApiResponse::success(
             null,

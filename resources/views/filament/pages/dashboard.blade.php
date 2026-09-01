@@ -1531,6 +1531,7 @@ function dbCustomDate() {
 </div>
 
 {{-- Row 6: Most Popular Courses (full-width) --}}
+@can('courses.view')
 <div class="db-card" style="margin-bottom:1rem;">
     <div class="db-card-header">
         <span class="db-card-title">
@@ -1588,6 +1589,7 @@ function dbCustomDate() {
     </table>
     </div>
 </div>
+@endcan
 
 {{-- Row 7: Recent Orders --}}
 <div style="margin-bottom:1rem">
@@ -1654,6 +1656,7 @@ function dbCustomDate() {
 {{-- Row 8: Low Rated Courses + System Health --}}
 <div class="db-two-col">
     {{-- Low Rated --}}
+    @can('courses.view')
     <div class="db-card">
         <div class="db-card-header">
             <span class="db-card-title">
@@ -1702,8 +1705,10 @@ function dbCustomDate() {
         </table>
         </div>
     </div>
+    @endcan
 
     {{-- System Health --}}
+    @can('system.view_health')
     <div class="db-card">
         <div class="db-card-header">
             <span class="db-card-title">
@@ -1753,6 +1758,7 @@ function dbCustomDate() {
             </div>
         </div>
     </div>
+    @endcan
 </div>
 
 </div>{{-- end .db-wrap --}}

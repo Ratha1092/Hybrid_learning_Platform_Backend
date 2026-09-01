@@ -18,6 +18,9 @@
         if ($report->reportable_type === 'course') {
             return route('filament.admin.resources.courses.view', ['record' => $report->reportable_id]);
         }
+        if ($report->reportable_type === 'review' && $report->reportable?->course_id) {
+            return route('filament.admin.pages.reviews', ['course_id' => $report->reportable->course_id]);
+        }
         return null;
     };
 @endphp

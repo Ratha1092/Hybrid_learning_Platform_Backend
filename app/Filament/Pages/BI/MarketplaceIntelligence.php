@@ -113,7 +113,13 @@ class MarketplaceIntelligence extends Page
 
             // Coupon usage
             $couponUsage      = Coupon::where('used_count', '>', 0)->orderByDesc('used_count')->take(10)->get();
-            $totalCouponUses  = (int) Coupon::sum('used_count');
+            // Scoped to the same paid-orders/date-range window as $totalOrders, rather
+            // than Coupon::sum('used_count') (all-time), so the rate actually reflects
+            // the selected period instead of staying near-constant across presets.
+            $totalCouponUses  = (int) Order::where('payment_status', OrderPaymentStatus::Paid->value)
+                ->whereNotNull('coupon_id')
+                ->when($from, fn ($q) => static::applyDateRange($q, 'paid_at', $from, $to))
+                ->count();
             $couponRate       = $totalOrders > 0 ? round($totalCouponUses / max($totalOrders + $totalCouponUses, 1) * 100, 1) : 0.0;
 
             // Funnel data as indexed array for blade iteration
@@ -139,15 +145,17 @@ class MarketplaceIntelligence extends Page
                 ->get();
 
             // Most wishlisted
-            $mostWishlisted = Wishlist::selectRaw('course_id, COUNT(*) as wish_count')
+            $mostWishlisted = static::applyDateRange(Wishlist::query(), 'created_at', $from, $to)
+                ->selectRaw('course_id, COUNT(*) as wish_count')
                 ->groupBy('course_id')->orderByRaw('COUNT(*) DESC')->take(10)
                 ->with('course:id,title,price')->get();
 
             // Highest conversion (min 20 views)
-            $hcRaw = CourseView::selectRaw('course_id, COUNT(*) as views')
+            $hcRaw = static::applyDateRange(CourseView::query(), 'created_at', $from, $to)
+                ->selectRaw('course_id, COUNT(*) as views')
                 ->groupBy('course_id')->havingRaw('COUNT(*) >= 20')
-                ->get()->map(function ($r) {
-                    $orders = Enrollment::where('course_id', $r->course_id)->count();
+                ->get()->map(function ($r) use ($from, $to) {
+                    $orders = static::applyDateRange(Enrollment::where('course_id', $r->course_id), 'enrolled_at', $from, $to)->count();
                     return ['course_id' => $r->course_id, 'views' => $r->views, 'orders' => $orders, 'rate' => $r->views > 0 ? round($orders / $r->views * 100, 1) : 0];
                 })->sortByDesc('rate')->take(10)->values();
             $hcCourseTitles = Course::whereIn('id', $hcRaw->pluck('course_id'))->pluck('title', 'id');

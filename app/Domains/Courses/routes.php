@@ -17,6 +17,7 @@ use App\Domains\Courses\Controllers\InstructorLessonVideoController;
 use App\Domains\Courses\Controllers\InstructorSectionLessonVideoController;
 use App\Domains\Learning\Controllers\ReviewController;
 use App\Domains\Learning\Controllers\WishlistController;
+use App\Domains\Courses\Controllers\CourseDiscussionController;
 
 // Global search
 Route::middleware('throttle:courses')
@@ -53,6 +54,18 @@ Route::middleware(['auth:sanctum', 'throttle:courses'])
 // Wishlist toggle (add/remove a course from the current user's wishlist)
 Route::middleware(['auth:sanctum', 'throttle:courses'])
     ->post('/courses/{course}/wishlist/toggle', [WishlistController::class, 'toggle']);
+
+// Course Community (enrolled-only discussion board, one per course)
+Route::middleware(['auth:sanctum', 'throttle:courses'])
+    ->get('/courses/{courseId}/discussions', [CourseDiscussionController::class, 'index'])
+    ->where('courseId', '[0-9]+');
+
+Route::middleware(['auth:sanctum', 'throttle:courses'])
+    ->post('/courses/{courseId}/discussions', [CourseDiscussionController::class, 'store'])
+    ->where('courseId', '[0-9]+');
+
+Route::middleware(['auth:sanctum', 'throttle:courses'])
+    ->post('/discussions/{discussion}/like', [CourseDiscussionController::class, 'like']);
 
 
 // Instructor Dashboard

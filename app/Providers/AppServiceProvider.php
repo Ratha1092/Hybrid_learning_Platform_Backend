@@ -147,6 +147,14 @@ class AppServiceProvider extends ServiceProvider
             );
         });
 
+        // Site-wide Community APIs
+        RateLimiter::for('community', function (Request $request) {
+            return Limit::perMinute(60)->by(
+                $request->user()?->id
+                    ?: $request->ip()
+            );
+        });
+
         // Search APIs
         RateLimiter::for('search', function (Request $request) {
             return Limit::perMinute(30)->by(

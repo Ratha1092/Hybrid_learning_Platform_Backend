@@ -258,7 +258,7 @@ html:not(.dark) {
     class="nb-wrap"
     x-data="{
         open: false,
-        unread: {{ $unreadCount }},
+        unread: $wire.entangle('unreadCount'),
         csrf: '{{ csrf_token() }}',
         post(url) {
             return fetch(url, { method: 'POST', headers: { 'X-CSRF-TOKEN': this.csrf, 'Content-Type': 'application/json' } });

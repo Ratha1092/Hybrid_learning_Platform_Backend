@@ -53,6 +53,7 @@ class InstructorSectionLessonController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'type' => 'required|in:video,article',
+            'description' => 'nullable|string|max:1000',
             'video_url' => 'nullable|url',
             'content' => 'nullable|string',
             'duration' => 'nullable|integer|min:0',
@@ -63,6 +64,7 @@ class InstructorSectionLessonController extends Controller
             'section_id' => $sectionId,
             'title' => $validated['title'],
             'type' => $validated['type'],
+            'description' => $validated['description'] ?? null,
             'content' => $validated['content'] ?? null,
             'video_url' => $validated['video_url'] ?? null,
             'duration' => $validated['duration'] ?? null,
@@ -96,6 +98,7 @@ class InstructorSectionLessonController extends Controller
         $validated = $request->validate([
             'title' => 'nullable|string|max:255',
             'type' => 'nullable|in:video,article',
+            'description' => 'nullable|string|max:1000',
             'video_url' => 'nullable|url',
             'content' => 'nullable|string',
             'duration' => 'nullable|integer|min:0',

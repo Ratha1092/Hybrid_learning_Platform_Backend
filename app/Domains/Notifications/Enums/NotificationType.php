@@ -10,4 +10,5 @@ enum NotificationType: string
     case COURSE = 'course';
     case FINANCE = 'finance';
     case SYSTEM = 'system';
+    case DISCUSSION = 'comment_reply';
 }

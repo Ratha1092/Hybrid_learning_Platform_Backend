@@ -3,7 +3,9 @@
 namespace App\Domains\Learning\Controllers;
 
 use App\Domains\Courses\Models\Lesson;
+use App\Domains\Learning\Events\LessonCommentPosted;
 use App\Domains\Learning\Models\LessonComment;
+use App\Domains\Notifications\Notifications\CommentReplyNotification;
 use App\Http\Controllers\Controller;
 use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
@@ -68,11 +70,22 @@ class LessonCommentController extends Controller
 
         $comment->load('user:id,name,avatar');
 
-        return ApiResponse::success(
-            $this->present($comment, $user->id, withReplies: true),
-            'Comment posted successfully',
-            201
-        );
+        $payload = $this->present($comment, $user->id, withReplies: true);
+
+        // liked_by_me is meaningless to broadcast — it's specific to whoever
+        // is viewing, and a brand-new comment has 0 likes for everyone anyway.
+        event(new LessonCommentPosted([...$payload, 'liked_by_me' => false]));
+
+        // Replying to someone notifies the original commenter — not the
+        // replier themselves, and not for top-level comments (nobody to tell).
+        if ($comment->parent_id) {
+            $parentAuthor = LessonComment::find($comment->parent_id)?->user;
+            if ($parentAuthor && $parentAuthor->id !== $user->id) {
+                $parentAuthor->notify(new CommentReplyNotification($comment, $lesson->title, $lesson->course->slug));
+            }
+        }
+
+        return ApiResponse::success($payload, 'Comment posted successfully', 201);
     }
 
     public function like(Request $request, LessonComment $comment): JsonResponse

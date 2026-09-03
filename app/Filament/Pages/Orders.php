@@ -37,10 +37,6 @@ class Orders extends Page
         $this->dateTo   = request('date_to', '');
 
         NavBadge::markSeen('orders');
-
-        auth()->user()?->unreadNotifications()
-            ->whereJsonContains('data->type', 'order')
-            ->update(['read_at' => now()]);
     }
 
     public static function getNavigationBadge(): ?string

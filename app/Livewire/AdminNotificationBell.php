@@ -24,7 +24,11 @@ class AdminNotificationBell extends Component
     #[On('echo-private:user.{userId},.notification.received')]
     public function onPusherNotification(array $notification): void
     {
-        $this->unreadCount++;
+        // boot() already recomputes $unreadCount fresh from the DB on this
+        // request (the new notification is already persisted by the time the
+        // broadcast reaches the client), so don't add to it here — that would
+        // double-count it.
+        $this->unreadCount = (int) (auth()->user()?->unreadNotifications()->count() ?? 0);
     }
 
     #[Computed]

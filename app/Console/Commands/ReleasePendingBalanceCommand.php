@@ -51,6 +51,18 @@ class ReleasePendingBalanceCommand extends Command
 
                     $amount = $shares->sum('instructor_amount');
 
+                    // A release can only move funds that are actually held in
+                    // the wallet. Without this check a missing earlier wallet
+                    // credit turns a release into a positive available balance
+                    // and a negative pending balance.
+                    if ((float) $wallet->pending_balance + 0.00001 < (float) $amount) {
+                        throw new \LogicException(sprintf(
+                            'Wallet pending balance (%s) is less than the eligible release amount (%s).',
+                            $wallet->pending_balance,
+                            $amount
+                        ));
+                    }
+
                     $wallet->decrement('pending_balance', $amount);
                     $wallet->increment('balance', $amount);
 

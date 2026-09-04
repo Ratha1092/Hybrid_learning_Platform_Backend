@@ -96,6 +96,9 @@ class CourseController extends Controller
         $courseData['access_expires_at'] = $enrollment?->expires_at?->toIso8601String();
 
         $resourcesDownloadable = Setting::get('lesson_resources_downloadable', true);
+        // Surfaced so the player can drop the download action while still
+        // letting students read the file in place.
+        $courseData['resources_downloadable'] = (bool) $resourcesDownloadable;
 
         $courseData['sections'] = $course->sections->map(function ($section) use ($hasAccess, $resourcesDownloadable) {
             $sectionData = $section->toArray();
@@ -119,14 +122,18 @@ class CourseController extends Controller
                 }
                 unset($lessonData['video_path']);
 
-                if (!$canWatch || !$resourcesDownloadable) {
+                if (!$canWatch) {
                     $lessonData['attachments'] = [];
                 } else {
+                    // Kept even when downloads are switched off — the player
+                    // shows them read-only in that case, and only omits the
+                    // download link itself.
                     $lessonData['attachments'] = $lesson->attachments->map(fn ($a) => [
                         'id' => $a->id,
                         'title' => $a->title,
                         'type' => $a->type,
-                        'file_url' => $a->file_url,
+                        'preview_url' => $a->preview_url,
+                        'file_url' => $resourcesDownloadable ? $a->file_url : null,
                     ])->values();
                 }
 

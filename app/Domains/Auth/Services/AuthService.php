@@ -171,6 +171,6 @@ class AuthService
 
     private function lockoutCacheKey(User $user): string
     {
-        return "login_attempts:{$user->id}";
+        return "login_attempts:{$user->id}:" . request()->ip();
     }
 }

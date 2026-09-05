@@ -13,19 +13,14 @@ class LinkOAuthRequest extends FormRequest
 
     protected function prepareForValidation()
     {
-        $this->merge([
-            'email' => $this->email ? strtolower(trim($this->email)) : null,
-        ]);
+        $this->merge(['credential' => trim((string) $this->credential)]);
     }
 
     public function rules(): array
     {
         return [
             'provider' => ['required', 'in:google,github'],
-            'provider_id' => ['required', 'string'],
-            'email' => ['required', 'email'],
-            'name' => ['required', 'string'],
-            'avatar' => ['nullable', 'url'],
+            'credential' => ['required', 'string', 'max:10000'],
         ];
     }
 }

@@ -12,6 +12,23 @@ class OAuthUnlinkTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_oauth_link_rejects_unverified_identity_claims(): void
+    {
+        $user = User::factory()->create();
+        Sanctum::actingAs($user);
+
+        $this->postJson('/api/v1/auth/oauth/link', [
+            'provider' => 'google',
+            'provider_id' => 'arbitrary-provider-id',
+            'email' => 'attacker@example.test',
+            'name' => 'Attacker',
+        ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('credential');
+
+        $this->assertDatabaseCount('oauth_accounts', 0);
+    }
+
     public function test_oauth_only_user_cannot_unlink_their_only_sign_in_method(): void
     {
         $user = User::factory()->oauthOnly()->create();

@@ -188,18 +188,48 @@ class OAuthService
 
     public function link($user, array $data)
     {
-        if ($user->oauthAccounts()->where('provider', $data['provider'])->exists()) {
+        $identity = $this->verifyLinkCredential($data['provider'], $data['credential']);
+
+        if ($user->oauthAccounts()->where('provider', $identity['provider'])->exists()) {
             throw new \RuntimeException('OAuth account already linked');
         }
 
         OAuthAccount::create([
             'user_id' => $user->id,
-            'provider' => $data['provider'],
-            'provider_id' => $data['provider_id'],
-            'email' => $data['email'],
-            'name' => $data['name'],
-            'avatar' => $data['avatar'] ?? null,
+            'provider' => $identity['provider'],
+            'provider_id' => $identity['provider_id'],
+            'email' => $identity['email'],
+            'name' => $identity['name'],
+            'avatar' => $identity['avatar'],
         ]);
+    }
+
+    private function verifyLinkCredential(string $provider, string $credential): array
+    {
+        if ($provider === 'google') {
+            $identity = $this->googleTokenVerifier->verify($credential);
+            return ['provider' => 'google', ...$identity];
+        }
+
+        try {
+            $socialUser = Socialite::driver('github')->stateless()->userFromToken($credential);
+        } catch (GuzzleException $e) {
+            Log::warning('GitHub OAuth link verification failed', ['error' => $e->getMessage()]);
+            throw new RuntimeException('GitHub account verification failed.');
+        }
+
+        $email = $socialUser->getEmail();
+        if (!$email) {
+            throw new RuntimeException('GitHub account has no accessible email address.');
+        }
+
+        return [
+            'provider' => 'github',
+            'provider_id' => (string) $socialUser->getId(),
+            'email' => strtolower($email),
+            'name' => $socialUser->getName() ?? $socialUser->getNickname() ?? 'GitHub User',
+            'avatar' => $socialUser->getAvatar(),
+        ];
     }
 
     public function unlink($user, string $provider)

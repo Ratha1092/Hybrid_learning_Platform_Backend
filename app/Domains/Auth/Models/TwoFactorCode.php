@@ -17,6 +17,7 @@ class TwoFactorCode extends Model
         'code',
         'expires_at',
         'used',
+        'attempts',
     ];
 
 

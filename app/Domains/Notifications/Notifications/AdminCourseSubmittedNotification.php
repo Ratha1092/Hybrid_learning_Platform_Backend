@@ -4,6 +4,7 @@ namespace App\Domains\Notifications\Notifications;
 
 use App\Domains\Notifications\Concerns\BroadcastsAsNotification;
 use App\Domains\Notifications\Enums\NotificationType;
+use App\Filament\Resources\Courses\CourseResource;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification;
 
@@ -23,17 +24,21 @@ class AdminCourseSubmittedNotification extends Notification
 
     public function toBroadcast(object $notifiable): BroadcastMessage
     {
+        $courseUrl = CourseResource::getUrl('view', ['record' => $this->courseId]);
+
         return new BroadcastMessage([
             'title'       => 'New Course Submitted for Review',
             'message'     => "\"{$this->courseTitle}\" submitted by {$this->instructorName}.",
             'type'        => NotificationType::COURSE->value,
-            'link'        => '/admin/courses',
+            'link'        => $courseUrl,
             'action_text' => 'Review Course',
         ]);
     }
 
     public function toArray(object $notifiable): array
     {
+        $courseUrl = CourseResource::getUrl('view', ['record' => $this->courseId]);
+
         return [
             'type'     => NotificationType::COURSE->value,
             'title'    => 'New Course Submitted for Review',
@@ -44,10 +49,10 @@ class AdminCourseSubmittedNotification extends Notification
                 [
                     'name'                 => 'view',
                     'label'                => 'Review Course',
-                    'url'                  => '/admin/courses',
+                    'url'                  => $courseUrl,
                     'view'                 => 'filament-actions::link-action',
                     'shouldOpenUrlInNewTab' => false,
-                    'alpineClickHandler'   => "window.location.href='/admin/courses'",
+                    'alpineClickHandler'   => "window.location.href='{$courseUrl}'",
                 ],
             ],
         ];

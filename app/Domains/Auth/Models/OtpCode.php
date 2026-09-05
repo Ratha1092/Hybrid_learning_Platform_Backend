@@ -13,6 +13,7 @@ class OtpCode extends Model
         'code',
         'expires_at',
         'used',
+        'attempts',
     ];
 
     protected $casts = [

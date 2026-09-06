@@ -13,6 +13,7 @@ use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
@@ -30,7 +31,7 @@ class OAuthService
             throw new RuntimeException('Google sign-in is currently disabled.');
         }
 
-        $data = $this->googleTokenVerifier->verify($data['id_token']);
+        $data = $this->googleTokenVerifier->verify($data['id_token'], $data['nonce']);
 
         try {
             return DB::transaction(function () use ($data) {
@@ -89,25 +90,34 @@ class OAuthService
         }
     }
 
-    public function handleGithub(string $code): array
+    public function handleGithub(string $code, string $codeVerifier): array
     {
         try {
-            $tokenResponse = Socialite::driver('github')
-                ->stateless()
-                ->getAccessTokenResponse($code);
-        } catch (GuzzleException $e) {
+            $tokenResponse = Http::asForm()
+                ->acceptJson()
+                ->timeout(10)
+                ->post('https://github.com/login/oauth/access_token', [
+                    'client_id' => config('services.github.client_id'),
+                    'client_secret' => config('services.github.client_secret'),
+                    'code' => $code,
+                    'redirect_uri' => config('services.github.redirect'),
+                    'code_verifier' => $codeVerifier,
+                ]);
+        } catch (\Throwable $e) {
             Log::warning('GitHub OAuth token exchange failed', ['error' => $e->getMessage()]);
             throw new RuntimeException('GitHub sign-in failed. Please try again.');
         }
 
-        if (empty($tokenResponse['access_token'])) {
+        if (!$tokenResponse->successful() || empty($tokenResponse->json('access_token'))) {
             throw new RuntimeException('Failed to obtain GitHub access token');
         }
+
+        $accessToken = $tokenResponse->json('access_token');
 
         try {
             $socialUser = Socialite::driver('github')
                 ->stateless()
-                ->userFromToken($tokenResponse['access_token']);
+                ->userFromToken($accessToken);
         } catch (GuzzleException $e) {
             Log::warning('GitHub OAuth user fetch failed', ['error' => $e->getMessage()]);
             throw new RuntimeException('GitHub sign-in failed. Please try again.');
@@ -190,6 +200,12 @@ class OAuthService
     {
         $identity = $this->verifyLinkCredential($data['provider'], $data['credential']);
 
+        $existing = OAuthAccount::where('provider', $identity['provider'])
+            ->where('provider_id', $identity['provider_id'])
+            ->first();
+        if ($existing && $existing->user_id !== $user->id) {
+            throw new \RuntimeException('This OAuth account is already linked to another user.');
+        }
         if ($user->oauthAccounts()->where('provider', $identity['provider'])->exists()) {
             throw new \RuntimeException('OAuth account already linked');
         }

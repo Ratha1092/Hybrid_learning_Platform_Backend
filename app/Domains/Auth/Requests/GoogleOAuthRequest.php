@@ -15,6 +15,7 @@ class GoogleOAuthRequest extends FormRequest
     {
         return [
             'id_token' => ['required', 'string'],
+            'nonce' => ['required', 'string', 'max:255'],
         ];
     }
 }

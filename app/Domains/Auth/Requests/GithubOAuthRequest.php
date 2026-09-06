@@ -15,6 +15,7 @@ class GithubOAuthRequest extends FormRequest
     {
         return [
             'code' => ['required', 'string'],
+            'code_verifier' => ['required', 'string', 'max:128'],
         ];
     }
 }

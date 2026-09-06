@@ -21,7 +21,7 @@ class GoogleTokenVerifier
      * Throws RuntimeException if the token is missing, expired, forged, or
      * not verified for this app.
      */
-    public function verify(string $idToken): array
+    public function verify(string $idToken, ?string $expectedNonce = null): array
     {
         $clientId = config('services.google.client_id');
 
@@ -37,6 +37,10 @@ class GoogleTokenVerifier
 
         if (($payload['aud'] ?? null) !== $clientId) {
             throw new RuntimeException('Invalid Google sign-in token.');
+        }
+
+        if ($expectedNonce !== null && ($payload['nonce'] ?? null) !== $expectedNonce) {
+            throw new RuntimeException('Invalid Google sign-in session. Please try again.');
         }
 
         if (empty($payload['sub'])) {

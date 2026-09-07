@@ -15,6 +15,11 @@ class NotificationController extends Controller
 
         $notifications = $user
             ->notifications()
+            ->where(function ($query) {
+                $query
+                    ->where('data->format', '!=', 'filament')
+                    ->orWhereNull('data->format');
+            })
             ->latest()
             ->paginate(20)
             ->through(
@@ -45,7 +50,14 @@ class NotificationController extends Controller
 
         return ApiResponse::success([
             'notifications' => $notifications,
-            'unread_count' => $user->unreadNotifications()->count(),
+            'unread_count' => $user
+                ->unreadNotifications()
+                ->where(function ($query) {
+                    $query
+                        ->where('data->format', '!=', 'filament')
+                        ->orWhereNull('data->format');
+                })
+                ->count(),
         ], 'Notifications retrieved successfully');
     }
 

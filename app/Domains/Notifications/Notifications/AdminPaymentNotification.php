@@ -16,7 +16,7 @@ class AdminPaymentNotification extends Notification
 
     public function via(object $notifiable): array
     {
-        return \App\Domains\Notifications\Support\NotificationChannels::standard();
+        return ['database'];
     }
 
     public function toBroadcast(object $notifiable): BroadcastMessage

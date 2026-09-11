@@ -38,631 +38,600 @@
         wire:poll.30s
     @endif
 >
-    <style>
-        .hl-payout-page {
-            width: 100%;
-            color: rgb(226 232 240);
-        }
-        .hl-payout-page * {
-            box-sizing: border-box;
-        }
-        .hl-payout-header {
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            gap: 20px;
-            margin-bottom: 24px;
-        }
-        .hl-payout-title {
-            font-size: 26px;
-            font-weight: 750;
-            line-height: 1.2;
-            letter-spacing: -0.02em;
-        }
-        .hl-payout-subtitle {
-            margin-top: 6px;
-            color: rgb(100 116 139);
-            font-size: 13px;
-        }
-        .hl-payout-refresh {
-            display: inline-flex;
-            align-items: center;
-            gap: 7px;
-            border: 1px solid rgba(148,163,184,.15);
-            background: rgba(30,41,59,.8);
-            color: rgb(203 213 225);
-            border-radius: 9px;
-            padding: 9px 13px;
-            font-size: 12px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: .15s ease;
-        }
-        .hl-payout-refresh:hover {
-            background: rgba(51,65,85,.9);
-            border-color: rgba(148,163,184,.25);
-        }
-        .hl-payout-tabs-card {
-            background: rgb(15 23 42 / .72);
-            border: 1px solid rgba(148,163,184,.12);
-            border-radius: 14px;
-            overflow: hidden;
-        }
-
-        .hl-payout-toolbar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 14px;
-            padding: 14px 16px;
-            border-bottom: 1px solid rgba(148,163,184,.10);
-            flex-wrap: wrap;
-        }
-
-        .hl-payout-tabs {
-            display: flex;
-            gap: 5px;
-            flex-wrap: wrap;
-        }
-
-        .hl-payout-tab {
-            display: inline-flex;
-            align-items: center;
-            gap: 7px;
-            border: 1px solid transparent;
-            background: transparent;
-            color: rgb(100 116 139);
-            padding: 7px 12px;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: 700;
-            cursor: pointer;
-        }
-
-        .hl-payout-tab:hover {
-            color: rgb(226 232 240);
-            background: rgba(51,65,85,.45);
-        }
-
-        .hl-payout-tab.active {
-            background: rgba(37,99,235,.15);
-            color: rgb(96 165 250);
-            border-color: rgba(37,99,235,.20);
-        }
-
-        .hl-payout-count {
-            min-width: 19px;
-            height: 19px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0 5px;
-            border-radius: 6px;
-            font-size: 10px;
-            font-weight: 800;
-            background: rgba(148,163,184,.12);
-        }
-
-        .hl-payout-search {
-            width: 250px;
-            max-width: 100%;
-        }
-
-        .hl-payout-search input {
-            width: 100%;
-            height: 36px;
-            padding: 0 12px;
-            border-radius: 8px;
-            border: 1px solid rgba(148,163,184,.15);
-            background: rgba(15,23,42,.85);
-            color: rgb(226 232 240);
-            outline: none;
-            font-size: 12px;
-        }
-
-        .hl-payout-search input:focus {
-            border-color: rgba(37,99,235,.6);
-        }
-
-        .hl-payout-table-wrap {
-            overflow-x: auto;
-        }
-
-        .hl-payout-table {
-            width: 100%;
-            min-width: 900px;
-            border-collapse: collapse;
-        }
-
-        .hl-payout-table th {
-            padding: 12px 15px;
-            text-align: left;
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: .07em;
-            font-weight: 800;
-            color: rgb(100 116 139);
-            border-bottom: 1px solid rgba(148,163,184,.10);
-            white-space: nowrap;
-        }
-
-        .hl-payout-table td {
-            padding: 14px 15px;
-            border-bottom: 1px solid rgba(148,163,184,.08);
-            vertical-align: middle;
-        }
-
-        .hl-payout-table tbody tr {
-            transition: background .12s ease;
-        }
-
-        .hl-payout-table tbody tr:hover {
-            background: rgba(51,65,85,.25);
-        }
-
-        .hl-payout-id {
-            color: rgb(148 163 184);
-            font-size: 11px;
-            font-weight: 700;
-        }
-
-        .hl-payout-user {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
-
-        .hl-payout-user-name {
-            color: rgb(226 232 240);
-            font-size: 12.5px;
-            font-weight: 700;
-        }
-
-        .hl-payout-user-email {
-            color: rgb(100 116 139);
-            font-size: 11px;
-        }
-
-        .hl-payout-amount {
-            color: rgb(248 250 252);
-            font-size: 13px;
-            font-weight: 800;
-        }
-
-        .hl-payout-method {
-            color: rgb(148 163 184);
-            text-transform: uppercase;
-            font-size: 11px;
-            font-weight: 700;
-        }
-
-        .hl-payout-date {
-            color: rgb(148 163 184);
-            font-size: 11px;
-            white-space: nowrap;
-        }
-
-        .hl-payout-status {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 5px 9px;
-            border-radius: 7px;
-            font-size: 10.5px;
-            font-weight: 800;
-            white-space: nowrap;
-        }
-
-        .hl-payout-status-dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 999px;
-        }
-
-        .hl-payout-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 5px;
-        }
-
-        .hl-payout-action {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-            height: 32px;
-            border-radius: 8px;
-            padding: 0 9px;
-            font-size: 11px;
-            font-weight: 800;
-            border: 1px solid transparent;
-            cursor: pointer;
-            transition: .15s ease;
-        }
-
-        .hl-payout-view {
-            color: rgb(147 197 253);
-            background: rgba(37,99,235,.10);
-            border-color: rgba(37,99,235,.18);
-        }
-
-        .hl-payout-view:hover {
-            background: rgba(37,99,235,.18);
-        }
-
-        .hl-payout-approve {
-            color: rgb(52 211 153);
-            background: rgba(16,185,129,.10);
-            border-color: rgba(16,185,129,.18);
-        }
-
-        .hl-payout-approve:hover {
-            background: rgba(16,185,129,.18);
-        }
-
-        .hl-payout-reject {
-            color: rgb(248 113 113);
-            background: rgba(239,68,68,.10);
-            border-color: rgba(239,68,68,.18);
-        }
-
-        .hl-payout-reject:hover {
-            background: rgba(239,68,68,.18);
-        }
-
-        .hl-payout-empty {
-            padding: 60px 20px;
-            text-align: center;
-            color: rgb(100 116 139);
-        }
-
-        .hl-payout-empty strong {
-            display: block;
-            color: rgb(203 213 225);
-            margin-bottom: 5px;
-            font-size: 13px;
-        }
-
-        .hl-payout-footer {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            padding: 13px 15px;
-            color: rgb(100 116 139);
-            font-size: 11px;
-            flex-wrap: wrap;
-        }
-
-        .hl-payout-pages {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .hl-payout-page-btn {
-            min-width: 30px;
-            height: 30px;
-            padding: 0 8px;
-            border-radius: 7px;
-            border: 1px solid rgba(148,163,184,.12);
-            background: rgba(30,41,59,.55);
-            color: rgb(148 163 184);
-            font-size: 11px;
-            font-weight: 700;
-            cursor: pointer;
-        }
-
-        .hl-payout-page-btn:hover:not(:disabled) {
-            color: white;
-            background: rgba(51,65,85,.8);
-        }
-
-        .hl-payout-page-btn:disabled {
-            opacity: .35;
-            cursor: not-allowed;
-        }
-
-        .hl-payout-page-btn.active {
-            background: rgb(37 99 235);
-            border-color: rgb(37 99 235);
-            color: white;
-        }
-
-        /*
-        
-        | Modal
-        
-        */
-
-        .hl-payout-modal {
-            position: fixed;
-            inset: 0;
-            z-index: 99999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 24px;
-        }
-
-        .hl-payout-modal-backdrop {
-            position: absolute;
-            inset: 0;
-            background: rgba(2,6,23,.68);
-        }
-
-        .hl-payout-modal-panel {
-            position: relative;
-            z-index: 1;
-            width: 100%;
-            max-width: 760px;
-            max-height: calc(100vh - 48px);
-            overflow-y: auto;
-            border-radius: 16px;
-            border: 1px solid rgba(148,163,184,.18);
-            background: rgb(15 23 42);
-            box-shadow:
-                0 25px 80px rgba(0,0,0,.55);
-        }
-
-        .hl-payout-modal-header {
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            gap: 15px;
-            padding: 20px 22px;
-            border-bottom: 1px solid rgba(148,163,184,.10);
-        }
-
-        .hl-payout-modal-title {
-            color: rgb(248 250 252);
-            font-size: 16px;
-            font-weight: 800;
-        }
-
-        .hl-payout-modal-subtitle {
-            margin-top: 4px;
-            color: rgb(100 116 139);
-            font-size: 11px;
-        }
-
-        .hl-payout-close {
-            width: 32px;
-            height: 32px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 8px;
-            border: 1px solid rgba(148,163,184,.12);
-            background: rgba(30,41,59,.65);
-            color: rgb(148 163 184);
-            cursor: pointer;
-            font-size: 17px;
-        }
-
-        .hl-payout-close:hover {
-            color: white;
-            background: rgba(51,65,85,.8);
-        }
-
-        .hl-payout-modal-body {
-            padding: 22px;
-        }
-
-        .hl-payout-summary {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 10px;
-            margin-bottom: 18px;
-        }
-
-        .hl-payout-summary-card {
-            padding: 14px;
-            border-radius: 11px;
-            border: 1px solid rgba(148,163,184,.10);
-            background: rgba(30,41,59,.55);
-        }
-
-        .hl-payout-summary-label {
-            color: rgb(100 116 139);
-            font-size: 9px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: .07em;
-        }
-
-        .hl-payout-summary-value {
-            margin-top: 5px;
-            color: rgb(241 245 249);
-            font-size: 14px;
-            font-weight: 800;
-        }
-
-        .hl-payout-section {
-            margin-top: 15px;
-            padding: 17px;
-            border-radius: 12px;
-            border: 1px solid rgba(148,163,184,.10);
-            background: rgba(30,41,59,.42);
-        }
-
-        .hl-payout-section-title {
-            margin-bottom: 14px;
-            color: rgb(226 232 240);
-            font-size: 12px;
-            font-weight: 800;
-        }
-
-        .hl-payout-info-grid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 14px;
-        }
-
-        .hl-payout-info-label {
-            color: rgb(100 116 139);
-            font-size: 9px;
-            text-transform: uppercase;
-            letter-spacing: .07em;
-            font-weight: 800;
-        }
-
-        .hl-payout-info-value {
-            margin-top: 4px;
-            color: rgb(226 232 240);
-            font-size: 12px;
-            word-break: break-word;
-        }
-
-        .hl-payout-destination {
-            display: grid;
-            grid-template-columns: 1fr 240px;
-            gap: 22px;
-            align-items: start;
-        }
-
-        .hl-payout-qr {
-            width: 100%;
-            max-width: 230px;
-            margin: 0 auto;
-            border-radius: 10px;
-            padding: 10px;
-            background: white;
-            border: 1px solid rgba(148,163,184,.2);
-        }
-
-        .hl-payout-no-qr {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 180px;
-            border-radius: 10px;
-            border: 1px dashed rgba(148,163,184,.18);
-            color: rgb(100 116 139);
-            font-size: 11px;
-            text-align: center;
-        }
-
-        .hl-payout-payment-warning {
-            margin-top: 15px;
-            padding: 12px 14px;
-            border-radius: 9px;
-            border: 1px solid rgba(245,158,11,.20);
-            background: rgba(245,158,11,.08);
-            color: rgb(251 191 36);
-            font-size: 11px;
-            line-height: 1.5;
-        }
-
-        .hl-payout-modal-footer {
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            gap: 8px;
-            padding: 16px 22px;
-            border-top: 1px solid rgba(148,163,184,.10);
-        }
-
-        .hl-payout-btn {
-            min-height: 36px;
-            padding: 0 14px;
-            border-radius: 8px;
-            border: 1px solid transparent;
-            font-size: 11px;
-            font-weight: 800;
-            cursor: pointer;
-        }
-
-        .hl-payout-btn-secondary {
-            background: rgba(51,65,85,.55);
-            border-color: rgba(148,163,184,.12);
-            color: rgb(203,213,225);
-        }
-
-        .hl-payout-btn-secondary:hover {
-            background: rgba(71,85,105,.75);
-        }
-
-        .hl-payout-btn-success {
-            background: rgb(16 185 129);
-            color: white;
-        }
-
-        .hl-payout-btn-success:hover {
-            background: rgb(5 150 105);
-        }
-
-        .hl-payout-btn-danger {
-            background: rgb(220 38 38);
-            color: white;
-        }
-
-        .hl-payout-btn-danger:hover {
-            background: rgb(185 28 28);
-        }
-
-        .hl-payout-input-label {
-            display: block;
-            margin-bottom: 7px;
-            color: rgb(148 163 184);
-            font-size: 10px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: .07em;
-        }
-
-        .hl-payout-input,
-        .hl-payout-textarea {
-            width: 100%;
-            border: 1px solid rgba(148,163,184,.16);
-            border-radius: 9px;
-            background: rgb(15 23 42);
-            color: rgb(226 232 240);
-            outline: none;
-            font-size: 12px;
-        }
-
-        .hl-payout-input {
-            height: 42px;
-            padding: 0 12px;
-        }
-
-        .hl-payout-textarea {
-            min-height: 110px;
-            padding: 11px 12px;
-            resize: vertical;
-        }
-
-        .hl-payout-input:focus,
-        .hl-payout-textarea:focus {
-            border-color: rgba(37,99,235,.65);
-        }
-
-        .hl-payout-help {
-            margin-top: 7px;
-            color: rgb(100 116 139);
-            font-size: 10px;
-            line-height: 1.5;
-        }
-
-        @media (max-width: 800px) {
-            .hl-payout-summary {
-                grid-template-columns: 1fr;
-            }
-
-            .hl-payout-destination {
-                grid-template-columns: 1fr;
-            }
-
-            .hl-payout-info-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .hl-payout-header {
-                flex-direction: column;
-            }
-        }
-    </style>
+<style>
+.hl-payout-page,.hl-payout-page *,.hl-payout-page *::before,.hl-payout-page *::after{box-sizing:border-box}
+.hl-payout-page{
+    width:100%;
+    padding-bottom:32px;
+    color:var(--hl-payout-text);
+    --hl-payout-bg:#0f172a;
+    --hl-payout-card:#1e293b;
+    --hl-payout-card-2:#263245;
+    --hl-payout-card-3:#334155;
+    --hl-payout-border:rgba(255,255,255,.08);
+    --hl-payout-border-strong:rgba(255,255,255,.14);
+    --hl-payout-text:#e2e8f0;
+    --hl-payout-text-strong:#f8fafc;
+    --hl-payout-muted:#64748b;
+    --hl-payout-muted-2:#94a3b8;
+    --hl-payout-input:#0f172a;
+    --hl-payout-hover:rgba(51,65,85,.35);
+    --hl-payout-shadow:0 25px 80px rgba(0,0,0,.45);
+    --hl-payout-accent:#2563eb;
+}
+html:not(.dark) .hl-payout-page{
+    --hl-payout-bg:#f1f5f9;
+    --hl-payout-card:#ffffff;
+    --hl-payout-card-2:#f8fafc;
+    --hl-payout-card-3:#e2e8f0;
+    --hl-payout-border:rgba(15,23,42,.10);
+    --hl-payout-border-strong:rgba(15,23,42,.18);
+    --hl-payout-text:#334155;
+    --hl-payout-text-strong:#0f172a;
+    --hl-payout-muted:#64748b;
+    --hl-payout-muted-2:#64748b;
+    --hl-payout-input:#ffffff;
+    --hl-payout-hover:#f8fafc;
+    --hl-payout-shadow:0 25px 80px rgba(15,23,42,.20);
+}
+.hl-payout-header{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:20px;
+    margin-bottom:24px;
+}
+.hl-payout-title{
+    margin:0;
+    font-size:26px;
+    font-weight:750;
+    line-height:1.2;
+    letter-spacing:-.02em;
+    color:var(--hl-payout-text-strong);
+}
+.hl-payout-subtitle{
+    margin:6px 0 0;
+    color:var(--hl-payout-muted);
+    font-size:13px;
+}
+.hl-payout-refresh{
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    border:1px solid var(--hl-payout-border-strong);
+    background:var(--hl-payout-card);
+    color:var(--hl-payout-text);
+    border-radius:9px;
+    padding:9px 13px;
+    font-size:12px;
+    font-weight:700;
+    cursor:pointer;
+    transition:.15s ease;
+}
+.hl-payout-refresh:hover{
+    background:var(--hl-payout-card-2);
+    border-color:var(--hl-payout-border-strong);
+}
+.hl-payout-tabs-card{
+    background:var(--hl-payout-card);
+    border:1px solid var(--hl-payout-border);
+    border-radius:14px;
+    overflow:hidden;
+    box-shadow:0 1px 2px rgba(15,23,42,.04);
+}
+.hl-payout-toolbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:14px;
+    padding:14px 16px;
+    border-bottom:1px solid var(--hl-payout-border);
+    flex-wrap:wrap;
+}
+.hl-payout-tabs{
+    display:flex;
+    gap:5px;
+    flex-wrap:wrap;
+}
+.hl-payout-tab{
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    border:1px solid transparent;
+    background:transparent;
+    color:var(--hl-payout-muted);
+    padding:7px 12px;
+    border-radius:8px;
+    font-size:12px;
+    font-weight:700;
+    cursor:pointer;
+    transition:.15s ease;
+}
+.hl-payout-tab:hover{
+    color:var(--hl-payout-text-strong);
+    background:var(--hl-payout-hover);
+}
+.hl-payout-tab.active{
+    background:rgba(37,99,235,.12);
+    color:#2563eb;
+    border-color:rgba(37,99,235,.18);
+}
+.dark .hl-payout-tab.active{
+    color:#60a5fa;
+}
+.hl-payout-count{
+    min-width:19px;
+    height:19px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:0 5px;
+    border-radius:6px;
+    font-size:10px;
+    font-weight:800;
+    background:var(--hl-payout-card-2);
+}
+.hl-payout-search{
+    width:250px;
+    max-width:100%;
+}
+.hl-payout-search input{
+    width:100%;
+    height:36px;
+    padding:0 12px;
+    border-radius:8px;
+    border:1px solid var(--hl-payout-border-strong);
+    background:var(--hl-payout-input);
+    color:var(--hl-payout-text-strong);
+    outline:none;
+    font-size:12px;
+}
+.hl-payout-search input::placeholder{
+    color:var(--hl-payout-muted);
+}
+.hl-payout-search input:focus{
+    border-color:rgba(37,99,235,.6);
+    box-shadow:0 0 0 3px rgba(37,99,235,.08);
+}
+.hl-payout-table-wrap{
+    overflow-x:auto;
+}
+.hl-payout-table{
+    width:100%;
+    min-width:900px;
+    border-collapse:collapse;
+}
+.hl-payout-table th{
+    padding:12px 15px;
+    text-align:left;
+    font-size:10px;
+    text-transform:uppercase;
+    letter-spacing:.07em;
+    font-weight:800;
+    color:var(--hl-payout-muted);
+    border-bottom:1px solid var(--hl-payout-border);
+    white-space:nowrap;
+}
+.hl-payout-table td{
+    padding:14px 15px;
+    border-bottom:1px solid var(--hl-payout-border);
+    vertical-align:middle;
+}
+.hl-payout-table tbody tr{
+    transition:background .12s ease;
+}
+.hl-payout-table tbody tr:hover{
+    background:var(--hl-payout-hover);
+}
+.hl-payout-id{
+    color:var(--hl-payout-muted-2);
+    font-size:11px;
+    font-weight:700;
+}
+.hl-payout-user{
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+}
+.hl-payout-user-name{
+    color:var(--hl-payout-text-strong);
+    font-size:12.5px;
+    font-weight:700;
+}
+.hl-payout-user-email{
+    color:var(--hl-payout-muted);
+    font-size:11px;
+}
+.hl-payout-amount{
+    color:var(--hl-payout-text-strong);
+    font-size:13px;
+    font-weight:800;
+}
+.hl-payout-method{
+    color:var(--hl-payout-muted-2);
+    text-transform:uppercase;
+    font-size:11px;
+    font-weight:700;
+}
+.hl-payout-date{
+    color:var(--hl-payout-muted-2);
+    font-size:11px;
+    white-space:nowrap;
+}
+.hl-payout-status{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:5px 9px;
+    border-radius:7px;
+    font-size:10.5px;
+    font-weight:800;
+    white-space:nowrap;
+}
+.hl-payout-status-dot{
+    width:6px;
+    height:6px;
+    border-radius:999px;
+}
+.hl-payout-actions{
+    display:flex;
+    justify-content:flex-end;
+    gap:5px;
+}
+.hl-payout-action{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:5px;
+    height:32px;
+    border-radius:8px;
+    padding:0 9px;
+    font-size:11px;
+    font-weight:800;
+    border:1px solid transparent;
+    cursor:pointer;
+    transition:.15s ease;
+}
+.hl-payout-view{
+    color:#2563eb;
+    background:rgba(37,99,235,.08);
+    border-color:rgba(37,99,235,.16);
+}
+.dark .hl-payout-view{
+    color:#93c5fd;
+    background:rgba(37,99,235,.10);
+    border-color:rgba(37,99,235,.18);
+}
+.hl-payout-view:hover{
+    background:rgba(37,99,235,.16);
+}
+.hl-payout-approve{
+    color:#059669;
+    background:rgba(16,185,129,.08);
+    border-color:rgba(16,185,129,.18);
+}
+.dark .hl-payout-approve{
+    color:#34d399;
+    background:rgba(16,185,129,.10);
+}
+.hl-payout-approve:hover{
+    background:rgba(16,185,129,.16);
+}
+.hl-payout-reject{
+    color:#dc2626;
+    background:rgba(239,68,68,.08);
+    border-color:rgba(239,68,68,.16);
+}
+.dark .hl-payout-reject{
+    color:#f87171;
+    background:rgba(239,68,68,.10);
+}
+.hl-payout-reject:hover{
+    background:rgba(239,68,68,.16);
+}
+.hl-payout-empty{
+    padding:60px 20px;
+    text-align:center;
+    color:var(--hl-payout-muted);
+}
+.hl-payout-empty strong{
+    display:block;
+    color:var(--hl-payout-text-strong);
+    margin-bottom:5px;
+    font-size:13px;
+}
+.hl-payout-footer{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    padding:13px 15px;
+    color:var(--hl-payout-muted);
+    font-size:11px;
+    flex-wrap:wrap;
+}
+.hl-payout-pages{
+    display:flex;
+    align-items:center;
+    gap:5px;
+}
+.hl-payout-page-btn{
+    min-width:30px;
+    height:30px;
+    padding:0 8px;
+    border-radius:7px;
+    border:1px solid var(--hl-payout-border-strong);
+    background:var(--hl-payout-card-2);
+    color:var(--hl-payout-muted-2);
+    font-size:11px;
+    font-weight:700;
+    cursor:pointer;
+}
+.hl-payout-page-btn:hover:not(:disabled){
+    color:var(--hl-payout-text-strong);
+    background:var(--hl-payout-card-3);
+}
+.hl-payout-page-btn:disabled{
+    opacity:.35;
+    cursor:not-allowed;
+}
+.hl-payout-page-btn.active{
+    background:#2563eb;
+    border-color:#2563eb;
+    color:white;
+}
+.hl-payout-modal{
+    position:fixed;
+    inset:0;
+    z-index:99999;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+}
+.hl-payout-modal-backdrop{
+    position:absolute;
+    inset:0;
+    background:rgba(2,6,23,.68);
+}
+html:not(.dark) .hl-payout-modal-backdrop{
+    background:rgba(15,23,42,.45);
+}
+.hl-payout-modal-panel{
+    position:relative;
+    z-index:1;
+    width:100%;
+    max-width:760px;
+    max-height:calc(100vh - 48px);
+    overflow-y:auto;
+    border-radius:16px;
+    border:1px solid var(--hl-payout-border-strong);
+    background:var(--hl-payout-card);
+    box-shadow:var(--hl-payout-shadow);
+}
+.hl-payout-modal-header{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:15px;
+    padding:20px 22px;
+    border-bottom:1px solid var(--hl-payout-border);
+}
+.hl-payout-modal-title{
+    color:var(--hl-payout-text-strong);
+    font-size:16px;
+    font-weight:800;
+}
+.hl-payout-modal-subtitle{
+    margin-top:4px;
+    color:var(--hl-payout-muted);
+    font-size:11px;
+}
+.hl-payout-close{
+    width:32px;
+    height:32px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:8px;
+    border:1px solid var(--hl-payout-border-strong);
+    background:var(--hl-payout-card-2);
+    color:var(--hl-payout-muted-2);
+    cursor:pointer;
+    font-size:17px;
+}
+.hl-payout-close:hover{
+    color:var(--hl-payout-text-strong);
+    background:var(--hl-payout-card-3);
+}
+.hl-payout-modal-body{
+    padding:22px;
+}
+.hl-payout-summary{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:10px;
+    margin-bottom:18px;
+}
+.hl-payout-summary-card{
+    padding:14px;
+    border-radius:11px;
+    border:1px solid var(--hl-payout-border);
+    background:var(--hl-payout-card-2);
+}
+.hl-payout-summary-label{
+    color:var(--hl-payout-muted);
+    font-size:9px;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:.07em;
+}
+.hl-payout-summary-value{
+    margin-top:5px;
+    color:var(--hl-payout-text-strong);
+    font-size:14px;
+    font-weight:800;
+}
+.hl-payout-section{
+    margin-top:15px;
+    padding:17px;
+    border-radius:12px;
+    border:1px solid var(--hl-payout-border);
+    background:var(--hl-payout-card-2);
+}
+.hl-payout-section-title{
+    margin-bottom:14px;
+    color:var(--hl-payout-text-strong);
+    font-size:12px;
+    font-weight:800;
+}
+.hl-payout-info-grid{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:14px;
+}
+.hl-payout-info-label{
+    color:var(--hl-payout-muted);
+    font-size:9px;
+    text-transform:uppercase;
+    letter-spacing:.07em;
+    font-weight:800;
+}
+.hl-payout-info-value{
+    margin-top:4px;
+    color:var(--hl-payout-text);
+    font-size:12px;
+    word-break:break-word;
+}
+.hl-payout-destination{
+    display:grid;
+    grid-template-columns:1fr 240px;
+    gap:22px;
+    align-items:start;
+}
+.hl-payout-qr{
+    width:100%;
+    max-width:230px;
+    margin:0 auto;
+    display:block;
+    border-radius:10px;
+    padding:10px;
+    background:white;
+    border:1px solid var(--hl-payout-border-strong);
+}
+.hl-payout-no-qr{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:180px;
+    border-radius:10px;
+    border:1px dashed var(--hl-payout-border-strong);
+    color:var(--hl-payout-muted);
+    font-size:11px;
+    text-align:center;
+}
+.hl-payout-payment-warning{
+    margin-top:15px;
+    padding:12px 14px;
+    border-radius:9px;
+    border:1px solid rgba(245,158,11,.20);
+    background:rgba(245,158,11,.08);
+    color:#b45309;
+    font-size:11px;
+    line-height:1.5;
+}
+.dark .hl-payout-payment-warning{
+    color:#fbbf24;
+}
+.hl-payout-modal-footer{
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    gap:8px;
+    padding:16px 22px;
+    border-top:1px solid var(--hl-payout-border);
+}
+.hl-payout-btn{
+    min-height:36px;
+    padding:0 14px;
+    border-radius:8px;
+    border:1px solid transparent;
+    font-size:11px;
+    font-weight:800;
+    cursor:pointer;
+}
+.hl-payout-btn-secondary{
+    background:var(--hl-payout-card-3);
+    border-color:var(--hl-payout-border-strong);
+    color:var(--hl-payout-text);
+}
+html:not(.dark) .hl-payout-btn-secondary{
+    background:var(--hl-payout-card);
+}
+.hl-payout-btn-secondary:hover{
+    background:var(--hl-payout-card-3);
+}
+.hl-payout-btn-success{
+    background:#10b981;
+    color:white;
+}
+.hl-payout-btn-success:hover{
+    background:#059669;
+}
+.hl-payout-btn-danger{
+    background:#dc2626;
+    color:white;
+}
+.hl-payout-btn-danger:hover{
+    background:#b91c1c;
+}
+.hl-payout-input-label{
+    display:block;
+    margin-bottom:7px;
+    color:var(--hl-payout-muted-2);
+    font-size:10px;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:.07em;
+}
+.hl-payout-input,.hl-payout-textarea{
+    width:100%;
+    border:1px solid var(--hl-payout-border-strong);
+    border-radius:9px;
+    background:var(--hl-payout-input);
+    color:var(--hl-payout-text-strong);
+    outline:none;
+    font-size:12px;
+}
+.hl-payout-input{
+    height:42px;
+    padding:0 12px;
+}
+.hl-payout-textarea{
+    min-height:110px;
+    padding:11px 12px;
+    resize:vertical;
+}
+.hl-payout-input::placeholder,.hl-payout-textarea::placeholder{
+    color:var(--hl-payout-muted);
+}
+.hl-payout-input:focus,.hl-payout-textarea:focus{
+    border-color:rgba(37,99,235,.65);
+    box-shadow:0 0 0 3px rgba(37,99,235,.08);
+}
+.hl-payout-help{
+    margin-top:7px;
+    color:var(--hl-payout-muted);
+    font-size:10px;
+    line-height:1.5;
+}
+@media(max-width:800px){
+    .hl-payout-summary{grid-template-columns:1fr}
+    .hl-payout-destination{grid-template-columns:1fr}
+    .hl-payout-info-grid{grid-template-columns:1fr}
+    .hl-payout-header{flex-direction:column}
+}
+</style>
 
 
     {{--PAGE HEADER --}}

@@ -9,12 +9,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
 
-/**
- * Smoke test for the custom Filament admin pages touched by the wire:key
- * sweep — confirms each still renders (200, no server-side exception) with
- * a real row present, since a bad wire:key expression (undefined variable,
- * wrong loop var) would only surface at render time, not at blade-compile time.
- */
+
 class AdminPagesRenderTest extends TestCase
 {
     use RefreshDatabase;

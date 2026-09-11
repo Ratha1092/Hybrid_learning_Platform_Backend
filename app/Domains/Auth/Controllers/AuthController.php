@@ -17,7 +17,6 @@ class AuthController extends Controller
     public function register(RegisterRequest $request)
     {
         $data = $this->authService->register($request->validated());
-
         return ApiResponse::success($data, 'User registered successfully', 201);
     }
 
@@ -28,7 +27,6 @@ class AuthController extends Controller
         } catch (ValidationException $exception) {
             $errors = $exception->errors();
             $message = collect($errors)->flatten()->first() ?? 'Invalid credentials';
-
             return ApiResponse::error($message, 400, $errors);
         }
 

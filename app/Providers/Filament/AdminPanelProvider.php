@@ -432,8 +432,6 @@ class AdminPanelProvider extends PanelProvider
                         document.documentElement.style.setProperty('--hl-dot-dur', '0ms');
                         document.documentElement.style.setProperty('--hl-sidebar-dur', '0ms');
                         hlFreezeSidebar();
-                        // Keep sidebar nav visible during the network round-trip so it
-                        // doesn't look like it "reset" while waiting for the new page.
                         var main = document.querySelector('.fi-main');
                         if (main) {
                             main.classList.remove('hl-page-entering');

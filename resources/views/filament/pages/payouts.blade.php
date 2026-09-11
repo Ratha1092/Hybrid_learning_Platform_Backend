@@ -1,854 +1,1365 @@
 @php
-    $accent = '#2563eb';
+    $statusStyle = fn ($status) => match ($status) {
+        'pending' => [
+            'bg' => 'rgba(245,158,11,.12)',
+            'color' => '#f59e0b',
+            'label' => 'Pending',
+        ],
 
-    $statusStyle = fn($status) => match($status) {
-        'pending'  => ['bg' => 'rgba(251,191,36,.12)',  'color' => '#fbbf24', 'label' => 'Pending'],
-        'approved' => ['bg' => 'rgba(52,211,153,.12)',  'color' => '#34d399', 'label' => 'Approved'],
-        'rejected' => ['bg' => 'rgba(248,113,113,.12)', 'color' => '#f87171', 'label' => 'Rejected'],
-        default    => ['bg' => 'rgba(148,163,184,.1)',  'color' => '#94a3b8', 'label' => ucfirst($status ?? '—')],
+        'approved' => [
+            'bg' => 'rgba(16,185,129,.12)',
+            'color' => '#10b981',
+            'label' => 'Completed',
+        ],
+
+        'rejected' => [
+            'bg' => 'rgba(239,68,68,.12)',
+            'color' => '#ef4444',
+            'label' => 'Rejected',
+        ],
+
+        default => [
+            'bg' => 'rgba(148,163,184,.12)',
+            'color' => '#94a3b8',
+            'label' => ucfirst($status ?? 'Unknown'),
+        ],
     };
+
+    $selectedAccount = $selectedPayout?->payoutAccount;
+    $selectedQr = $selectedAccount?->qr_code_url;
+    $selectedDetails = $selectedPayout?->details ?? [];
+    $currency = fn ($amount, $code) =>
+        number_format((float) $amount, 2) . ' ' . strtoupper($code ?: 'USD');
 @endphp
 
-<div wire:poll.30s>
-<div class="po" id="po-payouts" style="--accent:{{ $accent }};">
+<div
+    class="hl-payout-page"
+    @if(!$modal)
+        wire:poll.30s
+    @endif
+>
+    <style>
+        .hl-payout-page {
+            width: 100%;
+            color: rgb(226 232 240);
+        }
+        .hl-payout-page * {
+            box-sizing: border-box;
+        }
+        .hl-payout-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+        .hl-payout-title {
+            font-size: 26px;
+            font-weight: 750;
+            line-height: 1.2;
+            letter-spacing: -0.02em;
+        }
+        .hl-payout-subtitle {
+            margin-top: 6px;
+            color: rgb(100 116 139);
+            font-size: 13px;
+        }
+        .hl-payout-refresh {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            border: 1px solid rgba(148,163,184,.15);
+            background: rgba(30,41,59,.8);
+            color: rgb(203 213 225);
+            border-radius: 9px;
+            padding: 9px 13px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: .15s ease;
+        }
+        .hl-payout-refresh:hover {
+            background: rgba(51,65,85,.9);
+            border-color: rgba(148,163,184,.25);
+        }
+        .hl-payout-tabs-card {
+            background: rgb(15 23 42 / .72);
+            border: 1px solid rgba(148,163,184,.12);
+            border-radius: 14px;
+            overflow: hidden;
+        }
 
-<style>
-.po, .po *, .po *::before, .po *::after {
-    box-sizing:border-box;
-    margin:0;
-    padding:0;
-}
-.po {
-    font-family:Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-    font-size:13px;
-    line-height:1.5;
-    padding-bottom:48px;
-    display:grid;
-    gap:20px;
-    --bg:#0f172a;
-    --p1:#1e293b;
-    --p2:#263245;
-    --bd:rgba(255,255,255,.07);
-    --bd2:rgba(255,255,255,.13);
-    --t1:#e2e8f0;
-    --t2:#64748b;
-    --t3:#334155;
-    --sh:0 4px 24px rgba(0,0,0,.3);
-    color:var(--t1);
-}
-html:not(.dark) .po {
-    --bg:#f1f5f9;
-    --p1:#ffffff;
-    --p2:#f8fafc;
-    --bd:rgba(15,23,42,.13);
-    --bd2:rgba(15,23,42,.20);
-    --t1:#0f172a;
-    --t2:#64748b;
-    --t3:#cbd5e1;
-    --sh:0 2px 16px rgba(15,23,42,.1);
-}
-@keyframes poUp {
-    from {
-        opacity:0;
-        transform:translateY(12px);
-    }
-    to {
-        opacity:1;
-        transform:none;
-    }
-}
-.poa {
-    opacity:0;
-    animation:poUp .45s cubic-bezier(.16,1,.3,1) forwards;
-}
-.po1 {
-    animation-delay:.04s;
-}
-.po2 {
-    animation-delay:.09s;
-}
+        .hl-payout-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            padding: 14px 16px;
+            border-bottom: 1px solid rgba(148,163,184,.10);
+            flex-wrap: wrap;
+        }
 
-.po-header {
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:16px;
-    flex-wrap:wrap;
-    padding-bottom:20px;
-    border-bottom:1px solid var(--bd);
-}
-.po-header-text h1 {
-    font-size:clamp(20px,2.2vw,26px);
-    font-weight:780;
-    letter-spacing:-.018em;
-    color:var(--t1);
-    line-height:1.15;
-}
-.po-header-text p {
-    font-size:12px;
-    color:var(--t2);
-    margin-top:5px;
-}
+        .hl-payout-tabs {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
 
-.po-card {
-    background:var(--p1);
-    border:1px solid var(--bd);
-    border-radius:12px;
-    overflow:hidden;
-    box-shadow:var(--sh);
-    min-width:0;
-}
-.po-toolbar {
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:12px;
-    padding:14px 16px;
-    border-bottom:1px solid var(--bd);
-    flex-wrap:wrap;
-}
-.po-tabs {
-    display:flex;
-    align-items:center;
-    gap:4px;
-    flex-wrap:wrap;
-}
-.po-tab {
-    display:inline-flex;
-    align-items:center;
-    gap:6px;
-    padding:6px 13px;
-    border-radius:8px;
-    font-size:12px;
-    font-weight:600;
-    cursor:pointer;
-    text-decoration:none;
-    color:var(--t2);
-    background:none;
-    font-family:inherit;
-    border:1px solid transparent;
-    transition:background .15s, color .15s, border-color .15s;
-}
-.po-tab:hover {
-    background:var(--p2);
-    color:var(--t1);
-}
-.po-tab-badge {
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    min-width:18px;
-    height:18px;
-    padding:0 5px;
-    border-radius:5px;
-    font-size:10px;
-    font-weight:800;
-}
-.po-search-box {
-    display:flex;
-    align-items:center;
-    gap:6px;
-    background:var(--p2);
-    border:1px solid var(--bd2);
-    border-radius:8px;
-    padding:6px 12px;
-}
-.po-search-box svg {
-    width:14px;
-    height:14px;
-    color:var(--t2);
-    flex-shrink:0;
-}
-.po-search-box input {
-    background:none;
-    border:none;
-    outline:none;
-    color:var(--t1);
-    font-size:12px;
-    font-family:inherit;
-    width:200px;
-}
-.po-search-box input::placeholder {
-    color:var(--t2);
-}
+        .hl-payout-tab {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            border: 1px solid transparent;
+            background: transparent;
+            color: rgb(100 116 139);
+            padding: 7px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
 
-.po-table {
-    width:100%;
-    border-collapse:collapse;
-}
-.po-table thead tr {
-    border-bottom:1px solid var(--bd);
-}
-.po-table th {
-    padding:10px 12px;
-    text-align:left;
-    font-size:10.5px;
-    font-weight:800;
-    letter-spacing:.06em;
-    text-transform:uppercase;
-    color:var(--t2);
-    white-space:nowrap;
-}
-.po-table tbody tr {
-    border-bottom:1px solid var(--bd);
-    transition:background .12s;
-}
-.po-table tbody tr:last-child {
-    border-bottom:none;
-}
-.po-table tbody tr:hover {
-    background:var(--p2);
-}
-.po-table td {
-    padding:12px 12px;
-    vertical-align:middle;
-}
-.po-row-link {
-    cursor:pointer;
-}
+        .hl-payout-tab:hover {
+            color: rgb(226 232 240);
+            background: rgba(51,65,85,.45);
+        }
 
-.po-id {
-    font-size:11.5px;
-    font-weight:700;
-    color:var(--t2);
-    white-space:nowrap;
-}
-.po-user-cell {
-    display:flex;
-    align-items:center;
-    gap:8px;
-}
-.po-user-name {
-    font-size:12.5px;
-    color:var(--t1);
-    font-weight:500;
-}
-.po-email {
-    font-size:12px;
-    color:var(--t2);
-}
-.po-amount {
-    font-size:13px;
-    color:var(--t1);
-    font-weight:700;
-}
-.po-method {
-    font-size:12px;
-    color:var(--t2);
-    text-transform:capitalize;
-}
-.po-badge {
-    display:inline-flex;
-    align-items:center;
-    gap:5px;
-    padding:4px 10px;
-    border-radius:6px;
-    font-size:11.5px;
-    font-weight:700;
-    white-space:nowrap;
-}
-.po-dot {
-    width:6px;
-    height:6px;
-    border-radius:50%;
-    flex-shrink:0;
-}
-.po-date {
-    font-size:12px;
-    color:var(--t2);
-    white-space:nowrap;
-}
+        .hl-payout-tab.active {
+            background: rgba(37,99,235,.15);
+            color: rgb(96 165 250);
+            border-color: rgba(37,99,235,.20);
+        }
 
-.po-actions {
-    display:flex;
-    align-items:center;
-    gap:4px;
-    justify-content:flex-end;
-}
-.po-act-btn {
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    width:36px;
-    height:36px;
-    border-radius:8px;
-    background:none;
-    border:1px solid transparent;
-    cursor:pointer;
-    color:var(--t2);
-    text-decoration:none;
-    transition:background .15s, border-color .15s, color .15s;
-}
-.po-act-btn:hover {
-    background:var(--p2);
-    border-color:var(--bd2);
-    color:var(--t1);
-}
-.po-act-btn svg {
-    width:18px;
-    height:18px;
-}
-.po-act-btn-approve {
-    color:#34d399;
-}
-.po-act-btn-approve:hover {
-    background:rgba(52,211,153,.12) !important;
-    border-color:rgba(52,211,153,.3) !important;
-    color:#34d399 !important;
-}
-.po-act-btn-reject {
-    color:#f87171;
-}
-.po-act-btn-reject:hover {
-    background:rgba(248,113,113,.12) !important;
-    border-color:rgba(248,113,113,.3) !important;
-    color:#f87171 !important;
-}
+        .hl-payout-count {
+            min-width: 19px;
+            height: 19px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 5px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 800;
+            background: rgba(148,163,184,.12);
+        }
 
-.po-modal-overlay {
-    display:none;
-    position:fixed;
-    inset:0;
-    background:rgba(15,23,42,.35);
-    backdrop-filter:blur(3px);
-    -webkit-backdrop-filter:blur(3px);
-    z-index:9999;
-    align-items:center;
-    justify-content:center;
-    padding:20px;
-}
-.po-modal-overlay.open {
-    display:flex;
-}
-@keyframes poModalIn {
-    from {
-        opacity:0;
-        transform:translateY(8px) scale(.98);
-    }
-    to {
-        opacity:1;
-        transform:none;
-    }
-}
-.po-modal {
-    background:var(--p1);
-    border:1px solid var(--bd2);
-    border-radius:14px;
-    padding:26px;
-    width:100%;
-    max-width:460px;
-    box-shadow:0 20px 60px rgba(0,0,0,.35);
-    animation:poModalIn .18s cubic-bezier(.16,1,.3,1) forwards;
-}
-.po-modal h3 {
-    font-size:15px;
-    font-weight:750;
-    color:var(--t1);
-    margin-bottom:6px;
-}
-.po-modal p {
-    font-size:12.5px;
-    color:var(--t2);
-    margin-bottom:16px;
-}
-.po-modal textarea {
-    width:100%;
-    background:var(--p2);
-    border:1px solid var(--bd2);
-    border-radius:9px;
-    padding:10px 13px;
-    color:var(--t1);
-    font-size:13px;
-    font-family:inherit;
-    resize:vertical;
-    min-height:90px;
-    outline:none;
-}
-.po-modal textarea:focus {
-    border-color:#2563eb;
-}
-.po-approve-input {
-    width:100%;
-    background:var(--p2);
-    border:1px solid var(--bd2);
-    border-radius:9px;
-    padding:10px 13px;
-    color:var(--t1);
-    font-size:13px;
-    font-family:inherit;
-    outline:none;
-    margin-top:4px;
-}
-.po-approve-input:focus {
-    border-color:#2563eb;
-}
-.po-modal-footer {
-    display:flex;
-    justify-content:flex-end;
-    gap:8px;
-    margin-top:14px;
-}
-.po-modal-btn {
-    display:inline-flex;
-    align-items:center;
-    gap:6px;
-    padding:8px 16px;
-    border-radius:9px;
-    font-size:12px;
-    font-weight:700;
-    cursor:pointer;
-    border:none;
-    font-family:inherit;
-    transition:opacity .15s;
-}
-.po-modal-btn-gray {
-    background:var(--p2);
-    border:1px solid var(--bd2);
-    color:var(--t2);
-}
-.po-modal-btn-danger {
-    background:rgba(248,113,113,.15);
-    color:#f87171;
-    border:1px solid rgba(248,113,113,.3);
-}
-.po-modal-btn-success {
-    background:rgba(52,211,153,.15);
-    color:#34d399;
-    border:1px solid rgba(52,211,153,.3);
-}
+        .hl-payout-search {
+            width: 250px;
+            max-width: 100%;
+        }
 
-.po-field {
-    display:flex;
-    flex-direction:column;
-    gap:3px;
-}
-.po-field-label {
-    font-size:10.5px;
-    font-weight:800;
-    letter-spacing:.07em;
-    text-transform:uppercase;
-    color:var(--t2);
-}
-.po-field-value {
-    font-size:13px;
-    color:var(--t1);
-    word-break:break-word;
-}
-.po-qr-img {
-    width:100%;
-    max-width:220px;
-    border-radius:8px;
-    margin-top:6px;
-    border:1px solid var(--bd2);
-    background:#fff;
-    padding:8px;
-}
+        .hl-payout-search input {
+            width: 100%;
+            height: 36px;
+            padding: 0 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(148,163,184,.15);
+            background: rgba(15,23,42,.85);
+            color: rgb(226 232 240);
+            outline: none;
+            font-size: 12px;
+        }
 
-.po-empty {
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    padding:56px 24px;
-    gap:10px;
-    color:var(--t2);
-}
-.po-empty svg {
-    width:40px;
-    height:40px;
-    opacity:.35;
-}
-.po-empty p {
-    font-size:13px;
-}
+        .hl-payout-search input:focus {
+            border-color: rgba(37,99,235,.6);
+        }
 
-.po-footer {
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    padding:12px 16px;
-    border-top:1px solid var(--bd);
-    flex-wrap:wrap;
-    gap:10px;
-}
-.po-footer-info {
-    font-size:12px;
-    color:var(--t2);
-}
-.po-pages {
-    display:flex;
-    align-items:center;
-    gap:6px;
-}
-.po-page-btn {
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    min-width:30px;
-    height:30px;
-    padding:0 8px;
-    border-radius:7px;
-    font-size:12px;
-    font-weight:700;
-    text-decoration:none;
-    color:var(--t2);
-    background:none;
-    font-family:inherit;
-    cursor:pointer;
-    border:1px solid transparent;
-    transition:background .15s, border-color .15s, color .15s;
-}
-.po-loading {
-    opacity:.45;
-    pointer-events:none;
-    transition:opacity .1s;
-}
-.po-page-btn:not(.disabled):hover {
-    background:var(--p2);
-    border-color:var(--bd2);
-    color:var(--t1);
-}
-.po-page-btn.active {
-    background:var(--accent);
-    color:#fff;
-    border-color:transparent;
-}
-.po-page-btn.disabled {
-    opacity:.35;
-    pointer-events:none;
-}
-.po-per-page {
-    display:flex;
-    align-items:center;
-    gap:6px;
-    font-size:12px;
-    color:var(--t2);
-}
-.po-per-page select {
-    appearance:none;
-    background:var(--p2);
-    border:1px solid var(--bd2);
-    border-radius:7px;
-    padding:4px 22px 4px 9px;
-    font-size:12px;
-    font-weight:700;
-    color:var(--t1);
-    font-family:inherit;
-    cursor:pointer;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
-    background-repeat:no-repeat;
-    background-position:right 6px center;
-    outline:none;
-}
-</style>
+        .hl-payout-table-wrap {
+            overflow-x: auto;
+        }
 
-    {{-- Header --}}
-    <div class="po-header poa po1">
-        <div class="po-header-text">
-            <h1>Instructor Payouts</h1>
-            <p>Review and process instructor payout requests.</p>
+        .hl-payout-table {
+            width: 100%;
+            min-width: 900px;
+            border-collapse: collapse;
+        }
+
+        .hl-payout-table th {
+            padding: 12px 15px;
+            text-align: left;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: .07em;
+            font-weight: 800;
+            color: rgb(100 116 139);
+            border-bottom: 1px solid rgba(148,163,184,.10);
+            white-space: nowrap;
+        }
+
+        .hl-payout-table td {
+            padding: 14px 15px;
+            border-bottom: 1px solid rgba(148,163,184,.08);
+            vertical-align: middle;
+        }
+
+        .hl-payout-table tbody tr {
+            transition: background .12s ease;
+        }
+
+        .hl-payout-table tbody tr:hover {
+            background: rgba(51,65,85,.25);
+        }
+
+        .hl-payout-id {
+            color: rgb(148 163 184);
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .hl-payout-user {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .hl-payout-user-name {
+            color: rgb(226 232 240);
+            font-size: 12.5px;
+            font-weight: 700;
+        }
+
+        .hl-payout-user-email {
+            color: rgb(100 116 139);
+            font-size: 11px;
+        }
+
+        .hl-payout-amount {
+            color: rgb(248 250 252);
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .hl-payout-method {
+            color: rgb(148 163 184);
+            text-transform: uppercase;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .hl-payout-date {
+            color: rgb(148 163 184);
+            font-size: 11px;
+            white-space: nowrap;
+        }
+
+        .hl-payout-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 9px;
+            border-radius: 7px;
+            font-size: 10.5px;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .hl-payout-status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 999px;
+        }
+
+        .hl-payout-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 5px;
+        }
+
+        .hl-payout-action {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            height: 32px;
+            border-radius: 8px;
+            padding: 0 9px;
+            font-size: 11px;
+            font-weight: 800;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: .15s ease;
+        }
+
+        .hl-payout-view {
+            color: rgb(147 197 253);
+            background: rgba(37,99,235,.10);
+            border-color: rgba(37,99,235,.18);
+        }
+
+        .hl-payout-view:hover {
+            background: rgba(37,99,235,.18);
+        }
+
+        .hl-payout-approve {
+            color: rgb(52 211 153);
+            background: rgba(16,185,129,.10);
+            border-color: rgba(16,185,129,.18);
+        }
+
+        .hl-payout-approve:hover {
+            background: rgba(16,185,129,.18);
+        }
+
+        .hl-payout-reject {
+            color: rgb(248 113 113);
+            background: rgba(239,68,68,.10);
+            border-color: rgba(239,68,68,.18);
+        }
+
+        .hl-payout-reject:hover {
+            background: rgba(239,68,68,.18);
+        }
+
+        .hl-payout-empty {
+            padding: 60px 20px;
+            text-align: center;
+            color: rgb(100 116 139);
+        }
+
+        .hl-payout-empty strong {
+            display: block;
+            color: rgb(203 213 225);
+            margin-bottom: 5px;
+            font-size: 13px;
+        }
+
+        .hl-payout-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 13px 15px;
+            color: rgb(100 116 139);
+            font-size: 11px;
+            flex-wrap: wrap;
+        }
+
+        .hl-payout-pages {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .hl-payout-page-btn {
+            min-width: 30px;
+            height: 30px;
+            padding: 0 8px;
+            border-radius: 7px;
+            border: 1px solid rgba(148,163,184,.12);
+            background: rgba(30,41,59,.55);
+            color: rgb(148 163 184);
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .hl-payout-page-btn:hover:not(:disabled) {
+            color: white;
+            background: rgba(51,65,85,.8);
+        }
+
+        .hl-payout-page-btn:disabled {
+            opacity: .35;
+            cursor: not-allowed;
+        }
+
+        .hl-payout-page-btn.active {
+            background: rgb(37 99 235);
+            border-color: rgb(37 99 235);
+            color: white;
+        }
+
+        /*
+        
+        | Modal
+        
+        */
+
+        .hl-payout-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 99999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .hl-payout-modal-backdrop {
+            position: absolute;
+            inset: 0;
+            background: rgba(2,6,23,.68);
+        }
+
+        .hl-payout-modal-panel {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 760px;
+            max-height: calc(100vh - 48px);
+            overflow-y: auto;
+            border-radius: 16px;
+            border: 1px solid rgba(148,163,184,.18);
+            background: rgb(15 23 42);
+            box-shadow:
+                0 25px 80px rgba(0,0,0,.55);
+        }
+
+        .hl-payout-modal-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 15px;
+            padding: 20px 22px;
+            border-bottom: 1px solid rgba(148,163,184,.10);
+        }
+
+        .hl-payout-modal-title {
+            color: rgb(248 250 252);
+            font-size: 16px;
+            font-weight: 800;
+        }
+
+        .hl-payout-modal-subtitle {
+            margin-top: 4px;
+            color: rgb(100 116 139);
+            font-size: 11px;
+        }
+
+        .hl-payout-close {
+            width: 32px;
+            height: 32px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            border: 1px solid rgba(148,163,184,.12);
+            background: rgba(30,41,59,.65);
+            color: rgb(148 163 184);
+            cursor: pointer;
+            font-size: 17px;
+        }
+
+        .hl-payout-close:hover {
+            color: white;
+            background: rgba(51,65,85,.8);
+        }
+
+        .hl-payout-modal-body {
+            padding: 22px;
+        }
+
+        .hl-payout-summary {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+            margin-bottom: 18px;
+        }
+
+        .hl-payout-summary-card {
+            padding: 14px;
+            border-radius: 11px;
+            border: 1px solid rgba(148,163,184,.10);
+            background: rgba(30,41,59,.55);
+        }
+
+        .hl-payout-summary-label {
+            color: rgb(100 116 139);
+            font-size: 9px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .07em;
+        }
+
+        .hl-payout-summary-value {
+            margin-top: 5px;
+            color: rgb(241 245 249);
+            font-size: 14px;
+            font-weight: 800;
+        }
+
+        .hl-payout-section {
+            margin-top: 15px;
+            padding: 17px;
+            border-radius: 12px;
+            border: 1px solid rgba(148,163,184,.10);
+            background: rgba(30,41,59,.42);
+        }
+
+        .hl-payout-section-title {
+            margin-bottom: 14px;
+            color: rgb(226 232 240);
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .hl-payout-info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .hl-payout-info-label {
+            color: rgb(100 116 139);
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: .07em;
+            font-weight: 800;
+        }
+
+        .hl-payout-info-value {
+            margin-top: 4px;
+            color: rgb(226 232 240);
+            font-size: 12px;
+            word-break: break-word;
+        }
+
+        .hl-payout-destination {
+            display: grid;
+            grid-template-columns: 1fr 240px;
+            gap: 22px;
+            align-items: start;
+        }
+
+        .hl-payout-qr {
+            width: 100%;
+            max-width: 230px;
+            margin: 0 auto;
+            border-radius: 10px;
+            padding: 10px;
+            background: white;
+            border: 1px solid rgba(148,163,184,.2);
+        }
+
+        .hl-payout-no-qr {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 180px;
+            border-radius: 10px;
+            border: 1px dashed rgba(148,163,184,.18);
+            color: rgb(100 116 139);
+            font-size: 11px;
+            text-align: center;
+        }
+
+        .hl-payout-payment-warning {
+            margin-top: 15px;
+            padding: 12px 14px;
+            border-radius: 9px;
+            border: 1px solid rgba(245,158,11,.20);
+            background: rgba(245,158,11,.08);
+            color: rgb(251 191 36);
+            font-size: 11px;
+            line-height: 1.5;
+        }
+
+        .hl-payout-modal-footer {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 8px;
+            padding: 16px 22px;
+            border-top: 1px solid rgba(148,163,184,.10);
+        }
+
+        .hl-payout-btn {
+            min-height: 36px;
+            padding: 0 14px;
+            border-radius: 8px;
+            border: 1px solid transparent;
+            font-size: 11px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .hl-payout-btn-secondary {
+            background: rgba(51,65,85,.55);
+            border-color: rgba(148,163,184,.12);
+            color: rgb(203,213,225);
+        }
+
+        .hl-payout-btn-secondary:hover {
+            background: rgba(71,85,105,.75);
+        }
+
+        .hl-payout-btn-success {
+            background: rgb(16 185 129);
+            color: white;
+        }
+
+        .hl-payout-btn-success:hover {
+            background: rgb(5 150 105);
+        }
+
+        .hl-payout-btn-danger {
+            background: rgb(220 38 38);
+            color: white;
+        }
+
+        .hl-payout-btn-danger:hover {
+            background: rgb(185 28 28);
+        }
+
+        .hl-payout-input-label {
+            display: block;
+            margin-bottom: 7px;
+            color: rgb(148 163 184);
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .07em;
+        }
+
+        .hl-payout-input,
+        .hl-payout-textarea {
+            width: 100%;
+            border: 1px solid rgba(148,163,184,.16);
+            border-radius: 9px;
+            background: rgb(15 23 42);
+            color: rgb(226 232 240);
+            outline: none;
+            font-size: 12px;
+        }
+
+        .hl-payout-input {
+            height: 42px;
+            padding: 0 12px;
+        }
+
+        .hl-payout-textarea {
+            min-height: 110px;
+            padding: 11px 12px;
+            resize: vertical;
+        }
+
+        .hl-payout-input:focus,
+        .hl-payout-textarea:focus {
+            border-color: rgba(37,99,235,.65);
+        }
+
+        .hl-payout-help {
+            margin-top: 7px;
+            color: rgb(100 116 139);
+            font-size: 10px;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 800px) {
+            .hl-payout-summary {
+                grid-template-columns: 1fr;
+            }
+
+            .hl-payout-destination {
+                grid-template-columns: 1fr;
+            }
+
+            .hl-payout-info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hl-payout-header {
+                flex-direction: column;
+            }
+        }
+    </style>
+
+
+    {{--PAGE HEADER --}}
+
+    <div class="hl-payout-header">
+
+        <div>
+            <h1 class="hl-payout-title">
+                Instructor Payouts
+            </h1>
+            <p class="hl-payout-subtitle">
+                Review payout requests, verify payment destinations,
+                and record completed instructor payments.
+            </p>
         </div>
+
+        <button
+            type="button"
+            class="hl-payout-refresh"
+            wire:click="$refresh"
+        >
+            ↻
+            Refresh
+        </button>
+
     </div>
 
-    {{-- Table card --}}
-    <div class="po-card poa po2">
 
+    {{--MAIN CARD --}}
+
+    <div class="hl-payout-tabs-card">
         {{-- Toolbar --}}
-        <div class="po-toolbar">
-            <div class="po-tabs">
-                @foreach ($tabs as $t)
-                @php
-                    $isActive   = $tab === $t['key'];
-                    $tabColor   = $t['color'];
-                    $tabStyle   = $isActive ? "background:{$tabColor}1a;color:{$tabColor};border-color:{$tabColor}55;font-weight:700;" : '';
-                    $badgeStyle = "background:{$tabColor}20;color:{$tabColor};";
-                @endphp
-                <button type="button" wire:click="selectTab('{{ $t['key'] }}')" class="po-tab" style="{{ $tabStyle }}">
-                    {{ $t['label'] }}
-                    <span class="po-tab-badge" style="{{ $badgeStyle }}">{{ $t['count'] }}</span>
-                </button>
+        <div class="hl-payout-toolbar">
+            <div class="hl-payout-tabs">
+                @foreach($tabs as $item)
+                    <button
+                        type="button"
+                        class="hl-payout-tab {{ $tab === $item['key'] ? 'active' : '' }}"
+                        wire:click="selectTab('{{ $item['key'] }}')"
+                    >
+                        {{ $item['label'] }}
+                        <span
+                            class="hl-payout-count"
+                            style="
+                                color: {{ $item['color'] }};
+                            "
+                        >
+                            {{ $item['count'] }}
+                        </span>
+                    </button>
                 @endforeach
             </div>
-
-            <div class="po-search-box">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607z"/>
-                </svg>
-                <input type="text" wire:model.live.debounce.500ms="search" placeholder="Search instructor...">
+            <div class="hl-payout-search">
+                <input
+                    type="search"
+                    placeholder="Search instructor..."
+                    wire:model.live.debounce.400ms="search"
+                >
             </div>
         </div>
-
-        {{-- Table --}}
-        <div style="overflow-x:auto" wire:loading.class="po-loading" wire:target="selectTab,gotoPage,search,perPage">
-        <table class="po-table">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Instructor</th>
-                    <th>Email</th>
-                    <th>Amount</th>
-                    <th>Method</th>
-                    <th>Source</th>
-                    <th>Status</th>
-                    <th>Requested</th>
-                    @if($canUpdate || $canDownload)<th style="text-align:right">Actions</th>@endif
-                </tr>
-            </thead>
-            <tbody>
-                @forelse ($payouts as $payout)
-                @php
-                    $ss = $statusStyle($payout->status);
-                    $d = $payout->details ?? [];
-                    $qrUrl = !empty($d['qr_code_path']) ? \Illuminate\Support\Facades\Storage::disk('r2')->url($d['qr_code_path']) : null;
-                    $accountData = [
-                        'method' => str_replace('_', ' ', $payout->payment_method),
-                        'account_name' => $d['account_name'] ?? null,
-                        'account_number' => $d['account_number'] ?? null,
-                        'phone_number' => $d['phone_number'] ?? null,
-                        'qr_url' => $qrUrl,
-                        'transaction_reference' => $payout->transaction_reference,
-                    ];
-                @endphp
-                <tr class="po-row-link" wire:key="payout-row-{{ $payout->id }}" onclick='openAccountModal(@json($accountData))'>
-                    <td><span class="po-id">{{ $payout->id }}</span></td>
-
-                    <td>
-                        <div class="po-user-cell">
-                            <span class="po-user-name">{{ $payout->instructor?->name ?? '—' }}</span>
+        {{--TABLE--}}
+        <div class="hl-payout-table-wrap">
+            <table class="hl-payout-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Instructor</th>
+                        <th>Amount</th>
+                        <th>Method</th>
+                        <th>Status</th>
+                        <th>Requested</th>
+                        <th style="text-align:right;">
+                            Actions
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($payouts as $payout)
+                        @php
+                            $style = $statusStyle($payout->status);
+                        @endphp
+                        <tr wire:key="payout-{{ $payout->id }}">
+                            <td>
+                                <span class="hl-payout-id">
+                                    #{{ $payout->id }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="hl-payout-user">
+                                    <span class="hl-payout-user-name">
+                                        {{ $payout->instructor?->name ?? 'Unknown instructor' }}
+                                    </span>
+                                    <span class="hl-payout-user-email">
+                                        {{ $payout->instructor?->email ?? '—' }}
+                                    </span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="hl-payout-amount">
+                                    {{ $currency($payout->amount, $payout->currency) }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="hl-payout-method">
+                                    {{ strtoupper($payout->payment_method ?? '—') }}
+                                </span>
+                            </td>
+                            <td>
+                                <span
+                                    class="hl-payout-status"
+                                    style="
+                                        background: {{ $style['bg'] }};
+                                        color: {{ $style['color'] }};
+                                    "
+                                >
+                                    <span
+                                        class="hl-payout-status-dot"
+                                        style="
+                                            background: {{ $style['color'] }};
+                                        "
+                                    ></span>
+                                    {{ $style['label'] }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="hl-payout-date">
+                                    {{ optional($payout->requested_at ?? $payout->created_at)->format('M d, Y H:i') }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="hl-payout-actions">
+                                    <button
+                                        type="button"
+                                        class="hl-payout-action hl-payout-view"
+                                        wire:click="openDetails({{ $payout->id }})"
+                                    >
+                                        View
+                                    </button>
+                                    @if($canUpdate && $payout->status === 'pending')
+                                        <button
+                                            type="button"
+                                            class="hl-payout-action hl-payout-approve"
+                                            wire:click="openApprove({{ $payout->id }})"
+                                        >
+                                            Pay
+                                        </button>
+                                        <button
+                                            type="button"
+                                            class="hl-payout-action hl-payout-reject"
+                                            wire:click="openReject({{ $payout->id }})"
+                                        >
+                                            Reject
+                                        </button>
+                                    @endif
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td
+                                colspan="7"
+                                class="hl-payout-empty"
+                            >
+                                <strong>
+                                    No payout requests found
+                                </strong>
+                                There are no payout requests matching
+                                the current filter.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+        {{--  FOOTER --}}
+        <div class="hl-payout-footer">
+            <div>
+                Showing page {{ $curPage }}
+                of {{ $totalPages }}
+                · {{ $total }} total payouts
+            </div>
+            <div class="hl-payout-pages">
+                <button
+                    type="button"
+                    class="hl-payout-page-btn"
+                    wire:click="gotoPage({{ max(1, $curPage - 1) }})"
+                    @disabled($curPage <= 1)
+                >
+                    ←
+                </button>
+                @for($i = max(1, $curPage - 2); $i <= min($totalPages, $curPage + 2); $i++)
+                    <button
+                        type="button"
+                        class="hl-payout-page-btn {{ $i === $curPage ? 'active' : '' }}"
+                        wire:click="gotoPage({{ $i }})"
+                    >
+                        {{ $i }}
+                    </button>
+                @endfor
+                <button
+                    type="button"
+                    class="hl-payout-page-btn"
+                    wire:click="gotoPage({{ min($totalPages, $curPage + 1) }})"
+                    @disabled($curPage >= $totalPages)
+                >
+                    →
+                </button>
+            </div>
+        </div>
+    </div>
+    {{--DETAILS MODAL --}}
+    @if($modal === 'details' && $selectedPayout)
+        @php
+            $detailStyle = $statusStyle($selectedPayout->status);
+            $detailAccount = $selectedPayout->payoutAccount;
+            $detailQr = $detailAccount?->qr_code_url;
+        @endphp
+        <div class="hl-payout-modal">
+            <div
+                class="hl-payout-modal-backdrop"
+                wire:click="closeModal"
+            ></div>
+            <div class="hl-payout-modal-panel">
+                <div class="hl-payout-modal-header">
+                    <div>
+                        <div class="hl-payout-modal-title">
+                            Payout #{{ $selectedPayout->id }}
                         </div>
-                    </td>
-
-                    <td><span class="po-email">{{ $payout->instructor?->email ?? '—' }}</span></td>
-
-                    <td><span class="po-amount">{{ number_format($payout->amount, 2) }} {{ $payout->currency }}</span></td>
-
-                    <td><span class="po-method">{{ str_replace('_', ' ', $payout->payment_method) }}</span></td>
-
-                    <td>
-                        <span class="po-badge" style="background:{{ $payout->source === 'monthly_auto' ? 'rgba(124,58,237,.12)' : 'rgba(148,163,184,.1)' }};color:{{ $payout->source === 'monthly_auto' ? '#7c3aed' : '#94a3b8' }}">
-                            {{ $payout->source === 'monthly_auto' ? 'Monthly Auto' : 'Manual' }}
-                        </span>
-                    </td>
-
-                    <td>
-                        <span class="po-badge" style="background:{{ $ss['bg'] }};color:{{ $ss['color'] }}">
-                            <span class="po-dot" style="background:{{ $ss['color'] }}"></span>
-                            {{ $ss['label'] }}
-                        </span>
-                    </td>
-
-                    <td><span class="po-date">{{ $payout->created_at?->setTimezone(config('app.timezone'))->format('M d, Y') }}</span></td>
-
-                    @if($canUpdate || $canDownload)
-                    <td onclick="event.stopPropagation()">
-                        <div class="po-actions">
-                            @if($canUpdate && $payout->status === 'pending')
-                            <button onclick="openApproveModal({{ $payout->id }}, '{{ addslashes($payout->instructor?->name) }}')"
-                                    class="po-act-btn po-act-btn-approve" title="Approve">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/>
-                                </svg>
-                            </button>
-                            <button onclick="openRejectModal({{ $payout->id }}, '{{ addslashes($payout->instructor?->name) }}')"
-                                    class="po-act-btn po-act-btn-reject" title="Reject">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/>
-                                </svg>
-                            </button>
-                            @endif
-                            @if($canDownload && $payout->receipt)
-                            <a href="{{ route('admin.finance.payout-receipts.download', $payout->receipt->id) }}"
-                               class="po-act-btn" title="Download Receipt">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/>
-                                </svg>
-                            </a>
-                            @endif
+                        <div class="hl-payout-modal-subtitle">
+                            Review payout details before processing.
                         </div>
-                    </td>
+                    </div>
+                    <button
+                        type="button"
+                        class="hl-payout-close"
+                        wire:click="closeModal"
+                    >
+                        ×
+                    </button>
+                </div>
+                <div class="hl-payout-modal-body">
+                    {{-- Summary --}}
+                    <div class="hl-payout-summary">
+                        <div class="hl-payout-summary-card">
+                            <div class="hl-payout-summary-label">
+                                Amount
+                            </div>
+                            <div class="hl-payout-summary-value">
+                                {{ $currency($selectedPayout->amount, $selectedPayout->currency) }}
+                            </div>
+                        </div>
+                        <div class="hl-payout-summary-card">
+                            <div class="hl-payout-summary-label">
+                                Status
+                            </div>
+                            <div
+                                class="hl-payout-summary-value"
+                                style="color: {{ $detailStyle['color'] }}"
+                            >
+                                {{ $detailStyle['label'] }}
+                            </div>
+                        </div>
+                        <div class="hl-payout-summary-card">
+                            <div class="hl-payout-summary-label">
+                                Method
+                            </div>
+                            <div class="hl-payout-summary-value">
+                                {{ strtoupper($selectedPayout->payment_method ?? '—') }}
+                            </div>
+                        </div>
+                    </div>
+                    {{-- Instructor --}}
+                    <div class="hl-payout-section">
+                        <div class="hl-payout-section-title">
+                            Instructor
+                        </div>
+                        <div class="hl-payout-info-grid">
+                            <div>
+                                <div class="hl-payout-info-label">
+                                    Name
+                                </div>
+                                <div class="hl-payout-info-value">
+                                    {{ $selectedPayout->instructor?->name ?? '—' }}
+                                </div>
+                            </div>
+                            <div>
+                                <div class="hl-payout-info-label">
+                                    Email
+                                </div>
+                                <div class="hl-payout-info-value">
+                                    {{ $selectedPayout->instructor?->email ?? '—' }}
+                                </div>
+                            </div>
+                            <div>
+                                <div class="hl-payout-info-label">
+                                    Requested
+                                </div>
+                                <div class="hl-payout-info-value">
+                                    {{ optional($selectedPayout->requested_at ?? $selectedPayout->created_at)->format('M d, Y H:i') }}
+                                </div>
+                            </div>
+                            <div>
+                                <div class="hl-payout-info-label">
+                                    Source
+                                </div>
+                                <div class="hl-payout-info-value">
+                                    {{ ucfirst(str_replace('_', ' ', $selectedPayout->source ?? 'manual')) }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {{-- Payout destination --}}
+                    <div class="hl-payout-section">
+                        <div class="hl-payout-section-title">
+                            Payout Destination
+                        </div>
+                        <div class="hl-payout-destination">
+                            <div>
+                                <div class="hl-payout-info-grid">
+                                    <div>
+                                        <div class="hl-payout-info-label">
+                                            Payment method
+                                        </div>
+                                        <div class="hl-payout-info-value">
+                                            {{ strtoupper($detailAccount?->method ?? $selectedPayout->payment_method ?? '—') }}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="hl-payout-info-label">
+                                            Account name
+                                        </div>
+                                        <div class="hl-payout-info-value">
+                                            {{ $detailAccount?->account_name ?? ($selectedDetails['account_name'] ?? '—') }}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="hl-payout-info-label">
+                                            Account number
+                                        </div>
+                                        <div class="hl-payout-info-value">
+                                            {{ $detailAccount?->account_number ?? ($selectedDetails['account_number'] ?? '—') }}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="hl-payout-info-label">
+                                            Phone number
+                                        </div>
+                                        <div class="hl-payout-info-value">
+                                            {{ $detailAccount?->phone_number ?? ($selectedDetails['phone_number'] ?? '—') }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="hl-payout-payment-warning">
+                                    Verify the recipient name and destination carefully
+                                    before sending the payout. The external payment
+                                    should be completed before marking this request
+                                    as completed.
+                                </div>
+                            </div>
+                            <div>
+                                @if($detailQr)
+                                    <img
+                                        src="{{ $detailQr }}"
+                                        alt="Payout QR code"
+                                        class="hl-payout-qr"
+                                    >
+                                @else
+                                    <div class="hl-payout-no-qr">
+                                        No QR code available
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                    {{-- Existing transaction reference --}}
+                    @if($selectedPayout->transaction_reference)
+                        <div class="hl-payout-section">
+                            <div class="hl-payout-section-title">
+                                Transaction
+                            </div>
+                            <div class="hl-payout-info-grid">
+                                <div>
+                                    <div class="hl-payout-info-label">
+                                        Reference
+                                    </div>
+                                    <div class="hl-payout-info-value">
+                                        {{ $selectedPayout->transaction_reference }}
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="hl-payout-info-label">
+                                        Processed at
+                                    </div>
+                                    <div class="hl-payout-info-value">
+                                        {{ optional($selectedPayout->processed_at)->format('M d, Y H:i') ?? '—' }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     @endif
-                </tr>
-                @empty
-                <tr>
-                    <td colspan="{{ ($canUpdate || $canDownload) ? 9 : 8 }}">
-                        <div class="po-empty">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.625c.621 0 1.125.504 1.125 1.125v.375M3.75 4.5h16.5"/>
-                            </svg>
-                            <p>No payout requests found{{ $search ? ' for "' . $search . '"' : '' }}.</p>
+                    {{-- Rejection --}}
+                    @if($selectedPayout->rejection_reason)
+                        <div class="hl-payout-section">
+                            <div class="hl-payout-section-title">
+                                Rejection reason
+                            </div>
+                            <div class="hl-payout-info-value">
+                                {{ $selectedPayout->rejection_reason }}
+                            </div>
                         </div>
-                    </td>
-                </tr>
-                @endforelse
-            </tbody>
-        </table>
-        </div>
-
-        {{-- Pagination --}}
-        <div class="po-footer">
-            <div class="po-footer-info">
-                @if($total > 0)
-                    Showing {{ ($curPage - 1) * $perPage + 1 }} to {{ min($curPage * $perPage, $total) }} of {{ number_format($total) }} payouts
-                @else
-                    No results
-                @endif
-            </div>
-            <div style="display:flex;align-items:center;gap:16px">
-                <div class="po-per-page">
-                    Per page
-                    <select wire:model.live="perPage">
-                        @foreach([10, 25, 50] as $n)
-                            <option value="{{ $n }}" {{ $perPage == $n ? 'selected' : '' }}>{{ $n }}</option>
-                        @endforeach
-                    </select>
+                    @endif
                 </div>
-                @if($totalPages > 1)
-                <div class="po-pages">
-                    <button type="button" wire:click="gotoPage({{ max(1, $curPage - 1) }})"
-                       class="po-page-btn {{ $curPage === 1 ? 'disabled' : '' }}" @disabled($curPage === 1)>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:12px;height:12px"><path d="M15 19l-7-7 7-7"/></svg>
+                <div class="hl-payout-modal-footer">
+                    <button
+                        type="button"
+                        class="hl-payout-btn hl-payout-btn-secondary"
+                        wire:click="closeModal"
+                    >
+                        Close
                     </button>
-                    @for($p = max(1, $curPage - 2); $p <= min($totalPages, $curPage + 2); $p++)
-                        <button type="button" wire:click="gotoPage({{ $p }})"
-                           class="po-page-btn {{ $curPage === $p ? 'active' : '' }}">
-                            {{ $p }}
+                    @if($canUpdate && $selectedPayout->status === 'pending')
+                        <button
+                            type="button"
+                            class="hl-payout-btn hl-payout-btn-danger"
+                            wire:click="openReject({{ $selectedPayout->id }})"
+                        >
+                            Reject
                         </button>
-                    @endfor
-                    <button type="button" wire:click="gotoPage({{ min($totalPages, $curPage + 1) }})"
-                       class="po-page-btn {{ $curPage === $totalPages ? 'disabled' : '' }}" @disabled($curPage === $totalPages)>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:12px;height:12px"><path d="M9 5l7 7-7 7"/></svg>
+                        <button
+                            type="button"
+                            class="hl-payout-btn hl-payout-btn-success"
+                            wire:click="openApprove({{ $selectedPayout->id }})"
+                        >
+                            Pay & Complete
+                        </button>
+                    @endif
+                </div>
+            </div>
+        </div>
+    @endif
+    {{--APPROVE MODAL --}}
+    @if($modal === 'approve' && $selectedPayout)
+        @php
+            $approveAccount = $selectedPayout->payoutAccount;
+            $approveQr = $approveAccount?->qr_code_url;
+        @endphp
+
+        <div class="hl-payout-modal">
+            <div
+                class="hl-payout-modal-backdrop"
+                wire:click="closeModal"
+            ></div>
+            <div class="hl-payout-modal-panel">
+                <div class="hl-payout-modal-header">
+                    <div>
+                        <div class="hl-payout-modal-title">
+                            Complete Payout
+                        </div>
+                        <div class="hl-payout-modal-subtitle">
+                            Verify the payment destination before confirming.
+                        </div>
+                    </div>
+                    <button
+                        type="button"
+                        class="hl-payout-close"
+                        wire:click="closeModal"
+                    >
+                        ×
                     </button>
                 </div>
-                @endif
+                <div class="hl-payout-modal-body">
+                    <div class="hl-payout-summary">
+                        <div class="hl-payout-summary-card">
+                            <div class="hl-payout-summary-label">
+                                Amount to pay
+                            </div>
+                            <div class="hl-payout-summary-value">
+                                {{ $currency($selectedPayout->amount, $selectedPayout->currency) }}
+                            </div>
+                        </div>
+                        <div class="hl-payout-summary-card">
+                            <div class="hl-payout-summary-label">
+                                Instructor
+                            </div>
+                            <div class="hl-payout-summary-value">
+                                {{ $selectedPayout->instructor?->name ?? '—' }}
+                            </div>
+                        </div>
+                        <div class="hl-payout-summary-card">
+                            <div class="hl-payout-summary-label">
+                                Method
+                            </div>
+                            <div class="hl-payout-summary-value">
+                                {{ strtoupper($selectedPayout->payment_method ?? '—') }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="hl-payout-section">
+                        <div class="hl-payout-section-title">
+                            Payment Destination
+                        </div>
+                        <div class="hl-payout-destination">
+                            <div>
+                                <div class="hl-payout-info-grid">
+                                    <div>
+                                        <div class="hl-payout-info-label">
+                                            Account name
+                                        </div>
+                                        <div class="hl-payout-info-value">
+                                            {{ $approveAccount?->account_name ?? ($selectedPayout->details['account_name'] ?? '—') }}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="hl-payout-info-label">
+                                            Account number
+                                        </div>
+                                        <div class="hl-payout-info-value">
+                                            {{ $approveAccount?->account_number ?? ($selectedPayout->details['account_number'] ?? '—') }}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="hl-payout-info-label">
+                                            Phone
+                                        </div>
+                                        <div class="hl-payout-info-value">
+                                            {{ $approveAccount?->phone_number ?? ($selectedPayout->details['phone_number'] ?? '—') }}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="hl-payout-info-label">
+                                            Instructor
+                                        </div>
+                                        <div class="hl-payout-info-value">
+                                            {{ $selectedPayout->instructor?->name ?? '—' }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                @if($approveQr)
+                                    <img
+                                        src="{{ $approveQr }}"
+                                        alt="Payout QR code"
+                                        class="hl-payout-qr"
+                                    >
+                                @else
+                                    <div class="hl-payout-no-qr">
+                                        No QR code available
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                    <div class="hl-payout-section">
+                        <div class="hl-payout-section-title">
+                            Payment confirmation
+                        </div>
+                        <label class="hl-payout-input-label">
+                            Transaction reference *
+                        </label>
+                        <input
+                            type="text"
+                            class="hl-payout-input"
+                            wire:model="approveReference"
+                            placeholder="e.g. KHQR transaction ID / bank transfer reference"
+                            maxlength="150"
+                        >
+                        <div class="hl-payout-help">
+                            First complete the external payment. Then enter the
+                            transaction reference here. This reference becomes part
+                            of the payout audit record.
+                        </div>
+                    </div>
+                </div>
+                <div class="hl-payout-modal-footer">
+                    <button
+                        type="button"
+                        class="hl-payout-btn hl-payout-btn-secondary"
+                        wire:click="closeModal"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type="button"
+                        class="hl-payout-btn hl-payout-btn-success"
+                        wire:click="approve"
+                        wire:loading.attr="disabled"
+                        wire:target="approve"
+                    >
+                        <span wire:loading.remove wire:target="approve">
+                            Confirm Payout
+                        </span>
+                        <span wire:loading wire:target="approve">
+                            Processing...
+                        </span>
+                    </button>
+                </div>
             </div>
         </div>
-    </div>
 
-    {{-- Payout Account Modal — wire:ignore keeps this subtree untouched by the
-         wire:poll re-render above, which otherwise fights the vanilla-JS
-         .open toggle and can leave the overlay half-repainted while open. --}}
-    <div class="po-modal-overlay" id="po-account-modal" wire:ignore onclick="if(event.target===this)closeAccountModal()">
-        <div class="po-modal">
-            <h3>Payout Destination</h3>
-            <p>Use these details to send the instructor their funds.</p>
-            <div id="po-account-body" style="display:grid;gap:8px;font-size:13px;color:var(--t1)"></div>
-            <div class="po-modal-footer">
-                <button class="po-modal-btn po-modal-btn-gray" onclick="closeAccountModal()">Close</button>
-            </div>
-        </div>
-    </div>
-
-    @if($canUpdate)
-    {{-- Approve Modal — see wire:ignore note above. --}}
-    <div class="po-modal-overlay" id="po-approve-modal" wire:ignore onclick="if(event.target===this)closeApproveModal()">
-        <div class="po-modal">
-            <h3>Approve Payout</h3>
-            <p id="po-approve-name-text">Are you sure you want to approve this payout request?</p>
-            <div class="po-field" style="margin-bottom:4px">
-                <label class="po-field-label" for="po-approve-reference">Transaction Reference (optional)</label>
-                <input type="text" id="po-approve-reference" class="po-approve-input" placeholder="e.g. KHQR transaction ID, bank transfer ref...">
-            </div>
-            <div class="po-modal-footer">
-                <button class="po-modal-btn po-modal-btn-gray" onclick="closeApproveModal()">Cancel</button>
-                <button class="po-modal-btn po-modal-btn-success" onclick="submitApprove()">Approve Payout</button>
-            </div>
-        </div>
-    </div>
-
-    {{-- Reject Modal — see wire:ignore note above. --}}
-    <div class="po-modal-overlay" id="po-reject-modal" wire:ignore onclick="if(event.target===this)closeRejectModal()">
-        <div class="po-modal">
-            <h3>Reject Payout</h3>
-            <p id="po-reject-name-text">Explain why this payout is being rejected. The funds will be returned to the instructor's wallet.</p>
-            <textarea id="po-reject-reason" placeholder="e.g. Invalid bank details, suspicious activity..."></textarea>
-            <div class="po-modal-footer">
-                <button class="po-modal-btn po-modal-btn-gray" onclick="closeRejectModal()">Cancel</button>
-                <button class="po-modal-btn po-modal-btn-danger" onclick="submitReject()">Reject Payout</button>
-            </div>
-        </div>
-    </div>
     @endif
 
-</div>
 
-<script>
-    function poField(label, value) {
-        return '<div class="po-field"><span class="po-field-label">' + label + '</span><span class="po-field-value">' + value + '</span></div>';
-    }
-    function openAccountModal(account) {
-        var rows = [];
-        rows.push(poField('Method', account.method || '—'));
-        rows.push(poField('Account Name', account.account_name || '—'));
-        if (account.account_number) rows.push(poField('Account Number', account.account_number));
-        if (account.phone_number) rows.push(poField('Phone Number', account.phone_number));
-        if (account.qr_url) {
-            rows.push('<img src="' + account.qr_url + '" alt="Payout QR code" class="po-qr-img">');
-        }
-        if (account.transaction_reference) {
-            rows.push(poField('Transaction Reference', account.transaction_reference));
-        }
-        document.getElementById('po-account-body').innerHTML = rows.join('');
-        document.getElementById('po-account-modal').classList.add('open');
-    }
-    function closeAccountModal() {
-        document.getElementById('po-account-modal').classList.remove('open');
-    }
+    {{--REJECT MODAL --}}
 
-    var approveId = null;
-    function openApproveModal(id, name) {
-        approveId = id;
-        document.getElementById('po-approve-name-text').textContent = 'Are you sure you want to approve ' + name + '\'s payout request?';
-        document.getElementById('po-approve-reference').value = '';
-        document.getElementById('po-approve-modal').classList.add('open');
-    }
-    function closeApproveModal() {
-        document.getElementById('po-approve-modal').classList.remove('open');
-        approveId = null;
-    }
-    function submitApprove() {
-        if (!approveId) return;
-        const id = approveId;
-        const reference = document.getElementById('po-approve-reference').value.trim();
-        closeApproveModal();
-        @this.call('approve', id, reference);
-    }
+    @if($modal === 'reject' && $selectedPayout)
 
-    var rejectId = null;
-    function openRejectModal(id, name) {
-        rejectId = id;
-        document.getElementById('po-reject-name-text').textContent = 'Explain why ' + name + '\'s payout is being rejected. Funds will be returned to their wallet.';
-        document.getElementById('po-reject-reason').value = '';
-        document.getElementById('po-reject-modal').classList.add('open');
-        setTimeout(() => document.getElementById('po-reject-reason').focus(), 100);
-    }
-    function closeRejectModal() {
-        document.getElementById('po-reject-modal').classList.remove('open');
-        rejectId = null;
-    }
-    function submitReject() {
-        const reason = document.getElementById('po-reject-reason').value.trim();
-        if (!reason) {
-            alert('Please provide a rejection reason.');
-            return;
-        }
-        const id = rejectId;
-        closeRejectModal();
-        @this.call('reject', id, reason);
-    }
-
-    // Ensure Filament sidebar is collapsed on small screens so this page matches other Filament pages on mobile.
-    (function(){
-        function ensureMobileSidebar() {
-            try {
-                if (window.innerWidth <= 768) {
-                    document.body.classList.remove('fi-sidebar-open');
-                }
-            } catch (e) { /* ignore */ }
-        }
-        // Run on load and after a short delay to allow Filament JS to initialize
-        ensureMobileSidebar();
-        setTimeout(ensureMobileSidebar, 250);
-        window.addEventListener('resize', ensureMobileSidebar);
-    })();
-</script>
+        <div class="hl-payout-modal">
+            <div
+                class="hl-payout-modal-backdrop"
+                wire:click="closeModal"
+            ></div>
+            <div class="hl-payout-modal-panel">
+                <div class="hl-payout-modal-header">
+                    <div>
+                        <div class="hl-payout-modal-title">
+                            Reject Payout
+                        </div>
+                        <div class="hl-payout-modal-subtitle">
+                            The payout amount will be returned to the instructor wallet.
+                        </div>
+                    </div>
+                    <button
+                        type="button"
+                        class="hl-payout-close"
+                        wire:click="closeModal"
+                    >
+                        ×
+                    </button>
+                </div>
+                <div class="hl-payout-modal-body">
+                    <div class="hl-payout-summary">
+                        <div class="hl-payout-summary-card">
+                            <div class="hl-payout-summary-label">
+                                Payout
+                            </div>
+                            <div class="hl-payout-summary-value">
+                                #{{ $selectedPayout->id }}
+                            </div>
+                        </div>
+                        <div class="hl-payout-summary-card">
+                            <div class="hl-payout-summary-label">
+                                Instructor
+                            </div>
+                            <div class="hl-payout-summary-value">
+                                {{ $selectedPayout->instructor?->name ?? '—' }}
+                            </div>
+                        </div>
+                        <div class="hl-payout-summary-card">
+                            <div class="hl-payout-summary-label">
+                                Amount
+                            </div>
+                            <div class="hl-payout-summary-value">
+                                {{ $currency($selectedPayout->amount, $selectedPayout->currency) }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="hl-payout-section">
+                        <label class="hl-payout-input-label">
+                            Rejection reason *
+                        </label>
+                        <textarea
+                            class="hl-payout-textarea"
+                            wire:model="rejectReason"
+                            maxlength="1000"
+                            placeholder="Explain why this payout cannot be processed..."
+                        ></textarea>
+                        <div class="hl-payout-help">
+                            The instructor will receive this reason with the
+                            payout rejection notification.
+                        </div>
+                    </div>
+                </div>
+                <div class="hl-payout-modal-footer">
+                    <button
+                        type="button"
+                        class="hl-payout-btn hl-payout-btn-secondary"
+                        wire:click="closeModal"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type="button"
+                        class="hl-payout-btn hl-payout-btn-danger"
+                        wire:click="reject"
+                        wire:loading.attr="disabled"
+                        wire:target="reject"
+                    >
+                        <span wire:loading.remove wire:target="reject">
+                            Reject Payout
+                        </span>
+                        <span wire:loading wire:target="reject">
+                            Processing...
+                        </span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
 </div>

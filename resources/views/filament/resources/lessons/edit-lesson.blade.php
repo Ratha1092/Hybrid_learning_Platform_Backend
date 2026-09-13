@@ -359,13 +359,64 @@ html:not(.dark) .le {
     border-color:var(--bd2)!important;
     background:var(--p2)!important;
     box-shadow:0 1px 4px rgba(0,0,0,.12)!important;
+    overflow:hidden!important;
 }
 .le-form-wrap .fi-repeater-item-header {
+    min-height:46px!important;
+    padding:8px 12px!important;
     background:rgba(59,130,246,.035)!important;
     border-bottom:1px solid var(--bd)!important;
 }
-.le-form-wrap .fi-repeater-add-item {
-    color:var(--accent)!important;
+.le-form-wrap .fi-repeater-item > .fi-fo-repeater-item-content,
+.le-form-wrap .fi-repeater-item > div:last-child {
+    padding:16px!important;
+}
+.le-form-wrap .fi-repeater-add-item,
+.le-form-wrap .fi-fo-repeater-add {
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:7px!important;
+    min-height:38px!important;
+    margin-top:12px!important;
+    padding:8px 14px!important;
+    border:1px solid rgba(59,130,246,.35)!important;
+    border-radius:9px!important;
+    background:rgba(59,130,246,.1)!important;
+    color:#60a5fa!important;
+    font-size:12px!important;
+    font-weight:750!important;
+    box-shadow:none!important;
+    transition:background .15s,border-color .15s,transform .15s!important;
+}
+.le-form-wrap .fi-repeater-add-item:hover,
+.le-form-wrap .fi-fo-repeater-add:hover {
+    border-color:var(--accent)!important;
+    background:rgba(59,130,246,.18)!important;
+    transform:translateY(-1px);
+}
+.le-form-wrap .fi-repeater-item-header .fi-btn {
+    color:var(--t2)!important;
+}
+.le-form-wrap .fi-repeater-item-header .fi-btn:hover {
+    color:#f87171!important;
+    background:rgba(239,68,68,.1)!important;
+}
+.le-form-wrap .fi-fo-file-upload {
+    min-height:78px!important;
+    padding:10px!important;
+    border:1px dashed rgba(148,163,184,.35)!important;
+    border-radius:10px!important;
+    background:rgba(15,23,42,.14)!important;
+}
+.le-form-wrap .fi-fo-file-upload .fi-btn {
+    border:1px solid rgba(59,130,246,.3)!important;
+    border-radius:8px!important;
+    background:rgba(59,130,246,.1)!important;
+    color:#60a5fa!important;
+}
+.le-form-wrap .fi-fo-file-upload .fi-btn:hover {
+    background:rgba(59,130,246,.18)!important;
 }
 .le-form-wrap .fi-btn {
     border-radius:8px!important;

@@ -4,6 +4,7 @@ namespace App\Domains\Notifications\Notifications;
 
 use App\Domains\Notifications\Concerns\BroadcastsAsNotification;
 use App\Domains\Notifications\Enums\NotificationType;
+use App\Domains\Notifications\Support\NotificationLinks;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification as BaseNotification;
@@ -26,22 +27,26 @@ class MonthlyPayoutGeneratedNotification extends BaseNotification
 
     public function toBroadcast(object $notifiable): BroadcastMessage
     {
+        $link = NotificationLinks::frontend("/instructor/finance/payouts/{$this->payoutRequestId}");
+
         return new BroadcastMessage([
             'title'       => 'Monthly Payout Requested',
             'message'     => "Your end-of-month payout of {$this->amount} {$this->currency} has been requested and is awaiting approval.",
             'type'        => NotificationType::FINANCE->value,
-            'link'        => "/instructor/finance/payouts/{$this->payoutRequestId}",
+            'link'        => $link,
             'action_text' => 'View Payout',
         ]);
     }
 
     public function toArray(object $notifiable): array
     {
+        $link = NotificationLinks::frontend("/instructor/finance/payouts/{$this->payoutRequestId}");
+
         return [
             'title' => 'Monthly Payout Requested',
             'message' => "Your end-of-month payout of {$this->amount} {$this->currency} has been requested and is awaiting approval.",
             'type' => NotificationType::FINANCE->value,
-            'link' => "/instructor/finance/payouts/{$this->payoutRequestId}",
+            'link' => $link,
             'action_text' => 'View Payout',
         ];
     }

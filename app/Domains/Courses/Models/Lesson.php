@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 
 class Lesson extends Model
@@ -83,6 +84,36 @@ class Lesson extends Model
     public function videos(): HasMany
     {
         return $this->hasMany(LessonVideo::class)->orderBy('order');
+    }
+
+    public function objectives(): HasMany
+    {
+        return $this->hasMany(LessonObjective::class)->orderBy('order');
+    }
+
+    public function contentBlocks(): HasMany
+    {
+        return $this->hasMany(LessonContentBlock::class)->orderBy('order');
+    }
+
+    public function takeaways(): HasMany
+    {
+        return $this->hasMany(LessonTakeaway::class)->orderBy('order');
+    }
+
+    public function assessments(): HasMany
+    {
+        return $this->hasMany(LessonAssessment::class);
+    }
+
+    public function assignments(): HasMany
+    {
+        return $this->hasMany(LessonAssignment::class);
+    }
+
+    public function completionRule(): HasOne
+    {
+        return $this->hasOne(LessonCompletionRule::class);
     }
     public function isVideoLesson(): bool
     {

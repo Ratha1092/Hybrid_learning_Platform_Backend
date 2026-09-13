@@ -49,7 +49,8 @@ class LessonForm
                             ->rows(3)
                             ->columnSpanFull(),
                     ])
-                    ->columns(3),
+                    ->columns(3)
+                    ->columnSpanFull(),
 
                 // ── VIDEO ─────────────────────────────────────────────────
                 Section::make('Video')
@@ -78,7 +79,8 @@ class LessonForm
                             ])
                             ->placeholder('Select provider'),
                     ])
-                    ->columns(2),
+                    ->columns(2)
+                    ->columnSpanFull(),
 
                 // ── ARTICLE ───────────────────────────────────────────────
                 Section::make('Content')
@@ -160,7 +162,8 @@ class LessonForm
                             ->addActionLabel('Add takeaway')
                             ->columnSpanFull(),
                     ])
-                    ->columns(2),
+                    ->columns(2)
+                    ->columnSpanFull(),
 
                 Section::make('Completion Requirements')
                     ->description('Define what a student must complete for this lesson')
@@ -176,7 +179,8 @@ class LessonForm
                             ])
                             ->columns(4)
                             ->columnSpanFull(),
-                    ]),
+                            ])
+                            ->columnSpanFull(),
 
                 Section::make('Knowledge Check')
                             ->description('Add an optional quiz to reinforce the lesson')
@@ -220,7 +224,8 @@ class LessonForm
                                     ->defaultItems(0)
                                     ->addActionLabel('Add knowledge check')
                                     ->columnSpanFull(),
-                            ]),
+                            ])
+                            ->columnSpanFull(),
 
                     Section::make('Practical Activity')
                             ->description('Give students an assignment to complete and submit')
@@ -245,7 +250,8 @@ class LessonForm
                                     ->defaultItems(0)
                                     ->addActionLabel('Add assignment')
                                     ->columnSpanFull(),
-                            ]),
+                            ])
+                            ->columnSpanFull(),
 
                     Section::make('Resources')
                             ->description('Add downloadable files students can reference')
@@ -301,7 +307,8 @@ class LessonForm
                             ->placeholder('e.g. Lecture Slides, Course Notes...')
                             ->maxLength(255),
                     ])
-                    ->columns(2),
+                    ->columns(2)
+                    ->columnSpanFull(),
 
                 // ── ATTACHMENT: video + article optional download ─────────
                 Section::make('Attachment')
@@ -326,7 +333,8 @@ class LessonForm
                             ->placeholder('e.g. Course Notes, Cheat Sheet...')
                             ->maxLength(255),
                     ])
-                    ->columns(2),
+                    ->columns(2)
+                    ->columnSpanFull(),
 
                 // ── SETTINGS ──────────────────────────────────────────────
                 Section::make('Settings')
@@ -346,7 +354,8 @@ class LessonForm
                             ->label('Free Preview')
                             ->inline(false),
                     ])
-                    ->columns(3),
+                    ->columns(3)
+                    ->columnSpanFull(),
             ]);
     }
 }

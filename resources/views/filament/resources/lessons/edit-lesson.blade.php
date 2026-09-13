@@ -33,8 +33,8 @@
     --t2:#64748b;
     --t3:#334155;
     --sh:0 4px 24px rgba(0,0,0,.28);
-    --accent:#8b5cf6;
-    --accent2:#7c3aed;
+    --accent:#3b82f6;
+    --accent2:#2563eb;
     color:var(--t1);
 }
 html:not(.dark) .le {
@@ -163,7 +163,7 @@ html:not(.dark) .le {
     display:grid;
     place-items:center;
     flex-shrink:0;
-    background:rgba(139,92,246,.12);
+    background:rgba(59,130,246,.12);
     color:var(--accent);
 }
 .le-hero-icon svg {
@@ -231,8 +231,8 @@ html:not(.dark) .le {
 .le-form-wrap .fi-section {
     background:var(--p1)!important;
     border:1px solid var(--bd)!important;
-    border-radius:14px!important;
-    box-shadow:var(--sh)!important;
+    border-radius:12px!important;
+    box-shadow:0 2px 16px rgba(0,0,0,.18)!important;
     overflow:hidden!important;
 }
 .le-form-wrap .fi-section + .fi-section {
@@ -253,7 +253,7 @@ html:not(.dark) .le {
     color:var(--t2)!important;
 }
 .le-form-wrap .fi-section-content-ctn {
-    padding:22px!important;
+    padding:24px!important;
 }
 .le-form-wrap .fi-section-content {
     gap:18px!important;
@@ -281,8 +281,19 @@ html:not(.dark) .le {
     border-color:var(--bd2)!important;
 }
 .le-form-wrap .fi-repeater-item {
-    border-radius:10px!important;
+    border-radius:8px!important;
     border-color:var(--bd2)!important;
+    background:var(--p2)!important;
+}
+.le-form-wrap .fi-repeater-item-header {
+    background:transparent!important;
+    border-bottom:1px solid var(--bd)!important;
+}
+.le-form-wrap .fi-repeater-add-item {
+    color:var(--accent)!important;
+}
+.le-form-wrap .fi-fo-field-wrp {
+    min-width:0;
 }
 .le-form-wrap .fi-form-actions {
     display:none!important;

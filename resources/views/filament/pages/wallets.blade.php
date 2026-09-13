@@ -87,6 +87,11 @@ html:not(.dark) .wl {
     grid-template-columns:repeat(3,1fr);
     gap:12px;
 }
+@media(max-width:640px) {
+    .wl-stats {
+        grid-template-columns:repeat(2,minmax(0,1fr));
+    }
+}
 .wl-stat {
     background:var(--p1);
     border:1px solid var(--bd);

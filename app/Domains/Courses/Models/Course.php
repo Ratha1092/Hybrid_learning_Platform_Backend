@@ -47,6 +47,8 @@ class Course extends Model
         'duration',
         'requirements',
         'what_you_will_learn',
+        'target_audience',
+        'required_tools_materials',
         'status',
         'is_published',
         'approved_at',

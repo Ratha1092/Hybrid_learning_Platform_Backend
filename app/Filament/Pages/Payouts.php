@@ -665,17 +665,13 @@ class Payouts extends Page
             $query->whereHas(
                 'instructor',
                 function ($q) use ($search) {
+                    $searchTerm = '%' . mb_strtolower($search) . '%';
 
-                    $q->where(
-                        'name',
-                        'ilike',
-                        "%{$search}%"
-                    )
-                    ->orWhere(
-                        'email',
-                        'ilike',
-                        "%{$search}%"
-                    );
+                    $q->where(function ($instructorQuery) use ($searchTerm) {
+                        $instructorQuery
+                            ->whereRaw('LOWER(name) LIKE ?', [$searchTerm])
+                            ->orWhereRaw('LOWER(email) LIKE ?', [$searchTerm]);
+                    });
                 }
             );
         }

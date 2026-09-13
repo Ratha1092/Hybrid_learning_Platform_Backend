@@ -20,6 +20,7 @@
         html:not(.dark) .crd { color:#0f172a; }
         .crd-head { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom:20px; }
         .crd-back { color:#94a3b8; text-decoration:none; font-size:12px; font-weight:700; }
+        html:not(.dark) .crd-back { color:#64748b; }
         .crd-back:hover { color:#38bdf8; }
         .crd-title { margin:18px 0 4px; font-size:clamp(20px,2.2vw,28px); line-height:1.15; font-weight:800; letter-spacing:-.02em; }
         .crd-subtitle { margin:0; color:#64748b; font-size:12px; }
@@ -29,9 +30,11 @@
         .crd-card { background:#1e293b; border:1px solid rgba(255,255,255,.08); border-radius:12px; box-shadow:0 4px 24px rgba(0,0,0,.25); overflow:hidden; }
         html:not(.dark) .crd-card { background:#fff; border-color:rgba(15,23,42,.13); box-shadow:0 2px 16px rgba(15,23,42,.1); }
         .crd-card-head { padding:16px 18px; border-bottom:1px solid rgba(148,163,184,.16); font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:.06em; color:#94a3b8; }
+        html:not(.dark) .crd-card-head { color:#64748b; }
         .crd-card-body { padding:20px; }
         .crd-reason { margin:0 0 18px; font-size:20px; font-weight:800; line-height:1.25; }
         .crd-details { margin:0; color:#94a3b8; font-size:14px; line-height:1.7; white-space:pre-wrap; overflow-wrap:anywhere; }
+        html:not(.dark) .crd-details { color:#475569; }
         .crd-meta { display:grid; gap:14px; padding:18px; }
         .crd-meta-row { display:flex; justify-content:space-between; gap:12px; padding-bottom:12px; border-bottom:1px solid rgba(148,163,184,.14); font-size:12px; }
         .crd-meta-row:last-child { padding-bottom:0; border-bottom:0; }

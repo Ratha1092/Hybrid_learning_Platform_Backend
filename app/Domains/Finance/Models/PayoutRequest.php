@@ -44,6 +44,11 @@ class PayoutRequest extends Model
         return $this->belongsTo(User::class, 'instructor_id');
     }
 
+    public function processedBy()
+    {
+        return $this->belongsTo(User::class, 'processed_by');
+    }
+
     public function payoutAccount()
     {
         return $this->belongsTo(InstructorPayoutAccount::class, 'payout_account_id');

@@ -448,7 +448,7 @@ html:not(.dark) .lv {
     {{-- ── Stats ── --}}
     <div class="lv-stats">
         <div class="lv-stat">
-            <div class="lv-stat-val">{{ $les->duration ? $les->duration.' min' : '—' }}</div>
+            <div class="lv-stat-val">{{ $les->duration ? round(((float) $les->duration) / 60) . ' min' : '—' }}</div>
             <div class="lv-stat-label">Duration</div>
         </div>
         <div class="lv-stat">

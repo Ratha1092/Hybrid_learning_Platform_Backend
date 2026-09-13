@@ -378,6 +378,11 @@ html.dark .st {
     gap:12px;
     margin-bottom:20px;
 }
+@media(max-width:640px) {
+    .st-stats {
+        grid-template-columns:repeat(2,minmax(0,1fr));
+    }
+}
 .st-stat {
     background:var(--p2);
     border:1px solid var(--bd);

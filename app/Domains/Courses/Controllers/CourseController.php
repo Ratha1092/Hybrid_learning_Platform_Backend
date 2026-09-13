@@ -52,7 +52,16 @@ class CourseController extends Controller
                 'sections' => function ($q) {
                     $q->orderBy('order')->with([
                         'lessons' => function ($q) {
-                            $q->orderBy('order')->with(['attachments', 'videos']);
+                            $q->orderBy('order')->with([
+                                'attachments',
+                                'videos',
+                                'objectives',
+                                'contentBlocks',
+                                'takeaways',
+                                'assessments.questions',
+                                'assignments',
+                                'completionRule',
+                            ]);
                         }
                     ]);
                 }
@@ -121,6 +130,52 @@ class CourseController extends Controller
                     $lessonData['video_url'] = null;
                 }
                 unset($lessonData['video_path']);
+
+                $lessonData['content_blocks'] = $canWatch
+                    ? $lesson->contentBlocks->map(fn ($block) => [
+                        'id' => $block->id,
+                        'type' => $block->type,
+                        'title' => $block->title,
+                        'content' => $block->content,
+                        'media_url' => $block->media_path
+                            ? Storage::disk('r2-private')->temporaryUrl($block->media_path, now()->addMinutes(30))
+                            : $block->media_url,
+                        'language' => $block->language,
+                        'metadata' => $block->metadata,
+                        'order' => $block->order,
+                    ])->values()->all()
+                    : [];
+
+                $lessonData['assessments'] = $canWatch
+                    ? $lesson->assessments->map(fn ($assessment) => [
+                        'id' => $assessment->id,
+                        'title' => $assessment->title,
+                        'description' => $assessment->description,
+                        'passing_score' => $assessment->passing_score,
+                        'attempts' => $assessment->attempts,
+                        'is_required' => $assessment->is_required,
+                        'questions' => $assessment->questions->map(fn ($question) => [
+                            'id' => $question->id,
+                            'question' => $question->question,
+                            'type' => $question->type,
+                            'options' => $question->options,
+                            'explanation' => $question->explanation,
+                            'points' => $question->points,
+                            'order' => $question->order,
+                        ])->values()->all(),
+                    ])->values()->all()
+                    : [];
+
+                $lessonData['assignments'] = $canWatch
+                    ? $lesson->assignments->map(fn ($assignment) => [
+                        'id' => $assignment->id,
+                        'title' => $assignment->title,
+                        'instructions' => $assignment->instructions,
+                        'submission_type' => $assignment->submission_type,
+                        'max_score' => $assignment->max_score,
+                        'is_required' => $assignment->is_required,
+                    ])->values()->all()
+                    : [];
 
                 if (!$canWatch) {
                     $lessonData['attachments'] = [];

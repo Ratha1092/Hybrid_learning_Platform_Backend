@@ -4,8 +4,11 @@ namespace App\Filament\Resources\Lessons\Schemas;
 
 use App\Domains\Courses\Models\Section as CourseSection;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Group;
 use Filament\Forms\Components\RichEditor;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -87,6 +90,190 @@ class LessonForm
                             ->columnSpanFull(),
                     ]),
 
+
+                Section::make('Lesson Builder')
+                    ->description('Structure the teaching flow inside this lesson')
+                    ->icon('heroicon-o-list-bullet')
+                    ->schema([
+                        Repeater::make('objectives')
+                            ->relationship()
+                            ->label('Learning Objectives')
+                            ->simple(
+                                TextInput::make('objective')
+                                    ->required()
+                                    ->maxLength(500)
+                            )
+                            ->defaultItems(0)
+                            ->reorderable()
+                            ->orderColumn('order')
+                            ->addActionLabel('Add objective')
+                            ->columnSpanFull(),
+                        Repeater::make('contentBlocks')
+                            ->relationship()
+                            ->label('Content Blocks')
+                            ->schema([
+                                Select::make('type')
+                                    ->options([
+                                        'text' => 'Text',
+                                        'video' => 'Video',
+                                        'image' => 'Image',
+                                        'code' => 'Code',
+                                        'resource' => 'Resource',
+                                        'external' => 'External Link',
+                                    ])
+                                    ->required()
+                                    ->live(),
+                                TextInput::make('title')->maxLength(255),
+                                RichEditor::make('content')
+                                    ->hidden(fn (Get $get): bool => $get('type') === 'external')
+                                    ->columnSpanFull(),
+                                FileUpload::make('media_path')
+                                    ->label('Media File')
+                                    ->disk('r2-private')
+                                    ->visibility('private')
+                                    ->directory('lessons/content')
+                                    ->hidden(fn (Get $get): bool => !in_array($get('type'), ['video', 'image', 'resource'])) ,
+                                TextInput::make('media_url')
+                                    ->label('External URL')
+                                    ->url()
+                                    ->hidden(fn (Get $get): bool => $get('type') !== 'external'),
+                                TextInput::make('language')
+                                    ->placeholder('e.g. javascript')
+                                    ->hidden(fn (Get $get): bool => $get('type') !== 'code'),
+                            ])
+                            ->defaultItems(0)
+                            ->reorderable()
+                            ->orderColumn('order')
+                            ->addActionLabel('Add content block')
+                            ->columnSpanFull(),
+                        Repeater::make('takeaways')
+                            ->relationship()
+                            ->label('Key Takeaways')
+                            ->simple(
+                                TextInput::make('takeaway')
+                                    ->required()
+                                    ->maxLength(500)
+                            )
+                            ->defaultItems(0)
+                            ->reorderable()
+                            ->orderColumn('order')
+                            ->addActionLabel('Add takeaway')
+                            ->columnSpanFull(),
+                    ])
+                    ->columns(2),
+
+                Section::make('Completion Requirements')
+                    ->description('Define what a student must complete for this lesson')
+                    ->icon('heroicon-o-check-circle')
+                    ->schema([
+                        Group::make()
+                            ->relationship('completionRule')
+                            ->schema([
+                                Toggle::make('watch_video')->label('Watch video'),
+                                Toggle::make('read_content')->label('Read lesson content'),
+                                Toggle::make('pass_quiz')->label('Pass knowledge check'),
+                                Toggle::make('submit_assignment')->label('Submit assignment'),
+                            ])
+                            ->columns(4)
+                            ->columnSpanFull(),
+                    ]),
+
+                Section::make('Knowledge Check')
+                            ->description('Add an optional quiz to reinforce the lesson')
+                            ->icon('heroicon-o-question-mark-circle')
+                            ->schema([
+                                Repeater::make('assessments')
+                                    ->relationship()
+                                    ->schema([
+                                        TextInput::make('title')->required()->maxLength(255),
+                                        Textarea::make('description')->rows(2),
+                                        TextInput::make('passing_score')->numeric()->suffix('%'),
+                                        TextInput::make('attempts')->numeric()->minValue(1),
+                                        Toggle::make('is_required')->label('Required'),
+                                        Repeater::make('questions')
+                                            ->relationship()
+                                            ->schema([
+                                                Textarea::make('question')->required()->rows(2)->columnSpanFull(),
+                                                Select::make('type')
+                                                    ->options([
+                                                        'single_choice' => 'Single choice',
+                                                        'multiple_choice' => 'Multiple choice',
+                                                        'true_false' => 'True / False',
+                                                    ])
+                                                    ->default('single_choice')
+                                                    ->required(),
+                                                TagsInput::make('options')
+                                                    ->label('Answer options')
+                                                    ->placeholder('Add an option'),
+                                                TagsInput::make('correct_options')
+                                                    ->label('Correct answer(s)')
+                                                    ->placeholder('Add the exact correct answer'),
+                                                Textarea::make('explanation')->rows(2),
+                                                TextInput::make('points')->numeric()->default(1)->minValue(1),
+                                            ])
+                                            ->defaultItems(0)
+                                            ->reorderable()
+                                            ->orderColumn('order')
+                                            ->addActionLabel('Add question')
+                                            ->columnSpanFull(),
+                                    ])
+                                    ->defaultItems(0)
+                                    ->addActionLabel('Add knowledge check')
+                                    ->columnSpanFull(),
+                            ]),
+
+                    Section::make('Practical Activity')
+                            ->description('Give students an assignment to complete and submit')
+                            ->icon('heroicon-o-clipboard-document-check')
+                            ->schema([
+                                Repeater::make('assignments')
+                                    ->relationship()
+                                    ->schema([
+                                        TextInput::make('title')->required()->maxLength(255),
+                                        RichEditor::make('instructions')->required()->columnSpanFull(),
+                                        Select::make('submission_type')
+                                            ->options([
+                                                'file' => 'File submission',
+                                                'text' => 'Text response',
+                                                'url' => 'URL submission',
+                                            ])
+                                            ->default('file')
+                                            ->required(),
+                                        TextInput::make('max_score')->numeric()->minValue(1),
+                                        Toggle::make('is_required')->label('Required'),
+                                    ])
+                                    ->defaultItems(0)
+                                    ->addActionLabel('Add assignment')
+                                    ->columnSpanFull(),
+                            ]),
+
+                    Section::make('Resources')
+                            ->description('Add downloadable files students can reference')
+                            ->icon('heroicon-o-arrow-down-tray')
+                            ->schema([
+                                Repeater::make('attachments')
+                                    ->relationship()
+                                    ->schema([
+                                        TextInput::make('title')->required()->maxLength(255),
+                                        Select::make('type')->options([
+                                            'pdf' => 'PDF',
+                                            'slides' => 'Slides',
+                                            'source_code' => 'Source code',
+                                            'template' => 'Template',
+                                            'other' => 'Other',
+                                        ]),
+                                        FileUpload::make('file_path')
+                                            ->disk('r2-private')
+                                            ->visibility('private')
+                                            ->directory('lessons/resources')
+                                            ->required()
+                                            ->columnSpanFull(),
+                                    ])
+                                    ->defaultItems(0)
+                                    ->addActionLabel('Add resource')
+                                    ->columnSpanFull(),
+                                ])
+                                ->columnSpanFull(),
                 // ── FILE / DOCUMENT ───────────────────────────────────────
                 Section::make('File / Document')
                     ->description('Upload a PDF, PowerPoint, Word, or other document for students')

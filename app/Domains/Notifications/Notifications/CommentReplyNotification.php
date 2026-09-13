@@ -6,6 +6,7 @@ use App\Domains\Learning\Models\LessonComment;
 use App\Domains\Notifications\Concerns\BroadcastsAsNotification;
 use App\Domains\Notifications\Enums\NotificationType;
 use App\Domains\Notifications\Support\NotificationChannels;
+use App\Domains\Notifications\Support\NotificationLinks;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification;
@@ -39,6 +40,9 @@ class CommentReplyNotification extends Notification
     private function payload(): array
     {
         $replierName = $this->reply->user?->name ?? 'Someone';
+        $link = NotificationLinks::frontend(
+            "/learn/{$this->courseSlug}?lesson={$this->reply->lesson_id}&comment={$this->reply->parent_id}"
+        );
 
         return [
             'title'       => 'New reply to your comment',
@@ -50,8 +54,7 @@ class CommentReplyNotification extends Notification
             // thread the reply landed on, instead of dumping the reader on
             // the course's first lesson (see Learn.tsx's `lesson`/`comment`
             // query-param handling).
-            'link'        => env('FRONTEND_URL', 'http://localhost:3000')
-                . "/learn/{$this->courseSlug}?lesson={$this->reply->lesson_id}&comment={$this->reply->parent_id}",
+            'link'        => $link,
             'action_text' => 'View reply',
         ];
     }

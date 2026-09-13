@@ -5,6 +5,7 @@ namespace App\Domains\Notifications\Notifications;
 use App\Domains\Notifications\Concerns\BroadcastsAsNotification;
 use App\Domains\Notifications\Enums\NotificationType;
 use App\Domains\Notifications\Support\NotificationChannels;
+use App\Domains\Notifications\Support\NotificationLinks;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification;
@@ -26,23 +27,27 @@ class CourseCompletionNotification extends Notification
 
     public function toBroadcast(object $notifiable): BroadcastMessage
     {
+        $link = NotificationLinks::frontend('/library');
+
         return new BroadcastMessage([
             'title'       => 'Course Completed',
             'message'     => "Congratulations! You've completed \"{$this->courseTitle}\".",
             'type'        => NotificationType::COURSE->value,
-            'link'        => env('FRONTEND_URL', 'http://localhost:3000') . '/library',
+            'link'        => $link,
             'action_text' => 'View in Library',
         ]);
     }
 
     public function toArray(object $notifiable): array
     {
+        $link = NotificationLinks::frontend('/library');
+
         return [
             'title'       => 'Course Completed',
             'message'     => "Congratulations! You've completed \"{$this->courseTitle}\".",
             'type'        => NotificationType::COURSE->value,
             'course_id'   => $this->courseId,
-            'link'        => env('FRONTEND_URL', 'http://localhost:3000') . '/library',
+            'link'        => $link,
             'action_text' => 'View in Library',
         ];
     }

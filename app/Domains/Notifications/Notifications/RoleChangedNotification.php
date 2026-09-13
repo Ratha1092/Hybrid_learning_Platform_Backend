@@ -4,6 +4,7 @@ namespace App\Domains\Notifications\Notifications;
 
 use App\Domains\Notifications\Concerns\BroadcastsAsNotification;
 use App\Domains\Notifications\Enums\NotificationType;
+use App\Domains\Notifications\Support\NotificationLinks;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification;
@@ -60,6 +61,6 @@ class RoleChangedNotification extends Notification
             return route('filament.admin.pages.users');
         }
 
-        return env('FRONTEND_URL', 'http://localhost:3000') . '/profile';
+        return NotificationLinks::frontend('/profile');
     }
 }

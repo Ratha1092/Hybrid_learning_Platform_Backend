@@ -36,10 +36,15 @@ class InstructorCourseController extends Controller
     {
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
+            'short_description' => ['nullable', 'string', 'max:500'],
             'description' => ['nullable', 'string'],
             'price' => ['nullable', 'numeric', static::minPriceRule()],
             'level' => ['nullable', 'string'],
             'language' => ['nullable', 'string'],
+            'requirements' => ['nullable', 'string'],
+            'what_you_will_learn' => ['nullable', 'string'],
+            'target_audience' => ['nullable', 'string'],
+            'required_tools_materials' => ['nullable', 'string'],
             'category_id' => ['required', 'exists:categories,id'],
         ]);
 
@@ -91,6 +96,8 @@ class InstructorCourseController extends Controller
             'category_id'         => ['sometimes', 'exists:categories,id'],
             'requirements'        => ['nullable', 'string'],
             'what_you_will_learn' => ['nullable', 'string'],
+            'target_audience'    => ['nullable', 'string'],
+            'required_tools_materials' => ['nullable', 'string'],
             'visibility'          => ['sometimes', 'in:public,private'],
             'thumbnail'           => [
                 'nullable', 'image', 'mimes:jpg,jpeg,png,webp',

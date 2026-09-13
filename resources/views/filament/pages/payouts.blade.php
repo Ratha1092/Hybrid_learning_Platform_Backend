@@ -39,10 +39,25 @@
     @endif
 >
 <style>
+.fi-main:has(.hl-payout-page){
+    padding-inline:0 !important;
+}
+.fi-page-header-main-ctn:has(.hl-payout-page){
+    padding-block:0 !important;
+    row-gap:0 !important;
+}
+.fi-page-content:has(.hl-payout-page){
+    row-gap:0 !important;
+}
 .hl-payout-page,.hl-payout-page *,.hl-payout-page *::before,.hl-payout-page *::after{box-sizing:border-box}
 .hl-payout-page{
     width:100%;
-    padding-bottom:32px;
+    min-height:100vh;
+    padding:16px 20px 48px;
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+    background:var(--hl-payout-bg);
     color:var(--hl-payout-text);
     --hl-payout-bg:#0f172a;
     --hl-payout-card:#1e293b;
@@ -79,7 +94,7 @@ html:not(.dark) .hl-payout-page{
     align-items:flex-start;
     justify-content:space-between;
     gap:20px;
-    margin-bottom:24px;
+    margin-bottom:0;
 }
 .hl-payout-title{
     margin:0;
@@ -647,7 +662,6 @@ html:not(.dark) .hl-payout-btn-secondary{
                 and record completed instructor payments.
             </p>
         </div>
-
         <button
             type="button"
             class="hl-payout-refresh"
@@ -763,13 +777,13 @@ html:not(.dark) .hl-payout-btn-secondary{
                             </td>
                             <td>
                                 <div class="hl-payout-actions">
-                                    <button
-                                        type="button"
+                                    <a
+                                        href="{{ route('filament.admin.resources.payout-requests.view', ['record' => $payout->id]) }}"
                                         class="hl-payout-action hl-payout-view"
-                                        wire:click="openDetails({{ $payout->id }})"
+                                        wire:navigate
                                     >
                                         View
-                                    </button>
+                                    </a>
                                     @if($canUpdate && $payout->status === 'pending')
                                         <button
                                             type="button"

@@ -197,6 +197,16 @@ html:not(.dark) .cv {
     gap:24px;
     align-items:start;
 }
+.cv-info-grid {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:0;
+}
+@media (max-width: 640px) {
+    .cv-info-grid {
+        grid-template-columns:1fr;
+    }
+}
 @media (max-width: 768px) {
     .cv-hero {
         grid-template-columns:1fr;
@@ -646,7 +656,7 @@ html:not(.dark) .cv-modal-overlay {
                     </div>
                     <span class="cv-card-title">Instructor</span>
                 </div>
-                <div class="cv-card-body" style="display:grid;grid-template-columns:1fr 1fr;gap:0">
+                <div class="cv-card-body cv-info-grid">
                     <div class="cv-field">
                         <div class="cv-field-label">Name</div>
                         <div class="cv-field-value">{{ $course->instructor?->name ?? '—' }}</div>
@@ -670,7 +680,7 @@ html:not(.dark) .cv-modal-overlay {
                     </div>
                     <span class="cv-card-title">Approval</span>
                 </div>
-                <div class="cv-card-body" style="display:grid;grid-template-columns:1fr 1fr;gap:0">
+                <div class="cv-card-body cv-info-grid">
                     <div class="cv-field">
                         <div class="cv-field-label">Approved By</div>
                         <div class="cv-field-value {{ !$course->approvedBy ? 'muted' : '' }}">{{ $course->approvedBy?->name ?? 'Not approved' }}</div>

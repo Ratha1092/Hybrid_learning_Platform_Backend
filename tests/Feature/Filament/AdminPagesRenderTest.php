@@ -3,6 +3,8 @@
 namespace Tests\Feature\Filament;
 
 use App\Domains\Courses\Models\Course;
+use App\Domains\Courses\Models\Lesson;
+use App\Domains\Courses\Models\Section;
 use App\Domains\Promotions\Models\Coupon;
 use App\Domains\Users\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -43,6 +45,27 @@ class AdminPagesRenderTest extends TestCase
             $status = $this->get("/admin/{$slug}")->getStatusCode();
             $this->assertEquals(200, $status, "Expected 200 for /admin/{$slug}, got {$status}");
         }
+    }
+
+    public function test_lesson_edit_page_renders_with_a_real_lesson(): void
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('super-admin');
+        $this->actingAs($admin);
+
+        $section = Section::create([
+            'title' => 'Lesson Edit Section',
+            'order' => 1,
+        ]);
+        $lesson = Lesson::create([
+            'section_id' => $section->id,
+            'title' => 'Lesson Edit Test',
+            'type' => Lesson::TYPE_VIDEO,
+            'order' => 1,
+        ]);
+
+        $this->get("/admin/lessons/{$lesson->id}/edit")
+            ->assertOk();
     }
 
     public function test_coupons_page_renders_with_a_real_row(): void

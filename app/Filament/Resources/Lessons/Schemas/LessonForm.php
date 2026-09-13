@@ -96,7 +96,7 @@ class LessonForm
                     ->icon('heroicon-o-list-bullet')
                     ->schema([
                         Repeater::make('objectives')
-                            ->relationship()
+                            ->relationship('objectives')
                             ->label('Learning Objectives')
                             ->simple(
                                 TextInput::make('objective')
@@ -108,8 +108,8 @@ class LessonForm
                             ->orderColumn('order')
                             ->addActionLabel('Add objective')
                             ->columnSpanFull(),
-                        Repeater::make('contentBlocks')
-                            ->relationship()
+                        Repeater::make('content_blocks')
+                            ->relationship('contentBlocks')
                             ->label('Content Blocks')
                             ->schema([
                                 Select::make('type')
@@ -147,7 +147,7 @@ class LessonForm
                             ->addActionLabel('Add content block')
                             ->columnSpanFull(),
                         Repeater::make('takeaways')
-                            ->relationship()
+                            ->relationship('takeaways')
                             ->label('Key Takeaways')
                             ->simple(
                                 TextInput::make('takeaway')
@@ -183,7 +183,7 @@ class LessonForm
                             ->icon('heroicon-o-question-mark-circle')
                             ->schema([
                                 Repeater::make('assessments')
-                                    ->relationship()
+                                    ->relationship('assessments')
                                     ->schema([
                                         TextInput::make('title')->required()->maxLength(255),
                                         Textarea::make('description')->rows(2),
@@ -191,7 +191,7 @@ class LessonForm
                                         TextInput::make('attempts')->numeric()->minValue(1),
                                         Toggle::make('is_required')->label('Required'),
                                         Repeater::make('questions')
-                                            ->relationship()
+                                            ->relationship('questions')
                                             ->schema([
                                                 Textarea::make('question')->required()->rows(2)->columnSpanFull(),
                                                 Select::make('type')
@@ -227,7 +227,7 @@ class LessonForm
                             ->icon('heroicon-o-clipboard-document-check')
                             ->schema([
                                 Repeater::make('assignments')
-                                    ->relationship()
+                                    ->relationship('assignments')
                                     ->schema([
                                         TextInput::make('title')->required()->maxLength(255),
                                         RichEditor::make('instructions')->required()->columnSpanFull(),
@@ -252,7 +252,7 @@ class LessonForm
                             ->icon('heroicon-o-arrow-down-tray')
                             ->schema([
                                 Repeater::make('attachments')
-                                    ->relationship()
+                                    ->relationship('attachments')
                                     ->schema([
                                         TextInput::make('title')->required()->maxLength(255),
                                         Select::make('type')->options([

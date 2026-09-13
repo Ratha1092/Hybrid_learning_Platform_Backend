@@ -248,6 +248,9 @@ html:not(.dark) .le {
     font-weight:750!important;
     color:var(--t1)!important;
 }
+.le-form-wrap .fi-section-header-icon {
+    color:var(--accent)!important;
+}
 .le-form-wrap .fi-section-header-description {
     font-size:11.5px!important;
     color:var(--t2)!important;
@@ -280,6 +283,20 @@ html:not(.dark) .le {
     background:var(--p2)!important;
     border-color:var(--bd2)!important;
 }
+.le-form-wrap .fi-rte {
+    border-color:var(--bd2)!important;
+    border-radius:9px!important;
+    overflow:hidden!important;
+}
+.le-form-wrap .fi-rte-toolbar {
+    border-color:var(--bd2)!important;
+    background:var(--p2)!important;
+}
+.le-form-wrap .fi-rte-content {
+    min-height:160px;
+    background:var(--p2)!important;
+    color:var(--t1)!important;
+}
 .le-form-wrap .fi-repeater-item {
     border-radius:8px!important;
     border-color:var(--bd2)!important;
@@ -291,6 +308,9 @@ html:not(.dark) .le {
 }
 .le-form-wrap .fi-repeater-add-item {
     color:var(--accent)!important;
+}
+.le-form-wrap .fi-btn {
+    border-radius:8px!important;
 }
 .le-form-wrap .fi-fo-field-wrp {
     min-width:0;

@@ -162,7 +162,7 @@ class LessonForm
                             ->addActionLabel('Add takeaway')
                             ->columnSpanFull(),
                     ])
-                    ->columns(2)
+                    ->columns(1)
                     ->columnSpanFull(),
 
                 Section::make('Completion Requirements')
@@ -183,49 +183,51 @@ class LessonForm
                             ->columnSpanFull(),
 
                 Section::make('Knowledge Check')
-                            ->description('Add an optional quiz to reinforce the lesson')
-                            ->icon('heroicon-o-question-mark-circle')
+                    ->description('Add an optional quiz to reinforce the lesson')
+                    ->icon('heroicon-o-question-mark-circle')
+                    ->schema([
+                        Repeater::make('assessments')
+                            ->relationship('assessments')
                             ->schema([
-                                Repeater::make('assessments')
-                                    ->relationship('assessments')
+                                TextInput::make('title')->required()->maxLength(255),
+                                Textarea::make('description')->rows(2)->columnSpanFull(),
+                                TextInput::make('passing_score')->numeric()->suffix('%'),
+                                TextInput::make('attempts')->numeric()->minValue(1),
+                                Toggle::make('is_required')->label('Required'),
+                                Repeater::make('questions')
+                                    ->relationship('questions')
                                     ->schema([
-                                        TextInput::make('title')->required()->maxLength(255),
-                                        Textarea::make('description')->rows(2),
-                                        TextInput::make('passing_score')->numeric()->suffix('%'),
-                                        TextInput::make('attempts')->numeric()->minValue(1),
-                                        Toggle::make('is_required')->label('Required'),
-                                        Repeater::make('questions')
-                                            ->relationship('questions')
-                                            ->schema([
-                                                Textarea::make('question')->required()->rows(2)->columnSpanFull(),
-                                                Select::make('type')
-                                                    ->options([
-                                                        'single_choice' => 'Single choice',
-                                                        'multiple_choice' => 'Multiple choice',
-                                                        'true_false' => 'True / False',
-                                                    ])
-                                                    ->default('single_choice')
-                                                    ->required(),
-                                                TagsInput::make('options')
-                                                    ->label('Answer options')
-                                                    ->placeholder('Add an option'),
-                                                TagsInput::make('correct_options')
-                                                    ->label('Correct answer(s)')
-                                                    ->placeholder('Add the exact correct answer'),
-                                                Textarea::make('explanation')->rows(2),
-                                                TextInput::make('points')->numeric()->default(1)->minValue(1),
+                                        Textarea::make('question')->required()->rows(2)->columnSpanFull(),
+                                        Select::make('type')
+                                            ->options([
+                                                'single_choice' => 'Single choice',
+                                                'multiple_choice' => 'Multiple choice',
+                                                'true_false' => 'True / False',
                                             ])
-                                            ->defaultItems(0)
-                                            ->reorderable()
-                                            ->orderColumn('order')
-                                            ->addActionLabel('Add question')
-                                            ->columnSpanFull(),
+                                            ->default('single_choice')
+                                            ->required(),
+                                        TagsInput::make('options')
+                                            ->label('Answer options')
+                                            ->placeholder('Add an option'),
+                                        TagsInput::make('correct_options')
+                                            ->label('Correct answer(s)')
+                                            ->placeholder('Add the exact correct answer'),
+                                        Textarea::make('explanation')->rows(2),
+                                        TextInput::make('points')->numeric()->default(1)->minValue(1),
                                     ])
+                                    ->columns(2)
                                     ->defaultItems(0)
-                                    ->addActionLabel('Add knowledge check')
+                                    ->reorderable()
+                                    ->orderColumn('order')
+                                    ->addActionLabel('Add question')
                                     ->columnSpanFull(),
                             ])
+                            ->columns(2)
+                            ->defaultItems(0)
+                            ->addActionLabel('Add knowledge check')
                             ->columnSpanFull(),
+                    ])
+                    ->columnSpanFull(),
 
                     Section::make('Practical Activity')
                             ->description('Give students an assignment to complete and submit')

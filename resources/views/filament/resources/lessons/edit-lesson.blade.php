@@ -23,6 +23,8 @@
     font-size:13px;
     line-height:1.5;
     padding-bottom:56px;
+    max-width:1440px;
+    margin:0 auto;
     display:grid;
     gap:20px;
     --p1:#1e293b;
@@ -82,6 +84,17 @@ html:not(.dark) .le {
     flex-wrap:wrap;
     padding-bottom:20px;
     border-bottom:1px solid var(--bd);
+}
+.le-header-copy {
+    min-width:0;
+}
+.le-eyebrow {
+    color:var(--accent);
+    font-size:10px;
+    font-weight:800;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    margin-bottom:4px;
 }
 .le-page-title {
     font-size:clamp(22px,2.6vw,30px);
@@ -151,6 +164,7 @@ html:not(.dark) .le {
     border-radius:14px;
     box-shadow:var(--sh);
     padding:24px 28px;
+    border-top:3px solid var(--accent);
     display:flex;
     align-items:center;
     gap:20px;
@@ -180,6 +194,18 @@ html:not(.dark) .le {
     color:var(--t1);
     letter-spacing:-.015em;
     line-height:1.2;
+}
+.le-hero-description {
+    color:var(--t2);
+    font-size:12px;
+    line-height:1.6;
+    margin-top:10px;
+    max-width:680px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    display:-webkit-box;
+    -webkit-line-clamp:2;
+    -webkit-box-orient:vertical;
 }
 .le-hero-meta {
     font-size:12px;
@@ -227,11 +253,11 @@ html:not(.dark) .le {
     margin-top:2px;
 }
 
-/* ── Filament form override ── */
+/* Filament form override */
 .le-form-wrap .fi-section {
     background:var(--p1)!important;
     border:1px solid var(--bd)!important;
-    border-radius:12px!important;
+    border-radius:14px!important;
     box-shadow:0 2px 16px rgba(0,0,0,.18)!important;
     overflow:hidden!important;
 }
@@ -242,6 +268,13 @@ html:not(.dark) .le {
     padding:18px 22px!important;
     border-bottom:1px solid var(--bd)!important;
     background:transparent!important;
+}
+.le-form-wrap .fi-section-header-icon {
+    width:34px!important;
+    height:34px!important;
+    padding:8px!important;
+    border-radius:9px!important;
+    background:rgba(59,130,246,.1)!important;
 }
 .le-form-wrap .fi-section-header-heading {
     font-size:13px!important;
@@ -334,11 +367,38 @@ html:not(.dark) .le {
         transform:rotate(360deg);
     }
 }
+@media(max-width:720px) {
+    .le {
+        gap:14px;
+    }
+    .le-header,
+    .le-hero {
+        padding:18px;
+    }
+    .le-hero-stats {
+        width:100%;
+        border-top:1px solid var(--bd);
+        padding-top:16px;
+    }
+    .le-stat {
+        flex:1;
+        padding:0 10px;
+    }
+    .le-stat:first-child {
+        border-left:0;
+    }
+    .le-form-wrap .fi-section-content-ctn {
+        padding:18px!important;
+    }
+}
 </style>
 
-{{-- ── Header ── --}}
+{{-- Header --}}
 <div class="le-header lea le1">
-    <h1 class="le-page-title">Edit Lesson</h1>
+    <div class="le-header-copy">
+        <div class="le-eyebrow">Learning content</div>
+        <h1 class="le-page-title">Edit Lesson</h1>
+    </div>
     <div class="le-header-actions">
         <a href="{{ $backUrl }}" wire:navigate class="le-btn le-btn-gray">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
@@ -351,7 +411,7 @@ html:not(.dark) .le {
     </div>
 </div>
 
-{{-- ── Hero ── --}}
+{{-- Hero --}}
 <div class="le-hero lea le2">
     <div class="le-hero-icon">
         @if($typeStyle['icon'])
@@ -363,6 +423,9 @@ html:not(.dark) .le {
     <div class="le-hero-info">
         <div class="le-hero-title">{{ $les->title }}</div>
         <div class="le-hero-meta">{{ $sectionTitle }} &middot; {{ $courseTitle }}</div>
+        @if($les->description)
+            <div class="le-hero-description">{{ $les->description }}</div>
+        @endif
         <div class="le-hero-pills">
             <span class="le-pill" style="background:{{ $typeStyle['bg'] }};border-color:{{ $typeStyle['border'] }};color:{{ $typeStyle['color'] }}">
                 {{ $typeStyle['label'] }}
@@ -375,7 +438,7 @@ html:not(.dark) .le {
     <div class="le-hero-stats">
         @if($les->duration)
         <div class="le-stat">
-            <div class="le-stat-val">{{ $les->duration }}</div>
+            <div class="le-stat-val">{{ round(((float) $les->duration) / 60) }}</div>
             <div class="le-stat-label">Minutes</div>
         </div>
         @endif
@@ -390,12 +453,12 @@ html:not(.dark) .le {
     </div>
 </div>
 
-{{-- ── Filament form (all conditional sections) ── --}}
+{{-- Filament form (all conditional sections) --}}
 <div class="le-form-wrap lea le3">
     {{ $this->form }}
 </div>
 
-{{-- ── Save bar ── --}}
+{{-- Save bar --}}
 <div class="le-save-bar lea le4">
     <button type="button" wire:click="save" wire:loading.attr="disabled" class="le-btn le-btn-violet">
         <span wire:loading.remove wire:target="save">

@@ -52,13 +52,14 @@
 .hl-payout-page,.hl-payout-page *,.hl-payout-page *::before,.hl-payout-page *::after{box-sizing:border-box}
 .hl-payout-page{
     width:100%;
-    min-height:100vh;
-    padding:16px 20px 48px;
-    display:flex;
-    flex-direction:column;
-    gap:16px;
-    background:var(--hl-payout-bg);
+    padding:0 0 48px;
+    display:grid;
+    gap:20px;
+    background:transparent;
     color:var(--hl-payout-text);
+    font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+    font-size:13px;
+    line-height:1.5;
     --hl-payout-bg:#0f172a;
     --hl-payout-card:#1e293b;
     --hl-payout-card-2:#263245;
@@ -91,48 +92,50 @@ html:not(.dark) .hl-payout-page{
 }
 .hl-payout-header{
     display:flex;
-    align-items:flex-start;
+    align-items:center;
     justify-content:space-between;
-    gap:20px;
-    margin-bottom:0;
+    gap:16px;
+    flex-wrap:wrap;
+    padding-bottom:20px;
+    border-bottom:1px solid var(--hl-payout-border);
 }
 .hl-payout-title{
     margin:0;
-    font-size:26px;
-    font-weight:750;
-    line-height:1.2;
-    letter-spacing:-.02em;
+    font-size:clamp(20px,2.2vw,26px);
+    font-weight:780;
+    line-height:1.15;
+    letter-spacing:-.018em;
     color:var(--hl-payout-text-strong);
 }
 .hl-payout-subtitle{
-    margin:6px 0 0;
+    margin:5px 0 0;
     color:var(--hl-payout-muted);
-    font-size:13px;
+    font-size:12px;
 }
 .hl-payout-refresh{
     display:inline-flex;
     align-items:center;
     gap:7px;
     border:1px solid var(--hl-payout-border-strong);
-    background:var(--hl-payout-card);
+    background:var(--hl-payout-card-2);
     color:var(--hl-payout-text);
-    border-radius:9px;
-    padding:9px 13px;
+    border-radius:8px;
+    padding:8px 16px;
     font-size:12px;
     font-weight:700;
     cursor:pointer;
-    transition:.15s ease;
+    transition:opacity .18s,transform .15s;
 }
 .hl-payout-refresh:hover{
-    background:var(--hl-payout-card-2);
-    border-color:var(--hl-payout-border-strong);
+    opacity:.85;
+    transform:translateY(-1px);
 }
 .hl-payout-tabs-card{
     background:var(--hl-payout-card);
     border:1px solid var(--hl-payout-border);
-    border-radius:14px;
+    border-radius:12px;
     overflow:hidden;
-    box-shadow:0 1px 2px rgba(15,23,42,.04);
+    box-shadow:var(--hl-payout-shadow);
 }
 .hl-payout-toolbar{
     display:flex;
@@ -155,7 +158,7 @@ html:not(.dark) .hl-payout-page{
     border:1px solid transparent;
     background:transparent;
     color:var(--hl-payout-muted);
-    padding:7px 12px;
+    padding:6px 13px;
     border-radius:8px;
     font-size:12px;
     font-weight:700;
@@ -181,22 +184,34 @@ html:not(.dark) .hl-payout-page{
     align-items:center;
     justify-content:center;
     padding:0 5px;
-    border-radius:6px;
+    border-radius:5px;
     font-size:10px;
     font-weight:800;
     background:var(--hl-payout-card-2);
 }
 .hl-payout-search{
-    width:250px;
-    max-width:100%;
+    display:flex;
+    align-items:center;
+    gap:6px;
+    width:auto;
+    background:var(--hl-payout-card-2);
+    border:1px solid var(--hl-payout-border-strong);
+    border-radius:8px;
+    padding:6px 12px;
+}
+.hl-payout-search svg{
+    width:14px;
+    height:14px;
+    color:var(--hl-payout-muted);
+    flex-shrink:0;
 }
 .hl-payout-search input{
-    width:100%;
-    height:36px;
-    padding:0 12px;
-    border-radius:8px;
-    border:1px solid var(--hl-payout-border-strong);
-    background:var(--hl-payout-input);
+    width:200px;
+    max-width:100%;
+    height:auto;
+    padding:0;
+    border:0;
+    background:transparent;
     color:var(--hl-payout-text-strong);
     outline:none;
     font-size:12px;
@@ -213,11 +228,10 @@ html:not(.dark) .hl-payout-page{
 }
 .hl-payout-table{
     width:100%;
-    min-width:900px;
     border-collapse:collapse;
 }
 .hl-payout-table th{
-    padding:12px 15px;
+    padding:10px 12px;
     text-align:left;
     font-size:10px;
     text-transform:uppercase;
@@ -228,7 +242,7 @@ html:not(.dark) .hl-payout-page{
     white-space:nowrap;
 }
 .hl-payout-table td{
-    padding:14px 15px;
+    padding:12px;
     border-bottom:1px solid var(--hl-payout-border);
     vertical-align:middle;
 }
@@ -277,10 +291,10 @@ html:not(.dark) .hl-payout-page{
     display:inline-flex;
     align-items:center;
     gap:6px;
-    padding:5px 9px;
-    border-radius:7px;
-    font-size:10.5px;
-    font-weight:800;
+    padding:4px 10px;
+    border-radius:6px;
+    font-size:11.5px;
+    font-weight:700;
     white-space:nowrap;
 }
 .hl-payout-status-dot{
@@ -298,11 +312,11 @@ html:not(.dark) .hl-payout-page{
     align-items:center;
     justify-content:center;
     gap:5px;
-    height:32px;
-    border-radius:8px;
+    height:30px;
+    border-radius:7px;
     padding:0 9px;
-    font-size:11px;
-    font-weight:800;
+    font-size:11.5px;
+    font-weight:700;
     border:1px solid transparent;
     cursor:pointer;
     transition:.15s ease;
@@ -360,7 +374,8 @@ html:not(.dark) .hl-payout-page{
     align-items:center;
     justify-content:space-between;
     gap:12px;
-    padding:13px 15px;
+    padding:12px 16px;
+    border-top:1px solid var(--hl-payout-border);
     color:var(--hl-payout-muted);
     font-size:11px;
     flex-wrap:wrap;
@@ -368,7 +383,7 @@ html:not(.dark) .hl-payout-page{
 .hl-payout-pages{
     display:flex;
     align-items:center;
-    gap:5px;
+    gap:6px;
 }
 .hl-payout-page-btn{
     min-width:30px;
@@ -684,14 +699,13 @@ html:not(.dark) .hl-payout-btn-secondary{
                     <button
                         type="button"
                         class="hl-payout-tab {{ $tab === $item['key'] ? 'active' : '' }}"
+                        style="{{ $tab === $item['key'] ? "background:{$item['color']}1a;color:{$item['color']};border-color:{$item['color']}55;font-weight:700;" : '' }}"
                         wire:click="selectTab('{{ $item['key'] }}')"
                     >
                         {{ $item['label'] }}
                         <span
                             class="hl-payout-count"
-                            style="
-                                color: {{ $item['color'] }};
-                            "
+                            style="background:{{ $item['color'] }}20;color:{{ $item['color'] }};"
                         >
                             {{ $item['count'] }}
                         </span>
@@ -699,6 +713,9 @@ html:not(.dark) .hl-payout-btn-secondary{
                 @endforeach
             </div>
             <div class="hl-payout-search">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607z"/>
+                </svg>
                 <input
                     type="search"
                     placeholder="Search instructor..."

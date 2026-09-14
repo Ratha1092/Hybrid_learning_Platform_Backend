@@ -8,6 +8,7 @@ use App\Domains\Courses\Models\Section;
 use App\Domains\System\Models\Setting;
 use App\Support\ApiResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 
 class InstructorLessonController extends Controller
@@ -65,6 +66,17 @@ class InstructorLessonController extends Controller
             'content' => 'nullable|string',
             'duration' => 'nullable|integer|min:0',
             'is_preview' => 'nullable|boolean',
+            'objectives' => 'sometimes|array',
+            'objectives.*.objective' => 'required|string|max:500',
+            'objectives.*.order' => 'nullable|integer|min:0',
+            'takeaways' => 'sometimes|array',
+            'takeaways.*.takeaway' => 'required|string|max:500',
+            'takeaways.*.order' => 'nullable|integer|min:0',
+            'completion_rule' => 'sometimes|nullable|array',
+            'completion_rule.watch_video' => 'boolean',
+            'completion_rule.read_content' => 'boolean',
+            'completion_rule.pass_quiz' => 'boolean',
+            'completion_rule.submit_assignment' => 'boolean',
         ]);
 
         $lesson = Lesson::create([
@@ -79,7 +91,9 @@ class InstructorLessonController extends Controller
             'order' => Lesson::where('section_id', $sectionId)->count() + 1,
         ]);
 
-        return ApiResponse::success($lesson, 'Lesson created successfully', 201);
+        $this->syncOutline($lesson, $validated);
+
+        return ApiResponse::success($lesson->load(['objectives', 'takeaways', 'completionRule']), 'Lesson created successfully', 201);
     }
 
     public function update(Request $request, $courseId, $sectionId, $lessonId)
@@ -109,12 +123,56 @@ class InstructorLessonController extends Controller
             'content' => 'nullable|string',
             'duration' => 'nullable|integer|min:0',
             'is_preview' => 'nullable|boolean',
-           
+            'objectives' => 'sometimes|array',
+            'objectives.*.objective' => 'required|string|max:500',
+            'objectives.*.order' => 'nullable|integer|min:0',
+            'takeaways' => 'sometimes|array',
+            'takeaways.*.takeaway' => 'required|string|max:500',
+            'takeaways.*.order' => 'nullable|integer|min:0',
+            'completion_rule' => 'sometimes|nullable|array',
+            'completion_rule.watch_video' => 'boolean',
+            'completion_rule.read_content' => 'boolean',
+            'completion_rule.pass_quiz' => 'boolean',
+            'completion_rule.submit_assignment' => 'boolean',
         ]);
 
-        $lesson->update($validated);
+        $lesson->update(collect($validated)->except(['objectives', 'takeaways', 'completion_rule'])->all());
+        $this->syncOutline($lesson, $validated);
 
-        return ApiResponse::success($lesson, 'Lesson updated successfully');
+        return ApiResponse::success($lesson->load(['objectives', 'takeaways', 'completionRule']), 'Lesson updated successfully');
+    }
+
+    private function syncOutline(Lesson $lesson, array $validated): void
+    {
+        if (array_key_exists('objectives', $validated)) {
+            $lesson->objectives()->delete();
+            foreach ($validated['objectives'] ?? [] as $index => $objective) {
+                $lesson->objectives()->create([
+                    'objective' => trim($objective['objective']),
+                    'order' => $objective['order'] ?? $index,
+                ]);
+            }
+        }
+
+        if (array_key_exists('takeaways', $validated)) {
+            $lesson->takeaways()->delete();
+            foreach ($validated['takeaways'] ?? [] as $index => $takeaway) {
+                $lesson->takeaways()->create([
+                    'takeaway' => trim($takeaway['takeaway']),
+                    'order' => $takeaway['order'] ?? $index,
+                ]);
+            }
+        }
+
+        if (array_key_exists('completion_rule', $validated)) {
+            if ($validated['completion_rule'] === null) {
+                $lesson->completionRule()->delete();
+            } else {
+                $lesson->completionRule()->updateOrCreate([], $validated['completion_rule']);
+            }
+        }
+
+        Cache::forget("courses.v2.slug.{$lesson->section?->course?->slug}");
     }
 
     public function uploadVideo(Request $request, $courseId, $sectionId, $lessonId)

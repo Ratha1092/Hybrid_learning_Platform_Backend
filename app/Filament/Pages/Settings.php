@@ -32,10 +32,22 @@ class Settings extends Page
         'email' => ['Email', 'M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75', '#64748b', 'Outgoing mail identity.', 'settings'],
     ];
 
+    public const LANGUAGES = [
+        'en' => 'English',
+        'km' => 'Khmer',
+    ];
+
+    public const TIMEZONES = [
+        'UTC' => 'UTC',
+        'Asia/Phnom_Penh' => 'Asia/Phnom Penh',
+        'Europe/London' => 'Europe/London',
+        'America/New_York' => 'America/New York',
+    ];
+
     public const SECTIONS = [
         'general' => [
             'Site Identity' => ['site_name', 'site_logo', 'site_favicon', 'site_description'],
-            'Contact' => ['support_email', 'support_phone'],
+            'Contact' => ['support_email', 'support_phone', 'contact_address', 'hours_weekday', 'hours_saturday', 'hours_sunday'],
             'Localization' => ['default_language', 'default_timezone'],
             'Platform Status' => ['maintenance_mode', 'registration_enabled'],
         ],
@@ -45,7 +57,7 @@ class Settings extends Page
             'Social Links' => ['social_facebook', 'social_linkedin', 'social_youtube', 'social_twitter'],
         ],
         'auth' => [
-            'Verification & Security' => ['email_verification_required', 'enable_2fa'],
+            'Verification & Security' => ['email_verification_required'],
             'Social Login' => ['enable_google_login', 'enable_facebook_login'],
             'Login Protection' => ['max_login_attempts', 'account_lock_duration', 'session_timeout'],
         ],
@@ -54,13 +66,13 @@ class Settings extends Page
             'Profile' => ['allow_instructor_profile_edit', 'featured_instructor_limit'],
         ],
         'course' => [
-            'Approval' => ['course_auto_approval', 'allow_free_courses', 'certificate_enabled'],
+            'Approval' => ['course_auto_approval', 'free_course_auto_approval', 'allow_free_courses'],
             'Upload Limits' => ['max_course_thumbnail_size', 'max_video_upload_size', 'allowed_video_formats', 'max_lessons_per_course'],
-            'Access' => ['course_access_duration_months'],
+            'Access' => ['course_access_duration_months', 'lesson_resources_downloadable'],
         ],
         'finance' => [
-            'Payouts & Currency' => ['minimum_payout_amount', 'payout_hold_period_days', 'default_currency', 'wallet_enabled'],
-            'Tax & Refunds' => ['tax_percentage', 'refund_period_days'],
+            'Payouts & Currency' => ['minimum_payout_amount', 'payout_hold_period_days', 'default_currency', 'wallet_enabled', 'auto_verify_payout_accounts'],
+            'Tax' => ['tax_percentage'],
         ],
         'payment_gateway' => [
             'Checkout Methods' => ['bakong_enabled', 'khqr_enabled', 'paypal_enabled', 'stripe_enabled', 'bank_transfer_enabled'],
@@ -131,7 +143,10 @@ class Settings extends Page
             'at_rate' => Course::withoutGlobalScopes()->where('commission_percentage', $commissionValue)->count(),
         ];
 
-        return compact('visibleGroups', 'commissionValue', 'courseStats');
+        $availableLanguages = self::LANGUAGES;
+        $availableTimezones = self::TIMEZONES;
+
+        return compact('visibleGroups', 'commissionValue', 'courseStats', 'availableLanguages', 'availableTimezones');
     }
     private function buildSections(string $groupKey, $groupSettings): array
     {

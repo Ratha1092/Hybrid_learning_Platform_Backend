@@ -8,7 +8,6 @@ use App\Domains\Learning\Models\Enrollment;
 use App\Domains\Orders\Enums\OrderPaymentStatus;
 use App\Domains\Orders\Models\Order;
 use App\Domains\Orders\Models\OrderItem;
-use App\Domains\Orders\Models\Refund;
 use App\Domains\Users\Models\User;
 use App\Support\Concerns\HasBiCsvExport;
 use App\Support\Concerns\HasDateRangePresets;
@@ -110,11 +109,7 @@ class ExecutiveCenter extends Page
 
             $grossRevenue  = (float) $paidBase()->sum('final_amount');
             $orderCount    = (int)   $paidBase()->count();
-            $refundAmount  = (float) static::applyDateRange(Refund::query(), 'created_at', $from, $to)->sum('amount');
-            $refundCount   = (int)   static::applyDateRange(Refund::query(), 'created_at', $from, $to)->count();
-            $netRevenue    = max(0, $grossRevenue - $refundAmount);
             $aov           = $orderCount > 0 ? $grossRevenue / $orderCount : 0.0;
-            $refundRate    = $orderCount > 0 ? round(($refundCount / $orderCount) * 100, 1) : 0.0;
 
             // ── OrderItem splits ─────────────────────────────────────────────
             $paidOrderIds     = $paidBase()->pluck('id');
@@ -125,7 +120,7 @@ class ExecutiveCenter extends Page
             $activeStudents     = User::role('student')->where('status', 'active')->count();
             $activeInstructors  = User::role('instructor')->where('status', 'active')->count();
             $publishedCourses   = Course::where('is_published', true)->count();
-            $newEnrollments     = (int) static::applyDateRange(Enrollment::query(), 'created_at', $from, $to)->count();
+            $newEnrollments     = (int) static::applyDateRange(Enrollment::query(), 'enrolled_at', $from, $to)->count();
 
             // ── Completion rate ──────────────────────────────────────────────
             $totalEnrollments    = Enrollment::count();
@@ -133,7 +128,10 @@ class ExecutiveCenter extends Page
             $completionRate      = $totalEnrollments > 0 ? round(($completedEnrollments / $totalEnrollments) * 100, 1) : 0.0;
 
             // ── Marketplace Health Score (composite 0-100) ───────────────────
-            $prevFrom = $from ? (clone $from)->subMonth() : null;
+            // Comparison window sized to the selected period's length, not a fixed
+            // month — matches Dashboard::previousPeriodRange() / RevenueIntelligence.
+            $periodDays = $from && $to ? $from->diffInDays($to) + 1 : 30;
+            $prevFrom = $from ? (clone $from)->subDays($periodDays) : null;
             $prevTo   = $from ? (clone $from)->subSecond() : null;
             $prevRevenue = $prevFrom ? (float) Order::where('payment_status', OrderPaymentStatus::Paid->value)
                 ->where('paid_at', '>=', $prevFrom)->where('paid_at', '<', $from)->sum('final_amount') : 0;
@@ -141,13 +139,12 @@ class ExecutiveCenter extends Page
                 ? round((($grossRevenue - $prevRevenue) / $prevRevenue) * 100, 1)
                 : ($grossRevenue > 0 ? 100.0 : 0.0);
             $healthScore = 0;
-            if ($revenueGrowth >= 0) $healthScore += 33;
-            if ($completionRate >= 40) $healthScore += 33;
-            if ($refundRate <= 5) $healthScore += 34;
+            if ($revenueGrowth >= 0) $healthScore += 50;
+            if ($completionRate >= 40) $healthScore += 50;
 
             // ── Revenue trend (12 months) from DailyMetric ──────────────────
             $trendEnd   = $to ?? now();
-            $trendStart = (clone $trendEnd)->subMonths(11)->startOfMonth();
+            $trendStart = (clone $trendEnd)->startOfMonth()->subMonths(11);
             $rawTrend = DailyMetric::selectRaw("DATE_TRUNC('month', date) as month, SUM(total_revenue) as revenue, SUM(total_orders) as orders_count")
                 ->whereBetween('date', [$trendStart->toDateString(), $trendEnd->toDateString()])
                 ->groupByRaw("DATE_TRUNC('month', date)")
@@ -159,7 +156,7 @@ class ExecutiveCenter extends Page
             $trendRevenue = [];
             $trendOrders  = [];
             for ($i = 11; $i >= 0; $i--) {
-                $month            = now()->subMonths($i)->startOfMonth();
+                $month            = (clone $trendEnd)->startOfMonth()->subMonths($i);
                 $key              = $month->format('Y-m');
                 $trendLabels[]    = $month->format("M 'y");
                 $trendRevenue[]   = (float) ($rawTrend[$key]->revenue ?? 0);
@@ -171,7 +168,7 @@ class ExecutiveCenter extends Page
             $studentGrowth     = [];
             $instructorGrowth  = [];
             for ($i = 5; $i >= 0; $i--) {
-                $month             = now()->subMonths($i)->startOfMonth();
+                $month             = now()->startOfMonth()->subMonths($i);
                 $monthEnd          = (clone $month)->endOfMonth();
                 $growthLabels[]    = $month->format("M 'y");
                 $studentGrowth[]   = User::role('student')
@@ -180,13 +177,30 @@ class ExecutiveCenter extends Page
                     ->whereBetween('created_at', [$month, $monthEnd])->count();
             }
 
-            // ── Top courses by all-time revenue (from order_items) ──────────
-            $topCourses = OrderItem::selectRaw('course_id, SUM(final_amount) as total_revenue, COUNT(*) as total_sales')
+            // ── Top courses by all-time revenue (from order_items on paid orders only) ──
+            // course_title/instructor_id are snapshotted on the order item at purchase
+            // time specifically so a course (or its instructor) that's since been
+            // deleted still shows up correctly in historical revenue reports instead
+            // of collapsing to "—". withTrashed() covers a still-soft-deleted course
+            // row; the snapshot columns cover it having been hard-deleted entirely.
+            $topCourses = OrderItem::whereHas('order', fn ($q) => $q->where('payment_status', OrderPaymentStatus::Paid->value))
+                ->selectRaw('course_id, MAX(course_title) as course_title, MAX(instructor_id) as instructor_id, SUM(final_amount) as total_revenue, COUNT(*) as total_sales')
                 ->groupBy('course_id')
                 ->orderByRaw('SUM(final_amount) DESC')
                 ->take(10)
-                ->with(['course' => fn ($q) => $q->with('instructor:id,name')])
+                ->with(['course' => fn ($q) => $q->withTrashed()->with(['instructor' => fn ($iq) => $iq->withTrashed()])])
                 ->get();
+
+            $fallbackInstructorIds = $topCourses->whereNull('course')->pluck('instructor_id')->filter()->unique();
+            $fallbackInstructorNames = $fallbackInstructorIds->isEmpty()
+                ? collect()
+                : User::withTrashed()->whereIn('id', $fallbackInstructorIds)->pluck('name', 'id');
+
+            $topCourses = $topCourses->map(function ($row) use ($fallbackInstructorNames) {
+                $row->display_title      = $row->course?->title ?? $row->course_title ?? 'Deleted course';
+                $row->display_instructor = $row->course?->instructor?->name ?? $fallbackInstructorNames[$row->instructor_id] ?? null;
+                return $row;
+            });
 
             // ── Top 10 instructors by period earnings ────────────────────────
             $instructorEarningsRows = OrderItem::whereIn('order_id', $paidOrderIds)
@@ -213,7 +227,6 @@ class ExecutiveCenter extends Page
             return [
                 'kpis' => [
                     'grossRevenue'      => $grossRevenue,
-                    'netRevenue'        => $netRevenue,
                     'platformRevenue'   => $platformRevenue,
                     'instructorEarnings'=> $instructorEarnings,
                     'orderCount'        => $orderCount,
@@ -221,7 +234,6 @@ class ExecutiveCenter extends Page
                     'activeStudents'    => $activeStudents,
                     'activeInstructors' => $activeInstructors,
                     'publishedCourses'  => $publishedCourses,
-                    'refundRate'        => $refundRate,
                     'aov'               => $aov,
                     'healthScore'       => $healthScore,
                     'revenueGrowth'     => $revenueGrowth,
@@ -237,7 +249,7 @@ class ExecutiveCenter extends Page
                     'students'    => $studentGrowth,
                     'instructors' => $instructorGrowth,
                 ],
-                'topCoursesChartLabels' => $topCourses->take(5)->values()->map(fn ($c) => substr($c->course?->title ?? '?', 0, 28))->values()->toArray(),
+                'topCoursesChartLabels' => $topCourses->take(5)->values()->map(fn ($c) => substr($c->display_title, 0, 28))->values()->toArray(),
                 'topCoursesChartValues' => $topCourses->take(5)->values()->map(fn ($c) => (float) $c->total_revenue)->values()->toArray(),
                 'topCourses'     => $topCourses,
                 'topInstructors' => $topInstructors,

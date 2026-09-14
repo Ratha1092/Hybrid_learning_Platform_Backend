@@ -1,9 +1,7 @@
 @php
     $roleLabel = fn(string $r) => match($r) {
         'student' => 'Student', 'instructor' => 'Instructor',
-        'admin' => 'Admin', 'super-admin' => 'Super Admin',
-        'finance-manager' => 'Finance Manager', 'moderator' => 'Moderator',
-        'content-manager' => 'Content Manager', 'support-staff' => 'Support Staff',
+        'super-admin' => 'Super Admin', 'finance' => 'Finance',
         default => ucwords(str_replace('-', ' ', $r)),
     };
     $statusColor = fn(string $s) => match($s) {
@@ -196,7 +194,7 @@ html:not(.dark) .rp {
     background:var(--p1);
     border:1px solid var(--bd);
     border-radius:12px;
-    overflow:hidden;
+    overflow-x:auto;
 }
 .rp-table {
     width:100%;
@@ -459,7 +457,7 @@ html:not(.dark) .rp {
     <div class="rp-filters">
         <select wire:model.live="role" class="rp-filter-select">
             <option value="all">All Roles</option>
-            @foreach(['student','instructor','admin','super-admin','finance-manager','moderator','content-manager','support-staff'] as $r)
+            @foreach(['student','instructor','super-admin','finance'] as $r)
                 <option value="{{ $r }}">{{ $roleLabel($r) }}</option>
             @endforeach
         </select>
@@ -529,8 +527,8 @@ html:not(.dark) .rp {
                         </td>
                         <td>{{ number_format($user->enrollments_count) }}</td>
                         <td>{{ number_format($user->orders_count) }}</td>
-                        <td>{{ $user->last_login_at?->format('M d, Y') ?? '—' }}</td>
-                        <td>{{ $user->created_at->format('M d, Y') }}</td>
+                        <td>{{ $user->last_login_at?->setTimezone(config('app.timezone'))->format('M d, Y') ?? '—' }}</td>
+                        <td>{{ $user->created_at->setTimezone(config('app.timezone'))->format('M d, Y') }}</td>
                     </tr>
                 @empty
                     <tr><td colspan="8" style="text-align:center;color:var(--t2);padding:24px;">No users found for this filter.</td></tr>

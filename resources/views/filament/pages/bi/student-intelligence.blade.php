@@ -16,7 +16,6 @@
         <div class="bi-kpi"><div class="bi-kpi-label">New Students</div><div class="bi-kpi-value">{{ number_format($kpis['newStudents']) }}</div><div class="bi-kpi-sub">Joined this period</div></div>
         <div class="bi-kpi"><div class="bi-kpi-label">Active Learners</div><div class="bi-kpi-value">{{ number_format($kpis['activeLearners']) }}</div><div class="bi-kpi-sub">Watched lesson in period</div></div>
         <div class="bi-kpi"><div class="bi-kpi-label">Completion Rate</div><div class="bi-kpi-value">{{ $kpis['completionRate'] }}%</div><div class="bi-kpi-sub">All-time average</div></div>
-        <div class="bi-kpi"><div class="bi-kpi-label">Certificates Earned</div><div class="bi-kpi-value">{{ number_format($kpis['certificates']) }}</div></div>
         <div class="bi-kpi"><div class="bi-kpi-label">Avg Learning Hours</div><div class="bi-kpi-value">{{ $kpis['avgLearningHours'] }}h</div><div class="bi-kpi-sub">Per active learner</div></div>
         <div class="bi-kpi"><div class="bi-kpi-label">Dropout Rate</div><div class="bi-kpi-value @if($kpis['dropoutRate'] > 20) style='color:var(--err)' @endif">{{ $kpis['dropoutRate'] }}%</div><div class="bi-kpi-sub">No activity 30+ days</div></div>
         <div class="bi-kpi"><div class="bi-kpi-label">Returning Students</div><div class="bi-kpi-value">{{ number_format($kpis['returningStudents']) }}</div><div class="bi-kpi-sub">Re-engaged this period</div></div>
@@ -130,7 +129,7 @@ window.__biRun(function() {
             type: 'doughnut',
             data: {
                 labels: ['Active', 'Dormant'],
-                datasets: [{ data: [@json($kpis['activeLearners']), @json($kpis['dormantStudents'])], backgroundColor: ['#2563eb', '#334155'], borderWidth: 1, borderColor: 'rgba(0,0,0,0.08)' }]
+                datasets: [{ data: [@json($kpis['activeStudents']), @json($kpis['dormantStudents'])], backgroundColor: ['#2563eb', '#334155'], borderWidth: 1, borderColor: 'rgba(0,0,0,0.08)' }]
             },
             options: { responsive: true, maintainAspectRatio: false, animation: { duration: 400 }, plugins: { legend: { position: 'right', labels: { color: tickColor, font: { family: ff, size: 11 }, boxWidth: 10 } } } }
         });

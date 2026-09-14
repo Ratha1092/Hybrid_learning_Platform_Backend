@@ -32,12 +32,12 @@ class InstructorDashboardController extends Controller
                 ];
 
                 $totalStudents = Enrollment::whereIn('course_id', $courseIds)
-                    ->where('status', 'active')
+                    ->whereIn('status', ['active', 'completed'])
                     ->distinct('user_id')
                     ->count('user_id');
 
                 $totalEnrollments = Enrollment::whereIn('course_id', $courseIds)
-                    ->where('status', 'active')
+                    ->whereIn('status', ['active', 'completed'])
                     ->count();
 
                 $startOfMonth = now()->startOfMonth()->toDateTimeString();
@@ -55,7 +55,7 @@ class InstructorDashboardController extends Controller
                 $wallet = InstructorWallet::where('instructor_id', $instructorId)->first();
 
                 $perCourse = Course::where('instructor_id', $instructorId)
-                    ->withCount(['enrollments as student_count' => fn ($q) => $q->where('status', 'active')])
+                    ->withCount(['enrollments as student_count' => fn ($q) => $q->whereIn('status', ['active', 'completed'])])
                     ->get()
                     ->map(fn ($c) => [
                         'id'            => $c->id,
@@ -68,7 +68,7 @@ class InstructorDashboardController extends Controller
 
                 $recentEnrollments = Enrollment::whereIn('course_id', $courseIds)
                     ->with(['user:id,name,email', 'course:id,title'])
-                    ->where('status', 'active')
+                    ->whereIn('status', ['active', 'completed'])
                     ->latest('enrolled_at')
                     ->limit(5)
                     ->get()
@@ -107,7 +107,7 @@ class InstructorDashboardController extends Controller
         $courseIds = Course::where('instructor_id', $instructorId)->pluck('id');
 
         $students = Enrollment::whereIn('course_id', $courseIds)
-            ->where('status', 'active')
+            ->whereIn('status', ['active', 'completed'])
             ->with(['user:id,name,email', 'course:id,title,slug,thumbnail'])
             ->latest('enrolled_at')
             ->get()

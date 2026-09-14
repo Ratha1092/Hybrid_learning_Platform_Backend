@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Users\Pages;
 
 use App\Domains\Auth\Services\ActivityLogService;
+use App\Domains\Notifications\Notifications\RoleChangedNotification;
 use App\Domains\Users\Mail\AccountSuspendedMail;
 use App\Domains\Users\Models\InstructorVerification;
 use App\Domains\Users\Models\User;
@@ -34,6 +35,16 @@ class EditUser extends EditRecord
     public array $selectedRoleIds = [];
 
     public ?TemporaryUploadedFile $avatarUpload = null;
+
+    public function mount(int|string $record): void
+    {
+        parent::mount($record);
+
+        // Super-admin accounts are invisible/untouchable to everyone except other super-admins.
+        if ($this->record->hasRole('super-admin') && ! auth()->user()?->hasRole('super-admin')) {
+            abort(404);
+        }
+    }
 
     protected function getHeaderActions(): array
     {
@@ -92,6 +103,8 @@ class EditUser extends EditRecord
                 ['roles' => $this->originalRoles],
                 ['roles' => $newRoles],
             );
+
+            $fresh->notify(new RoleChangedNotification($newRoles));
         }
 
         // When the instructor role is assigned via the admin panel the normal
@@ -153,8 +166,8 @@ class EditUser extends EditRecord
             return;
         }
 
-        if ($user->hasRole('super-admin') && ! auth()->user()?->hasRole('super-admin')) {
-            Notification::make()->title('Insufficient permissions')->danger()->send();
+        if ($user->hasRole('super-admin')) {
+            Notification::make()->title('Super Admin accounts cannot be suspended')->danger()->send();
             return;
         }
 
@@ -196,8 +209,8 @@ class EditUser extends EditRecord
             return;
         }
 
-        if ($user->hasRole('super-admin') && ! auth()->user()?->hasRole('super-admin')) {
-            Notification::make()->title('Insufficient permissions')->danger()->send();
+        if ($user->hasRole('super-admin')) {
+            Notification::make()->title('Super Admin accounts cannot be removed')->danger()->send();
             return;
         }
 

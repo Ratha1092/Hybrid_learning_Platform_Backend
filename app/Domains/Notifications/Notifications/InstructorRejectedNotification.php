@@ -3,6 +3,7 @@
 namespace App\Domains\Notifications\Notifications;
 
 use App\Domains\Notifications\Concerns\BroadcastsAsNotification;
+use App\Domains\Notifications\Enums\NotificationType;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification;
@@ -24,7 +25,7 @@ class InstructorRejectedNotification extends Notification
         return new BroadcastMessage([
             'title'       => 'Application Rejected',
             'message'     => 'Your instructor application has been rejected. Reason: ' . $this->reason,
-            'type'        => 'instructor_rejected',
+            'type'        => NotificationType::INSTRUCTOR_VERIFICATION->value,
             'link'        => null,
             'action_text' => null,
         ]);
@@ -34,7 +35,7 @@ class InstructorRejectedNotification extends Notification
         return [
             'title'       => 'Application Rejected',
             'message'     => 'Your instructor application has been rejected. Reason: ' . $this->reason,
-            'type'        => 'instructor_rejected',
+            'type'        => NotificationType::INSTRUCTOR_VERIFICATION->value,
             'link'        => null,
             'action_text' => null,
         ];

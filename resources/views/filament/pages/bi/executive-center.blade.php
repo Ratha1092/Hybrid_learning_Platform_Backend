@@ -85,11 +85,6 @@
             @endif
         </div>
         <div class="bi-kpi">
-            <div class="bi-kpi-label">Net Revenue</div>
-            <div class="bi-kpi-value">${{ number_format($kpis['netRevenue'], 2) }}</div>
-            <div class="bi-kpi-sub">After refunds</div>
-        </div>
-        <div class="bi-kpi">
             <div class="bi-kpi-label">Platform Commission</div>
             <div class="bi-kpi-value">${{ number_format($kpis['platformRevenue'], 2) }}</div>
             <div class="bi-kpi-sub">Platform earnings</div>
@@ -120,11 +115,6 @@
         <div class="bi-kpi">
             <div class="bi-kpi-label">Published Courses</div>
             <div class="bi-kpi-value">{{ number_format($kpis['publishedCourses']) }}</div>
-        </div>
-        <div class="bi-kpi">
-            <div class="bi-kpi-label">Refund Rate</div>
-            <div class="bi-kpi-value {{ $kpis['refundRate'] > 5 ? '' : '' }}">{{ $kpis['refundRate'] }}%</div>
-            <div class="bi-kpi-sub">{{ $kpis['refundRate'] <= 5 ? 'Healthy' : 'Review needed' }}</div>
         </div>
         <div class="bi-kpi">
             <div class="bi-kpi-label">Completion Rate</div>
@@ -191,7 +181,7 @@
                         <td style="font-family:monospace;font-size:11px">{{ $order->order_number }}</td>
                         <td>{{ $order->customer_name ?? $order->user?->name ?? '—' }}</td>
                         <td>${{ number_format((float)$order->final_amount, 2) }}</td>
-                        <td style="color:var(--t2)">{{ $order->paid_at?->format('M d') ?? '—' }}</td>
+                        <td style="color:var(--t2)">{{ $order->paid_at?->setTimezone(config('app.timezone'))->format('M d') ?? '—' }}</td>
                     </tr>
                     @empty
                     <tr><td colspan="4" style="text-align:center;color:var(--t2);padding:20px">No orders yet</td></tr>
@@ -210,8 +200,8 @@
                 @forelse($topCourses as $i => $sale)
                 <tr>
                     <td><span class="bi-rank">{{ $i + 1 }}</span></td>
-                    <td>{{ $sale->course?->title ?? '—' }}</td>
-                    <td style="color:var(--t2)">{{ $sale->course?->instructor?->name ?? '—' }}</td>
+                    <td>{{ $sale->display_title }}{{ !$sale->course ? ' (deleted)' : '' }}</td>
+                    <td style="color:var(--t2)">{{ $sale->display_instructor ?? '—' }}</td>
                     <td>${{ number_format((float)$sale->total_revenue, 2) }}</td>
                     <td>{{ number_format((int)$sale->total_sales) }}</td>
                 </tr>

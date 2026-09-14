@@ -497,7 +497,7 @@ select.cl-input {
     </div>
     <div class="cl-intro-body">
         <div class="cl-intro-title">New Lesson</div>
-        <div class="cl-intro-desc">Add a lesson to a course section. Pick a type — Video, Article, Quiz, or File — and the relevant content fields will appear.</div>
+        <div class="cl-intro-desc">Add a lesson to a course section. Pick a type — Video, Article, or File — and the relevant content fields will appear.</div>
         <div class="cl-intro-steps">
             <span class="cl-step"><span class="cl-step-num">1</span> Pick section &amp; type</span>
             <span class="cl-step"><span class="cl-step-num">2</span> Add content</span>
@@ -540,7 +540,6 @@ select.cl-input {
             <select id="cl-type" class="cl-input" wire:model.live="data.type">
                 <option value="video">Video</option>
                 <option value="article">Article</option>
-                <option value="quiz">Quiz</option>
                 <option value="file">File / Document</option>
                 <option value="live">Live</option>
                 <option value="assignment">Assignment</option>
@@ -586,24 +585,6 @@ select.cl-input {
     </div>
     <div class="cl-card-body">
         <div class="cl-sub-wrap">{{ $this->articleForm }}</div>
-    </div>
-</div>
-@endif
-
-{{-- ── Quiz Content ── --}}
-@if($type === 'quiz')
-<div class="cl-card cla cl4">
-    <div class="cl-card-head">
-        <div class="cl-card-icon" style="background:rgba(251,191,36,.1);color:#fbbf24">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0zm-9 5.25h.008v.008H12v-.008z"/></svg>
-        </div>
-        <div>
-            <div class="cl-card-title">Quiz Questions</div>
-            <div class="cl-card-sub">Add multiple-choice questions for this quiz</div>
-        </div>
-    </div>
-    <div class="cl-card-body">
-        <div class="cl-sub-wrap">{{ $this->quizForm }}</div>
     </div>
 </div>
 @endif

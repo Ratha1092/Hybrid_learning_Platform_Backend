@@ -66,12 +66,12 @@ class Receipts extends Page
 
         if ($search) {
             $query->where(function ($q) use ($search) {
-                $q->where('receipt_number', 'like', "%{$search}%")
+                $q->where('receipt_number', 'ilike', "%{$search}%")
                     ->orWhereHas('order', function ($q2) use ($search) {
-                        $q2->where('order_number', 'like', "%{$search}%")
+                        $q2->where('order_number', 'ilike', "%{$search}%")
                             ->orWhereHas('user', function ($q3) use ($search) {
-                                $q3->where('name', 'like', "%{$search}%")
-                                    ->orWhere('email', 'like', "%{$search}%");
+                                $q3->where('name', 'ilike', "%{$search}%")
+                                    ->orWhere('email', 'ilike', "%{$search}%");
                             });
                     });
             });

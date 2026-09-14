@@ -65,7 +65,7 @@
 
     --hl-text: #f1f5f9;
     --hl-muted: #94a3b8;
-    --hl-faint: #617086;
+    --hl-faint: #7f8fa6;
 }
 
 /* 
@@ -122,23 +122,10 @@ body,
     overflow: hidden !important;
 }
 
-.hl-breadcrumb-slug {
-    font-family: var(--hl-font-mono) !important;
-    font-size: 0.75rem !important;
-    font-weight: 500 !important;
-    color: #53657c !important;
-    white-space: nowrap !important;
-}
-
-.hl-breadcrumb-sep {
-    font-size: 0.75rem !important;
-    color: var(--hl-faint) !important;
-}
-
 .hl-breadcrumb-title {
     font-family: var(--hl-font-mono) !important;
-    font-size: 0.8rem !important;
-    font-weight: 500 !important;
+    font-size: 1rem !important;
+    font-weight: 600 !important;
     color: var(--hl-text) !important;
     white-space: nowrap !important;
     overflow: hidden !important;

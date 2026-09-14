@@ -14,16 +14,11 @@
 
     $role = $user->getRoleNames()->first() ?? '';
     $roleStyle = match ($role) {
-        'super-admin'      => ['bg' => 'rgba(220,38,38,.1)',   'color' => '#dc2626', 'label' => 'Super Admin'],
-        'admin'            => ['bg' => 'rgba(124,58,237,.1)',  'color' => '#7c3aed', 'label' => 'Admin'],
-        'finance-manager'  => ['bg' => 'rgba(13,148,136,.1)',  'color' => '#0d9488', 'label' => 'Finance Manager'],
-        'accountant'       => ['bg' => 'rgba(13,148,136,.1)',  'color' => '#0d9488', 'label' => 'Accountant'],
-        'content-manager'  => ['bg' => 'rgba(217,119,6,.1)',   'color' => '#d97706', 'label' => 'Content Manager'],
-        'moderator'        => ['bg' => 'rgba(217,119,6,.1)',   'color' => '#d97706', 'label' => 'Moderator'],
-        'support-staff'    => ['bg' => 'rgba(37,99,235,.1)',   'color' => '#2563eb', 'label' => 'Support Staff'],
-        'instructor'       => ['bg' => 'rgba(245,158,11,.1)',  'color' => '#d97706', 'label' => 'Instructor'],
-        'student'          => ['bg' => 'rgba(37,99,235,.1)',   'color' => '#2563eb', 'label' => 'Student'],
-        default            => ['bg' => 'rgba(148,163,184,.1)', 'color' => '#64748b', 'label' => $role ? ucfirst($role) : '—'],
+        'super-admin' => ['bg' => 'rgba(220,38,38,.1)',   'color' => '#dc2626', 'label' => 'Super Admin'],
+        'finance'     => ['bg' => 'rgba(13,148,136,.1)',  'color' => '#0d9488', 'label' => 'Finance'],
+        'instructor'  => ['bg' => 'rgba(245,158,11,.1)',  'color' => '#d97706', 'label' => 'Instructor'],
+        'student'     => ['bg' => 'rgba(37,99,235,.1)',   'color' => '#2563eb', 'label' => 'Student'],
+        default       => ['bg' => 'rgba(148,163,184,.1)', 'color' => '#64748b', 'label' => $role ? ucfirst($role) : '—'],
     };
 
     $instructorStatus = $user->instructorVerification?->status;
@@ -240,6 +235,25 @@ html.dark .uv {
     color:var(--t1);
     letter-spacing:-.01em;
 }
+@media(max-width:640px) {
+    /* .uv-hero-meta's margin-left:auto keeps it sharing the first flex line
+       (next to the avatar/name) until there's truly no room left — but by
+       then the name has often already wrapped to two lines, so the stats
+       block lands on top of it instead of cleanly below. Forcing a column
+       stack here sidesteps that instead of relying on wrap timing. */
+    .uv-hero {
+        flex-direction:column;
+        align-items:flex-start;
+    }
+    .uv-hero-meta {
+        margin-left:0;
+        width:100%;
+        justify-content:flex-start;
+    }
+    .uv-hero-stat {
+        text-align:left;
+    }
+}
 
 /* Cards */
 .uv-grid-2 {
@@ -422,7 +436,7 @@ html.dark .uv {
         <div style="width:1px;height:36px;background:var(--bd)"></div>
         <div class="uv-hero-stat">
             <div class="uv-hero-stat-label">Member Since</div>
-            <div class="uv-hero-stat-value">{{ $user->created_at?->format('M Y') }}</div>
+            <div class="uv-hero-stat-value">{{ $user->created_at?->setTimezone(config('app.timezone'))->format('M Y') }}</div>
         </div>
     </div>
 </div>
@@ -473,16 +487,6 @@ html.dark .uv {
             </span>
         </div>
         @endif
-        <div class="uv-field-row">
-            <span class="uv-field-label">2FA</span>
-            <span class="uv-field-value">
-                @if($user->two_factor_enabled)
-                    <span class="uv-badge" style="background:rgba(22,163,74,.1);color:#16a34a">Enabled</span>
-                @else
-                    <span class="uv-field-value muted">Disabled</span>
-                @endif
-            </span>
-        </div>
     </div>
 
     {{-- Account --}}
@@ -506,9 +510,9 @@ html.dark .uv {
             <span class="uv-field-value">
                 @if($user->email_verified_at)
                     <span class="uv-datetime">
-                        <span class="uv-datetime-date">{{ $user->email_verified_at->format('M d, Y') }}</span>
+                        <span class="uv-datetime-date">{{ $user->email_verified_at->setTimezone(config('app.timezone'))->format('M d, Y') }}</span>
                         <span class="uv-datetime-sep">·</span>
-                        <span class="uv-datetime-time">{{ $user->email_verified_at->format('H:i') }}</span>
+                        <span class="uv-datetime-time">{{ $user->email_verified_at->setTimezone(config('app.timezone'))->format('H:i') }}</span>
                     </span>
                 @else
                     <span class="uv-field-value muted">Not verified</span>
@@ -519,9 +523,9 @@ html.dark .uv {
             <span class="uv-field-label">Created</span>
             <span class="uv-field-value">
                 <span class="uv-datetime">
-                    <span class="uv-datetime-date">{{ $user->created_at?->format('M d, Y') }}</span>
+                    <span class="uv-datetime-date">{{ $user->created_at?->setTimezone(config('app.timezone'))->format('M d, Y') }}</span>
                     <span class="uv-datetime-sep">·</span>
-                    <span class="uv-datetime-time">{{ $user->created_at?->format('H:i') }}</span>
+                    <span class="uv-datetime-time">{{ $user->created_at?->setTimezone(config('app.timezone'))->format('H:i') }}</span>
                 </span>
             </span>
         </div>
@@ -529,9 +533,9 @@ html.dark .uv {
             <span class="uv-field-label">Updated</span>
             <span class="uv-field-value">
                 <span class="uv-datetime">
-                    <span class="uv-datetime-date">{{ $user->updated_at?->format('M d, Y') }}</span>
+                    <span class="uv-datetime-date">{{ $user->updated_at?->setTimezone(config('app.timezone'))->format('M d, Y') }}</span>
                     <span class="uv-datetime-sep">·</span>
-                    <span class="uv-datetime-time">{{ $user->updated_at?->format('H:i') }}</span>
+                    <span class="uv-datetime-time">{{ $user->updated_at?->setTimezone(config('app.timezone'))->format('H:i') }}</span>
                 </span>
             </span>
         </div>
@@ -548,9 +552,9 @@ html.dark .uv {
             @if($user->last_login_at)
                 <span class="uv-field-value">
                     <span class="uv-datetime">
-                        <span class="uv-datetime-date">{{ $user->last_login_at->format('M d, Y') }}</span>
+                        <span class="uv-datetime-date">{{ $user->last_login_at->setTimezone(config('app.timezone'))->format('M d, Y') }}</span>
                         <span class="uv-datetime-sep">·</span>
-                        <span class="uv-datetime-time">{{ $user->last_login_at->format('H:i') }}</span>
+                        <span class="uv-datetime-time">{{ $user->last_login_at->setTimezone(config('app.timezone'))->format('H:i') }}</span>
                     </span>
                 </span>
             @else

@@ -87,6 +87,7 @@ html:not(.dark) .bi {
     border:1px solid var(--bd);
     border-radius:12px;
     padding:20px;
+    min-width:0;
 }
 .bi-card h3 {
     font-size:13px;
@@ -224,6 +225,7 @@ html:not(.dark) .bi {
         @if($total === 0)
             <div class="bi-empty">No blocked IPs. The platform is wide open.</div>
         @else
+            <div style="overflow-x:auto">
             <table class="bi-table">
                 <thead>
                     <tr><th>IP Address</th><th>Reason</th><th>Blocked By</th><th>Expires At</th><th>Status</th><th></th></tr>
@@ -253,6 +255,7 @@ html:not(.dark) .bi {
                     @endforeach
                 </tbody>
             </table>
+            </div>
             <div class="bi-pagination">
                 <span>{{ number_format($total) }} blocked IPs</span>
                 <div style="display:flex;gap:6px">

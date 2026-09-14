@@ -13,7 +13,6 @@
         'failed'            => ['bg' => 'rgba(248,113,113,.14)', 'color' => '#dc2626', 'dot' => '#ef4444', 'label' => 'Failed'],
         'expired'           => ['bg' => 'rgba(248,113,113,.14)', 'color' => '#dc2626', 'dot' => '#ef4444', 'label' => 'Expired'],
         'cancelled'         => ['bg' => 'rgba(248,113,113,.14)', 'color' => '#dc2626', 'dot' => '#ef4444', 'label' => 'Cancelled'],
-        'refunded'          => ['bg' => 'rgba(99,102,241,.14)',  'color' => '#6366f1', 'dot' => '#818cf8', 'label' => 'Refunded'],
         default             => ['bg' => 'rgba(148,163,184,.12)', 'color' => '#64748b', 'dot' => '#94a3b8', 'label' => ucfirst($statusVal ?? 'Unknown')],
     };
 
@@ -35,7 +34,6 @@
         'completed' => ['bg' => 'rgba(52,211,153,.12)', 'color' => '#059669', 'label' => 'Completed'],
         'pending'   => ['bg' => 'rgba(251,191,36,.12)', 'color' => '#d97706', 'label' => 'Pending'],
         'cancelled' => ['bg' => 'rgba(248,113,113,.12)', 'color' => '#dc2626', 'label' => 'Cancelled'],
-        'refunded'  => ['bg' => 'rgba(99,102,241,.12)', 'color' => '#6366f1', 'label' => 'Refunded'],
         default     => ['bg' => 'rgba(148,163,184,.1)', 'color' => '#64748b', 'label' => ucfirst($orderStatusVal ?? '—')],
     };
 
@@ -488,7 +486,7 @@ html.dark .ov {
                 {{ $gwLabel }}
             </span>
         </div>
-        <p class="ov-subtitle">Created on {{ $payment->created_at?->format('M d, Y') }} at {{ $payment->created_at?->format('H:i') }}
+        <p class="ov-subtitle">Created on {{ $payment->created_at?->setTimezone(config('app.timezone'))->format('M d, Y') }} at {{ $payment->created_at?->setTimezone(config('app.timezone'))->format('H:i') }}
             @if($order) · Order <strong>{{ $order->order_number }}</strong> @endif
         </p>
     </div>
@@ -556,7 +554,7 @@ html.dark .ov {
                     <div>
                         <div class="ov-stat-label" style="margin-bottom:2px">Paid At</div>
                         @if($payment->paid_at)
-                            <div style="font-size:12.5px;color:var(--t1);font-weight:500">{{ $payment->paid_at->format('M d, Y · H:i') }}</div>
+                            <div style="font-size:12.5px;color:var(--t1);font-weight:500">{{ $payment->paid_at->setTimezone(config('app.timezone'))->format('M d, Y · H:i') }}</div>
                         @else
                             <div style="font-size:12.5px;color:var(--t2);font-style:italic">Not paid yet</div>
                         @endif
@@ -568,7 +566,7 @@ html.dark .ov {
                         <div class="ov-stat-label" style="margin-bottom:2px">Expires At</div>
                         @if($payment->expires_at)
                             <div style="font-size:12.5px;font-weight:500;color:{{ $payment->expires_at->isPast() ? '#dc2626' : 'var(--t1)' }}">
-                                {{ $payment->expires_at->format('M d, Y · H:i') }}
+                                {{ $payment->expires_at->setTimezone(config('app.timezone'))->format('M d, Y · H:i') }}
                                 @if($payment->expires_at->isPast())
                                     <span style="color:#dc2626;font-size:11px;font-weight:700"> · EXPIRED</span>
                                 @endif
@@ -723,7 +721,7 @@ html.dark .ov {
                 <div style="grid-column:span 2">
                     <div class="ov-stat-label">Last Verified</div>
                     <div style="font-size:12.5px;color:var(--t1);margin-top:4px;font-weight:500">
-                        {{ $payment->last_verified_at?->format('M d, Y · H:i') ?? 'Never verified' }}
+                        {{ $payment->last_verified_at?->setTimezone(config('app.timezone'))->format('M d, Y · H:i') ?? 'Never verified' }}
                     </div>
                 </div>
             </div>
@@ -821,7 +819,7 @@ html.dark .ov {
                             </span>
                         </td>
                         <td style="font-size:12px;color:var(--t2);white-space:nowrap">
-                            {{ $txn->created_at?->format('M d, Y · H:i') ?? '—' }}
+                            {{ $txn->created_at?->setTimezone(config('app.timezone'))->format('M d, Y · H:i') ?? '—' }}
                         </td>
                     </tr>
                 @endforeach

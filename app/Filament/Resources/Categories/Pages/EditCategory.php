@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\Categories\Pages;
 
 use App\Filament\Resources\Categories\CategoryResource;
-use Filament\Actions\DeleteAction;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -18,9 +17,7 @@ class EditCategory extends EditRecord
     protected static string $resource = CategoryResource::class;
     protected string $view = 'filament.resources.categories.edit-category';
 
-    // Backing property for imageForm's separate statePath — Filament writes
-    // the FileUpload's live state directly onto this Livewire property, so
-    // it must be declared (unlike `data`, which EditRecord already declares).
+    // Backing property for imageForm's separate statePath
     public ?array $imageData = [];
 
     // Main form — all fields EXCEPT image (handled by imageForm)
@@ -49,16 +46,13 @@ class EditCategory extends EditRecord
         ])->statePath('data');
     }
 
-    // Separate form for image upload only — kept on its own state path so it
-    // never shares Livewire state with `form` (or the raw wire:model="data.*"
-    // inputs in the view), which was clobbering the FileUpload's array state
-    // back to a plain string and crashing getUploadedFiles().
+    // Separate form for image upload only 
     public function imageForm(Schema $form): Schema
     {
         return $form->components([
             FileUpload::make('image')
                 ->image()
-                ->previewable(false)
+                ->disk('r2')
                 ->directory('categories'),
         ])->statePath('imageData');
     }
@@ -68,9 +62,7 @@ class EditCategory extends EditRecord
         return ['form', 'imageForm'];
     }
 
-    // EditRecord::fillForm() only fills the schema literally named `form` —
-    // imageForm lives on its own statePath, so it never gets the record's
-    // existing image unless we fill it ourselves here.
+    // EditRecord::fillForm() only fills the schema literally named `form` 
     protected function fillForm(): void
     {
         parent::fillForm();
@@ -93,9 +85,25 @@ class EditCategory extends EditRecord
 
     protected function getHeaderActions(): array
     {
-        return [
-            DeleteAction::make(),
-        ];
+        return [];
+    }
+
+    public function deleteCategory(): void
+    {
+        if (!CategoryResource::canDelete($this->record)) {
+            \Filament\Notifications\Notification::make()
+                ->title($this->record->courses()->count() > 0
+                    ? 'Move or delete its courses first — this category still has courses assigned.'
+                    : 'This category cannot be deleted.')
+                ->danger()
+                ->send();
+
+            return;
+        }
+
+        $this->record->delete();
+
+        $this->redirect($this->getRedirectUrl());
     }
 
     protected function getRedirectUrl(): string
@@ -106,8 +114,9 @@ class EditCategory extends EditRecord
     protected function getViewData(): array
     {
         return [
-            'backUrl'     => route('filament.admin.pages.categories'),
-            'courseCount' => $this->record->courses()->count(),
+            'backUrl'      => route('filament.admin.pages.categories'),
+            'courseCount'  => $this->record->courses()->count(),
+            'canDelete'    => CategoryResource::canDelete($this->record),
         ];
     }
 }

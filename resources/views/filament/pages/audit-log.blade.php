@@ -9,8 +9,6 @@
         'failed_login'     => ['bg' => 'rgba(248,113,113,.13)', 'color' => '#f87171', 'icon' => 'fail'],
         'password_changed' => ['bg' => 'rgba(245,158,11,.13)',  'color' => '#f59e0b', 'icon' => 'pw'],
         'email_verified'   => ['bg' => 'rgba(6,182,212,.13)',   'color' => '#06b6d4', 'icon' => 'email'],
-        '2fa_enabled'      => ['bg' => 'rgba(139,92,246,.13)',  'color' => '#8b5cf6', 'icon' => '2fa'],
-        '2fa_disabled'     => ['bg' => 'rgba(236,72,153,.13)',  'color' => '#ec4899', 'icon' => '2fa'],
         default            => str_starts_with($act, 'settings.')
             ? ['bg' => 'rgba(249,115,22,.12)', 'color' => '#fb923c', 'icon' => 'settings']
             : ['bg' => 'rgba(148,163,184,.1)',  'color' => '#94a3b8', 'icon' => 'default'],
@@ -155,6 +153,7 @@ html:not(.dark) .al {
     border:1px solid var(--bd);
     border-radius:12px;
     box-shadow:var(--sh);
+    min-width:0;
 }
 
 /* ── Toolbar ────────────────────────────────────────────────── */
@@ -830,8 +829,8 @@ html:not(.dark) .al {
 
                 {{-- Date --}}
                 <td>
-                    <div class="al-date">{{ $log->created_at?->format('M d, Y') }}</div>
-                    <div class="al-time">{{ $log->created_at?->format('H:i:s') }}</div>
+                    <div class="al-date">{{ $log->created_at?->setTimezone(config('app.timezone'))->format('M d, Y') }}</div>
+                    <div class="al-time">{{ $log->created_at?->setTimezone(config('app.timezone'))->format('H:i:s') }}</div>
                 </td>
 
                 {{-- Data button --}}
@@ -923,7 +922,11 @@ html:not(.dark) .al {
 
 
 {{-- ── JSON Data Modal ─────────────────────────────────────────── --}}
-<div class="al-modal-backdrop" id="al-modal" onclick="if(event.target===this)alCloseModal()"
+{{-- wire:ignore: this modal is opened/populated by plain JS (alOpenModal),
+     untracked by Livewire. Without wire:ignore, any wire:click elsewhere on
+     the page (pagination, filters) re-renders and morphs this div back to
+     its server-rendered closed state while it's open. --}}
+<div class="al-modal-backdrop" id="al-modal" wire:ignore onclick="if(event.target===this)alCloseModal()"
      style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9998;align-items:center;justify-content:center;">
     <div class="al-modal">
         <div class="al-modal-head">

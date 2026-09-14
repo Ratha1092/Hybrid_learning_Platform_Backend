@@ -23,6 +23,8 @@ class ApplyInstructorRequest extends FormRequest
             'certificate_file' => ['required','file','mimes:pdf,jpg,jpeg,png','mimetypes:application/pdf,image/jpeg,image/png','max:10240',],
             'identity_id'   => ['required','string','max:100','unique:instructor_verifications,identity_id',],
             'identity_file' => ['required','file','mimes:pdf,jpg,jpeg,png','mimetypes:application/pdf,image/jpeg,image/png','max:10240',],
+            'account_name' => ['required', 'string', 'max:255'],
+            'qr_code'      => ['required', 'file', 'mimes:jpg,jpeg,png', 'mimetypes:image/jpeg,image/png', 'max:5120'],
         ];
     }
 
@@ -38,6 +40,10 @@ class ApplyInstructorRequest extends FormRequest
             'identity_id.unique'    => 'This identity ID number has already been used in another application.',
             'identity_file.max' =>'Identity file size must not exceed 10MB.',
             'identity_file.mimetypes' =>'Identity file must be a PDF, JPG, JPEG, or PNG file.',
+            'account_name.required' => 'Bank account name is required.',
+            'qr_code.required' => 'Please upload your payment QR code.',
+            'qr_code.max' => 'QR code image must not exceed 5MB.',
+            'qr_code.mimetypes' => 'QR code must be a JPG or PNG image.',
         ];
     }
 }

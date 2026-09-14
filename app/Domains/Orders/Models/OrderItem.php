@@ -20,8 +20,6 @@ class OrderItem extends Model
         'commission_percentage',
         'instructor_amount',
         'platform_amount',
-        'is_refunded',
-        'refunded_at',
     ];
 
     protected $casts = [
@@ -31,8 +29,6 @@ class OrderItem extends Model
         'commission_percentage' => 'decimal:2',
         'instructor_amount' => 'decimal:2',
         'platform_amount' => 'decimal:2',
-        'is_refunded' => 'boolean',
-        'refunded_at' => 'datetime',
     ];
     public function order(): BelongsTo
     {

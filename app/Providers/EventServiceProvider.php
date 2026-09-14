@@ -6,14 +6,12 @@ use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvi
 use Illuminate\Mail\Events\MessageSending;
 use Illuminate\Auth\Events\Authenticated;
 use Laravel\Sanctum\Events\TokenAuthenticated;
-
 use App\Domains\Payments\Events\PaymentSuccessEvent;
 use App\Domains\Learning\Listeners\EnrollStudentListener;
 use App\Domains\Finance\Listeners\ProcessRevenueListener;
-use App\Domains\Finance\Listeners\UpdateInstructorWalletListener;
-use App\Domains\Finance\Listeners\RecordWalletTransactionListener;
 use App\Listeners\ApplyMailSettings;
 use App\Listeners\LogOutSuspendedUser;
+use App\Listeners\TrackUserSessionActivity;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -21,8 +19,6 @@ class EventServiceProvider extends ServiceProvider
         PaymentSuccessEvent::class => [
             \App\Domains\Learning\Listeners\EnrollStudentListener::class,
             \App\Domains\Finance\Listeners\ProcessRevenueListener::class,
-            \App\Domains\Finance\Listeners\RecordWalletTransactionListener::class,
-            \App\Domains\Finance\Listeners\UpdateInstructorWalletListener::class,
             \App\Domains\Payments\Listeners\PaymentNotificationListener::class,
             \App\Domains\Billing\Listeners\IssueDocumentsOnPayment::class,
         ],
@@ -34,6 +30,7 @@ class EventServiceProvider extends ServiceProvider
         ],
         TokenAuthenticated::class => [
             LogOutSuspendedUser::class . '@handleTokenAuthenticated',
+            TrackUserSessionActivity::class,
         ],
     ];
 }

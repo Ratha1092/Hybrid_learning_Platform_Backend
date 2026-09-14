@@ -5,13 +5,13 @@ namespace App\Filament\Resources\Lessons\Pages;
 use App\Domains\Courses\Models\Section as CourseSection;
 use App\Filament\Resources\Lessons\LessonResource;
 use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Resources\Pages\CreateRecord;
 
@@ -45,17 +45,20 @@ class CreateLesson extends CreateRecord
                         TextInput::make('title')->required()->maxLength(255),
                         Select::make('type')
                             ->options([
-                                'video'      => 'Video',
-                                'article'    => 'Article',
-                                'quiz'       => 'Quiz',
-                                'file'       => 'File / Document',
-                                'live'       => 'Live',
-                                'assignment' => 'Assignment',
+                                'video'   => 'Video',
+                                'article' => 'Article',
+                                'file'    => 'File / Document',
                             ])
                             ->default('video')
+                            ->live()
                             ->required(),
                         Textarea::make('description')->rows(3)->columnSpanFull(),
-                        TextInput::make('duration')->numeric()->default(null),
+                        TextInput::make('duration')
+                            ->numeric()
+                            ->suffix('minutes')
+                            ->dehydrateStateUsing(fn (mixed $state) => filled($state) ? (int) round(((float) $state) * 60) : null)
+                            ->hidden(fn (Get $get): bool => $get('type') === 'article')
+                            ->default(null),
                         TextInput::make('order')->numeric()->default(1),
                         Toggle::make('is_preview')->default(false),
                     ]),
@@ -93,33 +96,6 @@ class CreateLesson extends CreateRecord
             ->statePath('data')
             ->components([
                 RichEditor::make('content')->columnSpanFull(),
-            ]);
-    }
-
-    // ── Quiz sub-form ───────────────────────────────────────────
-    public function quizForm(Schema $schema): Schema
-    {
-        return $schema
-            ->statePath('data')
-            ->components([
-                Repeater::make('quiz_data')
-                    ->label('')
-                    ->schema([
-                        TextInput::make('question')->required()->columnSpanFull(),
-                        TextInput::make('option_a')->label('Option A')->required(),
-                        TextInput::make('option_b')->label('Option B')->required(),
-                        TextInput::make('option_c')->label('Option C'),
-                        TextInput::make('option_d')->label('Option D'),
-                        Select::make('correct')
-                            ->label('Correct Answer')
-                            ->options(['a'=>'Option A','b'=>'Option B','c'=>'Option C','d'=>'Option D'])
-                            ->required(),
-                        Textarea::make('explanation')->rows(2)->columnSpanFull(),
-                    ])
-                    ->columns(2)
-                    ->addActionLabel('Add Question')
-                    ->collapsible()
-                    ->columnSpanFull(),
             ]);
     }
 
@@ -179,7 +155,7 @@ class CreateLesson extends CreateRecord
 
     protected function getForms(): array
     {
-        return ['form', 'videoForm', 'articleForm', 'quizForm', 'fileForm', 'attachmentForm'];
+        return ['form', 'videoForm', 'articleForm', 'fileForm', 'attachmentForm'];
     }
 
     protected function mutateFormDataBeforeCreate(array $data): array
@@ -188,7 +164,7 @@ class CreateLesson extends CreateRecord
 
         // Merge sub-form states (all share statePath('data') so they may overlap;
         // explicit merge ensures latest values are used)
-        foreach (['videoForm', 'articleForm', 'quizForm', 'fileForm', 'attachmentForm'] as $f) {
+        foreach (['videoForm', 'articleForm', 'fileForm', 'attachmentForm'] as $f) {
             $data = array_merge($data, $this->{$f}->getState());
         }
 
@@ -198,8 +174,8 @@ class CreateLesson extends CreateRecord
             $data['video_url']      = null;
             $data['video_provider'] = null;
         }
-        if ($type !== 'quiz') {
-            $data['quiz_data'] = null;
+        if ($type === 'article') {
+            $data['duration'] = null;
         }
         if ($type === 'video' || $type === 'article') {
             // attachment is allowed for video/article

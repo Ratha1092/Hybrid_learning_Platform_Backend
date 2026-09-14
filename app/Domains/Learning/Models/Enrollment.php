@@ -20,10 +20,10 @@ class Enrollment extends Model
         'status',
         'progress_percentage',
         'expires_at',
-        'certificate_issued',
         'enrolled_at',
         'completed_at',
         'last_accessed_at',
+        'deleted_by',
     ];
 
     protected $casts = [
@@ -32,8 +32,18 @@ class Enrollment extends Model
         'expires_at' => 'datetime',
         'last_accessed_at' => 'datetime',
         'progress_percentage' => 'decimal:2',
-        'certificate_issued' => 'boolean',
     ];
+
+    protected static function booted(): void
+    {
+        static::deleting(function (Enrollment $enrollment) {
+            if (auth()->check()) {
+                $enrollment->deleted_by = auth()->id();
+                $enrollment->saveQuietly();
+            }
+        });
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

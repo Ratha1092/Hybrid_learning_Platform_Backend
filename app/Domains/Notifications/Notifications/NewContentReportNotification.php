@@ -27,22 +27,26 @@ class NewContentReportNotification extends BaseNotification
 
     public function toBroadcast(object $notifiable): BroadcastMessage
     {
+        $url = "/admin/content-reports/{$this->reportId}";
+
         return new BroadcastMessage([
             'title'       => 'New Content Report',
             'message'     => "{$this->reporterName} reported a {$this->reportableType}.",
             'type'        => NotificationType::SYSTEM->value,
-            'link'        => '/admin/content-reports',
+            'link'        => $url,
             'action_text' => 'Review Report',
         ]);
     }
 
     public function toArray(object $notifiable): array
     {
+        $url = "/admin/content-reports/{$this->reportId}";
+
         return [
             'title'       => 'New Content Report',
             'message'     => "{$this->reporterName} reported a {$this->reportableType}.",
             'type'        => NotificationType::SYSTEM->value,
-            'link'        => '/admin/content-reports',
+            'link'        => $url,
             'action_text' => 'Review Report',
         ];
     }

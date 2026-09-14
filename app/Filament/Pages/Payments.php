@@ -70,6 +70,11 @@ class Payments extends Page
         $this->currentPage = 1;
     }
 
+    public function updatedSearch(): void
+    {
+        $this->currentPage = 1;
+    }
+
     public function setPage(int $page): void
     {
         $this->currentPage = $page;
@@ -112,14 +117,20 @@ class Payments extends Page
         $page    = max(1, $this->currentPage);
         $perPage = in_array($this->perPage, [10, 25, 50]) ? $this->perPage : 10;
 
-        $base = fn() => Payment::query();
+        // One grouped query instead of five separate COUNT round-trips for the tab badges.
+        $statusCounts = Payment::query()
+            ->toBase()
+            ->selectRaw('status, count(*) as aggregate')
+            ->groupBy('status')
+            ->pluck('aggregate', 'status');
+
+        $countFor = fn (array $statuses) => collect($statuses)->sum(fn ($s) => $statusCounts[$s] ?? 0);
 
         $tabs = [
-            ['key' => 'all',      'label' => 'All',      'count' => $base()->count(),                                               'color' => '#7c3aed'],
-            ['key' => 'pending',  'label' => 'Pending',  'count' => $base()->whereIn('status', ['pending', 'processing'])->count(), 'color' => '#fbbf24'],
-            ['key' => 'paid',     'label' => 'Paid',     'count' => $base()->whereIn('status', ['paid', 'completed'])->count(),     'color' => '#34d399'],
-            ['key' => 'failed',   'label' => 'Failed',   'count' => $base()->whereIn('status', ['failed', 'expired'])->count(),     'color' => '#f87171'],
-            ['key' => 'refunded', 'label' => 'Refunded', 'count' => $base()->where('status', 'refunded')->count(),                  'color' => '#a78bfa'],
+            ['key' => 'all',      'label' => 'All',      'count' => $statusCounts->sum(),                  'color' => '#7c3aed'],
+            ['key' => 'pending',  'label' => 'Pending',  'count' => $countFor(['pending', 'processing']),  'color' => '#fbbf24'],
+            ['key' => 'paid',     'label' => 'Paid',     'count' => $countFor(['paid', 'completed']),      'color' => '#34d399'],
+            ['key' => 'failed',   'label' => 'Failed',   'count' => $countFor(['failed', 'expired']),      'color' => '#f87171'],
         ];
 
         $query = Payment::with(['order:id,order_number,user_id', 'order.user:id,name']);
@@ -130,13 +141,11 @@ class Payments extends Page
             $query->whereIn('status', ['paid', 'completed']);
         } elseif ($tab === 'failed') {
             $query->whereIn('status', ['failed', 'expired']);
-        } elseif ($tab === 'refunded') {
-            $query->where('status', 'refunded');
         }
 
         if ($search) {
             $query->where(function ($q) use ($search) {
-                $q->whereHas('order', fn($q2) => $q2->where('order_number', 'like', "%{$search}%"));
+                $q->whereHas('order', fn($q2) => $q2->where('order_number', 'ilike', "%{$search}%"));
             });
         }
 

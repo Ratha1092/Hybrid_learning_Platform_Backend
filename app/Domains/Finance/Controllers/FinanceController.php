@@ -5,6 +5,7 @@ namespace App\Domains\Finance\Controllers;
 use App\Http\Controllers\Controller;
 use App\Domains\Finance\Models\InstructorWallet;
 use App\Domains\Finance\Models\PayoutRequest;
+use App\Domains\Finance\Models\RevenueShare;
 use App\Domains\Finance\Models\WalletTransaction;
 use App\Domains\Finance\Services\PayoutService;
 use App\Domains\System\Models\Setting;
@@ -29,7 +30,22 @@ class FinanceController extends Controller
             ['balance' => 0, 'pending_balance' => 0, 'currency' => Setting::get('default_currency', 'USD')]
         );
 
-        return ApiResponse::success($wallet, 'Wallet retrieved successfully');
+        $holdDays = (int) Setting::get('payout_hold_period_days', 14);
+
+        // The oldest still-pending share tells us when the next chunk of
+        // pending_balance will clear — mirrors the cutoff ReleasePendingBalanceCommand uses.
+        $oldestPending = RevenueShare::where('instructor_id', $request->user()->id)
+            ->where('status', 'pending')
+            ->orderBy('created_at')
+            ->first();
+
+        $data = $wallet->toArray();
+        $data['hold_period_days'] = $holdDays;
+        $data['next_release_at'] = $oldestPending
+            ? $oldestPending->created_at->copy()->addDays($holdDays)->toIso8601String()
+            : null;
+
+        return ApiResponse::success($data, 'Wallet retrieved successfully');
     }
 
     public function earnings(Request $request): JsonResponse
@@ -113,5 +129,18 @@ class FinanceController extends Controller
             ->paginate(20);
 
         return ApiResponse::success($payouts, 'Payout requests retrieved successfully');
+    }
+
+    public function payoutRequest(int $id, Request $request): JsonResponse
+    {
+        $payout = PayoutRequest::where('instructor_id', $request->user()->id)
+            ->with(['receipt', 'payoutAccount'])
+            ->find($id);
+
+        if (!$payout) {
+            return ApiResponse::error('Payout request not found', 404);
+        }
+
+        return ApiResponse::success($payout, 'Payout request retrieved successfully');
     }
 }

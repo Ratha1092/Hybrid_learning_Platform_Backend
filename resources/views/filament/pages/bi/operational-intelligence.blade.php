@@ -84,11 +84,6 @@
             <span class="bi-alert-msg">Failed Payments Today</span>
             <span class="bi-alert-val">{{ $kpis['failedPaymentsToday'] }}</span>
         </div>
-        <div class="bi-alert-row {{ $kpis['openRefunds'] > 0 ? 'warn' : 'ok' }}">
-            <span class="bi-alert-icon">{{ $kpis['openRefunds'] > 0 ? '↩️' : '✅' }}</span>
-            <span class="bi-alert-msg">Open Refunds ({{ $periodLabel }})</span>
-            <span class="bi-alert-val">{{ $kpis['openRefunds'] }}</span>
-        </div>
         <div class="bi-alert-row {{ $kpis['failedJobs'] > 0 ? 'err' : 'ok' }}">
             <span class="bi-alert-icon">{{ $kpis['failedJobs'] > 0 ? '🔥' : '✅' }}</span>
             <span class="bi-alert-msg">Failed Queue Jobs</span>
@@ -157,7 +152,7 @@
         </div>
     </div>
 
-    <div class="bi-grid-2">
+    <div>
         <div class="bi-table-card">
             <h3>Failed Payments ({{ $periodLabel }})</h3>
             <table class="bi-table">
@@ -172,24 +167,6 @@
                     </tr>
                     @empty
                     <tr><td colspan="4" style="text-align:center;color:var(--ok);padding:20px">No failed payments in this period</td></tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-        <div class="bi-table-card">
-            <h3>Recent Refunds</h3>
-            <table class="bi-table">
-                <thead><tr><th>Order</th><th>Amount</th><th>Status</th><th>Time</th></tr></thead>
-                <tbody>
-                    @forelse($recentRefunds as $refund)
-                    <tr>
-                        <td style="font-family:monospace;font-size:11px">{{ $refund->order?->order_number ?? '—' }}</td>
-                        <td>${{ number_format((float)$refund->amount,2) }}</td>
-                        <td><span class="bi-tag bi-tag-warn">{{ ucfirst($refund->status ?? 'pending') }}</span></td>
-                        <td style="color:var(--t2)">{{ $refund->created_at?->diffForHumans() ?? '—' }}</td>
-                    </tr>
-                    @empty
-                    <tr><td colspan="4" style="text-align:center;color:var(--t2);padding:20px">No recent refunds</td></tr>
                     @endforelse
                 </tbody>
             </table>

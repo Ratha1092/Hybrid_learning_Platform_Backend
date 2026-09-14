@@ -8,19 +8,18 @@
     $isSystem   = in_array($role->name, $protectedRoles, true);
     $assignUrl  = $assignUrl ?? route('admin.roles.users.assign', ['role' => $role->id]);
     $roleColor  = match ($role->name) {
-        'super-admin'     => '#dc2626',
-        'admin'           => '#a855f7',
-        'finance-manager', 'accountant' => '#0d9488',
-        'content-manager', 'moderator'  => '#d97706',
-        'support-staff', 'instructor'   => '#3b82f6',
-        'student'         => '#10b981',
-        default           => '#6366f1',
+        'super-admin' => '#dc2626',
+        'finance'     => '#0d9488',
+        'instructor'  => '#3b82f6',
+        'student'     => '#10b981',
+        default       => '#6366f1',
     };
 
     $grantedNames = $grantedNames ?? $role->permissions->pluck('name')->all();
     $grouped      = $grouped ?? $role->permissions->sortBy('name')->groupBy(fn ($p) => explode('.', $p->name)[0]);
     $users        = $users ?? $role->users()->orderBy('name')->get();
     $usersCount   = $usersCount ?? $users->count();
+    $isLastSuperAdmin = $role->name === 'super-admin' && $usersCount <= 1;
     $allUsers     = $allUsers ?? \App\Domains\Users\Models\User::orderBy('name')
         ->whereNotIn('id', $users->pluck('id')->all())
         ->get(['id', 'name', 'email']);
@@ -221,6 +220,24 @@ html:not(.dark) .rv {
     height:32px;
     background:var(--bd);
 }
+@media (max-width:640px) {
+    /* .rv-stats' margin-left:auto keeps it sharing the .rv-hero row until
+       there's no room left, by which point wrapped title text has often
+       already grown taller than expected, so the stats land on top of it
+       instead of below. Force a column stack instead of relying on wrap timing. */
+    .rv-hero {
+        flex-direction:column;
+        align-items:flex-start;
+    }
+    .rv-stats {
+        margin-left:0;
+        width:100%;
+        justify-content:flex-start;
+    }
+    .rv-stat {
+        text-align:left;
+    }
+}
 
 .rv-card-title {
     font-size:14px;
@@ -335,6 +352,7 @@ html:not(.dark) .rv {
         grid-template-columns:1fr;
     }
 }
+
 </style>
 
 {{-- Header --}}
@@ -384,7 +402,7 @@ html:not(.dark) .rv {
             </div>
             <div class="rv-stat-divider"></div>
             <div class="rv-stat">
-                <div class="rv-stat-val">{{ $role->created_at?->format('M d, Y') ?? '—' }}</div>
+                <div class="rv-stat-val">{{ $role->created_at?->setTimezone(config('app.timezone'))->format('M d, Y') ?? '—' }}</div>
                 <div class="rv-stat-label">Created</div>
             </div>
         </div>
@@ -477,13 +495,19 @@ html:not(.dark) .rv {
                             <div class="rv-user-email" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ $u->email }}</div>
                         </div>
                     </a>
-                    @if($canUpdate)
-                    <form method="POST" action="{{ $removeUrl }}" onsubmit="return confirm('Remove {{ addslashes($u->name) }} from this role?')">
+                    @if($canUpdate && !$isLastSuperAdmin)
+                    <form id="role-remove-form-{{ $u->id }}" method="POST" action="{{ $removeUrl }}">
                         @csrf
-                        <button type="submit" title="Remove from role" style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);color:#ef4444;cursor:pointer;flex-shrink:0">
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
-                        </button>
                     </form>
+                    <button type="button" title="Remove from role"
+                        onclick="admConfirm('Remove {{ addslashes($u->name) }} from the {{ addslashes(\Illuminate\Support\Str::headline($role->name)) }} role?', { title: 'Remove from role', confirmLabel: 'Remove' }).then(function(ok){ if (ok) document.getElementById('role-remove-form-{{ $u->id }}').submit(); })"
+                        style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);color:#ef4444;cursor:pointer;flex-shrink:0">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+                    </button>
+                    @elseif($canUpdate && $isLastSuperAdmin)
+                    <span title="The Super Admin role must always have at least one user" style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;color:var(--t2);flex-shrink:0">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25z"/></svg>
+                    </span>
                     @endif
                 </div>
             @empty

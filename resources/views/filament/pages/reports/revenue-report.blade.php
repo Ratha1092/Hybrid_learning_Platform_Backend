@@ -174,7 +174,7 @@ html:not(.dark) .rp {
     background:var(--p1);
     border:1px solid var(--bd);
     border-radius:12px;
-    overflow:hidden;
+    overflow-x:auto;
 }
 .rp-table {
     width:100%;
@@ -452,13 +452,13 @@ html:not(.dark) .rp {
     <div class="rp-table-card">
         <table class="rp-table">
             <thead>
-                <tr><th>Order #</th><th>Date</th><th>Customer</th><th>Items</th><th>Discount</th><th>Final Amount</th></tr>
+                <tr><th>Order #</th><th>Paid At</th><th>Customer</th><th>Items</th><th>Discount</th><th>Final Amount</th></tr>
             </thead>
             <tbody>
                 @forelse($orders as $order)
                     <tr>
                         <td>{{ $order->order_number }}</td>
-                        <td>{{ $order->created_at?->format('M d, Y') ?? '—' }}</td>
+                        <td>{{ $order->paid_at?->setTimezone(config('app.timezone'))->format('M d, Y') ?? '—' }}</td>
                         <td>{{ $order->customer_name ?? $order->user?->name ?? '—' }}</td>
                         <td>{{ $order->items->count() }}</td>
                         <td>{{ $order->discount_amount > 0 ? '-$' . number_format((float) $order->discount_amount, 2) : '—' }}</td>

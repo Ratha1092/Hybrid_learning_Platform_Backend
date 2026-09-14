@@ -18,6 +18,9 @@
         if ($report->reportable_type === 'course') {
             return route('filament.admin.resources.courses.view', ['record' => $report->reportable_id]);
         }
+        if ($report->reportable_type === 'review' && $report->reportable?->course_id) {
+            return route('filament.admin.pages.reviews', ['course_id' => $report->reportable->course_id]);
+        }
         return null;
     };
 @endphp
@@ -109,6 +112,7 @@ html:not(.dark) .lp {
     border-radius:12px;
     overflow:hidden;
     box-shadow:var(--sh);
+    min-width:0;
 }
 .lp-toolbar {
     display:flex;
@@ -322,6 +326,7 @@ html:not(.dark) .lp {
     position:fixed;
     inset:0;
     background:rgba(0,0,0,.55);
+    backdrop-filter:blur(3px);
     z-index:9999;
     align-items:center;
     justify-content:center;
@@ -586,12 +591,12 @@ html:not(.dark) .lp {
                         'status' => $ss['label'],
                         'statusColor' => $ss['color'],
                         'reviewerName' => $report->reviewer?->name,
-                        'reviewedAt' => $report->reviewed_at?->format('M d, Y · H:i'),
-                        'reportedAt' => $report->created_at?->format('M d, Y · H:i'),
+                        'reviewedAt' => $report->reviewed_at?->setTimezone(config('app.timezone'))->format('M d, Y · H:i'),
+                        'reportedAt' => $report->created_at?->setTimezone(config('app.timezone'))->format('M d, Y · H:i'),
                         'pending' => $report->status === 'pending',
                     ]), ENT_QUOTES, 'UTF-8');
                 @endphp
-                <tr class="lp-row-link" onclick='openViewModal({{ $detailsJson }})'>
+                <tr class="lp-row-link" wire:key="content-report-row-{{ $report->id }}" onclick='openViewModal({{ $detailsJson }})'>
                     <td><span class="lp-id">{{ $report->id }}</span></td>
 
                     <td>
@@ -617,7 +622,7 @@ html:not(.dark) .lp {
                         </span>
                     </td>
 
-                    <td><span class="lp-date">{{ $report->created_at?->format('M d, Y') }}</span></td>
+                    <td><span class="lp-date">{{ $report->created_at?->setTimezone(config('app.timezone'))->format('M d, Y') }}</span></td>
 
                     <td onclick="event.stopPropagation()">
                         <div class="lp-actions">
@@ -699,8 +704,10 @@ html:not(.dark) .lp {
         </div>
     </div>
 
-    {{-- Mark Reviewed Modal --}}
-    <div class="lp-modal-overlay" id="lp-review-modal" onclick="if(event.target===this)closeReviewModal()">
+    {{-- Mark Reviewed Modal — wire:ignore keeps this subtree untouched by the
+         wire:poll re-render above, which otherwise fights the vanilla-JS
+         .open toggle and can leave the overlay half-repainted while open. --}}
+    <div class="lp-modal-overlay" id="lp-review-modal" wire:ignore onclick="if(event.target===this)closeReviewModal()">
         <div class="lp-modal">
             <h3>Mark as Reviewed</h3>
             <p>Are you sure you want to mark this report as reviewed? No further action will be taken on the reported item.</p>
@@ -711,8 +718,8 @@ html:not(.dark) .lp {
         </div>
     </div>
 
-    {{-- Dismiss Modal --}}
-    <div class="lp-modal-overlay" id="lp-dismiss-modal" onclick="if(event.target===this)closeDismissModal()">
+    {{-- Dismiss Modal — see wire:ignore note above. --}}
+    <div class="lp-modal-overlay" id="lp-dismiss-modal" wire:ignore onclick="if(event.target===this)closeDismissModal()">
         <div class="lp-modal">
             <h3>Dismiss Report</h3>
             <p>Are you sure you want to dismiss this report? It will be closed with no action taken.</p>
@@ -723,8 +730,8 @@ html:not(.dark) .lp {
         </div>
     </div>
 
-    {{-- View Details Modal --}}
-    <div class="lp-modal-overlay" id="lp-view-modal" onclick="if(event.target===this)closeViewModal()">
+    {{-- View Details Modal — see wire:ignore note above. --}}
+    <div class="lp-modal-overlay" id="lp-view-modal" wire:ignore onclick="if(event.target===this)closeViewModal()">
         <div class="lp-modal lp-view-modal">
             <h3 id="lp-view-title">Report #</h3>
             <p>Full details of this content report.</p>

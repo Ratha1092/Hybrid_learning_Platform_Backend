@@ -3,6 +3,8 @@
 namespace App\Domains\Notifications\Notifications;
 
 use App\Domains\Notifications\Concerns\BroadcastsAsNotification;
+use App\Domains\Notifications\Enums\NotificationType;
+use App\Domains\Notifications\Support\NotificationLinks;
 use App\Domains\Orders\Models\Order;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\BroadcastMessage;
@@ -25,23 +27,27 @@ class EnrollmentConfirmedNotification extends Notification
 
     public function toBroadcast(object $notifiable): BroadcastMessage
     {
+        $link = NotificationLinks::frontend('/library');
+
         return new BroadcastMessage([
             'title'       => 'Enrollment Confirmed',
             'message'     => "You have successfully enrolled in \"{$this->courseTitle}\".",
-            'type'        => 'enrollment_confirmed',
-            'link'        => env('FRONTEND_URL', 'http://localhost:3000') . '/my-courses',
+            'type'        => NotificationType::COURSE->value,
+            'link'        => $link,
             'action_text' => 'Go to My Courses',
         ]);
     }
 
     public function toArray(object $notifiable): array
     {
+        $link = NotificationLinks::frontend('/library');
+
         return [
             'title'       => 'Enrollment Confirmed',
             'message'     => "You have successfully enrolled in \"{$this->courseTitle}\".",
-            'type'        => 'enrollment_confirmed',
+            'type'        => NotificationType::COURSE->value,
             'order_id'    => $this->order->id,
-            'link'        => env('FRONTEND_URL', 'http://localhost:3000') . '/my-courses',
+            'link'        => $link,
             'action_text' => 'Go to My Courses',
         ];
     }

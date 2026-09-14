@@ -29,6 +29,15 @@ class EditLesson extends EditRecord
         return route('filament.admin.pages.lessons');
     }
 
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        if (($data['type'] ?? null) === 'article') {
+            $data['duration'] = null;
+        }
+
+        return $data;
+    }
+
     protected function getViewData(): array
     {
         $record = $this->record;

@@ -40,12 +40,6 @@ class CourseForm
                             ->image()
                             ->disk('r2')
                             ->directory('courses/thumbnails'),
-                        TextInput::make('preview_video_url')
-                            ->label('Preview Video URL')
-                            ->url()
-                            ->placeholder(
-                                'https://youtube.com/...'
-                            ),
                     ])
                     ->columns(2),
                 Section::make('Course Details')
@@ -116,9 +110,6 @@ class CourseForm
                             ->required(),
                         Toggle::make('is_published')
                             ->label('Published'),
-
-                        Toggle::make('certificate_enabled')
-                            ->label('Enable Certificate'),
                     ])
                     ->columns(2),
                 Section::make('Platform Settings')

@@ -81,16 +81,6 @@ class UserInfolist
                                 'rejected', 'suspended' => 'danger',
                                 default => 'gray',
                             }),
-                        TextEntry::make('two_factor_enabled')
-                            ->badge()
-                            ->formatStateUsing(
-                                fn (bool $state): string =>
-                                $state ? 'Enabled' : 'Disabled'
-                            )
-                            ->color(
-                                fn (bool $state): string =>
-                                $state ? 'success' : 'gray'
-                            ),
                     ])
                     ->columns(2),
             ]);

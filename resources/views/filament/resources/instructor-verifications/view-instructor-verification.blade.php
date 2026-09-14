@@ -354,6 +354,8 @@ html:not(.dark) .iv {
 }
 
 /* Modal */
+/* x-teleport moves this to <body>, outside .iv's DOM subtree, so it can no
+   longer inherit .iv's custom properties — redeclare them here directly. */
 .iv-modal-overlay {
     display:none;
     position:fixed;
@@ -362,6 +364,20 @@ html:not(.dark) .iv {
     z-index:9999;
     align-items:center;
     justify-content:center;
+    --p1:#1e293b;
+    --p2:#263245;
+    --bd:rgba(255,255,255,.07);
+    --bd2:rgba(255,255,255,.13);
+    --t1:#e2e8f0;
+    --t2:#64748b;
+}
+html:not(.dark) .iv-modal-overlay {
+    --p1:#ffffff;
+    --p2:#f8fafc;
+    --bd:rgba(15,23,42,.08);
+    --bd2:rgba(15,23,42,.14);
+    --t1:#0f172a;
+    --t2:#64748b;
 }
 .iv-modal-overlay.open {
     display:flex;
@@ -452,7 +468,7 @@ html:not(.dark) .iv {
             </a>
             <div class="iv-header-title">
                 <h1>Instructor Verification #{{ $v->id }}</h1>
-                <p>Submitted {{ $v->created_at?->format('M d, Y \a\t H:i') }}</p>
+                <p>Submitted {{ $v->created_at?->setTimezone(config('app.timezone'))->format('M d, Y \a\t H:i') }}</p>
             </div>
         </div>
 
@@ -508,7 +524,7 @@ html:not(.dark) .iv {
                 </div>
                 <div class="iv-field">
                     <span class="iv-label">Applied</span>
-                    <span class="iv-value">{{ $v->created_at?->format('M d, Y') ?? '—' }}</span>
+                    <span class="iv-value">{{ $v->created_at?->setTimezone(config('app.timezone'))->format('M d, Y') ?? '—' }}</span>
                 </div>
                 <div class="iv-field">
                     <span class="iv-label">Application Status</span>
@@ -651,7 +667,7 @@ html:not(.dark) .iv {
                 </div>
                 <div class="iv-field">
                     <span class="iv-label">Reviewed At</span>
-                    <span class="iv-value">{{ $v->reviewed_at?->format('M d, Y H:i') ?? '—' }}</span>
+                    <span class="iv-value">{{ $v->reviewed_at?->setTimezone(config('app.timezone'))->format('M d, Y H:i') ?? '—' }}</span>
                 </div>
             </div>
             @if($v->rejection_reason)
@@ -665,8 +681,11 @@ html:not(.dark) .iv {
 
     @if($v->status === 'pending')
     {{-- Approve Modal (teleported to <body> so it centers on the real viewport,
-         not inside any transformed page wrapper) --}}
-    <template x-teleport="body">
+         not inside any transformed page wrapper). wire:ignore: without it, a
+         wire:click-triggered re-render elsewhere on the page makes Livewire's
+         DOM morph try to reconcile this block at its original position, which
+         conflicts with Alpine's already-teleported copy. --}}
+    <template x-teleport="body" wire:ignore>
     <div class="iv-modal-overlay" id="iv-approve-modal" onclick="if(event.target===this)closeApproveModal()">
         <div class="iv-modal">
             <h3>Approve Application</h3>
@@ -679,8 +698,8 @@ html:not(.dark) .iv {
     </div>
     </template>
 
-    {{-- Reject Modal --}}
-    <template x-teleport="body">
+    {{-- Reject Modal — see wire:ignore note on the Approve Modal above. --}}
+    <template x-teleport="body" wire:ignore>
     <div class="iv-modal-overlay" id="iv-reject-modal" onclick="if(event.target===this)closeRejectModal()">
         <div class="iv-modal">
             <h3>Reject Application</h3>

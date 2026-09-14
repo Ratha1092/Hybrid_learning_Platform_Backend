@@ -98,6 +98,7 @@ html:not(.dark) .lp {
     border-radius:12px;
     overflow:hidden;
     box-shadow:var(--sh);
+    min-width:0;
 }
 .lp-toolbar {
     display:flex;
@@ -306,6 +307,7 @@ html:not(.dark) .lp {
     position:fixed;
     inset:0;
     background:rgba(0,0,0,.55);
+    backdrop-filter:blur(3px);
     z-index:9999;
     align-items:center;
     justify-content:center;
@@ -540,7 +542,7 @@ html:not(.dark) .lp {
                     $avUrl = 'https://ui-avatars.com/api/?name=' . urlencode($verification->user?->name ?? '?') . '&background=' . $bgHex . '&color=fff&bold=true&size=64';
                     $qual  = ucfirst(str_replace('_', ' ', $verification->qualification_type ?? '—'));
                 @endphp
-                <tr class="lp-row-link" onclick="Livewire.navigate('{{ $viewUrl($verification) }}')">
+                <tr class="lp-row-link" wire:key="verification-row-{{ $verification->id }}" onclick="Livewire.navigate('{{ $viewUrl($verification) }}')">
                     <td><span class="lp-id">{{ $verification->id }}</span></td>
 
                     <td>
@@ -561,7 +563,7 @@ html:not(.dark) .lp {
                         </span>
                     </td>
 
-                    <td><span class="lp-date">{{ $verification->created_at?->format('M d, Y') }}</span></td>
+                    <td><span class="lp-date">{{ $verification->created_at?->setTimezone(config('app.timezone'))->format('M d, Y') }}</span></td>
 
                     <td onclick="event.stopPropagation()">
                         <div class="lp-actions">
@@ -643,8 +645,10 @@ html:not(.dark) .lp {
         </div>
     </div>
 
-    {{-- Approve Modal --}}
-    <div class="lp-modal-overlay" id="lp-approve-modal" onclick="if(event.target===this)closeApproveModal()">
+    {{-- Approve Modal — wire:ignore keeps this subtree untouched by the
+         wire:poll re-render above, which otherwise fights the vanilla-JS
+         .open toggle and can leave the overlay half-repainted while open. --}}
+    <div class="lp-modal-overlay" id="lp-approve-modal" wire:ignore onclick="if(event.target===this)closeApproveModal()">
         <div class="lp-modal">
             <h3>Approve Application</h3>
             <p id="lp-approve-name-text">Are you sure you want to approve this application? The instructor will be notified.</p>
@@ -655,8 +659,9 @@ html:not(.dark) .lp {
         </div>
     </div>
 
-    {{-- Reject Modal — inside .lp so CSS vars (--p1, --t1 etc.) are accessible --}}
-    <div class="lp-modal-overlay" id="lp-reject-modal" onclick="if(event.target===this)closeRejectModal()">
+    {{-- Reject Modal — inside .lp so CSS vars (--p1, --t1 etc.) are accessible.
+         See wire:ignore note above. --}}
+    <div class="lp-modal-overlay" id="lp-reject-modal" wire:ignore onclick="if(event.target===this)closeRejectModal()">
         <div class="lp-modal">
             <h3>Reject Application</h3>
             <p id="lp-reject-name-text">Explain why this application is being rejected. The instructor will be notified.</p>

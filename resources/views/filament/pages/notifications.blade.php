@@ -92,6 +92,7 @@ html:not(.dark) .lp {
     border-radius:12px;
     overflow:hidden;
     box-shadow:var(--sh);
+    min-width:0;
 }
 .lp-toolbar {
     display:flex;
@@ -138,6 +139,33 @@ html:not(.dark) .lp {
     border-radius:5px;
     font-size:10px;
     font-weight:800;
+}
+.lp-search-box {
+    display:flex;
+    align-items:center;
+    gap:6px;
+    background:var(--p2);
+    border:1px solid var(--bd2);
+    border-radius:8px;
+    padding:6px 12px;
+}
+.lp-search-box svg {
+    width:14px;
+    height:14px;
+    color:var(--t2);
+    flex-shrink:0;
+}
+.lp-search-box input {
+    background:none;
+    border:none;
+    outline:none;
+    color:var(--t1);
+    font-size:12px;
+    font-family:inherit;
+    width:200px;
+}
+.lp-search-box input::placeholder {
+    color:var(--t2);
 }
 
 .lp-table {
@@ -391,10 +419,17 @@ html:not(.dark) .lp {
                 </button>
                 @endforeach
             </div>
+
+            <div class="lp-search-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607z"/>
+                </svg>
+                <input type="text" wire:model.live.debounce.500ms="search" placeholder="Search user or message...">
+            </div>
         </div>
 
         {{-- Table --}}
-        <div style="overflow-x:auto" wire:loading.class="lp-loading" wire:target="selectTab,gotoPage,setPerPage">
+        <div style="overflow-x:auto" wire:loading.class="lp-loading" wire:target="selectTab,gotoPage,setPerPage,search">
         <table class="lp-table">
             <thead>
                 <tr>
@@ -423,7 +458,7 @@ html:not(.dark) .lp {
                     $avUrl = 'https://ui-avatars.com/api/?name=' . urlencode($userName) . '&background=' . $bgHex . '&color=fff&bold=true&size=64';
                     $shortId = substr($notification->id, 0, 8);
                 @endphp
-                <tr class="lp-row-link" onclick="Livewire.navigate('{{ $viewUrl($notification) }}')">
+                <tr class="lp-row-link" wire:key="notification-row-{{ $notification->id }}" onclick="Livewire.navigate('{{ $viewUrl($notification) }}')">
                     <td><span class="lp-id">{{ $shortId }}…</span></td>
 
                     <td>
@@ -457,7 +492,7 @@ html:not(.dark) .lp {
                         @endif
                     </td>
 
-                    <td><span class="lp-date">{{ $notification->created_at?->format('M d, Y H:i') }}</span></td>
+                    <td><span class="lp-date">{{ $notification->created_at?->setTimezone(config('app.timezone'))->format('M d, Y H:i') }}</span></td>
 
                     <td onclick="event.stopPropagation()">
                         <div class="lp-actions">

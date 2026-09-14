@@ -4,6 +4,7 @@ namespace App\Domains\System\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Schema;
 
 class Setting extends Model
 {
@@ -15,7 +16,11 @@ class Setting extends Model
 
     public static function get(string $key, mixed $default = null): mixed
     {
-        $setting = static::where('key', $key)->first();
+        if (!Schema::hasTable('settings')) {
+            return $default;
+        }
+
+        $setting = static::allCached()->get($key);
 
         if (!$setting) {
             return $default;
@@ -39,6 +44,7 @@ class Setting extends Model
         }
 
         static::updateOrCreate(['key' => $key], $attributes);
+        Cache::forget('settings.all');
         Cache::forget('settings.public');
     }
 
@@ -48,13 +54,22 @@ class Setting extends Model
     }
 
     /**
+     * All settings keyed by `key`, cached until the next write via set().
+     */
+    private static function allCached(): \Illuminate\Support\Collection
+    {
+        return Cache::rememberForever('settings.all', fn () => static::all()->keyBy('key'));
+    }
+
+    /**
      * Flat key => casted value map of every public setting, for unauthenticated frontend consumption.
      */
     public static function allPublic(): array
     {
-        return static::query()->public()->get()
+        return Cache::rememberForever('settings.public', fn () => static::allCached()
+            ->filter(fn (self $setting) => $setting->is_public)
             ->mapWithKeys(fn (self $setting) => [$setting->key => self::cast($setting->value, $setting->type)])
-            ->all();
+            ->all());
     }
 
     public function scopePublic($query)

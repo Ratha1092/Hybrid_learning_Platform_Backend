@@ -17,7 +17,7 @@
 @php
     $gwMax  = max(1, collect($gatewayBreakdown)->max('amount'));
     $stMax  = max(1, collect($statusBreakdown)->max('count'));
-    $stColors = ['paid'=>'#34d399','pending'=>'#fbbf24','failed'=>'#f87171','refunded'=>'#a78bfa'];
+    $stColors = ['paid'=>'#34d399','pending'=>'#fbbf24','failed'=>'#f87171'];
 @endphp
 <table class="charts-row">
     <tr>

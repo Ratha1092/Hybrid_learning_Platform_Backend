@@ -71,9 +71,9 @@ class CategoryCourses extends Page
 
         if ($search) {
             $query->where(function ($q) use ($search) {
-                $q->where('title', 'like', "%{$search}%")
-                  ->orWhere('short_description', 'like', "%{$search}%")
-                  ->orWhereHas('instructor', fn($q2) => $q2->where('name', 'like', "%{$search}%"));
+                $q->where('title', 'ilike', "%{$search}%")
+                  ->orWhere('short_description', 'ilike', "%{$search}%")
+                  ->orWhereHas('instructor', fn($q2) => $q2->where('name', 'ilike', "%{$search}%"));
             });
         }
 

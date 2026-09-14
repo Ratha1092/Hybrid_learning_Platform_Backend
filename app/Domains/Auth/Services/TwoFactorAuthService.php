@@ -3,6 +3,7 @@
 namespace App\Domains\Auth\Services;
 
 use App\Domains\Auth\Models\TwoFactorCode;
+use App\Domains\Auth\Models\UserSession;
 use App\Domains\System\Models\Setting;
 use App\Domains\Users\Models\User;
 use App\Jobs\Mail\SendTwoFactorEmailJob;
@@ -14,6 +15,7 @@ use Illuminate\Support\Str;
 class TwoFactorAuthService
 {
     private const LOGIN_CHALLENGE_TTL_MINUTES = 5;
+    private const MAX_ATTEMPTS = 5;
 
     /**
      * Generate OTP code
@@ -40,22 +42,29 @@ class TwoFactorAuthService
      */
     public function verifyCode(User $user, string $code): bool
     {
-        $record = TwoFactorCode::where('user_id', $user->id)
-            ->where('expires_at', '>', now())
-            ->where('used', false)
-            ->get()
-            ->first(function ($item) use ($code) {
-                return Hash::check($code, $item->code);
-            });
+        return DB::transaction(function () use ($user, $code) {
+            $record = TwoFactorCode::where('user_id', $user->id)
+                ->where('expires_at', '>', now())
+                ->where('used', false)
+                ->lockForUpdate()
+                ->first();
 
-        if (!$record) {
+            if (!$record) {
+                return false;
+            }
+
+            if (Hash::check($code, $record->code)) {
+                $record->update(['used' => true]);
+                return true;
+            }
+
+            $attempts = $record->attempts + 1;
+            $record->update([
+                'attempts' => $attempts,
+                'used' => $attempts >= self::MAX_ATTEMPTS,
+            ]);
+
             return false;
-        }
-
-        return DB::transaction(function () use ($record) {
-            $record->update(['used' => true]);
-
-            return true;
         });
     }
 
@@ -74,7 +83,7 @@ class TwoFactorAuthService
             'message' => 'Verification code generated',
         ];
 
-        if (!app()->environment('production')) {
+        if (in_array(app()->environment(), ['local', 'testing'], true)) {
             $response['code'] = $code;
         }
 
@@ -99,7 +108,7 @@ class TwoFactorAuthService
             'expires_in' => self::LOGIN_CHALLENGE_TTL_MINUTES * 60,
         ];
 
-        if (!app()->environment('production')) {
+        if (in_array(app()->environment(), ['local', 'testing'], true)) {
             $response['code'] = $code;
         }
 
@@ -163,7 +172,7 @@ class TwoFactorAuthService
             'expires_in' => self::LOGIN_CHALLENGE_TTL_MINUTES * 60,
         ];
 
-        if (!app()->environment('production')) {
+        if (in_array(app()->environment(), ['local', 'testing'], true)) {
             $response['code'] = $code;
         }
 
@@ -183,7 +192,9 @@ class TwoFactorAuthService
 
         Cache::forget($this->loginChallengeCacheKey($data['challenge_token']));
         $user->tokens()->delete();
-        $token = $user->createToken('api-token')->plainTextToken;
+        $newToken = $user->createToken('api-token');
+        $token = $newToken->plainTextToken;
+        UserSession::record($user, $newToken->accessToken);
 
         ActivityLogService::log('login', $user);
 

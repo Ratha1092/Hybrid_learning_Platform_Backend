@@ -75,7 +75,8 @@ class PasswordResetService
             $user = $reset->user;
 
             $user->update([
-                'password' => Hash::make($newPassword)
+                'password' => Hash::make($newPassword),
+                'has_password' => true,
             ]);
 
             // revoke tokens

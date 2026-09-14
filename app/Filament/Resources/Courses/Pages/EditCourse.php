@@ -29,7 +29,6 @@ class EditCourse extends EditRecord
                 TextInput::make('title')->required()->maxLength(255),
                 TextInput::make('slug')->required()->unique(ignoreRecord: true),
                 Textarea::make('short_description')->rows(3)->columnSpanFull(),
-                TextInput::make('preview_video_url')->url()->label('Preview Video URL')->columnSpanFull(),
             ]),
             Section::make()->columns(3)->schema([
                 Select::make('instructor_id')
@@ -59,7 +58,6 @@ class EditCourse extends EditRecord
                     ->options(['public' => 'Public', 'private' => 'Private', 'unlisted' => 'Unlisted'])
                     ->required(),
                 Toggle::make('is_published')->label('Published'),
-                Toggle::make('certificate_enabled')->label('Enable Certificate'),
                 TextInput::make('commission_percentage')->numeric()->suffix('%')->default(20)->columnSpanFull(),
                 Textarea::make('rejection_reason')->rows(3)->columnSpanFull(),
             ]),
@@ -105,8 +103,8 @@ class EditCourse extends EditRecord
         // Read directly from shared Livewire state — avoids triggering RichEditor's internal type check
         $data['description'] = $this->data['description'] ?? null;
 
-        // Only admin / super-admin may change the price — restore original for everyone else
-        if (! auth()->user()?->hasAnyRole(['admin', 'super-admin'])) {
+        // Only super-admin may change the price — restore original for everyone else
+        if (! auth()->user()?->isAdmin()) {
             $data['price'] = $this->record->price;
         }
 
@@ -139,7 +137,7 @@ class EditCourse extends EditRecord
             'avgRating'       => round($record->reviews()->avg('rating') ?? 0, 1),
             'instructors'     => User::role('instructor')->orderBy('name')->pluck('name', 'id'),
             'categories'      => Category::orderBy('name')->pluck('name', 'id'),
-            'canEditPrice'    => auth()->user()?->hasAnyRole(['admin', 'super-admin']) ?? false,
+            'canEditPrice'    => auth()->user()?->isAdmin() ?? false,
         ];
     }
 }

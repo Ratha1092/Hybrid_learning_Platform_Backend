@@ -6,13 +6,11 @@
             \App\Domains\Orders\Enums\OrderStatus::Pending   => ['bg' => 'rgba(251,191,36,.12)',  'color' => '#fbbf24', 'label' => 'Pending'],
             \App\Domains\Orders\Enums\OrderStatus::Completed => ['bg' => 'rgba(52,211,153,.12)',  'color' => '#34d399', 'label' => 'Completed'],
             \App\Domains\Orders\Enums\OrderStatus::Cancelled => ['bg' => 'rgba(248,113,113,.12)', 'color' => '#f87171', 'label' => 'Cancelled'],
-            \App\Domains\Orders\Enums\OrderStatus::Refunded  => ['bg' => 'rgba(167,139,250,.12)', 'color' => '#a78bfa', 'label' => 'Refunded'],
         },
         is_string($status) => match($status) {
             'pending'   => ['bg' => 'rgba(251,191,36,.12)',  'color' => '#fbbf24', 'label' => 'Pending'],
             'completed' => ['bg' => 'rgba(52,211,153,.12)',  'color' => '#34d399', 'label' => 'Completed'],
             'cancelled' => ['bg' => 'rgba(248,113,113,.12)', 'color' => '#f87171', 'label' => 'Cancelled'],
-            'refunded'  => ['bg' => 'rgba(167,139,250,.12)', 'color' => '#a78bfa', 'label' => 'Refunded'],
             default     => ['bg' => 'rgba(148,163,184,.1)',  'color' => '#94a3b8', 'label' => ucfirst($status)],
         },
         default => ['bg' => 'rgba(148,163,184,.1)', 'color' => '#94a3b8', 'label' => '—'],
@@ -26,7 +24,6 @@
             \App\Domains\Orders\Enums\OrderPaymentStatus::Failed     => ['bg' => 'rgba(248,113,113,.12)', 'color' => '#f87171', 'label' => 'Failed'],
             \App\Domains\Orders\Enums\OrderPaymentStatus::Expired    => ['bg' => 'rgba(248,113,113,.12)', 'color' => '#f87171', 'label' => 'Expired'],
             \App\Domains\Orders\Enums\OrderPaymentStatus::Cancelled  => ['bg' => 'rgba(248,113,113,.12)', 'color' => '#f87171', 'label' => 'Cancelled'],
-            \App\Domains\Orders\Enums\OrderPaymentStatus::Refunded   => ['bg' => 'rgba(167,139,250,.12)', 'color' => '#a78bfa', 'label' => 'Refunded'],
         },
         is_string($ps) => match($ps) {
             'paid'       => ['bg' => 'rgba(52,211,153,.12)',  'color' => '#34d399', 'label' => 'Paid'],
@@ -35,7 +32,6 @@
             'failed'     => ['bg' => 'rgba(248,113,113,.12)', 'color' => '#f87171', 'label' => 'Failed'],
             'expired'    => ['bg' => 'rgba(248,113,113,.12)', 'color' => '#f87171', 'label' => 'Expired'],
             'cancelled'  => ['bg' => 'rgba(248,113,113,.12)', 'color' => '#f87171', 'label' => 'Cancelled'],
-            'refunded'   => ['bg' => 'rgba(167,139,250,.12)', 'color' => '#a78bfa', 'label' => 'Refunded'],
             default      => ['bg' => 'rgba(148,163,184,.1)',  'color' => '#94a3b8', 'label' => ucfirst($ps)],
         },
         default => ['bg' => 'rgba(148,163,184,.1)', 'color' => '#94a3b8', 'label' => '—'],
@@ -124,6 +120,23 @@ html:not(.dark) .lp {
     color:var(--t2);
     margin-top:5px;
 }
+.lp-filter-chip {
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    margin-top:8px;
+    padding:.3rem .6rem;
+    border-radius:8px;
+    background:rgba(37,99,235,.1);
+    color:#2563eb;
+    font-size:11.5px;
+    font-weight:600;
+    text-decoration:none;
+    border:1px solid rgba(37,99,235,.25);
+}
+.lp-filter-chip:hover {
+    background:rgba(37,99,235,.18);
+}
 .lp-header-btns {
     display:flex;
     align-items:center;
@@ -165,6 +178,7 @@ html:not(.dark) .lp {
     border-radius:12px;
     overflow:hidden;
     box-shadow:var(--sh);
+    min-width:0;
 }
 .lp-toolbar {
     display:flex;
@@ -471,6 +485,12 @@ html:not(.dark) .lp {
         <div class="lp-header-text">
             <h1>Orders</h1>
             <p>Track and manage all customer orders across the platform.</p>
+            @if($activePeriodLabel)
+                <a href="{{ route('filament.admin.pages.orders') }}" wire:navigate class="lp-filter-chip">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    Filtered: {{ $activePeriodLabel }} &times;
+                </a>
+            @endif
         </div>
     </div>
 
@@ -527,7 +547,7 @@ html:not(.dark) .lp {
                     $avUrl = 'https://ui-avatars.com/api/?name=' . urlencode($order->user?->name ?? '?') . '&background=' . $bgHex . '&color=fff&bold=true&size=64';
                     $amount = $order->final_amount ?? $order->total_amount ?? 0;
                 @endphp
-                <tr class="lp-row-link" onclick="Livewire.navigate('{{ $viewUrl($order) }}')">
+                <tr class="lp-row-link" wire:key="order-row-{{ $order->id }}" onclick="Livewire.navigate('{{ $viewUrl($order) }}')">
                     <td><span class="lp-id">{{ $order->id }}</span></td>
 
                     <td><span class="lp-order-num">{{ $order->order_number ?? '—' }}</span></td>
@@ -559,7 +579,7 @@ html:not(.dark) .lp {
                         </span>
                     </td>
 
-                    <td><span class="lp-date">{{ $order->created_at?->format('M d, Y') }}</span></td>
+                    <td><span class="lp-date">{{ $order->created_at?->setTimezone(config('app.timezone'))->format('M d, Y') }}</span></td>
 
                     <td onclick="event.stopPropagation()">
                         <div class="lp-actions">

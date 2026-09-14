@@ -13,6 +13,7 @@ use App\Jobs\Notifications\NotifyAdminsJob;
 use App\Support\ApiResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Storage;
 
 class InstructorCourseController extends Controller
 {
@@ -23,6 +24,7 @@ class InstructorCourseController extends Controller
     {
         $courses = Course::query()
             ->where('instructor_id', auth()->id())
+            ->withCount(['enrollments as student_count' => fn ($q) => $q->whereIn('status', ['active', 'completed'])])
             ->latest()
             ->get();
 
@@ -34,10 +36,15 @@ class InstructorCourseController extends Controller
     {
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
+            'short_description' => ['nullable', 'string', 'max:500'],
             'description' => ['nullable', 'string'],
             'price' => ['nullable', 'numeric', static::minPriceRule()],
             'level' => ['nullable', 'string'],
             'language' => ['nullable', 'string'],
+            'requirements' => ['nullable', 'string'],
+            'what_you_will_learn' => ['nullable', 'string'],
+            'target_audience' => ['nullable', 'string'],
+            'required_tools_materials' => ['nullable', 'string'],
             'category_id' => ['required', 'exists:categories,id'],
         ]);
 
@@ -75,6 +82,10 @@ class InstructorCourseController extends Controller
             );
         }
 
+        if ($course->isPendingReview()) {
+            return ApiResponse::error('This course is pending review and cannot be edited until it is approved or rejected.', 422);
+        }
+
         $validated = $request->validate([
             'title'               => ['sometimes', 'string', 'max:255'],
             'description'         => ['nullable', 'string'],
@@ -83,9 +94,11 @@ class InstructorCourseController extends Controller
             'level'               => ['nullable', 'string'],
             'language'            => ['nullable', 'string'],
             'category_id'         => ['sometimes', 'exists:categories,id'],
-            'preview_video_url'   => ['nullable', 'url'],
             'requirements'        => ['nullable', 'string'],
             'what_you_will_learn' => ['nullable', 'string'],
+            'target_audience'    => ['nullable', 'string'],
+            'required_tools_materials' => ['nullable', 'string'],
+            'visibility'          => ['sometimes', 'in:public,private'],
             'thumbnail'           => [
                 'nullable', 'image', 'mimes:jpg,jpeg,png,webp',
                 'max:' . (int) Setting::get('max_course_thumbnail_size', 2048),
@@ -98,6 +111,44 @@ class InstructorCourseController extends Controller
             'Course updated successfully'
         );
     }
+    public function uploadPreviewVideo(Request $request, int $id): JsonResponse
+    {
+        $course = Course::query()
+            ->where('id', $id)
+            ->where('instructor_id', auth()->id())
+            ->first();
+
+        if (!$course) {
+            return ApiResponse::error('Course not found', 404);
+        }
+
+        if ($course->isPendingReview()) {
+            return ApiResponse::error('This course is pending review and cannot be edited until it is approved or rejected.', 422);
+        }
+
+        $allowedFormats = Setting::get('allowed_video_formats', 'mp4,mov,avi,webm');
+        $maxSizeKb = (int) Setting::get('max_video_upload_size', 512000);
+
+        $request->validate([
+            'preview_video' => "required|file|mimes:{$allowedFormats}|max:{$maxSizeKb}",
+        ]);
+
+        if ($course->preview_video_path) {
+            Storage::disk('r2-private')->delete($course->preview_video_path);
+        }
+
+        $path = $request->file('preview_video')->store(
+            "courses/{$id}/preview", 'r2-private'
+        );
+
+        $course->update(['preview_video_path' => $path]);
+
+        return ApiResponse::success([
+            'preview_video_path' => $path,
+            'preview_video_url'  => Storage::disk('r2-private')->temporaryUrl($path, now()->addMinutes(30)),
+        ], 'Preview video uploaded successfully');
+    }
+
     public function destroy(int $id): JsonResponse
     {
         $course = Course::query()
@@ -108,6 +159,10 @@ class InstructorCourseController extends Controller
         if (!$course) {
             return ApiResponse::error('Course not found',404
             );
+        }
+
+        if ($course->isPublished()) {
+            return ApiResponse::error('This course is public, so it can\'t be deleted.', 422);
         }
 
         $this->courseService->delete($course);
@@ -163,8 +218,10 @@ class InstructorCourseController extends Controller
             return ApiResponse::error('Course is already published.',400);
         }
 
-        $autoApprove = Setting::get('course_auto_approval', false)
-            && !Setting::get('course_review_required', true);
+        $isFree = (float) $course->price <= 0.0;
+
+        $autoApprove = ($isFree && Setting::get('free_course_auto_approval', false))
+            || (Setting::get('course_auto_approval', false) && !Setting::get('course_review_required', true));
 
         if ($autoApprove) {
             $course->publish((int) $course->instructor_id);
@@ -179,7 +236,8 @@ class InstructorCourseController extends Controller
 
         NotifyAdminsJob::dispatch(
             AdminCourseSubmittedNotification::class,
-            [$course->id, $course->title, auth()->user()->name]
+            [$course->id, $course->title, auth()->user()->name],
+            'courses.approve'
         );
 
         return ApiResponse::success(

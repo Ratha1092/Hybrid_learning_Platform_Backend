@@ -4,6 +4,7 @@ namespace App\Providers\Filament;
 
 use App\Domains\System\Models\Setting;
 use App\Filament\Pages\Dashboard;
+use App\Http\Middleware\CheckIpBlocklist;
 use App\Support\LocalAvatarProvider;
 use Filament\Enums\ThemeMode;
 use Filament\Http\Middleware\Authenticate;
@@ -11,7 +12,6 @@ use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Navigation\NavigationGroup;
-use Filament\Navigation\NavigationItem;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
@@ -30,13 +30,17 @@ class AdminPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
     {
+        $brandName = Setting::get('site_name', 'Hybrid Learning');
+        $favicon = Setting::get('site_favicon', '') ?: secure_asset('favicon.svg');
+        $siteLogo = Setting::get('site_logo', '');
+
         return $panel
             ->default()
             ->id('admin')
             ->path('admin')
             ->defaultThemeMode(ThemeMode::Dark)
-            ->brandName('Hybrid Learning')
-            ->favicon(asset('favicon.svg'))
+            ->brandName($brandName)
+            ->favicon($favicon)
             ->defaultAvatarProvider(LocalAvatarProvider::class)
             ->spa()
             ->sidebarCollapsibleOnDesktop()
@@ -50,12 +54,16 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->renderHook(
                 PanelsRenderHook::SIDEBAR_LOGO_BEFORE,
-                function () {
+                function () use ($siteLogo) {
                     $brandName = e(filament()->getBrandName());
                     $homeUrl = e(filament()->getHomeUrl() ?? url('/admin'));
                     $environment = e(app()->environment());
                     $isProduction = app()->environment('production');
                     $dotClasses = 'hl-brand-dot'.($isProduction ? ' hl-live' : '');
+
+                    $logoHtml = $siteLogo
+                        ? '<img src="'.e($siteLogo).'" alt="'.e($brandName).' logo" style="max-height:40px;max-width:40px;border-radius:8px;object-fit:contain;" />'
+                        : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2 8l10 5 10-5-10-5Z"/><path d="M5 10v5c0 1.5 3.1 3 7 3s7-1.5 7-3v-5"/></svg>';
 
                     return <<<HTML
                     <div class="hl-sidebar-brand">
@@ -74,12 +82,7 @@ class AdminPanelProvider extends PanelProvider
                         </button>
 
                         <a href="{$homeUrl}" class="hl-brand-lockup" x-show="\$store.sidebar.isOpen" x-cloak>
-                            <span class="hl-brand-icon" aria-hidden="true">
-                                <svg viewBox="0 0 24 24">
-                                    <path d="M12 3 2 8l10 5 10-5-10-5Z"/>
-                                    <path d="M5 10v5c0 1.5 3.1 3 7 3s7-1.5 7-3v-5"/>
-                                </svg>
-                            </span>
+                            <span class="hl-brand-icon" aria-hidden="true">{$logoHtml}</span>
                             <span class="hl-brand-copy">
                                 <span class="hl-brand-name">{$brandName}</span>
                                 <span class="hl-brand-subtitle">
@@ -115,13 +118,10 @@ class AdminPanelProvider extends PanelProvider
                         ? $pageClass::getNavigationLabel()
                         : Str::headline(Str::afterLast(request()->route()?->getName() ?? 'Dashboard', '.'));
 
-                    $slug = e(Str::slug(filament()->getBrandName()));
                     $title = e($title);
 
                     return <<<HTML
                     <div class="hl-breadcrumb">
-                        <span class="hl-breadcrumb-slug">{$slug}</span>
-                        <span class="hl-breadcrumb-sep">/</span>
                         <span class="hl-breadcrumb-title">{$title}</span>
                     </div>
                     HTML;
@@ -150,6 +150,29 @@ class AdminPanelProvider extends PanelProvider
             ->renderHook(
                 PanelsRenderHook::HEAD_END,
                 fn () => '<script>history.scrollRestoration="manual";</script>'
+            )
+            ->renderHook(
+                PanelsRenderHook::HEAD_END,
+                fn () => <<<'HTML'
+                <script>
+                document.addEventListener('livewire:init', () => {
+                    let sessionExpiredShown = false;
+
+                    Livewire.hook('request', ({ fail }) => {
+                        fail(({ status, preventDefault }) => {
+                            if (status !== 419) return;
+                            preventDefault();
+                            if (sessionExpiredShown) return;
+                            sessionExpiredShown = true;
+
+                            if (window.confirm('Your session has expired. Reload the page to continue?')) {
+                                window.location.reload();
+                            }
+                        });
+                    });
+                });
+                </script>
+                HTML
             )
             ->renderHook(
                 PanelsRenderHook::HEAD_END,
@@ -409,8 +432,6 @@ class AdminPanelProvider extends PanelProvider
                         document.documentElement.style.setProperty('--hl-dot-dur', '0ms');
                         document.documentElement.style.setProperty('--hl-sidebar-dur', '0ms');
                         hlFreezeSidebar();
-                        // Keep sidebar nav visible during the network round-trip so it
-                        // doesn't look like it "reset" while waiting for the new page.
                         var main = document.querySelector('.fi-main');
                         if (main) {
                             main.classList.remove('hl-page-entering');
@@ -508,6 +529,10 @@ class AdminPanelProvider extends PanelProvider
                 </script>
                 HTML
             )
+            ->renderHook(
+                PanelsRenderHook::BODY_END,
+                fn () => view('filament.partials.confirm-modal')
+            )
             ->navigationGroups([
                 NavigationGroup::make('Overview')->collapsible(),
                 NavigationGroup::make('Learning')->collapsible(),
@@ -518,14 +543,6 @@ class AdminPanelProvider extends PanelProvider
                 NavigationGroup::make('System')->collapsible(),
                 NavigationGroup::make('Security')->collapsible(),
                 NavigationGroup::make('Monitoring')->collapsible(),
-            ])
-            ->navigationItems([
-                NavigationItem::make('Horizon')
-                    ->url('/horizon')
-                    ->icon('heroicon-o-chart-bar-square')
-                    ->group('Monitoring')
-                    ->sort(3)
-                    ->visible(fn () => auth()->user()?->hasRole(['super-admin'])),
             ])
             ->discoverResources(
                 in: app_path('Filament/Resources'),
@@ -544,6 +561,7 @@ class AdminPanelProvider extends PanelProvider
             )
             ->widgets([])
             ->middleware([
+                CheckIpBlocklist::class,
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
                 StartSession::class,

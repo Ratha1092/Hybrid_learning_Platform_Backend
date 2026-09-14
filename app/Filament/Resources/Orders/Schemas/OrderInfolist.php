@@ -28,7 +28,6 @@ class OrderInfolist
                                 'completed' => 'success',
                                 'pending'   => 'warning',
                                 'cancelled' => 'danger',
-                                'refunded'  => 'info',
                                 default     => 'gray',
                             }),
                         TextEntry::make('order_number')
@@ -53,7 +52,6 @@ class OrderInfolist
                                 'failed'     => 'danger',
                                 'expired'    => 'danger',
                                 'cancelled'  => 'danger',
-                                'refunded'   => 'info',
                                 default      => 'gray',
                             }),
                         TextEntry::make('payment_method')

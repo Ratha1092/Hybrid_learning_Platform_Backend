@@ -96,6 +96,7 @@ html:not(.dark) .lp {
     border-radius:12px;
     overflow:hidden;
     box-shadow:var(--sh);
+    min-width:0;
 }
 .lp-toolbar {
     display:flex;
@@ -351,6 +352,12 @@ html:not(.dark) .lp {
         <div class="lp-header-text">
             <h1>Reviews</h1>
             <p>Monitor student feedback and ratings across all courses.</p>
+            @if($courseId && $courseTitle)
+                <div style="display:inline-flex;align-items:center;gap:6px;margin-top:8px;padding:4px 10px;border-radius:999px;background:rgba(37,99,235,.1);border:1px solid rgba(37,99,235,.25);font-size:12px;font-weight:600;color:#2563eb">
+                    Filtered by course: {{ $courseTitle }}
+                    <a href="{{ route('filament.admin.pages.reviews') }}" wire:navigate style="color:inherit;text-decoration:none;font-weight:800" title="Clear filter">&times;</a>
+                </div>
+            @endif
         </div>
     </div>
 
@@ -392,6 +399,8 @@ html:not(.dark) .lp {
                     <th>Student</th>
                     <th>Rating</th>
                     <th>Comment</th>
+                    <th>Status</th>
+                    <th>Featured</th>
                     <th>Date</th>
                 </tr>
             </thead>
@@ -402,7 +411,7 @@ html:not(.dark) .lp {
                     $bgHex = substr(md5($review->user?->name ?? ''), 0, 6);
                     $avUrl = 'https://ui-avatars.com/api/?name=' . urlencode($review->user?->name ?? '?') . '&background=' . $bgHex . '&color=fff&bold=true&size=64';
                 @endphp
-                <tr>
+                <tr wire:key="review-row-{{ $review->id }}">
                     <td><span class="lp-id">{{ $review->id }}</span></td>
 
                     <td>
@@ -424,11 +433,25 @@ html:not(.dark) .lp {
                         <span class="lp-comment">{{ $review->comment ? \Illuminate\Support\Str::limit($review->comment, 60) : '—' }}</span>
                     </td>
 
-                    <td><span class="lp-date">{{ $review->created_at?->format('M d, Y') }}</span></td>
+                    <td>
+                        <button type="button" wire:click="toggleApproved({{ $review->id }})"
+                            style="border:1px solid transparent;border-radius:999px;padding:3px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;{{ $review->is_approved ? 'background:rgba(52,211,153,.15);color:#34d399;' : 'background:rgba(251,191,36,.15);color:#fbbf24;' }}">
+                            {{ $review->is_approved ? 'Approved' : 'Pending' }}
+                        </button>
+                    </td>
+
+                    <td>
+                        <button type="button" wire:click="toggleFeatured({{ $review->id }})" title="{{ $review->is_featured ? 'Unfeature' : 'Feature this review' }}"
+                            style="background:none;border:none;cursor:pointer;padding:2px;line-height:0;color:{{ $review->is_featured ? '#fbbf24' : 'var(--t2)' }}">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="{{ $review->is_featured ? 'currentColor' : 'none' }}" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                        </button>
+                    </td>
+
+                    <td><span class="lp-date">{{ $review->created_at?->setTimezone(config('app.timezone'))->format('M d, Y') }}</span></td>
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="6">
+                    <td colspan="8">
                         <div class="lp-empty">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5z"/>

@@ -4,16 +4,11 @@
     $accent = '#2563eb';
 
     $roleStyle = fn($role) => match($role) {
-        'super-admin'     => ['bg' => 'rgba(220,38,38,.12)',  'color' => '#dc2626', 'label' => 'Super Admin'],
-        'admin'           => ['bg' => 'rgba(168,85,247,.12)', 'color' => '#a855f7', 'label' => 'Admin'],
-        'finance-manager' => ['bg' => 'rgba(13,148,136,.12)', 'color' => '#0d9488', 'label' => 'Finance Manager'],
-        'accountant'      => ['bg' => 'rgba(13,148,136,.12)', 'color' => '#0d9488', 'label' => 'Accountant'],
-        'content-manager' => ['bg' => 'rgba(217,119,6,.12)',  'color' => '#d97706', 'label' => 'Content Manager'],
-        'moderator'       => ['bg' => 'rgba(217,119,6,.12)',  'color' => '#d97706', 'label' => 'Moderator'],
-        'support-staff'   => ['bg' => 'rgba(59,130,246,.12)', 'color' => '#3b82f6', 'label' => 'Support Staff'],
-        'instructor'      => ['bg' => 'rgba(59,130,246,.12)', 'color' => '#3b82f6', 'label' => 'Instructor'],
-        'student'         => ['bg' => 'rgba(16,185,129,.12)', 'color' => '#10b981', 'label' => 'Student'],
-        default           => ['bg' => 'rgba(148,163,184,.1)', 'color' => '#94a3b8', 'label' => $role ? ucfirst($role) : '—'],
+        'super-admin' => ['bg' => 'rgba(220,38,38,.12)',  'color' => '#dc2626', 'label' => 'Super Admin'],
+        'finance'     => ['bg' => 'rgba(13,148,136,.12)', 'color' => '#0d9488', 'label' => 'Finance'],
+        'instructor'  => ['bg' => 'rgba(59,130,246,.12)', 'color' => '#3b82f6', 'label' => 'Instructor'],
+        'student'     => ['bg' => 'rgba(16,185,129,.12)', 'color' => '#10b981', 'label' => 'Student'],
+        default       => ['bg' => 'rgba(148,163,184,.1)', 'color' => '#94a3b8', 'label' => $role ? ucfirst($role) : '—'],
     };
 
     $statusStyle = fn($status) => match($status) {
@@ -107,6 +102,23 @@ html:not(.dark) .lp {
     color:var(--t2);
     margin-top:5px;
 }
+.lp-filter-chip {
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    margin-top:8px;
+    padding:.3rem .6rem;
+    border-radius:8px;
+    background:rgba(37,99,235,.1);
+    color:#2563eb;
+    font-size:11.5px;
+    font-weight:600;
+    text-decoration:none;
+    border:1px solid rgba(37,99,235,.25);
+}
+.lp-filter-chip:hover {
+    background:rgba(37,99,235,.18);
+}
 .lp-header-btns {
     display:flex;
     align-items:center;
@@ -142,6 +154,11 @@ html:not(.dark) .lp {
     border:1px solid var(--bd);
     border-radius:12px;
     box-shadow:var(--sh);
+    /* .lp is display:grid — without this, a grid item defaults to
+       min-width:auto, so a wide nowrap table inside forces this card (and the
+       whole page) wider than the viewport instead of just scrolling inside
+       the .lp-table-scroll div below. */
+    min-width:0;
 }
 .lp-toolbar {
     display:flex;
@@ -283,7 +300,7 @@ html:not(.dark) .lp {
 .lp-table th {
     padding:10px 12px;
     text-align:left;
-    font-size:10.5px;
+    font-size:11.5px;
     font-weight:800;
     letter-spacing:.06em;
     text-transform:uppercase;
@@ -309,7 +326,7 @@ html:not(.dark) .lp {
 }
 
 .lp-id {
-    font-size:11.5px;
+    font-size:12.5px;
     font-weight:700;
     color:var(--t2);
     white-space:nowrap;
@@ -334,12 +351,12 @@ html:not(.dark) .lp {
     box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);
 }
 .lp-user-name {
-    font-size:13px;
+    font-size:14.5px;
     font-weight:650;
     color:var(--t1);
 }
 .lp-email {
-    font-size:12px;
+    font-size:13.5px;
     color:var(--t2);
 }
 .lp-badge {
@@ -348,7 +365,7 @@ html:not(.dark) .lp {
     gap:5px;
     padding:4px 10px;
     border-radius:6px;
-    font-size:11.5px;
+    font-size:12.5px;
     font-weight:700;
     white-space:nowrap;
 }
@@ -410,6 +427,10 @@ html:not(.dark) .lp {
     box-shadow:0 8px 32px rgba(0,0,0,.3);
     min-width:162px;
     overflow:hidden;
+}
+.lp-menu-up {
+    top:auto;
+    bottom:34px;
 }
 html:not(.dark) .lp-menu {
     box-shadow:0 4px 20px rgba(15,23,42,.18);
@@ -567,6 +588,12 @@ html:not(.dark) .lp-menu {
         <div class="lp-header-text">
             <h1>Users</h1>
             <p>Manage all platform users — admins, instructors, and students.</p>
+            @if($activePeriodLabel)
+                <a href="{{ route('filament.admin.pages.users') }}" wire:navigate class="lp-filter-chip">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    Filtered: {{ $activePeriodLabel }} &times;
+                </a>
+            @endif
         </div>
         <div class="lp-header-btns">
             <a href="{{ $createUrl }}" wire:navigate class="lp-btn lp-btn-primary" style="background:{{ $accent }}">
@@ -612,7 +639,7 @@ html:not(.dark) .lp-menu {
         </div>
 
         {{-- Table --}}
-        <div style="border-radius:0 0 12px 12px;" wire:loading.class="lp-loading" wire:target="selectTab,gotoPage,search,perPage">
+        <div class="lp-table-scroll" style="border-radius:0 0 12px 12px;overflow-x:auto;-webkit-overflow-scrolling:touch;" wire:loading.class="lp-loading" wire:target="selectTab,gotoPage,search,perPage">
         <table class="lp-table">
             <thead>
                 <tr>
@@ -621,7 +648,6 @@ html:not(.dark) .lp-menu {
                     <th>Email</th>
                     <th>Role</th>
                     <th>Status</th>
-                    <th>Created</th>
                     <th style="text-align:right">Actions</th>
                 </tr>
             </thead>
@@ -641,7 +667,7 @@ html:not(.dark) .lp-menu {
                     $isSelf = $user->id === auth()->id();
                     $isSuspended = $user->status === 'suspended';
                 @endphp
-                <tr class="lp-row-link" onclick="Livewire.navigate('{{ $viewUrl($user) }}')">
+                <tr class="lp-row-link" wire:key="user-row-{{ $user->id }}" onclick="Livewire.navigate('{{ $viewUrl($user) }}')">
                     <td><span class="lp-id">{{ $user->id }}</span></td>
 
                     <td>
@@ -670,16 +696,36 @@ html:not(.dark) .lp-menu {
                         </span>
                     </td>
 
-                    <td><span class="lp-date">{{ $user->created_at?->format('M d, Y') }}</span></td>
 
                     <td onclick="event.stopPropagation()">
                         <div class="lp-actions">
-                            <div class="lp-menu-wrap" x-data="{ open: false }" @click.outside="open = false" @lp-menu-open.window="if ($event.detail !== {{ $user->id }}) open = false">
-                                <button type="button" class="lp-act-btn" @click.stop="open = !open; if (open) $dispatch('lp-menu-open', {{ $user->id }})" title="Actions">
+                            <div class="lp-menu-wrap"
+                                 x-data="{
+                                    open: false,
+                                    openUp: false,
+                                    toggle() {
+                                        this.open = !this.open;
+                                        if (this.open) {
+                                            this.$dispatch('lp-menu-open', {{ $user->id }});
+                                            this.$nextTick(() => {
+                                                const wrap = this.$el;
+                                                const menu = this.$refs.menu;
+                                                const scroller = wrap.closest('.lp-table-scroll');
+                                                if (!scroller) return;
+                                                const wrapRect = wrap.getBoundingClientRect();
+                                                const scrollerRect = scroller.getBoundingClientRect();
+                                                this.openUp = (wrapRect.bottom + menu.offsetHeight + 10) > scrollerRect.bottom;
+                                            });
+                                        }
+                                    }
+                                 }"
+                                 @click.outside="open = false"
+                                 @lp-menu-open.window="if ($event.detail !== {{ $user->id }}) open = false">
+                                <button type="button" class="lp-act-btn" @click.stop="toggle()" title="Actions">
                                     <svg viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M4.5 12a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0zm6 0a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0zm6 0a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0z" clip-rule="evenodd"/></svg>
                                 </button>
 
-                                <div class="lp-menu" x-show="open"
+                                <div class="lp-menu" :class="openUp ? 'lp-menu-up' : ''" x-show="open" x-ref="menu"
                                      x-transition:enter="transition ease-out duration-100"
                                      x-transition:enter-start="opacity-0 scale-95"
                                      x-transition:enter-end="opacity-100 scale-100"
@@ -697,7 +743,16 @@ html:not(.dark) .lp-menu {
                                         Edit
                                     </a>
 
-                                    @if(!$isSelf)
+                                    @if($user->trashed())
+                                    <div class="lp-menu-div"></div>
+                                    <button type="button" class="lp-menu-item ok"
+                                        @click="open=false"
+                                        wire:click="restoreUser({{ $user->id }})"
+                                        wire:confirm="Restore {{ $user->name }}'s account?">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"/></svg>
+                                        Restore
+                                    </button>
+                                    @elseif(!$isSelf && !$user->hasRole('super-admin'))
                                     <div class="lp-menu-div"></div>
 
                                     @if($isSuspended)

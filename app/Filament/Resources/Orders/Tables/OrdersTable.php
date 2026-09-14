@@ -37,7 +37,6 @@ class OrdersTable
                         OrderPaymentStatus::Pending => 'warning',
                         OrderPaymentStatus::Paid => 'success',
                         OrderPaymentStatus::Failed => 'danger',
-                        OrderPaymentStatus::Refunded => 'gray',
                         default => 'gray',
                     }),
 
@@ -48,7 +47,6 @@ class OrdersTable
                         'pending' => 'warning',
                         'paid' => 'success',
                         'failed' => 'danger',
-                        'refunded' => 'gray',
                         default => 'gray',
                     }),
 
@@ -66,14 +64,12 @@ class OrdersTable
                         'pending' => 'Pending',
                         'completed' => 'Completed',
                         'cancelled' => 'Cancelled',
-                        'refunded' => 'Refunded',
                     ]),
                 Tables\Filters\SelectFilter::make('payment_status')
                     ->options([
                         'pending' => 'Pending',
                         'paid' => 'Paid',
                         'failed' => 'Failed',
-                        'refunded' => 'Refunded',
                     ]),
             ])
             ->recordActions([

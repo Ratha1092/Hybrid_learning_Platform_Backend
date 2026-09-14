@@ -15,29 +15,49 @@ class NotificationController extends Controller
 
         $notifications = $user
             ->notifications()
+            ->where(function ($query) {
+                $query
+                    ->where('data->format', '!=', 'filament')
+                    ->orWhereNull('data->format');
+            })
             ->latest()
             ->paginate(20)
             ->through(
-                fn ($notification) => [
+                fn ($notification) => (function () use ($notification) {
+                    $data = $notification->data;
+                    $action = $data['actions'][0] ?? [];
+
+                    return [
                     'id' => $notification->id,
-                    'title' => $notification->data['title'] ?? '',
-                    'message' => $notification->data['message']
-                        ?? $notification->data['body']
+                    'title' => $data['title'] ?? '',
+                    'message' => $data['message']
+                        ?? $data['body']
                         ?? '',
-                    'type' => $notification->data['type'] ?? '',
-                    'link' => $notification->data['link']
-                        ?? $notification->data['action_url']
+                    'type' => $data['type'] ?? '',
+                    'link' => $data['link']
+                        ?? $data['action_url']
+                        ?? $action['url']
                         ?? null,
-                    'action_text' => $notification->data['action_text'] ?? null,
-                    'receipt_id' => $notification->data['receipt_id'] ?? null,
+                    'action_text' => $data['action_text']
+                        ?? $action['label']
+                        ?? null,
+                    'receipt_id' => $data['receipt_id'] ?? null,
                     'read' => $notification->read_at !== null,
                     'created_at' => $notification->created_at,
-                ]
+                    ];
+                })()
             );
 
         return ApiResponse::success([
             'notifications' => $notifications,
-            'unread_count' => $user->unreadNotifications()->count(),
+            'unread_count' => $user
+                ->unreadNotifications()
+                ->where(function ($query) {
+                    $query
+                        ->where('data->format', '!=', 'filament')
+                        ->orWhereNull('data->format');
+                })
+                ->count(),
         ], 'Notifications retrieved successfully');
     }
 

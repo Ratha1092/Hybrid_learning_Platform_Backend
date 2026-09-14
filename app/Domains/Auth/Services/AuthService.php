@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use App\Domains\Auth\Services\ActivityLogService;
 use App\Domains\Auth\Resources\UserResource;
+use App\Domains\Auth\Models\UserSession;
 
 class AuthService
 {
@@ -27,7 +28,9 @@ class AuthService
 
         $user->assignRole('student');
         ActivityLogService::log('registration', $user);
-        $token = $user->createToken('api-token')->plainTextToken;
+        $newToken = $user->createToken('api-token');
+        $token = $newToken->plainTextToken;
+        UserSession::record($user, $newToken->accessToken);
         if (\Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::fromFrontend(request())) {
             Auth::guard('web')->login($user, true);
         }
@@ -78,7 +81,9 @@ class AuthService
         }
 
         $user->tokens()->delete();
-        $token = $user->createToken('api-token')->plainTextToken;
+        $newToken = $user->createToken('api-token');
+        $token = $newToken->plainTextToken;
+        UserSession::record($user, $newToken->accessToken);
         if (\Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::fromFrontend(request())) {
             Auth::guard('web')->login($user, true);
         }
@@ -88,6 +93,36 @@ class AuthService
             'token' => $token,
             'user' => new UserResource($user),
         ];
+    }
+
+    /**
+     * Set or change the authenticated user's password. When the user has no
+     * real password yet (has_password = false — OAuth-only accounts), this
+     * sets one for the first time and does not require current_password.
+     */
+    public function updatePassword(User $user, array $data)
+    {
+        if ($user->has_password) {
+            if (empty($data['current_password']) || !Hash::check($data['current_password'], $user->password)) {
+                throw ValidationException::withMessages([
+                    'current_password' => ['Your current password is incorrect.'],
+                ]);
+            }
+        }
+
+        $user->update([
+            'password' => Hash::make($data['password']),
+            'has_password' => true,
+        ]);
+
+        // Keep the session that made this request alive; revoke the rest, the
+        // same way a password reset invalidates other devices/sessions.
+        $currentTokenId = $user->currentAccessToken()?->id;
+        $user->tokens()->when($currentTokenId, fn ($q) => $q->where('id', '!=', $currentTokenId))->delete();
+
+        ActivityLogService::log('password_changed', $user);
+
+        return true;
     }
 
     public function logout($user)
@@ -136,6 +171,6 @@ class AuthService
 
     private function lockoutCacheKey(User $user): string
     {
-        return "login_attempts:{$user->id}";
+        return "login_attempts:{$user->id}:" . request()->ip();
     }
 }

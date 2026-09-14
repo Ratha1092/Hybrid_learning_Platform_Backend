@@ -56,12 +56,14 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
         'email',
         'email_verified_at',
         'password',
+        'has_password',
         'avatar',
         'phone',
         'status',
         'last_login_at',
         'two_factor_enabled',
         'two_factor_secret',
+        'deleted_by',
     ];
     protected $hidden = [
         'password',
@@ -72,12 +74,36 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
         'email_verified_at' => 'datetime',
         'last_login_at' => 'datetime',
         'two_factor_enabled' => 'boolean',
+        'has_password' => 'boolean',
         'password' => 'hashed',
+    ];
+    protected $appends = [
+        'avatar_url',
     ];
 
     protected static function newFactory(): UserFactory
     {
         return UserFactory::new();
+    }
+
+    protected static function booted(): void
+    {
+        static::deleting(function (User $user) {
+            if (auth()->check()) {
+                $user->deleted_by = auth()->id();
+                $user->saveQuietly();
+            }
+        });
+
+        // Permanently deleting a user cascades a hard DELETE (via DB foreign
+        // keys) through their orders/payments/invoices or their courses'
+        // enrollments/reviews. Block it rather than silently destroy that
+        // financial/learning history.
+        static::forceDeleting(function (User $user) {
+            if ($user->orders()->withTrashed()->exists() || $user->courses()->withTrashed()->exists()) {
+                return false;
+            }
+        });
     }
 
     public function courses(): HasMany
@@ -179,7 +205,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
 
     public function isAdmin(): bool
     {
-        return $this->hasAnyRole(['super-admin', 'admin']);
+        return $this->hasRole('super-admin');
     }
 
     public function isInstructor(): bool
@@ -195,12 +221,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
     {
         return $this->hasAnyRole([
             'super-admin',
-            'admin',
-            'finance-manager',
-            'accountant',
-            'content-manager',
-            'moderator',
-            'support-staff',
+            'finance',
         ]);
     }
 
@@ -240,7 +261,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
     public function hasEnrolledCourse(int $courseId): bool {
             return $this->enrollments()
                 ->where('course_id', $courseId)
-                ->where('status', 'active')
+                ->whereIn('status', ['active', 'completed'])
                 ->where(function ($query) {
                     $query->whereNull('expires_at')
                         ->orWhere('expires_at', '>', now());

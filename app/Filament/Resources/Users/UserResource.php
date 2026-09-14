@@ -79,8 +79,15 @@ class UserResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()
+        $query = parent::getEloquentQuery()
             ->withoutGlobalScopes([SoftDeletingScope::class]);
+
+        // Super-admin accounts are invisible/untouchable to everyone except other super-admins.
+        if (! auth()->user()?->hasRole('super-admin')) {
+            $query->whereDoesntHave('roles', fn ($r) => $r->where('name', 'super-admin'));
+        }
+
+        return $query;
     }
 
     public static function canViewAny(): bool

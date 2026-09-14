@@ -88,6 +88,7 @@ html:not(.dark) .rc {
     border-radius:12px;
     overflow:hidden;
     box-shadow:var(--sh);
+    min-width:0;
 }
 .rc-toolbar {
     display:flex;
@@ -403,7 +404,7 @@ html:not(.dark) .rc {
                     </td>
                     <td>
                         <span style="font-size:12px;color:var(--t2);">
-                            {{ $receipt->paid_at?->format('M d, Y H:i') ?? '—' }}
+                            {{ $receipt->paid_at?->setTimezone(config('app.timezone'))->format('M d, Y H:i') ?? '—' }}
                         </span>
                     </td>
                     <td>

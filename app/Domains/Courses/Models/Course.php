@@ -40,20 +40,21 @@ class Course extends Model
         'short_description',
         'description',
         'thumbnail',
+        'preview_video_path',
         'price',
         'level',
         'language',
         'duration',
         'requirements',
         'what_you_will_learn',
+        'target_audience',
+        'required_tools_materials',
         'status',
         'is_published',
         'approved_at',
         'approved_by',
         'commission_percentage',
-        'preview_video_url',
         'visibility',
-        'certificate_enabled',
         'rejection_reason',
         'deleted_by',
     ];
@@ -64,6 +65,7 @@ class Course extends Model
     ];
     protected $appends = [
         'thumbnail_url',
+        'preview_video_url',
     ];
     protected static function booted(): void
     {
@@ -85,10 +87,13 @@ class Course extends Model
         });
         static::saving(function ($course) {
             $course->is_published = $course->status === self::STATUS_PUBLISHED;
+            if ($course->exists) {
+                Cache::forget("courses.v2.slug.{$course->getOriginal('slug')}");
+                Cache::forget("courses.v2.slug.{$course->slug}");
+            }
 
             if ($course->isDirty(['is_published', 'status'])) {
                 Cache::forget('courses.published');
-                Cache::forget("courses.slug.{$course->slug}");
             }
         });
         static::deleting(function ($course) {
@@ -115,10 +120,11 @@ class Course extends Model
             'is_published' => true,
             'approved_at' => now(),
             'approved_by' => $adminId,
+            'rejection_reason' => null,
         ]);
         Cache::tags(['dashboard'])->flush();
         Cache::forget('courses.published');
-        Cache::forget("courses.slug.{$this->slug}");
+        Cache::forget("courses.v2.slug.{$this->slug}");
     }
 
     public function reject(?string $reason = null): void
@@ -140,7 +146,25 @@ class Course extends Model
         ]);
         Cache::tags(['dashboard'])->flush();
         Cache::forget('courses.published');
-        Cache::forget("courses.slug.{$this->slug}");
+        Cache::forget("courses.v2.slug.{$this->slug}");
+    }
+
+    /**
+     * Restores an archived course directly back to Published — unlike
+     * returnToDraft(), this doesn't require the course to go through
+     * review again, since it was already approved before being archived.
+     */
+    public function unarchive(int $adminId): void
+    {
+        $this->update([
+            'status' => self::STATUS_PUBLISHED,
+            'is_published' => true,
+            'approved_at' => now(),
+            'approved_by' => $adminId,
+        ]);
+        Cache::tags(['dashboard'])->flush();
+        Cache::forget('courses.published');
+        Cache::forget("courses.v2.slug.{$this->slug}");
     }
     public function instructor(): BelongsTo
     {
@@ -247,6 +271,14 @@ class Course extends Model
         }
 
         return \Storage::disk('r2')->url($this->thumbnail);
+    }
+    public function getPreviewVideoUrlAttribute(): ?string
+    {
+        if (!$this->preview_video_path) {
+            return null;
+        }
+
+        return \Storage::disk('r2-private')->temporaryUrl($this->preview_video_path, now()->addMinutes(30));
     }
     public function scopePublished($query)
     {

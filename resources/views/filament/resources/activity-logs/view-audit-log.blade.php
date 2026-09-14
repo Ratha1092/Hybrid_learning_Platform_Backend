@@ -424,11 +424,11 @@ html:not(.dark) .av {
 
     <div class="av-hero-stats">
         <div class="av-stat">
-            <div class="av-stat-val">{{ $log->created_at?->format('M d, Y') }}</div>
+            <div class="av-stat-val">{{ $log->created_at?->setTimezone(config('app.timezone'))->format('M d, Y') }}</div>
             <div class="av-stat-label">Date</div>
         </div>
         <div class="av-stat">
-            <div class="av-stat-val">{{ $log->created_at?->format('H:i:s') }}</div>
+            <div class="av-stat-val">{{ $log->created_at?->setTimezone(config('app.timezone'))->format('H:i:s') }}</div>
             <div class="av-stat-label">Time</div>
         </div>
         <div class="av-stat">
@@ -485,7 +485,7 @@ html:not(.dark) .av {
         </div>
         <div class="av-field">
             <div class="av-field-label">Timestamp</div>
-            <div class="av-field-value">{{ $log->created_at?->format('M d, Y \a\t H:i:s') }} ({{ $log->created_at?->diffForHumans() }})</div>
+            <div class="av-field-value">{{ $log->created_at?->setTimezone(config('app.timezone'))->format('M d, Y \a\t H:i:s') }} ({{ $log->created_at?->diffForHumans() }})</div>
         </div>
     </div>
 </div>

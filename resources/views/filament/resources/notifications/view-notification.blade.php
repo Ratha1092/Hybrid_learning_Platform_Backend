@@ -425,12 +425,18 @@ html:not(.dark) .nv {
                     @if($isRead)
                     <div class="nv-meta-item">
                         <div class="nv-meta-key">Read At</div>
-                        <div class="nv-meta-val">{{ $n->read_at?->format('M d, Y · H:i') }}</div>
+                        {{-- setTimezone() first: some notifications are written by queue
+                             workers whose process may not carry the same configured
+                             display timezone as the web request, so the stored Carbon
+                             instance can't be trusted to already be in the right zone
+                             — diffForHumans() below is unaffected since it compares
+                             absolute instants, but format() needs an explicit zone. --}}
+                        <div class="nv-meta-val">{{ $n->read_at?->setTimezone(config('app.timezone'))->format('M d, Y · H:i') }}</div>
                     </div>
                     @endif
                     <div class="nv-meta-item">
                         <div class="nv-meta-key">Received</div>
-                        <div class="nv-meta-val">{{ $n->created_at?->format('M d, Y · H:i') }}</div>
+                        <div class="nv-meta-val">{{ $n->created_at?->setTimezone(config('app.timezone'))->format('M d, Y · H:i') }}</div>
                     </div>
                     <div class="nv-meta-item">
                         <div class="nv-meta-key">Time Ago</div>

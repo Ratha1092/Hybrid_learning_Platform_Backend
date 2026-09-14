@@ -16,7 +16,14 @@ class CourseController extends Controller
 {
     public function index()
     {
-        $query = Course::with('instructor:id,name,avatar')
+        $query = Course::with(['instructor:id,name,avatar', 'category:id,name,slug'])
+            ->withAvg(['reviews as average_rating' => fn ($q) => $q->where('is_approved', true)], 'rating')
+            ->withCount([
+                'reviews as reviews_count' => fn ($q) => $q->where('is_approved', true),
+                'sections',
+                'enrollments as students_count',
+            ])
+            ->withSum('lessons as total_duration_seconds', 'duration')
             ->where('is_published', true);
 
         if ($instructorId = request('instructor_id')) {
@@ -29,22 +36,38 @@ class CourseController extends Controller
 
         $courses = $query->latest()->get();
 
+        $courses->each(function ($course) {
+            $course->average_rating = $course->average_rating ? round($course->average_rating, 1) : null;
+        });
+
     return ApiResponse::success($courses, 'Courses retrieved successfully');
 }
 
     public function show($slug)
     {
-        $course = Cache::remember("courses.slug.{$slug}", 3600, fn() =>
+        $course = Cache::remember("courses.v2.slug.{$slug}", 3600, fn() =>
             Course::with([
                 'instructor:id,name,avatar',
+                'category:id,name,slug',
                 'sections' => function ($q) {
                     $q->orderBy('order')->with([
                         'lessons' => function ($q) {
-                            $q->orderBy('order');
+                            $q->orderBy('order')->with([
+                                'attachments',
+                                'videos',
+                                'objectives',
+                                'contentBlocks',
+                                'takeaways',
+                                'assessments.questions',
+                                'assignments',
+                                'completionRule',
+                            ]);
                         }
                     ]);
                 }
             ])
+            ->withAvg(['reviews as average_rating' => fn ($q) => $q->where('is_approved', true)], 'rating')
+            ->withCount(['reviews as reviews_count' => fn ($q) => $q->where('is_approved', true)])
             ->where('slug', $slug)
             ->where('is_published', true)
             ->with(['sections.lessons', 'instructor:id,name,avatar'])
@@ -54,6 +77,8 @@ class CourseController extends Controller
         if (!$course) {
             return ApiResponse::error('Course not found', 404);
         }
+
+        $course->average_rating = $course->average_rating ? round($course->average_rating, 1) : null;
 
         $user = auth('sanctum')->user();
 
@@ -70,20 +95,128 @@ class CourseController extends Controller
 
         $isEnrolled = (bool) $enrollment;
         $accessExpired = $enrollment ? $enrollment->isExpired() : false;
-        $hasAccess = $enrollment && $enrollment->status === 'active' && !$accessExpired;
+        $isFree = (float) $course->price === 0.0;
+        $hasAccess = $isFree
+            || ($enrollment && in_array($enrollment->status, ['active', 'completed'], true) && !$accessExpired);
 
         $courseData = $course->toArray();
         $courseData['is_enrolled'] = $isEnrolled;
         $courseData['access_expired'] = $accessExpired;
         $courseData['access_expires_at'] = $enrollment?->expires_at?->toIso8601String();
 
-        $courseData['sections'] = $course->sections->map(function ($section) use ($hasAccess) {
+        $resourcesDownloadable = Setting::get('lesson_resources_downloadable', true);
+        // Surfaced so the player can drop the download action while still
+        // letting students read the file in place.
+        $courseData['resources_downloadable'] = (bool) $resourcesDownloadable;
+
+        $courseData['sections'] = $course->sections->map(function ($section) use ($hasAccess, $resourcesDownloadable) {
             $sectionData = $section->toArray();
-            $sectionData['lessons'] = $section->lessons->map(function ($lesson) use ($hasAccess) {
+            $sectionData['lessons'] = $section->lessons->map(function ($lesson) use ($hasAccess, $resourcesDownloadable) {
                 $lessonData = $lesson->toArray();
 
                 $canWatch = $hasAccess || $lesson->is_preview;
-                $lessonData['video_url'] = $canWatch ? $this->resolveVideoUrl($lesson) : null;
+
+                $lessonData['objectives'] = $lesson->objectives->map(fn ($objective) => [
+                    'id' => $objective->id,
+                    'objective' => $objective->objective,
+                    'order' => $objective->order,
+                ])->values()->all();
+
+                $lessonData['takeaways'] = $lesson->takeaways->map(fn ($takeaway) => [
+                    'id' => $takeaway->id,
+                    'takeaway' => $takeaway->takeaway,
+                    'order' => $takeaway->order,
+                ])->values()->all();
+
+                $lessonData['completion_rule'] = $lesson->completionRule?->only([
+                    'id',
+                    'watch_video',
+                    'read_content',
+                    'pass_quiz',
+                    'submit_assignment',
+                ]) ?? [];
+
+                if ($canWatch) {
+                    $videos = $lesson->videos->map(fn ($v) => [
+                        'id' => $v->id,
+                        'video_url' => $v->video_source,
+                        'duration' => $v->duration,
+                        'order' => $v->order,
+                    ])->values();
+                    $lessonData['videos'] = $videos;
+                    $lessonData['video_url'] = $videos->first()['video_url'] ?? $this->resolveVideoUrl($lesson);
+                } else {
+                    $lessonData['videos'] = [];
+                    $lessonData['video_url'] = null;
+                }
+                unset($lessonData['video_path']);
+
+                $lessonData['content_blocks'] = $canWatch
+                    ? $lesson->contentBlocks->map(fn ($block) => [
+                        'id' => $block->id,
+                        'type' => $block->type,
+                        'title' => $block->title,
+                        'content' => $block->content,
+                        'media_url' => $block->media_path
+                            ? Storage::disk('r2-private')->temporaryUrl($block->media_path, now()->addMinutes(30))
+                            : $block->media_url,
+                        'language' => $block->language,
+                        'metadata' => $block->metadata,
+                        'order' => $block->order,
+                    ])->values()->all()
+                    : [];
+
+                $lessonData['assessments'] = $canWatch
+                    ? $lesson->assessments->map(fn ($assessment) => [
+                        'id' => $assessment->id,
+                        'title' => $assessment->title,
+                        'description' => $assessment->description,
+                        'passing_score' => $assessment->passing_score,
+                        'attempts' => $assessment->attempts,
+                        'is_required' => $assessment->is_required,
+                        'questions' => $assessment->questions->map(fn ($question) => [
+                            'id' => $question->id,
+                            'question' => $question->question,
+                            'type' => $question->type,
+                            'options' => $question->options,
+                            'explanation' => $question->explanation,
+                            'points' => $question->points,
+                            'order' => $question->order,
+                        ])->values()->all(),
+                    ])->values()->all()
+                    : [];
+
+                $lessonData['assignments'] = $canWatch
+                    ? $lesson->assignments->map(fn ($assignment) => [
+                        'id' => $assignment->id,
+                        'title' => $assignment->title,
+                        'instructions' => $assignment->instructions,
+                        'submission_type' => $assignment->submission_type,
+                        'max_score' => $assignment->max_score,
+                        'is_required' => $assignment->is_required,
+                    ])->values()->all()
+                    : [];
+
+                if (!$canWatch) {
+                    $lessonData['attachments'] = [];
+                } else {
+                    // Kept even when downloads are switched off — the player
+                    // shows them read-only in that case, and only omits the
+                    // download link itself.
+                    $lessonData['attachments'] = $lesson->attachments->map(fn ($a) => [
+                        'id' => $a->id,
+                        'title' => $a->title,
+                        'type' => $a->type,
+                        'preview_url' => $a->preview_url,
+                        'file_url' => $resourcesDownloadable ? $a->file_url : null,
+                    ])->values();
+                }
+
+                if (!$canWatch) {
+                    $lessonData['content'] = null;
+                    $lessonData['attachment'] = null;
+                    $lessonData['attachment_name'] = null;
+                }
 
                 return $lessonData;
             });

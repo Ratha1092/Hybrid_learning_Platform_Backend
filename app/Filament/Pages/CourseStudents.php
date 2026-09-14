@@ -92,8 +92,8 @@ class CourseStudents extends Page
             ->withoutTrashed();
 
         if ($search) {
-            $query->whereHas('user', fn($q) => $q->where('name', 'like', "%{$search}%")
-                ->orWhere('email', 'like', "%{$search}%"));
+            $query->whereHas('user', fn($q) => $q->where('name', 'ilike', "%{$search}%")
+                ->orWhere('email', 'ilike', "%{$search}%"));
         }
 
         $query->orderBy('enrolled_at', 'desc');

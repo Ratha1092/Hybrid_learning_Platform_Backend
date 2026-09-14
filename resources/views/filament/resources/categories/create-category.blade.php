@@ -499,39 +499,6 @@ textarea.ec-input {
             @error('data.description') <span class="ec-error">{{ $message }}</span> @enderror
         </div>
 
-        {{-- Icon + Sort Order --}}
-        <div class="ec-grid-2">
-            <div>
-                <label class="ec-label" for="ec-icon">Icon</label>
-                <div class="ec-input-icon-wrap">
-                    <span class="ec-input-prefix">heroicon-o-</span>
-                    <input
-                        id="ec-icon"
-                        type="text"
-                        class="ec-input"
-                        wire:model="data.icon"
-                        placeholder="academic-cap"
-                        style="font-family:ui-monospace,monospace;font-size:12.5px;padding-left:118px"
-                    >
-                </div>
-                <p class="ec-helper">e.g. <code style="font-family:ui-monospace,monospace;background:var(--p2);padding:1px 5px;border-radius:4px;border:1px solid var(--bd2)">academic-cap</code></p>
-                @error('data.icon') <span class="ec-error">{{ $message }}</span> @enderror
-            </div>
-            <div>
-                <label class="ec-label" for="ec-sort">Sort Order</label>
-                <input
-                    id="ec-sort"
-                    type="number"
-                    class="ec-input"
-                    wire:model="data.sort_order"
-                    placeholder="0"
-                    min="0"
-                >
-                <p class="ec-helper">Lower numbers appear first</p>
-                @error('data.sort_order') <span class="ec-error">{{ $message }}</span> @enderror
-            </div>
-        </div>
-
         {{-- Featured toggle --}}
         <div style="border-top:1px solid var(--bd);padding-top:4px">
             <div class="ec-toggle-row">

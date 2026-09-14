@@ -18,11 +18,19 @@ class ProgressService
         Lesson $lesson,
     ): LessonProgress {
 
-        return LessonProgress::query()->firstOrCreate([
-            'user_id' => $user->id,
-            'lesson_id' => $lesson->id,
-            'course_id' => $lesson->section->course_id,
-        ]);
+        // Match on the actual unique key (user_id, lesson_id) only — the row's
+        // course_id can be null/stale on old rows, and including it here made
+        // firstOrCreate() try to INSERT a duplicate, throwing a unique-constraint
+        // QueryException that the global handler surfaces as a 400.
+        return LessonProgress::query()->firstOrCreate(
+            [
+                'user_id' => $user->id,
+                'lesson_id' => $lesson->id,
+            ],
+            [
+                'course_id' => $lesson->section->course_id,
+            ]
+        );
     }
 
     public function updateLessonProgress(
@@ -101,10 +109,10 @@ class ProgressService
             ->where('is_completed', true)
             ->count();
 
-        $percentage = round(
+        $percentage = min(100, round(
             ($completedLessons / $totalLessons) * 100,
             2
-        );
+        ));
 
         $enrollment = Enrollment::query()
             ->where('user_id', $user->id)
@@ -124,10 +132,6 @@ class ProgressService
             $wasAlreadyCompleted = $enrollment->status === 'completed';
 
             $enrollment->markCompleted();
-
-            if (Setting::get('certificate_enabled', true) && $course->certificate_enabled) {
-                $enrollment->update(['certificate_issued' => true]);
-            }
 
             if (!$wasAlreadyCompleted && Setting::get('course_completion_notification', true)) {
                 $user->notify(new CourseCompletionNotification($course->id, $course->title));

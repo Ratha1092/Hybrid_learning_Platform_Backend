@@ -20,6 +20,7 @@ class VerifyPendingPaymentsCommand extends Command
             ->whereIn('status', ['pending', 'processing'])
             ->where('payment_gateway', 'bakong')
             ->where('expires_at', '<', now())
+            ->limit((int) $this->option('limit'))
             ->get();
 
         $expired = 0;

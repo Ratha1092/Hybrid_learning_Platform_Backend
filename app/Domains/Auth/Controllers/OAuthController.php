@@ -27,7 +27,10 @@ class OAuthController extends Controller
     public function handleGithubCallback(GithubOAuthRequest $request)
     {
         try {
-            $data = $this->oauthService->handleGithub($request->validated()['code']);
+            $data = $this->oauthService->handleGithub(
+                $request->validated()['code'],
+                $request->validated()['code_verifier']
+            );
             return ApiResponse::success($data, 'Login successful');
         } catch (RuntimeException $e) {
             return ApiResponse::error($e->getMessage(), 422);
@@ -36,14 +39,22 @@ class OAuthController extends Controller
 
     public function linkOAuthAccount(LinkOAuthRequest $request)
     {
-        $this->oauthService->link($request->user(), $request->validated());
+        try {
+            $this->oauthService->link($request->user(), $request->validated());
+        } catch (RuntimeException $e) {
+            return ApiResponse::error($e->getMessage(), 422);
+        }
 
         return ApiResponse::success(null, 'OAuth account linked successfully');
     }
 
     public function unlinkOAuthAccount(Request $request, string $provider)
     {
-        $this->oauthService->unlink($request->user(), $provider);
+        try {
+            $this->oauthService->unlink($request->user(), $provider);
+        } catch (RuntimeException $e) {
+            return ApiResponse::error($e->getMessage(), 422);
+        }
 
         return ApiResponse::success(null, 'OAuth account unlinked');
     }

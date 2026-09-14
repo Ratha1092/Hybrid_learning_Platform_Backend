@@ -51,8 +51,8 @@ class Courses extends Page
     public static function getNavigationBadge(): ?string
     {
         $count = NavBadge::countSince('courses', fn (?\Carbon\Carbon $since) => $since
-            ? Course::withoutGlobalScopes()->where('status', Course::STATUS_PENDING)->where('created_at', '>', $since)->count()
-            : Course::withoutGlobalScopes()->where('status', Course::STATUS_PENDING)->count());
+            ? Course::where('status', Course::STATUS_PENDING)->where('created_at', '>', $since)->count()
+            : Course::where('status', Course::STATUS_PENDING)->count());
 
         return $count > 0 ? Number::abbreviate($count) : null;
     }
@@ -80,6 +80,11 @@ class Courses extends Page
         $this->currentPage = 1;
     }
 
+    public function updatedSearch(): void
+    {
+        $this->currentPage = 1;
+    }
+
     public function setPage(int $page): void
     {
         $this->currentPage = $page;
@@ -93,7 +98,7 @@ class Courses extends Page
 
     public function openRejectModal(int $id): void
     {
-        $course = Course::withoutGlobalScopes()->find($id);
+        $course = Course::find($id);
         $this->rejectingCourseId    = $id;
         $this->rejectingCourseTitle = $course?->title ?? '';
         $this->rejectReason         = '';
@@ -117,7 +122,7 @@ class Courses extends Page
 
     public function approveCourse(int $id): void
     {
-        $course = Course::withoutGlobalScopes()->findOrFail($id);
+        $course = Course::findOrFail($id);
         if (!$course->isPendingReview()) return;
 
         $course->publish(auth()->id());
@@ -128,7 +133,7 @@ class Courses extends Page
 
     public function rejectCourse(int $id, string $reason): void
     {
-        $course = Course::withoutGlobalScopes()->findOrFail($id);
+        $course = Course::findOrFail($id);
         if (!$course->isPendingReview()) return;
 
         $reason = trim($reason);
@@ -145,11 +150,20 @@ class Courses extends Page
 
     public function archiveCourse(int $id): void
     {
-        $course = Course::withoutGlobalScopes()->findOrFail($id);
+        $course = Course::findOrFail($id);
         if (!$course->isPublished()) return;
 
         $course->archive();
         Notification::make()->title('Course Archived')->warning()->send();
+    }
+
+    public function unarchiveCourse(int $id): void
+    {
+        $course = Course::findOrFail($id);
+        if (!$course->isArchived()) return;
+
+        $course->unarchive(auth()->id());
+        Notification::make()->title('Course Restored to Published')->success()->send();
     }
 
     public function deleteCourse(int $id): void
@@ -159,7 +173,7 @@ class Courses extends Page
             return;
         }
 
-        $course = Course::withoutGlobalScopes()->findOrFail($id);
+        $course = Course::findOrFail($id);
         $title  = $course->title;
         $course->delete();
 
@@ -167,9 +181,28 @@ class Courses extends Page
         Notification::make()->title('Course Deleted')->body("\"{$title}\" has been removed.")->danger()->send();
     }
 
+    public function restoreCourse(int $id): void
+    {
+        if (!PanelAccess::can('courses.delete')) {
+            Notification::make()->title('Insufficient permissions')->danger()->send();
+            return;
+        }
+
+        $course = Course::onlyTrashed()->find($id);
+
+        if (!$course) {
+            return;
+        }
+
+        $course->restore();
+
+        ActivityLogService::logChange('course.restored', $course);
+        Notification::make()->title('Course Restored')->success()->send();
+    }
+
     public function returnToDraft(int $id): void
     {
-        $course = Course::withoutGlobalScopes()->findOrFail($id);
+        $course = Course::findOrFail($id);
         $course->update([
             'status'           => Course::STATUS_DRAFT,
             'is_published'     => false,
@@ -190,23 +223,23 @@ class Courses extends Page
             'archived'  => Course::STATUS_ARCHIVED,
         ];
 
-        $query = Course::withoutGlobalScopes()
-            ->with(['instructor:id,name', 'category:id,name'])
-            ->withCount('enrollments');
-
         $tab    = $this->activeTab;
         $search = $this->search;
 
-        if ($tab !== 'all' && isset($statusMap[$tab])) {
+        $query = $tab === 'trashed'
+            ? Course::onlyTrashed()->with(['instructor:id,name', 'category:id,name'])->withCount('enrollments')
+            : Course::query()->with(['instructor:id,name', 'category:id,name'])->withCount('enrollments');
+
+        if ($tab !== 'all' && $tab !== 'trashed' && isset($statusMap[$tab])) {
             $query->where('status', $statusMap[$tab]);
         }
 
         if ($search) {
             $query->where(function ($q) use ($search) {
-                $q->where('title', 'like', "%{$search}%")
-                  ->orWhere('short_description', 'like', "%{$search}%")
-                  ->orWhereHas('instructor', fn($q2) => $q2->where('name', 'like', "%{$search}%"))
-                  ->orWhereHas('category',   fn($q2) => $q2->where('name', 'like', "%{$search}%"));
+                $q->where('title', 'ilike', "%{$search}%")
+                  ->orWhere('short_description', 'ilike', "%{$search}%")
+                  ->orWhereHas('instructor', fn($q2) => $q2->where('name', 'ilike', "%{$search}%"))
+                  ->orWhereHas('category',   fn($q2) => $q2->where('name', 'ilike', "%{$search}%"));
                 if (str_contains(strtolower($search), 'free')) {
                     $q->orWhere('price', 0);
                 }
@@ -221,7 +254,7 @@ class Courses extends Page
                 $course->title,
                 $course->instructor?->name ?? '',
                 $course->category?->name ?? '',
-                number_format($course->price, 2),
+                $course->price > 0 ? number_format($course->price, 2) : 'Free',
                 $course->status,
                 $course->enrollments_count,
                 $course->created_at?->format('M d, Y') ?? '',
@@ -256,29 +289,36 @@ class Courses extends Page
             'archived'  => Course::STATUS_ARCHIVED,
         ];
 
+        $statusCounts = Course::query()
+            ->toBase()
+            ->selectRaw('status, count(*) as aggregate')
+            ->groupBy('status')
+            ->pluck('aggregate', 'status');
+
         $tabs = [
-            ['key' => 'all',       'label' => 'All',            'count' => Course::withoutGlobalScopes()->count(),                                                'color' => null],
-            ['key' => 'pending',   'label' => 'Pending Review', 'count' => Course::withoutGlobalScopes()->where('status', Course::STATUS_PENDING)->count(),       'color' => '#fbbf24'],
-            ['key' => 'published', 'label' => 'Published',      'count' => Course::withoutGlobalScopes()->where('status', Course::STATUS_PUBLISHED)->count(),     'color' => '#34d399'],
-            ['key' => 'draft',     'label' => 'Draft',          'count' => Course::withoutGlobalScopes()->where('status', Course::STATUS_DRAFT)->count(),         'color' => '#94a3b8'],
-            ['key' => 'rejected',  'label' => 'Rejected',       'count' => Course::withoutGlobalScopes()->where('status', Course::STATUS_REJECTED)->count(),      'color' => '#f87171'],
-            ['key' => 'archived',  'label' => 'Archived',       'count' => Course::withoutGlobalScopes()->where('status', Course::STATUS_ARCHIVED)->count(),      'color' => '#94a3b8'],
+            ['key' => 'all',       'label' => 'All',            'count' => $statusCounts->sum(),                             'color' => null],
+            ['key' => 'pending',   'label' => 'Pending Review', 'count' => $statusCounts[Course::STATUS_PENDING] ?? 0,   'color' => '#fbbf24'],
+            ['key' => 'published', 'label' => 'Published',      'count' => $statusCounts[Course::STATUS_PUBLISHED] ?? 0, 'color' => '#34d399'],
+            ['key' => 'draft',     'label' => 'Draft',          'count' => $statusCounts[Course::STATUS_DRAFT] ?? 0,     'color' => '#94a3b8'],
+            ['key' => 'rejected',  'label' => 'Rejected',       'count' => $statusCounts[Course::STATUS_REJECTED] ?? 0,  'color' => '#f87171'],
+            ['key' => 'archived',  'label' => 'Archived',       'count' => $statusCounts[Course::STATUS_ARCHIVED] ?? 0,  'color' => '#94a3b8'],
+            ['key' => 'trashed',   'label' => 'Deleted',        'count' => Course::onlyTrashed()->count(),               'color' => '#dc2626'],
         ];
 
-        $query = Course::withoutGlobalScopes()
-            ->with(['instructor:id,name', 'category:id,name'])
-            ->withCount('enrollments');
+        $query = $tab === 'trashed'
+            ? Course::onlyTrashed()->with(['instructor:id,name', 'category:id,name'])->withCount('enrollments')
+            : Course::withoutGlobalScopes()->with(['instructor:id,name', 'category:id,name'])->withCount('enrollments');
 
-        if ($tab !== 'all' && isset($statusMap[$tab])) {
+        if ($tab !== 'all' && $tab !== 'trashed' && isset($statusMap[$tab])) {
             $query->where('status', $statusMap[$tab]);
         }
 
         if ($search) {
             $query->where(function ($q) use ($search) {
-                $q->where('title', 'like', "%{$search}%")
-                  ->orWhere('short_description', 'like', "%{$search}%")
-                  ->orWhereHas('instructor', fn($q2) => $q2->where('name', 'like', "%{$search}%"))
-                  ->orWhereHas('category',   fn($q2) => $q2->where('name', 'like', "%{$search}%"));
+                $q->where('title', 'ilike', "%{$search}%")
+                  ->orWhere('short_description', 'ilike', "%{$search}%")
+                  ->orWhereHas('instructor', fn($q2) => $q2->where('name', 'ilike', "%{$search}%"))
+                  ->orWhereHas('category',   fn($q2) => $q2->where('name', 'ilike', "%{$search}%"));
                 if (str_contains(strtolower($search), 'free')) {
                     $q->orWhere('price', 0);
                 }

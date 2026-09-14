@@ -3,7 +3,9 @@
 namespace App\Domains\Notifications\Notifications;
 
 use App\Domains\Notifications\Concerns\BroadcastsAsNotification;
+use App\Domains\Notifications\Enums\NotificationType;
 use App\Domains\Orders\Models\Order;
+use App\Filament\Resources\Payments\PaymentResource;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification;
 
@@ -14,35 +16,40 @@ class AdminPaymentNotification extends Notification
 
     public function via(object $notifiable): array
     {
-        return \App\Domains\Notifications\Support\NotificationChannels::standard();
+        return ['database'];
     }
 
     public function toBroadcast(object $notifiable): BroadcastMessage
     {
+        $paymentUrl = PaymentResource::getUrl('view', ['record' => $this->order->payment?->id]);
+
         return new BroadcastMessage([
             'title'       => 'Payment Received',
             'message'     => "Order #{$this->order->order_number} — \${$this->order->final_amount} by {$this->order->user?->name}.",
-            'type'        => 'payment',
-            'link'        => '/admin/payments',
-            'action_text' => 'View Payments',
+            'type'        => NotificationType::PAYMENT->value,
+            'link'        => $paymentUrl,
+            'action_text' => 'View Payment',
         ]);
     }
 
     public function toArray(object $notifiable): array
     {
+        $paymentUrl = PaymentResource::getUrl('view', ['record' => $this->order->payment?->id]);
+
         return [
             'title'    => 'Payment Received',
-            'body'     => "Payment for order #{$this->order->order_number} — \${$this->order->final_amount} by {$this->order->user?->name}.",
+            'message'  => "Payment for order #{$this->order->order_number} — \${$this->order->final_amount} by {$this->order->user?->name}.",
+            'type'     => NotificationType::PAYMENT->value,
             'format'   => 'filament',
             'duration' => 'persistent',
             'actions'  => [
                 [
                     'name'                 => 'view',
-                    'label'                => 'View Payments',
-                    'url'                  => '/admin/payments',
+                    'label'                => 'View Payment',
+                    'url'                  => $paymentUrl,
                     'view'                 => 'filament-actions::link-action',
                     'shouldOpenUrlInNewTab' => false,
-                    'alpineClickHandler'   => "window.location.href='/admin/payments'",
+                    'alpineClickHandler'   => "window.location.href='{$paymentUrl}'",
                 ],
             ],
         ];

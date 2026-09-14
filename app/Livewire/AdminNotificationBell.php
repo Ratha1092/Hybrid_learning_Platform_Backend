@@ -14,9 +14,15 @@ class AdminNotificationBell extends Component
     public function mount(): void
     {
         $this->userId = (int) auth()->id();
+        $this->refreshUnreadCount();
     }
 
     public function boot(): void
+    {
+        $this->refreshUnreadCount();
+    }
+
+    public function refreshUnreadCount(): void
     {
         $this->unreadCount = (int) (auth()->user()?->unreadNotifications()->count() ?? 0);
     }
@@ -24,7 +30,7 @@ class AdminNotificationBell extends Component
     #[On('echo-private:user.{userId},.notification.received')]
     public function onPusherNotification(array $notification): void
     {
-        $this->unreadCount++;
+        $this->refreshUnreadCount();
     }
 
     #[Computed]

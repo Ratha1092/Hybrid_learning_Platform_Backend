@@ -22,11 +22,33 @@ class InstructorPayoutAccount extends Model
         'rejection_reason',
         'reviewed_by',
         'reviewed_at',
+        'deleted_by',
     ];
 
     protected $casts = [
         'reviewed_at' => 'datetime',
     ];
+
+    protected $appends = ['qr_code_url'];
+
+    protected static function booted(): void
+    {
+        static::deleting(function (InstructorPayoutAccount $account) {
+            if (auth()->check()) {
+                $account->deleted_by = auth()->id();
+                $account->saveQuietly();
+            }
+        });
+    }
+
+    public function getQrCodeUrlAttribute(): ?string
+    {
+        if (!$this->qr_code_path) {
+            return null;
+        }
+
+        return \Storage::disk('r2')->url($this->qr_code_path);
+    }
 
     public function instructor(): BelongsTo
     {

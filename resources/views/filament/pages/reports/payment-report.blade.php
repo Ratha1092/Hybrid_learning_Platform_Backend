@@ -4,7 +4,7 @@
         default => ucfirst($gw),
     };
     $statusColor = fn(string $s) => match($s) {
-        'paid' => '#34d399', 'pending' => '#fbbf24', 'failed' => '#f87171', 'refunded' => '#a78bfa',
+        'paid' => '#34d399', 'pending' => '#fbbf24', 'failed' => '#f87171',
         default => '#94a3b8',
     };
 @endphp
@@ -190,7 +190,7 @@ html:not(.dark) .rp {
     background:var(--p1);
     border:1px solid var(--bd);
     border-radius:12px;
-    overflow:hidden;
+    overflow-x:auto;
 }
 .rp-table {
     width:100%;
@@ -448,7 +448,7 @@ html:not(.dark) .rp {
         </select>
         <select wire:model.live="status" class="rp-filter-select">
             <option value="all">All Statuses</option>
-            @foreach(['paid','pending','failed','refunded'] as $st)
+            @foreach(['paid','pending','failed'] as $st)
                 <option value="{{ $st }}">{{ ucfirst($st) }}</option>
             @endforeach
         </select>
@@ -504,7 +504,7 @@ html:not(.dark) .rp {
                         <td>${{ number_format((float) $payment->amount, 2) }}</td>
                         <td><span class="rp-status-pill" style="background:{{ $statusColor($payment->status?->value ?? '') }}22;color:{{ $statusColor($payment->status?->value ?? '') }}">{{ ucfirst($payment->status?->value ?? '') }}</span></td>
                         <td>{{ $payment->verification_attempts }}</td>
-                        <td>{{ $payment->paid_at?->format('M d, Y') ?? '—' }}</td>
+                        <td>{{ $payment->paid_at?->setTimezone(config('app.timezone'))->format('M d, Y') ?? '—' }}</td>
                     </tr>
                 @empty
                     <tr><td colspan="7" style="text-align:center;color:var(--t2);padding:24px;">No payments found for this filter.</td></tr>

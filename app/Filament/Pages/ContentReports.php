@@ -118,7 +118,7 @@ class ContentReports extends Page
             ['key' => 'dismissed', 'label' => 'Dismissed', 'count' => $base()->where('status', 'dismissed')->count(), 'color' => '#f87171'],
         ];
 
-        $query = ContentReport::query()->with(['reporter:id,name,email', 'reviewer:id,name']);
+        $query = ContentReport::query()->with(['reporter:id,name,email', 'reviewer:id,name', 'reportable']);
 
         if ($tab !== 'all' && in_array($tab, ['pending', 'reviewed', 'dismissed'])) {
             $query->where('status', $tab);
@@ -126,9 +126,9 @@ class ContentReports extends Page
 
         if ($search) {
             $query->where(function ($q) use ($search) {
-                $q->where('reason', 'like', "%{$search}%")
-                  ->orWhereHas('reporter', fn ($q2) => $q2->where('name', 'like', "%{$search}%"))
-                  ->orWhereHas('reporter', fn ($q2) => $q2->where('email', 'like', "%{$search}%"));
+                $q->where('reason', 'ilike', "%{$search}%")
+                  ->orWhereHas('reporter', fn ($q2) => $q2->where('name', 'ilike', "%{$search}%"))
+                  ->orWhereHas('reporter', fn ($q2) => $q2->where('email', 'ilike', "%{$search}%"));
             });
         }
 

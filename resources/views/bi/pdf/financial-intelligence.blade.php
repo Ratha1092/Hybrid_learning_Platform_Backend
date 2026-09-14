@@ -22,7 +22,7 @@
     </tr>
 </table>
 
-@php $cfMax = max(1, ...$cfRevenue); @endphp
+@php $cfMax = empty($cfRevenue) ? 1 : max(1, ...$cfRevenue); @endphp
 <table class="charts-row">
     <tr>
         <td class="chart-card full">

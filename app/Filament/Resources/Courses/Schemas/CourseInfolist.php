@@ -59,18 +59,6 @@ class CourseInfolist
                                             ->badge(),
                                             TextEntry::make('visibility')
                                             ->badge(),
-
-                                        TextEntry::make('preview_video_url')
-                                            ->url(
-                                                fn ($state) => $state
-                                            )
-                                            ->openUrlInNewTab(),
-                                        TextEntry::make('certificate_enabled')
-                                            ->badge()
-                                            ->formatStateUsing(
-                                                fn (bool $state): string =>
-                                                $state ? 'Enabled' : 'Disabled'
-                                            ),
                                     ]),
                             ]),
                     ]),

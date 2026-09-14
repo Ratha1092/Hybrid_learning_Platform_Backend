@@ -29,9 +29,21 @@ class PayoutRequest extends Model
         'processed_at' => 'datetime',
     ];
 
+    protected $appends = ['receipt_id'];
+
+    public function getReceiptIdAttribute(): ?int
+    {
+        return $this->receipt?->id;
+    }
+
     public function instructor()
     {
         return $this->belongsTo(User::class, 'instructor_id');
+    }
+
+    public function processedBy()
+    {
+        return $this->belongsTo(User::class, 'processed_by');
     }
 
     public function payoutAccount()

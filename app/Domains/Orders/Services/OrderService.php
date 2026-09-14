@@ -38,7 +38,11 @@ class OrderService
                 throw new \RuntimeException('You cannot purchase your own course');
             }
 
-            if (Enrollment::where('user_id', $user->id)->where('course_id', $course->id)->exists()) {
+            $existingEnrollment = Enrollment::where('user_id', $user->id)->where('course_id', $course->id)->first();
+            if ($existingEnrollment
+                && in_array($existingEnrollment->status, ['active', 'completed'], true)
+                && !$existingEnrollment->isExpired()
+            ) {
                 throw new \RuntimeException('You are already enrolled in this course');
             }
 
@@ -46,7 +50,7 @@ class OrderService
             $discountAmount = 0.0;
 
             if ($couponCode && (float) $course->price > 0) {
-                $coupon = Coupon::where('code', strtoupper(trim($couponCode)))->first();
+                $coupon = Coupon::where('code', strtoupper(trim($couponCode)))->lockForUpdate()->first();
 
                 if (!$coupon) {
                     throw new \RuntimeException('Invalid coupon code');
@@ -77,11 +81,12 @@ class OrderService
                 'coupon_id' => $coupon?->id,
             ]);
 
-            if ($coupon) {
-                $coupon->increment('used_count');
-            }
+            // used_count is incremented only once the order is actually paid
+            // (see EnrollmentService::enrollFromOrder / BakongKhqrService::markAsPaid)
+            // — not here, so an abandoned or expired checkout never consumes a use.
 
-            $commissionPercentage = 20;
+            $commissionPercentage = $course->commission_percentage
+                ?? (float) Setting::get('default_commission_percentage', 20);
             $platformAmount = ($finalAmount * $commissionPercentage) / 100;
             $instructorAmount = $finalAmount - $platformAmount;
             OrderItem::create([
@@ -117,7 +122,11 @@ class OrderService
         });
         ActivityLogService::logChange('order.placed', $order, [], [], $user);
 
-        NotifyAdminsJob::dispatch(AdminNewOrderNotification::class, [$order->id, $user->name]);
+        NotifyAdminsJob::dispatch(
+            AdminNewOrderNotification::class,
+            [$order->id, $user->name],
+            'orders.view'
+        );
         return $order;
     }
 }

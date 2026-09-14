@@ -21,7 +21,6 @@ $biColors = ['#D7A441','#2563eb','#22c55e','#ef4444','#a855f7','#f97316','#06b6d
             <div class="bi-kpi-value">${{ number_format($kpis['grossRevenue'],2) }}</div>
             <div class="bi-kpi-grow {{ $kpis['revenueGrowth'] >= 0 ? 'up' : 'dn' }}">{{ $kpis['revenueGrowth'] >= 0 ? '↑' : '↓' }} {{ abs($kpis['revenueGrowth']) }}% vs prev period</div>
         </div>
-        <div class="bi-kpi"><div class="bi-kpi-label">Net Revenue</div><div class="bi-kpi-value">${{ number_format($kpis['netRevenue'],2) }}</div><div class="bi-kpi-sub">After ${{ number_format($kpis['refundAmount'],2) }} refunds</div></div>
         <div class="bi-kpi"><div class="bi-kpi-label">Platform Revenue</div><div class="bi-kpi-value">${{ number_format($kpis['platformRevenue'],2) }}</div></div>
         <div class="bi-kpi"><div class="bi-kpi-label">Instructor Revenue</div><div class="bi-kpi-value">${{ number_format($kpis['instructorRevenue'],2) }}</div></div>
         <div class="bi-kpi"><div class="bi-kpi-label">Discounts Given</div><div class="bi-kpi-value">${{ number_format($kpis['discounts'],2) }}</div></div>

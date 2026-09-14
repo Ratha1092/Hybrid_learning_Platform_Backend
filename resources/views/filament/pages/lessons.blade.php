@@ -6,7 +6,6 @@
     $typeMap = [
         'video'      => ['bg' => 'rgba(37,99,235,.12)',   'color' => '#2563eb',  'label' => 'Video'],
         'article'    => ['bg' => 'rgba(22,163,74,.12)',   'color' => '#16a34a',  'label' => 'Article'],
-        'quiz'       => ['bg' => 'rgba(124,58,237,.12)',  'color' => '#7c3aed',  'label' => 'Quiz'],
         'live'       => ['bg' => 'rgba(220,38,38,.12)',   'color' => '#dc2626',  'label' => 'Live'],
         'assignment' => ['bg' => 'rgba(217,119,6,.12)',   'color' => '#d97706',  'label' => 'Assignment'],
     ];
@@ -130,6 +129,7 @@ html:not(.dark) .lp {
     border-radius:12px;
     overflow:hidden;
     box-shadow:var(--sh);
+    min-width:0;
 }
 .lp-toolbar {
     display:flex;
@@ -253,6 +253,12 @@ html:not(.dark) .lp {
     font-size:13px;
     font-weight:650;
     color:var(--t1);
+    display:inline-block;
+    max-width:220px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    vertical-align:middle;
 }
 .lp-badge {
     display:inline-flex;
@@ -266,6 +272,12 @@ html:not(.dark) .lp {
 .lp-section-name {
     font-size:12px;
     color:var(--t2);
+    display:inline-block;
+    max-width:220px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    vertical-align:middle;
 }
 .lp-duration {
     font-size:12.5px;
@@ -422,6 +434,12 @@ html:not(.dark) .lp {
         <div class="lp-header-text">
             <h1>Lessons</h1>
             <p>Browse and manage all lessons across every course.</p>
+            @if($courseId && $courseTitle)
+                <div style="display:inline-flex;align-items:center;gap:6px;margin-top:8px;padding:4px 10px;border-radius:999px;background:rgba(37,99,235,.1);border:1px solid rgba(37,99,235,.25);font-size:12px;font-weight:600;color:#2563eb">
+                    Filtered by course: {{ $courseTitle }}
+                    <a href="{{ route('filament.admin.pages.lessons') }}" wire:navigate style="color:inherit;text-decoration:none;font-weight:800" title="Clear filter">&times;</a>
+                </div>
+            @endif
         </div>
         <div class="lp-header-btns">
             <a href="{{ $createUrl }}" wire:navigate class="lp-btn lp-btn-primary">
@@ -481,10 +499,10 @@ html:not(.dark) .lp {
                 @php
                     $ts = $typeMap[$lesson->type] ?? ['bg' => 'rgba(148,163,184,.1)', 'color' => '#94a3b8', 'label' => ucfirst($lesson->type ?? '?')];
                 @endphp
-                <tr class="lp-row-link" onclick="Livewire.navigate('{{ $viewUrl($lesson) }}')">
+                <tr class="lp-row-link" wire:key="lesson-row-{{ $lesson->id }}" onclick="Livewire.navigate('{{ $viewUrl($lesson) }}')">
                     <td><span class="lp-id">{{ $lesson->id }}</span></td>
 
-                    <td><span class="lp-title">{{ $lesson->title }}</span></td>
+                    <td><span class="lp-title" title="{{ $lesson->title }}">{{ $lesson->title }}</span></td>
 
                     <td>
                         <span class="lp-badge" style="background:{{ $ts['bg'] }};color:{{ $ts['color'] }}">
@@ -492,11 +510,11 @@ html:not(.dark) .lp {
                         </span>
                     </td>
 
-                    <td><span class="lp-section-name">{{ $lesson->section?->title ?? '—' }}</span></td>
+                    <td><span class="lp-section-name" title="{{ $lesson->section?->title }}">{{ $lesson->section?->title ?? '—' }}</span></td>
 
                     <td>
                         <span class="lp-duration">
-                            {{ $lesson->duration ? $lesson->duration . ' min' : '—' }}
+                            {{ $lesson->duration ? round($lesson->duration / 60) . ' min' : '—' }}
                         </span>
                     </td>
 
@@ -511,20 +529,37 @@ html:not(.dark) .lp {
                         @endif
                     </td>
 
-                    <td><span class="lp-date">{{ $lesson->created_at?->format('M d, Y') }}</span></td>
+                    <td><span class="lp-date">{{ $lesson->created_at?->setTimezone(config('app.timezone'))->format('M d, Y') }}</span></td>
 
                     <td onclick="event.stopPropagation()">
                         <div class="lp-actions">
-                            <a href="{{ $viewUrl($lesson) }}" wire:navigate class="lp-act-btn" title="View">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><circle cx="12" cy="12" r="3"/>
-                                </svg>
-                            </a>
-                            <a href="{{ $editUrl($lesson) }}" wire:navigate class="lp-act-btn" title="Edit">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487z"/>
-                                </svg>
-                            </a>
+                            @if($lesson->trashed())
+                                <button type="button" class="lp-act-btn" title="Restore"
+                                    wire:click="restoreLesson({{ $lesson->id }})"
+                                    wire:confirm="Restore the &quot;{{ addslashes($lesson->title) }}&quot; lesson?">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"/>
+                                    </svg>
+                                </button>
+                                <button type="button" class="lp-act-btn" title="Delete permanently" style="color:#dc2626"
+                                    wire:click="forceDeleteLesson({{ $lesson->id }})"
+                                    wire:confirm="Permanently delete the &quot;{{ addslashes($lesson->title) }}&quot; lesson? This cannot be undone.">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/>
+                                    </svg>
+                                </button>
+                            @else
+                                <a href="{{ $viewUrl($lesson) }}" wire:navigate class="lp-act-btn" title="View">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><circle cx="12" cy="12" r="3"/>
+                                    </svg>
+                                </a>
+                                <a href="{{ $editUrl($lesson) }}" wire:navigate class="lp-act-btn" title="Edit">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487z"/>
+                                    </svg>
+                                </a>
+                            @endif
                         </div>
                     </td>
                 </tr>

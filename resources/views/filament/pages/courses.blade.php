@@ -80,7 +80,7 @@ html:not(.dark) .cp {
     animation-delay:.09s;
 }
 
-/* ── Page header ── */
+/* Page header */
 .cp-header {
     display:flex;
     align-items:center;
@@ -138,15 +138,16 @@ html:not(.dark) .cp {
     border:1px solid var(--bd2);
 }
 
-/* ── Table container ── */
+/* Table container */
 .cp-card {
     background:var(--p1);
     border:1px solid var(--bd);
     border-radius:12px;
     box-shadow:var(--sh);
+    min-width:0;
 }
 
-/* ── Tabs + search toolbar ── */
+/* Tabs + search toolbar */
 .cp-toolbar {
     display:flex;
     align-items:center;
@@ -220,9 +221,10 @@ html:not(.dark) .cp {
     color:var(--t2);
 }
 
-/* ── Table ── */
+/* Table */
 .cp-table {
     width:100%;
+    min-width:920px;
     border-collapse:collapse;
 }
 .cp-table thead tr {
@@ -259,7 +261,7 @@ html:not(.dark) .cp {
     vertical-align:middle;
 }
 
-/* ── Cells ── */
+/* Cells */
 .cp-id {
     font-size:11.5px;
     font-weight:700;
@@ -284,6 +286,9 @@ html:not(.dark) .cp {
     color:var(--t1);
     line-height:1.3;
     max-width:260px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
 }
 .cp-course-sub {
     font-size:11px;
@@ -343,6 +348,9 @@ html:not(.dark) .cp {
     color:var(--t1);
     white-space:nowrap;
 }
+.cp-price-free {
+    color:#34d399;
+}
 .cp-students {
     text-align:center;
 }
@@ -376,7 +384,7 @@ html:not(.dark) .cp {
     white-space:nowrap;
 }
 
-/* ── Action buttons ── */
+/* Action buttons */
 .cp-actions {
     display:flex;
     align-items:center;
@@ -474,7 +482,7 @@ html:not(.dark) .cp {
     flex-shrink:0;
 }
 
-/* ── Empty state ── */
+/* Empty state */
 .cp-empty {
     display:flex;
     flex-direction:column;
@@ -493,7 +501,7 @@ html:not(.dark) .cp {
     font-size:13px;
 }
 
-/* ── Pagination ── */
+/* Pagination */
 .cp-footer {
     display:flex;
     align-items:center;
@@ -566,7 +574,7 @@ html:not(.dark) .cp {
     outline:none;
 }
 
-/* ── Reject modal ── */
+/* Reject modal */
 .cp-modal-overlay {
     display:none;
     position:fixed;
@@ -617,7 +625,7 @@ html:not(.dark) .cp {
     margin-top:14px;
 }
 
-/* ── View toggle ── */
+/* View toggle */
 .cp-view-toggle {
     display:flex;
     align-items:center;
@@ -650,7 +658,7 @@ html:not(.dark) .cp {
     height:15px;
 }
 
-/* ── Card grid ── */
+/* Card grid */
 .cp-grid {
     display:grid;
     grid-template-columns:repeat(5, 1fr);
@@ -841,7 +849,7 @@ html:not(.dark) .cp {
     background:rgba(248,113,113,.2);
 }
 
-/* ── Mobile responsive ── */
+/* Mobile responsive */
 @media (max-width: 640px) {
     .cp-header {
         flex-direction:column;
@@ -903,7 +911,7 @@ html:not(.dark) .cp {
 </style>
 <div class="cp" id="cp-root">
 
-    {{-- ── Header ── --}}
+    {{-- Header --}}
     <div class="cp-header cpa cp1">
         <div class="cp-header-text">
             <h1>Courses</h1>
@@ -933,7 +941,7 @@ html:not(.dark) .cp {
         </div>
     </div>
 
-    {{-- ── Table card ── --}}
+    {{-- Table card --}}
     <div class="cp-card cpa cp2">
 
         {{-- Toolbar: tabs + search --}}
@@ -970,6 +978,7 @@ html:not(.dark) .cp {
 
         {{-- Table view --}}
         <div x-show="view==='table'">
+        <div style="overflow-x:auto">
         <table class="cp-table">
             <thead>
                 <tr>
@@ -991,7 +1000,7 @@ html:not(.dark) .cp {
                     $bgHex = substr(md5($course->instructor?->name ?? ''), 0, 6);
                     $avUrl = 'https://ui-avatars.com/api/?name=' . urlencode($course->instructor?->name ?? '?') . '&background=' . $bgHex . '&color=fff&bold=true&size=64';
                 @endphp
-                <tr class="cp-row-link" onclick="Livewire.navigate('{{ $viewUrl($course) }}')">
+                <tr class="cp-row-link" wire:key="course-row-{{ $course->id }}" onclick="Livewire.navigate('{{ $viewUrl($course) }}')">
 
                     <td><span class="cp-id">{{ $course->id }}</span></td>
 
@@ -1007,7 +1016,7 @@ html:not(.dark) .cp {
                                 </div>
                             @endif
                             <div>
-                                <div class="cp-course-title">{{ $course->title }}</div>
+                                <div class="cp-course-title" title="{{ $course->title }}">{{ $course->title }}</div>
                                 @if($course->short_description)
                                     <div class="cp-course-sub">{{ Str::limit($course->short_description, 45) }}</div>
                                 @endif
@@ -1032,7 +1041,13 @@ html:not(.dark) .cp {
                         @endif
                     </td>
 
-                    <td><span class="cp-price">${{ number_format($course->price, 2) }}</span></td>
+                    <td>
+                        @if($course->price > 0)
+                            <span class="cp-price">${{ number_format($course->price, 2) }}</span>
+                        @else
+                            <span class="cp-price cp-price-free">Free</span>
+                        @endif
+                    </td>
 
                     <td>
                         <span class="cp-status-badge" style="background:{{ $ss['bg'] }};color:{{ $ss['color'] }}">
@@ -1052,7 +1067,7 @@ html:not(.dark) .cp {
 
                     <td onclick="event.stopPropagation()">
                         <div class="cp-actions">
-                            @if($course->isPendingReview())
+                            @if(!$course->trashed() && $course->isPendingReview())
                                 <button type="button" wire:click="approveCourse({{ $course->id }})" class="cp-act-btn cp-act-btn-success" title="Approve">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg>
                                 </button>
@@ -1068,35 +1083,55 @@ html:not(.dark) .cp {
                                     </svg>
                                 </button>
                                 <div class="cp-act-menu">
-                                    <a href="{{ $viewUrl($course) }}" wire:navigate class="cp-act-menu-item">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7Z"/></svg>
-                                        View
-                                    </a>
-                                    @unless($course->isPendingReview())
-                                    <a href="{{ $editUrl($course) }}" wire:navigate class="cp-act-menu-item">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487z"/></svg>
-                                        Edit
-                                    </a>
-                                    @endunless
-                                    @if($course->isPublished())
-                                        <button type="button" wire:click="archiveCourse({{ $course->id }})" class="cp-act-menu-item">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5M10 11.25h4"/></svg>
-                                            Archive
-                                        </button>
-                                    @endif
-                                    @if(!$course->isDraft())
-                                        <button type="button" wire:click="returnToDraft({{ $course->id }})" class="cp-act-menu-item">
+                                    @if($course->trashed())
+                                        <a href="{{ $viewUrl($course) }}" wire:navigate class="cp-act-menu-item">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7Z"/></svg>
+                                            View
+                                        </a>
+                                        <button type="button"
+                                            wire:click="restoreCourse({{ $course->id }})"
+                                            wire:confirm="Restore &quot;{{ $course->title }}&quot;?"
+                                            class="cp-act-menu-item">
                                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"/></svg>
-                                            Return to Draft
+                                            Restore
+                                        </button>
+                                    @else
+                                        <a href="{{ $viewUrl($course) }}" wire:navigate class="cp-act-menu-item">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7Z"/></svg>
+                                            View
+                                        </a>
+                                        @unless($course->isPendingReview())
+                                        <a href="{{ $editUrl($course) }}" wire:navigate class="cp-act-menu-item">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487z"/></svg>
+                                            Edit
+                                        </a>
+                                        @endunless
+                                        @if($course->isPublished())
+                                            <button type="button" wire:click="archiveCourse({{ $course->id }})" class="cp-act-menu-item">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5M10 11.25h4"/></svg>
+                                                Archive
+                                            </button>
+                                        @endif
+                                        @if($course->isArchived())
+                                            <button type="button" wire:click="unarchiveCourse({{ $course->id }})" class="cp-act-menu-item">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"/></svg>
+                                                Restore to Published
+                                            </button>
+                                        @endif
+                                        @if(!$course->isDraft())
+                                            <button type="button" wire:click="returnToDraft({{ $course->id }})" class="cp-act-menu-item">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"/></svg>
+                                                Return to Draft
+                                            </button>
+                                        @endif
+                                        <button type="button"
+                                            wire:click="deleteCourse({{ $course->id }})"
+                                            wire:confirm="Delete &quot;{{ $course->title }}&quot;? This will soft-delete the course."
+                                            class="cp-act-menu-item danger">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/></svg>
+                                            Delete
                                         </button>
                                     @endif
-                                    <button type="button"
-                                        wire:click="deleteCourse({{ $course->id }})"
-                                        wire:confirm="Delete &quot;{{ $course->title }}&quot;? This will soft-delete the course."
-                                        class="cp-act-menu-item danger">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/></svg>
-                                        Delete
-                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -1116,6 +1151,7 @@ html:not(.dark) .cp {
                 @endforelse
             </tbody>
         </table>
+        </div>
         </div>{{-- end table view --}}
 
         {{-- Card / grid view --}}
@@ -1136,7 +1172,7 @@ html:not(.dark) .cp {
                 $bgHex = substr(md5($course->instructor?->name ?? ''), 0, 6);
                 $avUrl = 'https://ui-avatars.com/api/?name=' . urlencode($course->instructor?->name ?? '?') . '&background=' . $bgHex . '&color=fff&bold=true&size=64';
             @endphp
-            <div class="cp-course-card" onclick="Livewire.navigate('{{ $viewUrl($course) }}')">
+            <div class="cp-course-card" wire:key="course-card-{{ $course->id }}" onclick="Livewire.navigate('{{ $viewUrl($course) }}')">
 
                 {{-- Thumbnail --}}
                 <div class="cp-card-thumb">
@@ -1183,7 +1219,7 @@ html:not(.dark) .cp {
                         </div>
                     </div>
                     <div class="cp-card-actions">
-                        @if($course->isPendingReview())
+                        @if(!$course->trashed() && $course->isPendingReview())
                             <button type="button" wire:click="approveCourse({{ $course->id }})" class="cp-card-act cp-card-act-success" title="Approve" onclick="event.stopPropagation()">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg>
                             </button>
@@ -1194,11 +1230,15 @@ html:not(.dark) .cp {
                         <a href="{{ $viewUrl($course) }}" wire:navigate class="cp-card-act" title="View" onclick="event.stopPropagation()">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7Z"/></svg>
                         </a>
-                        @unless($course->isPendingReview())
+                        @if($course->trashed())
+                        <button type="button" wire:click="restoreCourse({{ $course->id }})" wire:confirm="Restore &quot;{{ $course->title }}&quot;?" class="cp-card-act" title="Restore" onclick="event.stopPropagation()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"/></svg>
+                        </button>
+                        @elseif(!$course->isPendingReview())
                         <a href="{{ $editUrl($course) }}" wire:navigate class="cp-card-act" title="Edit" onclick="event.stopPropagation()">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487z"/></svg>
                         </a>
-                        @endunless
+                        @endif
                     </div>
                 </div>
             </div>

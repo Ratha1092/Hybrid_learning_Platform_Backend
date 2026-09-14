@@ -80,4 +80,14 @@ class CategoryResource extends Resource
     {
         return PanelAccess::can('categories.view');
     }
+
+    /**
+     * Deleting a category cascades at the DB level and permanently removes every course
+     * filed under it — so this stays super-admin-only, and only once it's empty.
+     */
+    public static function canDelete($record): bool
+    {
+        return PanelAccess::isSuperAdmin()
+            && $record->courses()->count() === 0;
+    }
 }

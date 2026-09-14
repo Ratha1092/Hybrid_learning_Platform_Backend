@@ -8,6 +8,7 @@ use App\Domains\Courses\Models\Section;
 use App\Domains\System\Models\Setting;
 use App\Support\ApiResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 
 class InstructorLessonController extends Controller
@@ -27,6 +28,7 @@ class InstructorLessonController extends Controller
         }
 
         $lessons = Lesson::where('section_id', $sectionId)
+            ->withCount('videos')
             ->orderBy('order')
             ->get();
 
@@ -47,6 +49,10 @@ class InstructorLessonController extends Controller
             return ApiResponse::error('Unauthorized', 403);
         }
 
+        if ($section->course->isPendingReview()) {
+            return ApiResponse::error('This course is pending review and cannot be edited until it is approved or rejected.', 422);
+        }
+
         $maxLessons = (int) Setting::get('max_lessons_per_course', 200);
         if ($maxLessons > 0 && $section->course->lessons()->count() >= $maxLessons) {
             return ApiResponse::error("This course has reached the maximum of {$maxLessons} lessons.", 422);
@@ -54,17 +60,30 @@ class InstructorLessonController extends Controller
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'type' => 'required|in:video,article,quiz',
+            'type' => 'required|in:video,article',
+            'description' => 'nullable|string|max:1000',
             'video_url' => 'nullable|url',
             'content' => 'nullable|string',
             'duration' => 'nullable|integer|min:0',
             'is_preview' => 'nullable|boolean',
+            'objectives' => 'sometimes|array',
+            'objectives.*.objective' => 'required|string|max:500',
+            'objectives.*.order' => 'nullable|integer|min:0',
+            'takeaways' => 'sometimes|array',
+            'takeaways.*.takeaway' => 'required|string|max:500',
+            'takeaways.*.order' => 'nullable|integer|min:0',
+            'completion_rule' => 'sometimes|nullable|array',
+            'completion_rule.watch_video' => 'boolean',
+            'completion_rule.read_content' => 'boolean',
+            'completion_rule.pass_quiz' => 'boolean',
+            'completion_rule.submit_assignment' => 'boolean',
         ]);
 
         $lesson = Lesson::create([
             'section_id' => $sectionId,
             'title' => $validated['title'],
             'type' => $validated['type'],
+            'description' => $validated['description'] ?? null,
             'content' => $validated['content'] ?? null,
             'video_url' => $validated['video_url'] ?? null,
             'duration' => $validated['duration'] ?? null,
@@ -72,7 +91,9 @@ class InstructorLessonController extends Controller
             'order' => Lesson::where('section_id', $sectionId)->count() + 1,
         ]);
 
-        return ApiResponse::success($lesson, 'Lesson created successfully', 201);
+        $this->syncOutline($lesson, $validated);
+
+        return ApiResponse::success($lesson->load(['objectives', 'takeaways', 'completionRule']), 'Lesson created successfully', 201);
     }
 
     public function update(Request $request, $courseId, $sectionId, $lessonId)
@@ -90,19 +111,68 @@ class InstructorLessonController extends Controller
             return ApiResponse::error('Unauthorized', 403);
         }
 
+        if ($lesson->section->course->isPendingReview()) {
+            return ApiResponse::error('This course is pending review and cannot be edited until it is approved or rejected.', 422);
+        }
+
         $validated = $request->validate([
             'title' => 'nullable|string|max:255',
-            'type' => 'nullable|in:video,article,quiz',
+            'type' => 'nullable|in:video,article',
+            'description' => 'nullable|string|max:1000',
             'video_url' => 'nullable|url',
             'content' => 'nullable|string',
             'duration' => 'nullable|integer|min:0',
             'is_preview' => 'nullable|boolean',
-           
+            'objectives' => 'sometimes|array',
+            'objectives.*.objective' => 'required|string|max:500',
+            'objectives.*.order' => 'nullable|integer|min:0',
+            'takeaways' => 'sometimes|array',
+            'takeaways.*.takeaway' => 'required|string|max:500',
+            'takeaways.*.order' => 'nullable|integer|min:0',
+            'completion_rule' => 'sometimes|nullable|array',
+            'completion_rule.watch_video' => 'boolean',
+            'completion_rule.read_content' => 'boolean',
+            'completion_rule.pass_quiz' => 'boolean',
+            'completion_rule.submit_assignment' => 'boolean',
         ]);
 
-        $lesson->update($validated);
+        $lesson->update(collect($validated)->except(['objectives', 'takeaways', 'completion_rule'])->all());
+        $this->syncOutline($lesson, $validated);
 
-        return ApiResponse::success($lesson, 'Lesson updated successfully');
+        return ApiResponse::success($lesson->load(['objectives', 'takeaways', 'completionRule']), 'Lesson updated successfully');
+    }
+
+    private function syncOutline(Lesson $lesson, array $validated): void
+    {
+        if (array_key_exists('objectives', $validated)) {
+            $lesson->objectives()->delete();
+            foreach ($validated['objectives'] ?? [] as $index => $objective) {
+                $lesson->objectives()->create([
+                    'objective' => trim($objective['objective']),
+                    'order' => $objective['order'] ?? $index,
+                ]);
+            }
+        }
+
+        if (array_key_exists('takeaways', $validated)) {
+            $lesson->takeaways()->delete();
+            foreach ($validated['takeaways'] ?? [] as $index => $takeaway) {
+                $lesson->takeaways()->create([
+                    'takeaway' => trim($takeaway['takeaway']),
+                    'order' => $takeaway['order'] ?? $index,
+                ]);
+            }
+        }
+
+        if (array_key_exists('completion_rule', $validated)) {
+            if ($validated['completion_rule'] === null) {
+                $lesson->completionRule()->delete();
+            } else {
+                $lesson->completionRule()->updateOrCreate([], $validated['completion_rule']);
+            }
+        }
+
+        Cache::forget("courses.v2.slug.{$lesson->section?->course?->slug}");
     }
 
     public function uploadVideo(Request $request, $courseId, $sectionId, $lessonId)
@@ -118,6 +188,10 @@ class InstructorLessonController extends Controller
 
         if ($lesson->section->course->instructor_id !== auth()->id()) {
             return ApiResponse::error('Unauthorized', 403);
+        }
+
+        if ($lesson->section->course->isPendingReview()) {
+            return ApiResponse::error('This course is pending review and cannot be edited until it is approved or rejected.', 422);
         }
 
         $allowedFormats = Setting::get('allowed_video_formats', 'mp4,mov,avi,webm');
@@ -159,6 +233,14 @@ class InstructorLessonController extends Controller
 
         if ($lesson->section->course->instructor_id !== auth()->id()) {
             return ApiResponse::error('Unauthorized', 403);
+        }
+
+        if ($lesson->section->course->isPendingReview()) {
+            return ApiResponse::error('This course is pending review and cannot be edited until it is approved or rejected.', 422);
+        }
+
+        if ($lesson->section->course->isPublished()) {
+            return ApiResponse::error('This course is public, so its content can\'t be deleted.', 422);
         }
 
         $lesson->delete();

@@ -10,13 +10,11 @@
     $isSystem = in_array($role->name, $protectedRoles, true);
 
     $roleColor = match ($role->name) {
-        'super-admin'     => '#dc2626',
-        'admin'           => '#a855f7',
-        'finance-manager', 'accountant' => '#0d9488',
-        'content-manager', 'moderator'  => '#d97706',
-        'support-staff', 'instructor'   => '#3b82f6',
-        'student'         => '#10b981',
-        default           => '#6366f1',
+        'super-admin' => '#dc2626',
+        'finance'     => '#0d9488',
+        'instructor'  => '#3b82f6',
+        'student'     => '#10b981',
+        default       => '#6366f1',
     };
 
     $totalPermissions = $grouped->flatten()->count();

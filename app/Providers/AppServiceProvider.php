@@ -2,21 +2,25 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\RateLimiter;
-use Illuminate\Cache\RateLimiting\Limit;
-use Illuminate\Database\Eloquent\Relations\Relation;
-use Illuminate\Http\Request;
 use App\Domains\Courses\Models\Course;
 use App\Domains\Courses\Models\Lesson;
 use App\Domains\Courses\Models\Section;
 use App\Domains\Courses\Observers\CourseObserver;
+use App\Domains\Courses\Observers\LessonObserver;
 use App\Domains\Courses\Observers\SectionObserver;
 use App\Domains\Learning\Models\Review;
+use App\Domains\Payments\Services\BakongConfig;
+use App\Domains\System\Models\Setting;
 use App\Policies\CoursePolicy;
 use App\Policies\LessonPolicy;
-use App\Domains\Payments\Services\BakongConfig;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\View;
+use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -40,8 +44,18 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Behind Railway's proxy, request-based scheme detection (trustProxies)
+        // isn't reliable this early in the boot cycle — some URLs (e.g. the
+        // Filament panel favicon, built during provider boot) get generated
+        // before the TrustProxies middleware has run. Force https explicitly
+        // instead of relying on per-request detection timing.
+        if (app()->environment('production')) {
+            URL::forceScheme('https');
+        }
+
         Course::observe(CourseObserver::class);
         Section::observe(SectionObserver::class);
+        Lesson::observe(LessonObserver::class);
 
         Relation::morphMap([
             'course' => Course::class,
@@ -49,6 +63,26 @@ class AppServiceProvider extends ServiceProvider
         ]);
 
         Gate::before(fn ($user) => $user->hasRole('super-admin') ? true : null);
+
+        config(['app.name' => Setting::get('site_name', config('app.name'))]);
+        config(['app.locale' => Setting::get('default_language', config('app.locale'))]);
+        config(['app.timezone' => Setting::get('default_timezone', config('app.timezone'))]);
+        app()->setLocale(config('app.locale'));
+        date_default_timezone_set(config('app.timezone'));
+
+        View::share([
+            'siteName' => Setting::get('site_name', config('app.name')),
+            'siteLogo' => Setting::get('site_logo', ''),
+            'siteFavicon' => Setting::get('site_favicon', ''),
+            'siteDescription' => Setting::get('site_description', ''),
+            'supportEmail' => Setting::get('support_email', ''),
+            'supportPhone' => Setting::get('support_phone', ''),
+            'contactAddress' => Setting::get('contact_address', ''),
+            'footerText' => Setting::get('footer_text', "© " . now()->year . " " . Setting::get('site_name', config('app.name')) . ". All rights reserved."),
+            'hoursWeekday' => Setting::get('hours_weekday', ''),
+            'hoursSaturday' => Setting::get('hours_saturday', ''),
+            'hoursSunday' => Setting::get('hours_sunday', ''),
+        ]);
 
         Gate::policy(
             Course::class,
@@ -73,6 +107,12 @@ class AppServiceProvider extends ServiceProvider
                     ?: $request->ip()
             );
         });
+
+        config(['app.locale' => Setting::get('default_language', config('app.locale'))]);
+        app()->setLocale(config('app.locale'));
+
+        config(['app.timezone' => Setting::get('default_timezone', config('app.timezone'))]);
+        date_default_timezone_set(config('app.timezone'));
 
         // Authentication APIs
         RateLimiter::for('auth', function (Request $request) {
@@ -107,6 +147,14 @@ class AppServiceProvider extends ServiceProvider
             );
         });
 
+        // Site-wide Community APIs
+        RateLimiter::for('community', function (Request $request) {
+            return Limit::perMinute(60)->by(
+                $request->user()?->id
+                    ?: $request->ip()
+            );
+        });
+
         // Search APIs
         RateLimiter::for('search', function (Request $request) {
             return Limit::perMinute(30)->by(
@@ -131,5 +179,10 @@ class AppServiceProvider extends ServiceProvider
 
         // email rate limit for Resend API
         RateLimiter::for('resend-emails', fn () => Limit::perMinute(20));
+
+        // Public contact form — unauthenticated, so keyed by IP only.
+        RateLimiter::for('contact', function (Request $request) {
+            return Limit::perMinute(5)->by($request->ip());
+        });
     }
 }

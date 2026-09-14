@@ -197,6 +197,16 @@ html:not(.dark) .cv {
     gap:24px;
     align-items:start;
 }
+.cv-info-grid {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:0;
+}
+@media (max-width: 640px) {
+    .cv-info-grid {
+        grid-template-columns:1fr;
+    }
+}
 @media (max-width: 768px) {
     .cv-hero {
         grid-template-columns:1fr;
@@ -273,6 +283,9 @@ html:not(.dark) .cv {
     font-size:22px;
     font-weight:800;
     color:var(--t1);
+}
+.cv-price-free {
+    color:#34d399;
 }
 .cv-meta-row {
     display:flex;
@@ -403,6 +416,8 @@ html:not(.dark) .cv {
 }
 
 /* Reject modal */
+/* x-teleport moves this to <body>, outside .cv's DOM subtree, so it can no
+   longer inherit .cv's custom properties — redeclare them here directly. */
 .cv-modal-overlay {
     display:none;
     position:fixed;
@@ -411,6 +426,19 @@ html:not(.dark) .cv {
     z-index:9998;
     align-items:center;
     justify-content:center;
+    --p1:#1e293b;
+    --p2:#263245;
+    --bd2:rgba(255,255,255,.13);
+    --t1:#e2e8f0;
+    --t2:#64748b;
+    --accent:#7c3aed;
+}
+html:not(.dark) .cv-modal-overlay {
+    --p1:#ffffff;
+    --p2:#f8fafc;
+    --bd2:rgba(15,23,42,.14);
+    --t1:#0f172a;
+    --t2:#64748b;
 }
 .cv-modal-overlay.open {
     display:flex;
@@ -487,6 +515,13 @@ html:not(.dark) .cv {
                 <span wire:loading wire:target="archiveCourse">Archiving…</span>
             </button>
             @endif
+            @if($course->isArchived())
+            <button type="button" wire:click="unarchiveCourse" wire:loading.attr="disabled" class="cv-btn cv-btn-success">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"/></svg>
+                <span wire:loading.remove wire:target="unarchiveCourse">Restore to Published</span>
+                <span wire:loading wire:target="unarchiveCourse">Restoring…</span>
+            </button>
+            @endif
             @unless($course->isPendingReview())
             <a href="{{ $editUrl }}" wire:navigate class="cv-btn cv-btn-primary">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487z"/></svg>
@@ -530,7 +565,11 @@ html:not(.dark) .cv {
                         <span class="cv-badge" style="background:rgba(148,163,184,.1);color:#94a3b8">{{ ucfirst($course->visibility) }}</span>
                         @endif
                     </div>
-                    <div class="cv-price">${{ number_format((float)$course->price, 2) }}</div>
+                    @if($course->price > 0)
+                        <div class="cv-price">${{ number_format((float) $course->price, 2) }}</div>
+                    @else
+                        <div class="cv-price cv-price-free">Free</div>
+                    @endif
                     <div class="cv-meta-row">
                         @if($course->instructor)
                         <div class="cv-meta-item">
@@ -552,7 +591,7 @@ html:not(.dark) .cv {
                         @endif
                         <div class="cv-meta-item">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/></svg>
-                            {{ $course->created_at?->format('M d, Y') }}
+                            {{ $course->created_at?->setTimezone(config('app.timezone'))->format('M d, Y') }}
                         </div>
                     </div>
                 </div>
@@ -617,7 +656,7 @@ html:not(.dark) .cv {
                     </div>
                     <span class="cv-card-title">Instructor</span>
                 </div>
-                <div class="cv-card-body" style="display:grid;grid-template-columns:1fr 1fr;gap:0">
+                <div class="cv-card-body cv-info-grid">
                     <div class="cv-field">
                         <div class="cv-field-label">Name</div>
                         <div class="cv-field-value">{{ $course->instructor?->name ?? '—' }}</div>
@@ -630,16 +669,6 @@ html:not(.dark) .cv {
                         <div class="cv-field-label">Commission</div>
                         <div class="cv-field-value">{{ $course->commission_percentage }}%</div>
                     </div>
-                    <div class="cv-field">
-                        <div class="cv-field-label">Certificate</div>
-                        <div class="cv-field-value">{{ $course->certificate_enabled ? 'Enabled' : 'Disabled' }}</div>
-                    </div>
-                    @if($course->preview_video_url)
-                    <div class="cv-field cv-field-full">
-                        <div class="cv-field-label">Preview Video</div>
-                        <div class="cv-field-value"><a href="{{ $course->preview_video_url }}" target="_blank" style="color:var(--accent)">{{ $course->preview_video_url }}</a></div>
-                    </div>
-                    @endif
                 </div>
             </div>
 
@@ -651,22 +680,22 @@ html:not(.dark) .cv {
                     </div>
                     <span class="cv-card-title">Approval</span>
                 </div>
-                <div class="cv-card-body" style="display:grid;grid-template-columns:1fr 1fr;gap:0">
+                <div class="cv-card-body cv-info-grid">
                     <div class="cv-field">
                         <div class="cv-field-label">Approved By</div>
                         <div class="cv-field-value {{ !$course->approvedBy ? 'muted' : '' }}">{{ $course->approvedBy?->name ?? 'Not approved' }}</div>
                     </div>
                     <div class="cv-field">
                         <div class="cv-field-label">Approved At</div>
-                        <div class="cv-field-value {{ !$course->approved_at ? 'muted' : '' }}">{{ $course->approved_at?->format('M d, Y H:i') ?? 'Not approved' }}</div>
+                        <div class="cv-field-value {{ !$course->approved_at ? 'muted' : '' }}">{{ $course->approved_at?->setTimezone(config('app.timezone'))->format('M d, Y H:i') ?? 'Not approved' }}</div>
                     </div>
                     <div class="cv-field">
                         <div class="cv-field-label">Created</div>
-                        <div class="cv-field-value">{{ $course->created_at?->format('M d, Y H:i') }}</div>
+                        <div class="cv-field-value">{{ $course->created_at?->setTimezone(config('app.timezone'))->format('M d, Y H:i') }}</div>
                     </div>
                     <div class="cv-field">
                         <div class="cv-field-label">Updated</div>
-                        <div class="cv-field-value">{{ $course->updated_at?->format('M d, Y H:i') }}</div>
+                        <div class="cv-field-value">{{ $course->updated_at?->setTimezone(config('app.timezone'))->format('M d, Y H:i') }}</div>
                     </div>
                     @if($course->isRejected() && $course->rejection_reason)
                     <div class="cv-field cv-field-full" style="grid-column:1/-1;border-bottom:none">
@@ -681,9 +710,12 @@ html:not(.dark) .cv {
     </div>
 
     {{-- Reject modal (teleported to <body> so it centers on the real viewport,
-         not inside any transformed page wrapper) --}}
+         not inside any transformed page wrapper). wire:ignore: without it, a
+         wire:click-triggered re-render elsewhere on the page makes Livewire's
+         DOM morph try to reconcile this block at its original position, which
+         conflicts with Alpine's already-teleported copy. --}}
     @if($course->isPendingReview())
-    <template x-teleport="body">
+    <template x-teleport="body" wire:ignore>
     <div class="cv-modal-overlay" id="cv-reject-modal" onclick="if(event.target===this)this.classList.remove('open')">
         <div class="cv-modal">
             <h3>Reject Course</h3>

@@ -4,6 +4,7 @@ namespace App\Domains\Notifications\Notifications;
 
 use App\Domains\Notifications\Concerns\BroadcastsAsNotification;
 use App\Domains\Notifications\Enums\NotificationType;
+use App\Filament\Resources\InstructorVerifications\InstructorVerificationResource;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification as BaseNotification;
@@ -25,18 +26,20 @@ class NewInstructorVerificationNotification extends BaseNotification
 
     public function toBroadcast(object $notifiable): BroadcastMessage
     {
+        $url = InstructorVerificationResource::getUrl('view', ['record' => $this->verificationId]);
+
         return new BroadcastMessage([
             'title'       => 'New Instructor Verification',
             'message'     => "{$this->userName} submitted a verification request.",
             'type'        => NotificationType::INSTRUCTOR_VERIFICATION->value,
-            'link'        => "/admin/instructor-verifications/{$this->verificationId}",
+            'link'        => $url,
             'action_text' => 'Review Application',
         ]);
     }
 
     public function toDatabase(object $notifiable): array
     {
-        $url = "/admin/instructor-verifications/{$this->verificationId}";
+        $url = InstructorVerificationResource::getUrl('view', ['record' => $this->verificationId]);
 
         return [
             'title'    => 'New Instructor Verification',

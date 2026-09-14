@@ -98,6 +98,7 @@ html:not(.dark) .lp {
     border-radius:12px;
     overflow:hidden;
     box-shadow:var(--sh);
+    min-width:0;
 }
 
 .lp-toolbar {
@@ -432,7 +433,7 @@ html:not(.dark) .lp {
                     $bgHex  = substr(md5($instructor->name ?? ''), 0, 6);
                     $avUrl  = 'https://ui-avatars.com/api/?name=' . urlencode($instructor->name ?? '?') . '&background=' . $bgHex . '&color=fff&bold=true&size=64';
                 @endphp
-                <tr class="lp-row-link" onclick="Livewire.navigate('{{ $viewUrl($instructor) }}')">
+                <tr class="lp-row-link" wire:key="instructor-row-{{ $instructor->id }}" onclick="Livewire.navigate('{{ $viewUrl($instructor) }}')">
                     <td><span class="lp-id">{{ $instructor->id }}</span></td>
 
                     <td>
@@ -460,7 +461,7 @@ html:not(.dark) .lp {
                         </span>
                     </td>
 
-                    <td><span class="lp-date">{{ $instructor->created_at?->format('M d, Y') }}</span></td>
+                    <td><span class="lp-date">{{ $instructor->created_at?->setTimezone(config('app.timezone'))->format('M d, Y') }}</span></td>
                 </tr>
                 @empty
                 <tr>

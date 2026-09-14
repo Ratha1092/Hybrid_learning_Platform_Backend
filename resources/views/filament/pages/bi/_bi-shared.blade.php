@@ -266,7 +266,7 @@ html:not(.dark) .bi {
     background:var(--p1);
     border:1px solid var(--bd);
     border-radius:12px;
-    overflow:hidden;
+    overflow-x:auto;
 }
 
 .bi-table-card h3 {
@@ -406,6 +406,20 @@ html:not(.dark) .bi {
 
 .rp-drp-panel.open {
     display:block;
+}
+
+@media (max-width: 640px) {
+    .rp-drp-panel {
+        position:fixed;
+        left:1rem;
+        right:1rem;
+        top:auto;
+        bottom:1rem;
+        width:auto;
+        min-width:0;
+        max-height:70vh;
+        overflow-y:auto;
+    }
 }
 
 .rp-drp-presets {

@@ -90,6 +90,7 @@ html:not(.dark) .sh {
     border:1px solid var(--bd);
     border-radius:14px;
     padding:20px;
+    min-width:0;
 }
 .sh-card-header {
     display:flex;
@@ -238,7 +239,7 @@ html:not(.dark) .sh {
     <div class="sh-header">
         <div>
             <h1>System Health</h1>
-            <p>Live platform status — queue, database, cache, storage and logs. Updated on page load.</p>
+            <p>Live platform status — queue, database, cache and logs. Updated on page load.</p>
         </div>
         <div style="display:flex;gap:8px">
             <a href="{{ url()->current() }}" class="sh-btn">Refresh</a>
@@ -310,26 +311,6 @@ html:not(.dark) .sh {
             </div>
         </div>
 
-        {{-- Storage card --}}
-        <div class="sh-card">
-            <div class="sh-card-header">
-                <span class="sh-card-title">Storage</span>
-                <div class="sh-status-dot" style="background:{{ $storage['used_pct'] > 85 ? '#f87171' : ($storage['used_pct'] > 70 ? '#f59e0b' : '#10b981') }}"></div>
-            </div>
-            <div class="sh-stat">
-                <span class="sh-stat-label">Free Space</span>
-                <span class="sh-stat-value">{{ $storage['free_gb'] }} GB</span>
-            </div>
-            <div class="sh-stat">
-                <span class="sh-stat-label">Total Space</span>
-                <span class="sh-stat-value">{{ $storage['total_gb'] }} GB</span>
-            </div>
-            <div class="sh-progress-bar">
-                <div class="sh-progress-fill" style="width:{{ $storage['used_pct'] }}%;background:{{ $storage['used_pct'] > 85 ? '#f87171' : ($storage['used_pct'] > 70 ? '#f59e0b' : '#10b981') }}"></div>
-            </div>
-            <div style="font-size:11px;color:var(--t2);margin-top:6px">{{ $storage['used_pct'] }}% used</div>
-        </div>
-
         {{-- Logs card --}}
         <div class="sh-card">
             <div class="sh-card-header">
@@ -360,6 +341,7 @@ html:not(.dark) .sh {
         @if(count($failedJobs) === 0)
             <div class="sh-empty">No failed jobs — queue is clean.</div>
         @else
+            <div style="overflow-x:auto">
             <table class="sh-table">
                 <thead>
                     <tr><th>Job</th><th>Queue</th><th>Failed At</th><th>Exception</th></tr>
@@ -390,6 +372,7 @@ html:not(.dark) .sh {
                     @endforeach
                 </tbody>
             </table>
+            </div>
         @endif
     </div>
 

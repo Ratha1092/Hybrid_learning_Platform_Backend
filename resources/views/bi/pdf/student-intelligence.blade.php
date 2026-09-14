@@ -15,14 +15,13 @@
         <td class="kpi-cell"><div class="kpi-label">Completion Rate</div><div class="kpi-value">{{ $kpis['completionRate'] }}%</div></td>
     </tr>
     <tr>
-        <td class="kpi-cell"><div class="kpi-label">Certificates Earned</div><div class="kpi-value">{{ number_format($kpis['certificates']) }}</div></td>
         <td class="kpi-cell"><div class="kpi-label">Avg Learning Hours</div><div class="kpi-value">{{ $kpis['avgLearningHours'] }}h</div></td>
         <td class="kpi-cell"><div class="kpi-label">Dropout Rate</div><div class="kpi-value">{{ $kpis['dropoutRate'] }}%</div></td>
         <td class="kpi-cell"><div class="kpi-label">Returning Students</div><div class="kpi-value">{{ number_format($kpis['returningStudents']) }}</div></td>
     </tr>
 </table>
 
-@php $growthMax = max(1, ...$growthValues); @endphp
+@php $growthMax = empty($growthValues) ? 1 : max(1, ...$growthValues); @endphp
 <table class="charts-row">
     <tr>
         <td class="chart-card full">

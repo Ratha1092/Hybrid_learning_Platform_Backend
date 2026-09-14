@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 
 class Lesson extends Model
@@ -18,10 +19,7 @@ class Lesson extends Model
 
     public const TYPE_VIDEO = 'video';
     public const TYPE_ARTICLE = 'article';
-    public const TYPE_QUIZ = 'quiz';
     public const TYPE_FILE = 'file';
-    public const TYPE_LIVE = 'live';
-    public const TYPE_ASSIGNMENT = 'assignment';
 
     protected $fillable = [
         'section_id',
@@ -34,7 +32,6 @@ class Lesson extends Model
         'video_provider',
         'attachment',
         'attachment_name',
-        'quiz_data',
         'duration',
         'is_preview',
         'order',
@@ -42,7 +39,6 @@ class Lesson extends Model
     ];
 
     protected $casts = [
-        'quiz_data' => 'array',
         'is_preview' => 'boolean',
     ];
 
@@ -79,6 +75,46 @@ class Lesson extends Model
             LessonProgress::class
         );
     }
+
+    public function attachments(): HasMany
+    {
+        return $this->hasMany(LessonAttachment::class);
+    }
+
+    public function videos(): HasMany
+    {
+        return $this->hasMany(LessonVideo::class)->orderBy('order');
+    }
+
+    public function objectives(): HasMany
+    {
+        return $this->hasMany(LessonObjective::class)->orderBy('order');
+    }
+
+    public function contentBlocks(): HasMany
+    {
+        return $this->hasMany(LessonContentBlock::class)->orderBy('order');
+    }
+
+    public function takeaways(): HasMany
+    {
+        return $this->hasMany(LessonTakeaway::class)->orderBy('order');
+    }
+
+    public function assessments(): HasMany
+    {
+        return $this->hasMany(LessonAssessment::class);
+    }
+
+    public function assignments(): HasMany
+    {
+        return $this->hasMany(LessonAssignment::class);
+    }
+
+    public function completionRule(): HasOne
+    {
+        return $this->hasOne(LessonCompletionRule::class);
+    }
     public function isVideoLesson(): bool
     {
         return $this->type === self::TYPE_VIDEO;
@@ -87,21 +123,6 @@ class Lesson extends Model
     public function isArticleLesson(): bool
     {
         return $this->type === self::TYPE_ARTICLE;
-    }
-
-    public function isQuizLesson(): bool
-    {
-        return $this->type === self::TYPE_QUIZ;
-    }
-
-    public function isLiveLesson(): bool
-    {
-        return $this->type === self::TYPE_LIVE;
-    }
-
-    public function isAssignmentLesson(): bool
-    {
-        return $this->type === self::TYPE_ASSIGNMENT;
     }
 
     public function isPreview(): bool

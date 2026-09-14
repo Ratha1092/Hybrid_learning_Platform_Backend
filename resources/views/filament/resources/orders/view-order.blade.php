@@ -10,7 +10,6 @@
         'completed' => ['bg' => 'rgba(52,211,153,.14)', 'color' => '#059669', 'dot' => '#10b981', 'label' => 'Completed'],
         'pending'   => ['bg' => 'rgba(251,191,36,.14)', 'color' => '#d97706', 'dot' => '#f59e0b', 'label' => 'Pending'],
         'cancelled' => ['bg' => 'rgba(248,113,113,.14)', 'color' => '#dc2626', 'dot' => '#ef4444', 'label' => 'Cancelled'],
-        'refunded'  => ['bg' => 'rgba(99,102,241,.14)', 'color' => '#6366f1', 'dot' => '#818cf8', 'label' => 'Refunded'],
         default     => ['bg' => 'rgba(148,163,184,.12)', 'color' => '#64748b', 'dot' => '#94a3b8', 'label' => ucfirst($statusVal)],
     };
 
@@ -22,7 +21,6 @@
         'failed'     => ['bg' => 'rgba(248,113,113,.12)', 'color' => '#dc2626', 'label' => 'Failed'],
         'expired'    => ['bg' => 'rgba(248,113,113,.12)', 'color' => '#dc2626', 'label' => 'Expired'],
         'cancelled'  => ['bg' => 'rgba(248,113,113,.12)', 'color' => '#dc2626', 'label' => 'Cancelled'],
-        'refunded'   => ['bg' => 'rgba(99,102,241,.12)', 'color' => '#6366f1', 'label' => 'Refunded'],
         default      => ['bg' => 'rgba(148,163,184,.1)', 'color' => '#64748b', 'label' => ucfirst($payStatusVal)],
     };
 
@@ -183,26 +181,6 @@ html.dark .ov {
     border-color:var(--accent);
     color:var(--accent);
 }
-.ov-btn-link {
-    background:none;
-    border:none;
-    color:var(--accent);
-    font-size:12.5px;
-    font-weight:600;
-    padding:0;
-    cursor:pointer;
-    display:inline-flex;
-    align-items:center;
-    gap:4px;
-}
-.ov-btn-link:hover {
-    opacity:.75;
-}
-.ov-btn-link svg {
-    width:13px;
-    height:13px;
-}
-
 /* Cards */
 .ov-card {
     background:var(--p1);
@@ -537,15 +515,6 @@ html.dark .ov {
     align-items:center;
     gap:6px;
 }
-.ov-payments-footer {
-    display:flex;
-    align-items:center;
-    justify-content:flex-start;
-    padding:12px 20px;
-    border-top:1px solid var(--bd);
-    background:var(--p2);
-}
-
 @keyframes ovUp {
     from {
         opacity:0;
@@ -584,7 +553,7 @@ html.dark .ov {
                 {{ $statusStyle['label'] }}
             </span>
         </div>
-        <p class="ov-subtitle">Placed on {{ $order->created_at?->format('M d, Y') }} at {{ $order->created_at?->format('H:i') }}</p>
+        <p class="ov-subtitle">Placed on {{ $order->created_at?->setTimezone(config('app.timezone'))->format('M d, Y') }} at {{ $order->created_at?->setTimezone(config('app.timezone'))->format('H:i') }}</p>
     </div>
     <div class="ov-header-actions">
         <a href="{{ $backUrl }}" wire:navigate class="ov-btn ov-btn-gray">
@@ -655,7 +624,7 @@ html.dark .ov {
                     <svg class="ov-date-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/></svg>
                     <div>
                         <div style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--t2);margin-bottom:2px">Created</div>
-                        <div style="font-size:12.5px;color:var(--t1);font-weight:500">{{ $order->created_at?->format('M d, Y') }} at {{ $order->created_at?->format('H:i') }}</div>
+                        <div style="font-size:12.5px;color:var(--t1);font-weight:500">{{ $order->created_at?->setTimezone(config('app.timezone'))->format('M d, Y') }} at {{ $order->created_at?->setTimezone(config('app.timezone'))->format('H:i') }}</div>
                     </div>
                 </div>
                 <div class="ov-date-item">
@@ -667,7 +636,7 @@ html.dark .ov {
                     <div>
                         <div style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--t2);margin-bottom:2px">Paid At</div>
                         @if($order->paid_at)
-                            <div style="font-size:12.5px;color:var(--t1);font-weight:500">{{ $order->paid_at->format('M d, Y') }} at {{ $order->paid_at->format('H:i') }}</div>
+                            <div style="font-size:12.5px;color:var(--t1);font-weight:500">{{ $order->paid_at->setTimezone(config('app.timezone'))->format('M d, Y') }} at {{ $order->paid_at->setTimezone(config('app.timezone'))->format('H:i') }}</div>
                         @else
                             <div style="font-size:12.5px;color:var(--t2);font-style:italic">Not yet paid</div>
                         @endif
@@ -698,12 +667,11 @@ html.dark .ov {
                     @php
                         $role = $user?->getRoleNames()->first() ?? '';
                         $roleStyle = match ($role) {
-                            'super-admin', 'admin' => ['bg' => 'rgba(239,68,68,.12)', 'color' => '#dc2626'],
-                            'finance-manager', 'accountant' => ['bg' => 'rgba(13,148,136,.12)', 'color' => '#0d9488'],
-                            'content-manager', 'moderator' => ['bg' => 'rgba(245,158,11,.12)', 'color' => '#d97706'],
-                            'instructor' => ['bg' => 'rgba(245,158,11,.12)', 'color' => '#d97706'],
-                            'student'    => ['bg' => 'rgba(37,99,235,.12)', 'color' => '#2563eb'],
-                            default      => ['bg' => 'rgba(148,163,184,.1)', 'color' => '#64748b'],
+                            'super-admin' => ['bg' => 'rgba(239,68,68,.12)', 'color' => '#dc2626'],
+                            'finance'     => ['bg' => 'rgba(13,148,136,.12)', 'color' => '#0d9488'],
+                            'instructor'  => ['bg' => 'rgba(245,158,11,.12)', 'color' => '#d97706'],
+                            'student'     => ['bg' => 'rgba(37,99,235,.12)', 'color' => '#2563eb'],
+                            default       => ['bg' => 'rgba(148,163,184,.1)', 'color' => '#64748b'],
                         };
                     @endphp
                     @if($role)
@@ -880,7 +848,7 @@ html.dark .ov {
                             </div>
                         </td>
                         <td style="font-size:12.5px;color:var(--t2);white-space:nowrap">
-                            {{ $payment->paid_at?->format('M d, Y') }} at {{ $payment->paid_at?->format('H:i') ?? '—' }}
+                            {{ $payment->paid_at?->setTimezone(config('app.timezone'))->format('M d, Y') }} at {{ $payment->paid_at?->setTimezone(config('app.timezone'))->format('H:i') ?? '—' }}
                         </td>
                     </tr>
                 @empty
@@ -891,14 +859,6 @@ html.dark .ov {
             </tbody>
         </table>
     </div>
-    @if($order->payments->count() > 1)
-        <div class="ov-payments-footer">
-            <a href="{{ $backUrl }}?order={{ $order->id }}" wire:navigate class="ov-btn-link">
-                View Full History
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"/></svg>
-            </a>
-        </div>
-    @endif
 </div>
 
 </div>

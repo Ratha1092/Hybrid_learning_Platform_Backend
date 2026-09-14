@@ -439,7 +439,7 @@ html:not(.dark) .cs-menu {
         </div>
 
         {{-- Table --}}
-        <div wire:loading.class="cs-loading" wire:target="gotoPage,search">
+        <div style="overflow-x:auto" wire:loading.class="cs-loading" wire:target="gotoPage,search">
         <table class="cs-table">
             <thead>
                 <tr>
@@ -465,7 +465,7 @@ html:not(.dark) .cs-menu {
                     $studentViewUrl = $user ? route('filament.admin.resources.users.view', ['record' => $user->id]) : null;
                     $isSuspended = $enrollment->status === 'suspended';
                 @endphp
-                <tr @if($studentViewUrl) class="cs-row-link" onclick="Livewire.navigate('{{ $studentViewUrl }}')" @endif>
+                <tr wire:key="enrollment-row-{{ $enrollment->id }}" @if($studentViewUrl) class="cs-row-link" onclick="Livewire.navigate('{{ $studentViewUrl }}')" @endif>
                     <td><span style="font-size:11.5px;color:var(--t2);font-weight:700">{{ ($curPage - 1) * $perPage + $i + 1 }}</span></td>
 
                     <td>
@@ -494,11 +494,11 @@ html:not(.dark) .cs-menu {
                         </div>
                     </td>
 
-                    <td><span class="cs-date">{{ $enrollment->enrolled_at?->format('M d, Y') ?? '—' }}</span></td>
+                    <td><span class="cs-date">{{ $enrollment->enrolled_at?->setTimezone(config('app.timezone'))->format('M d, Y') ?? '—' }}</span></td>
                     <td><span class="cs-date">{{ $enrollment->last_accessed_at?->diffForHumans() ?? '—' }}</span></td>
                     <td>
                         @if($enrollment->completed_at)
-                            <span class="cs-date" style="color:#34d399">{{ $enrollment->completed_at->format('M d, Y') }}</span>
+                            <span class="cs-date" style="color:#34d399">{{ $enrollment->completed_at->setTimezone(config('app.timezone'))->format('M d, Y') }}</span>
                         @else
                             <span class="cs-date">—</span>
                         @endif

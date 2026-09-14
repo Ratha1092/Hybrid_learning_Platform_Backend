@@ -19,8 +19,7 @@
         <div class="bi-kpi"><div class="bi-kpi-label">Completed Payout</div><div class="bi-kpi-value">${{ number_format($kpis['completedPayout'],2) }}</div><div class="bi-kpi-sub">Period approved payouts</div></div>
         <div class="bi-kpi"><div class="bi-kpi-label">Total Wallet Balance</div><div class="bi-kpi-value">${{ number_format($kpis['totalWalletBalance'],2) }}</div></div>
         <div class="bi-kpi"><div class="bi-kpi-label">Tax Collected</div><div class="bi-kpi-value">${{ number_format($kpis['taxCollected'],2) }}</div></div>
-        <div class="bi-kpi"><div class="bi-kpi-label">Refund Amount</div><div class="bi-kpi-value">${{ number_format($kpis['refundAmount'],2) }}</div></div>
-        <div class="bi-kpi"><div class="bi-kpi-label">Cash Flow</div><div class="bi-kpi-value @if($kpis['cashFlow'] < 0) style="color:var(--err)" @endif">${{ number_format($kpis['cashFlow'],2) }}</div><div class="bi-kpi-sub">Revenue - payouts - refunds</div></div>
+        <div class="bi-kpi"><div class="bi-kpi-label">Cash Flow</div><div class="bi-kpi-value @if($kpis['cashFlow'] < 0) style="color:var(--err)" @endif">${{ number_format($kpis['cashFlow'],2) }}</div><div class="bi-kpi-sub">Revenue - payouts</div></div>
     </div>
 
     <div class="bi-charts-2">
@@ -45,7 +44,7 @@
                         <td>{{ $payout->instructor?->name ?? '—' }}</td>
                         <td>${{ number_format((float)$payout->amount,2) }}</td>
                         <td style="color:var(--t2)">{{ $payout->payment_method ?? '—' }}</td>
-                        <td style="color:var(--t2)">{{ $payout->created_at?->format('M d, Y') ?? '—' }}</td>
+                        <td style="color:var(--t2)">{{ $payout->created_at?->setTimezone(config('app.timezone'))->format('M d, Y') ?? '—' }}</td>
                     </tr>
                     @empty
                     <tr><td colspan="4" style="text-align:center;color:var(--t2);padding:20px">No pending payouts</td></tr>
@@ -104,8 +103,7 @@ window.__biRun(function() {
                 labels: @json($cfLabels),
                 datasets: [
                     { label: 'Revenue', data: @json($cfRevenue), backgroundColor: 'rgba(34,197,94,0.7)', borderColor: '#22c55e', borderWidth: 1, borderRadius: 3, stack: 'a' },
-                    { label: 'Payouts', data: @json($cfPayouts), backgroundColor: 'rgba(37,99,235,0.7)', borderColor: '#2563eb', borderWidth: 1, borderRadius: 3, stack: 'b' },
-                    { label: 'Refunds', data: @json($cfRefunds), backgroundColor: 'rgba(239,68,68,0.7)', borderColor: '#ef4444', borderWidth: 1, borderRadius: 3, stack: 'b' }
+                    { label: 'Payouts', data: @json($cfPayouts), backgroundColor: 'rgba(37,99,235,0.7)', borderColor: '#2563eb', borderWidth: 1, borderRadius: 3, stack: 'b' }
                 ]
             },
             options: {

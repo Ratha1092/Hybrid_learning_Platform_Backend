@@ -29,6 +29,10 @@ class InstructorLessonResourceController extends Controller
             return ApiResponse::error('Unauthorized', 403);
         }
 
+        if (Course::find($courseId)?->isPendingReview()) {
+            return ApiResponse::error('This course is pending review and cannot be edited until it is approved or rejected.', 422);
+        }
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'file'  => 'required|file|mimes:pdf,zip,doc,docx,ppt,pptx,mp4,jpg,png|max:51200',
@@ -52,6 +56,14 @@ class InstructorLessonResourceController extends Controller
     {
         if (!$this->instructorOwnsCourse($courseId)) {
             return ApiResponse::error('Unauthorized', 403);
+        }
+
+        if (Course::find($courseId)?->isPendingReview()) {
+            return ApiResponse::error('This course is pending review and cannot be edited until it is approved or rejected.', 422);
+        }
+
+        if (Course::find($courseId)?->isPublished()) {
+            return ApiResponse::error('This course is public, so its content can\'t be deleted.', 422);
         }
 
         $resource = LessonAttachment::where('id', $resourceId)

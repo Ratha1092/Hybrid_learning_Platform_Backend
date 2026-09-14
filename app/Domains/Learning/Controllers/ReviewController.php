@@ -13,15 +13,36 @@ use Illuminate\Http\Request;
 
 class ReviewController extends Controller
 {
-    public function index(int $courseId): JsonResponse
+    public function index(Request $request, int $courseId): JsonResponse
     {
+        $userId = optional($request->user())->id;
+
         $reviews = Review::where('course_id', $courseId)
-            ->where('is_approved', true)
+            ->where(function ($q) use ($userId) {
+                $q->where('is_approved', true);
+                if ($userId) {
+                    $q->orWhere('user_id', $userId);
+                }
+            })
             ->with('user:id,name,avatar')
             ->latest()
             ->paginate(15);
 
         return ApiResponse::success($reviews, 'Reviews retrieved successfully');
+    }
+
+    public function featured(Request $request): JsonResponse
+    {
+        $limit = min(20, max(1, (int) $request->query('limit', 6)));
+
+        $reviews = Review::where('is_approved', true)
+            ->where('is_featured', true)
+            ->with(['user:id,name,avatar', 'course:id,title,slug'])
+            ->latest()
+            ->take($limit)
+            ->get();
+
+        return ApiResponse::success($reviews, 'Featured reviews retrieved successfully');
     }
 
     public function store(Request $request, int $courseId): JsonResponse
@@ -38,7 +59,12 @@ class ReviewController extends Controller
             return ApiResponse::error('You must be enrolled in this course to leave a review.', 403);
         }
 
-        if (Review::where('course_id', $courseId)->where('user_id', $user->id)->exists()) {
+        $existing = Review::withTrashed()
+            ->where('course_id', $courseId)
+            ->where('user_id', $user->id)
+            ->first();
+
+        if ($existing && !$existing->trashed()) {
             return ApiResponse::error('You have already reviewed this course.', 422);
         }
 
@@ -51,14 +77,24 @@ class ReviewController extends Controller
         $autoApprove = !Setting::get('review_moderation_required', true)
             || Setting::get('auto_approve_reviews', false);
 
-        $review = Review::create([
-            'course_id' => $courseId,
-            'user_id' => $user->id,
+        $attributes = [
             'rating' => $validated['rating'],
             'title' => $validated['title'] ?? null,
             'comment' => $validated['comment'] ?? null,
             'is_approved' => $autoApprove,
-        ]);
+        ];
+
+        if ($existing) {
+            $existing->restore();
+            $existing->update($attributes);
+            $review = $existing;
+        } else {
+            $review = Review::create([
+                'course_id' => $courseId,
+                'user_id' => $user->id,
+                ...$attributes,
+            ]);
+        }
 
         return ApiResponse::success(
             $review,

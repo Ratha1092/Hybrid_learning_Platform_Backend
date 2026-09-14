@@ -2,6 +2,7 @@
 
 namespace App\Domains\Promotions\Models;
 
+use App\Domains\Orders\Enums\OrderPaymentStatus;
 use App\Domains\Orders\Models\Order;
 use App\Domains\Users\Models\User;
 use Illuminate\Database\Eloquent\Model;
@@ -29,6 +30,7 @@ class Coupon extends Model
         'is_active',
         'description',
         'created_by',
+        'deleted_by',
     ];
 
     protected $casts = [
@@ -46,6 +48,12 @@ class Coupon extends Model
     {
         static::saving(function (Coupon $coupon) {
             $coupon->code = strtoupper(trim($coupon->code));
+        });
+        static::deleting(function (Coupon $coupon) {
+            if (auth()->check()) {
+                $coupon->deleted_by = auth()->id();
+                $coupon->saveQuietly();
+            }
         });
     }
 
@@ -81,7 +89,13 @@ class Coupon extends Model
 
     public function hasUsesLeftForUser(User $user): bool
     {
-        return $this->orders()->where('user_id', $user->id)->count() < $this->max_uses_per_user;
+        // Only orders that were actually paid count as a "use" — pending
+        // checkouts that were abandoned, expired, or cancelled must not
+        // count against the per-user limit.
+        return $this->orders()
+            ->where('user_id', $user->id)
+            ->where('payment_status', OrderPaymentStatus::Paid->value)
+            ->count() < $this->max_uses_per_user;
     }
 
     /**

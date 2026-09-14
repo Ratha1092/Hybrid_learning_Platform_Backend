@@ -64,4 +64,16 @@ class ViewCourse extends ViewRecord
 
         Notification::make()->title('Course Archived')->warning()->send();
     }
+
+    public function unarchiveCourse(): void
+    {
+        /** @var Course $course */
+        $course = $this->record;
+        if (! $course->isArchived()) return;
+
+        $course->unarchive(auth()->id());
+        $this->record = $course->refresh();
+
+        Notification::make()->title('Course Restored to Published')->success()->send();
+    }
 }

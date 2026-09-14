@@ -34,13 +34,11 @@
             \App\Domains\Payments\Enums\PaymentStatus::Failed      => ['bg' => 'rgba(248,113,113,.12)', 'color' => '#f87171', 'label' => 'Failed'],
             \App\Domains\Payments\Enums\PaymentStatus::Expired     => ['bg' => 'rgba(248,113,113,.12)', 'color' => '#f87171', 'label' => 'Expired'],
             \App\Domains\Payments\Enums\PaymentStatus::Cancelled   => ['bg' => 'rgba(248,113,113,.12)', 'color' => '#f87171', 'label' => 'Cancelled'],
-            \App\Domains\Payments\Enums\PaymentStatus::Refunded    => ['bg' => 'rgba(167,139,250,.12)', 'color' => '#a78bfa', 'label' => 'Refunded'],
         },
         is_string($payment->status) => match($payment->status) {
             'paid', 'completed'            => ['bg' => 'rgba(52,211,153,.12)',  'color' => '#34d399', 'label' => ucfirst($payment->status)],
             'pending', 'processing'        => ['bg' => 'rgba(251,191,36,.12)',  'color' => '#fbbf24', 'label' => ucfirst($payment->status)],
             'failed', 'expired', 'cancelled' => ['bg' => 'rgba(248,113,113,.12)', 'color' => '#f87171', 'label' => ucfirst($payment->status)],
-            'refunded'                     => ['bg' => 'rgba(167,139,250,.12)', 'color' => '#a78bfa', 'label' => 'Refunded'],
             default                        => ['bg' => 'rgba(148,163,184,.1)',  'color' => '#94a3b8', 'label' => ucfirst($payment->status)],
         },
         default => ['bg' => 'rgba(148,163,184,.1)', 'color' => '#94a3b8', 'label' => '—'],
@@ -136,6 +134,7 @@ html:not(.dark) .lp {
     border-radius:12px;
     overflow:hidden;
     box-shadow:var(--sh);
+    min-width:0;
 }
 .lp-toolbar {
     display:flex;
@@ -496,7 +495,7 @@ html:not(.dark) .lp {
                     $bgHex = substr(md5($customer), 0, 6);
                     $avUrl = 'https://ui-avatars.com/api/?name=' . urlencode($customer) . '&background=' . $bgHex . '&color=fff&bold=true&size=64';
                 @endphp
-                <tr class="lp-row-link" onclick="Livewire.navigate('{{ $viewUrl($payment) }}')">
+                <tr class="lp-row-link" wire:key="payment-row-{{ $payment->id }}" onclick="Livewire.navigate('{{ $viewUrl($payment) }}')">
                     <td><span class="lp-id">{{ $payment->id }}</span></td>
 
                     <td><span class="lp-order-num">{{ $payment->order?->order_number ?? '—' }}</span></td>
@@ -523,9 +522,9 @@ html:not(.dark) .lp {
                         </span>
                     </td>
 
-                    <td><span class="lp-date">{{ $payment->paid_at?->format('M d, Y H:i') ?? '—' }}</span></td>
+                    <td><span class="lp-date">{{ $payment->paid_at?->setTimezone(config('app.timezone'))->format('M d, Y H:i') ?? '—' }}</span></td>
 
-                    <td><span class="lp-date">{{ $payment->created_at?->format('M d, Y') }}</span></td>
+                    <td><span class="lp-date">{{ $payment->created_at?->setTimezone(config('app.timezone'))->format('M d, Y') }}</span></td>
 
                     <td onclick="event.stopPropagation()">
                         <div class="lp-actions">

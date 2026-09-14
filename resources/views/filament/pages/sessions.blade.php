@@ -192,6 +192,7 @@ html:not(.dark) .se {
         @if($total === 0)
             <div class="se-empty">No sessions found.</div>
         @else
+            <div style="overflow-x:auto">
             <table class="se-table">
                 <thead>
                     <tr><th>User</th><th>IP Address</th><th>Last Activity</th><th>User Agent</th><th>Actions</th></tr>
@@ -227,6 +228,7 @@ html:not(.dark) .se {
                     @endforeach
                 </tbody>
             </table>
+            </div>
             <div class="se-pagination">
                 <span>Showing {{ $total > 0 ? (($curPage-1)*$perPage)+1 : 0 }}–{{ min($curPage*$perPage, $total) }} of {{ number_format($total) }}</span>
                 <div style="display:flex;gap:6px">

@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 
 use App\Domains\Users\Mail\AccountSuspendedMail;
 use App\Domains\Users\Models\User;
+use App\Support\Concerns\HasDateRangePresets;
 use App\Support\NavBadge;
 use App\Support\PanelAccess;
 use BackedEnum;
@@ -15,6 +16,8 @@ use Illuminate\Support\Number;
 
 class Users extends Page
 {
+    use HasDateRangePresets;
+
     protected string $view = 'filament.pages.users';
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUsers;
     protected static ?string $navigationLabel = 'Users';
@@ -27,8 +30,16 @@ class Users extends Page
         return PanelAccess::can('users.view');
     }
 
+    public string $preset = 'all_time';
+    public string $dateFrom = '';
+    public string $dateTo = '';
+
     public function mount(): void
     {
+        $this->preset   = request('preset', 'all_time');
+        $this->dateFrom = request('date_from', '');
+        $this->dateTo   = request('date_to', '');
+
         NavBadge::markSeen('users');
     }
 
@@ -91,8 +102,8 @@ class Users extends Page
             return;
         }
 
-        if ($user->hasRole('super-admin') && ! auth()->user()?->hasRole('super-admin')) {
-            Notification::make()->title('Insufficient permissions')->danger()->send();
+        if ($user->hasRole('super-admin')) {
+            Notification::make()->title('Super Admin accounts cannot be suspended')->danger()->send();
             return;
         }
 
@@ -131,8 +142,8 @@ class Users extends Page
             return;
         }
 
-        if ($user->hasRole('super-admin') && ! auth()->user()?->hasRole('super-admin')) {
-            Notification::make()->title('Insufficient permissions')->danger()->send();
+        if ($user->hasRole('super-admin')) {
+            Notification::make()->title('Super Admin accounts cannot be removed')->danger()->send();
             return;
         }
 
@@ -145,6 +156,23 @@ class Users extends Page
             ->send();
     }
 
+    public function restoreUser(int $id): void
+    {
+        $user = User::onlyTrashed()->find($id);
+
+        if (!$user) {
+            return;
+        }
+
+        $user->restore();
+
+        Notification::make()
+            ->title('User restored')
+            ->body("{$user->name} has been restored.")
+            ->success()
+            ->send();
+    }
+
     protected function getViewData(): array
     {
         $tab     = $this->tab;
@@ -152,19 +180,22 @@ class Users extends Page
         $page    = max(1, $this->page);
         $perPage = in_array($this->perPage, [10, 25, 50], true) ? $this->perPage : 10;
 
-        $base = fn() => User::withoutTrashed();
+        [$from, $to] = static::resolvePreset($this->preset, 'all_time', $this->dateFrom ?: null, $this->dateTo ?: null);
+
+        // Super-admin accounts are invisible to everyone except other super-admins.
+        $viewerIsSuperAdmin = auth()->user()?->hasRole('super-admin') ?? false;
+        $hideSuperAdmins = fn ($q) => $viewerIsSuperAdmin
+            ? $q
+            : $q->whereDoesntHave('roles', fn ($r) => $r->where('name', 'super-admin'));
+
+        $base = fn() => static::applyDateRange($hideSuperAdmins(User::withoutTrashed()), 'created_at', $from, $to);
 
         $roleMeta = [
-            'super-admin'     => ['label' => 'Super Admin',     'color' => '#dc2626'],
-            'admin'           => ['label' => 'Admin',           'color' => '#a855f7'],
-            'finance-manager' => ['label' => 'Finance Manager', 'color' => '#0d9488'],
-            'accountant'      => ['label' => 'Accountant',      'color' => '#0d9488'],
-            'content-manager' => ['label' => 'Content Manager', 'color' => '#d97706'],
-            'moderator'       => ['label' => 'Moderator',       'color' => '#d97706'],
-            'support-staff'   => ['label' => 'Support Staff',   'color' => '#3b82f6'],
-            'instructor'      => ['label' => 'Instructor',      'color' => '#3b82f6'],
-            'student'         => ['label' => 'Student',         'color' => '#10b981'],
+            'instructor' => ['label' => 'Instructor', 'color' => '#3b82f6'],
+            'student'    => ['label' => 'Student',    'color' => '#10b981'],
         ];
+
+        $trashedQuery = $hideSuperAdmins(User::onlyTrashed());
 
         $tabs = [
             ['key' => 'all', 'label' => 'All', 'count' => $base()->count(), 'color' => '#2563eb'],
@@ -179,16 +210,18 @@ class Users extends Page
             ];
         }
 
-        $query = User::withoutTrashed();
+        $tabs[] = ['key' => 'trashed', 'label' => 'Deleted', 'count' => (clone $trashedQuery)->count(), 'color' => '#94a3b8'];
 
-        if ($tab !== 'all' && array_key_exists($tab, $roleMeta)) {
+        $query = $tab === 'trashed' ? $trashedQuery : $base();
+
+        if ($tab !== 'all' && $tab !== 'trashed' && array_key_exists($tab, $roleMeta)) {
             $query->role($tab);
         }
 
         if ($search) {
             $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
+                $q->where('name', 'ilike', "%{$search}%")
+                  ->orWhere('email', 'ilike', "%{$search}%");
             });
         }
 
@@ -199,6 +232,11 @@ class Users extends Page
         $curPage    = min($page, $totalPages);
         $users      = $query->skip(($curPage - 1) * $perPage)->take($perPage)->get();
 
-        return compact('tabs', 'tab', 'search', 'users', 'total', 'totalPages', 'curPage', 'perPage');
+        $activePreset      = $this->preset;
+        $activePeriodLabel = $this->preset !== 'all_time'
+            ? (static::dateRangePresetOptions()[$this->preset] ?? ucfirst($this->preset))
+            : null;
+
+        return compact('tabs', 'tab', 'search', 'users', 'total', 'totalPages', 'curPage', 'perPage', 'activePreset', 'activePeriodLabel');
     }
 }

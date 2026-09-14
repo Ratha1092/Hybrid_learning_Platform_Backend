@@ -11,8 +11,8 @@
     --p2:#263245;
     --bd:rgba(255,255,255,.07);
     --bd2:rgba(255,255,255,.13);
-    --t1:#e2e8f0;
-    --t2:#64748b;
+    --t1:#f1f5f9;
+    --t2:#94a3b8;
 }
 @media (prefers-color-scheme: light) {
     :root {
@@ -22,7 +22,7 @@
         --bd:rgba(15,23,42,.08);
         --bd2:rgba(15,23,42,.14);
         --t1:#0f172a;
-        --t2:#64748b;
+        --t2:#475569;
     }
 }
 * {
@@ -55,8 +55,8 @@ body {
     height:64px;
     border-radius:16px;
     margin:0 auto 20px;
-    background:rgba(248,113,113,.12);
-    color:#f87171;
+    background:rgba(248,113,113,.16);
+    color:#fca5a5;
     display:grid;
     place-items:center;
 }
@@ -68,6 +68,7 @@ h1 {
     font-size:19px;
     font-weight:780;
     letter-spacing:-.01em;
+    color:var(--t1);
     margin-bottom:8px;
 }
 p {
@@ -139,11 +140,17 @@ p {
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/></svg>
                 Go Back
             </button>
-            <a href="{{ url('/admin') }}" class="btn btn-primary">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"/></svg>
-                Back to Dashboard
-            </a>
+            <form method="POST" action="{{ route('admin.force-logout') }}">
+                @csrf
+                <button type="submit" class="btn btn-primary">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75"/></svg>
+                    Log In Again
+                </button>
+            </form>
         </div>
+        <p style="margin-top:16px;font-size:11.5px;color:var(--t2)">
+            Seeing this unexpectedly, right after being signed in? Your session likely went stale — "Log In Again" will clear it and take you to a fresh login.
+        </p>
     </div>
 </body>
 </html>

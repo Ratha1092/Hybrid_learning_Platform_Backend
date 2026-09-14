@@ -26,7 +26,6 @@ class OrderForm
                             OrderStatus::Pending->value   => 'Pending',
                             OrderStatus::Completed->value => 'Completed',
                             OrderStatus::Cancelled->value => 'Cancelled',
-                            OrderStatus::Refunded->value  => 'Refunded',
                         ])
                         ->required(),
 
@@ -39,7 +38,6 @@ class OrderForm
                             OrderPaymentStatus::Failed->value     => 'Failed',
                             OrderPaymentStatus::Expired->value    => 'Expired',
                             OrderPaymentStatus::Cancelled->value  => 'Cancelled',
-                            OrderPaymentStatus::Refunded->value   => 'Refunded',
                         ])
                         ->required(),
                 ])
@@ -88,12 +86,8 @@ class OrderForm
                     DateTimePicker::make('cancelled_at')
                         ->label('Cancelled At')
                         ->disabled(),
-
-                    DateTimePicker::make('refunded_at')
-                        ->label('Refunded At')
-                        ->disabled(),
                 ])
-                ->columns(3),
+                ->columns(2),
         ]);
     }
 }

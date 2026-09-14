@@ -47,6 +47,13 @@ class Verifications extends Page
     public int $page = 1;
     public int $perPage = 10;
 
+    public function mount(): void
+    {
+        $this->tab = in_array(request('tab'), ['pending', 'approved', 'rejected'], true)
+            ? request('tab')
+            : 'all';
+    }
+
     public function updatedSearch(): void
     {
         $this->page = 1;
@@ -140,8 +147,8 @@ class Verifications extends Page
 
         if ($search) {
             $query->where(function ($q) use ($search) {
-                $q->whereHas('user', fn($q2) => $q2->where('name', 'like', "%{$search}%"))
-                  ->orWhereHas('user', fn($q2) => $q2->where('email', 'like', "%{$search}%"));
+                $q->whereHas('user', fn($q2) => $q2->where('name', 'ilike', "%{$search}%"))
+                  ->orWhereHas('user', fn($q2) => $q2->where('email', 'ilike', "%{$search}%"));
             });
         }
 

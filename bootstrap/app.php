@@ -23,7 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
 
     ->withMiddleware(function (Middleware $middleware): void {
-
+        $middleware->trustProxies(at: '*');
         $middleware->alias([
             'role'               => RoleMiddleware::class,
             'permission'         => PermissionMiddleware::class,
@@ -32,12 +32,14 @@ return Application::configure(basePath: dirname(__DIR__))
             'is_instructor'      => \App\Http\Middleware\IsInstructor::class,
             'verified_instructor'=> \App\Http\Middleware\VerifiedInstructor::class,
             'instructor'         => \App\Http\Middleware\EnsureUserIsInstructor::class,
+            'optional_auth'      => \App\Http\Middleware\OptionalSanctumAuth::class,
         ]);
 
         $middleware->api(prepend: [
             \App\Http\Middleware\ForceHttps::class,
-            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
+            \App\Http\Middleware\EnsureFrontendRequestsAreStatefulWithSameSite::class,
             \App\Http\Middleware\CheckMaintenanceMode::class,
+            \App\Http\Middleware\CheckIpBlocklist::class,
         ]);
 
         $middleware->web(prepend: [
@@ -128,6 +130,17 @@ return Application::configure(basePath: dirname(__DIR__))
                 return ApiResponse::error(
                     $e->getMessage(),
                     400
+                );
+            }
+        });
+        $exceptions->render(function (
+            \Throwable $e,
+            $request
+        ) {
+            if (($request->is('api/*') || $request->expectsJson()) && !config('app.debug')) {
+                return ApiResponse::error(
+                    'Something went wrong. Please try again.',
+                    500
                 );
             }
         });

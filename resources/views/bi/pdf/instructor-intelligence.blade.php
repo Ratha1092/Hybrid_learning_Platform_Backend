@@ -20,7 +20,7 @@
     </tr>
 </table>
 
-@php $growthMax = max(1, ...$growthValues); @endphp
+@php $growthMax = empty($growthValues) ? 1 : max(1, ...$growthValues); @endphp
 <table class="charts-row">
     <tr>
         <td class="chart-card full">

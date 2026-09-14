@@ -14,9 +14,13 @@ class PayoutAccountService
 {
     public function save(User $instructor, array $data): InstructorPayoutAccount
     {
-        $existing = InstructorPayoutAccount::where('instructor_id', $instructor->id)->first();
+        $existing = InstructorPayoutAccount::withTrashed()->where('instructor_id', $instructor->id)->first();
 
         $account = DB::transaction(function () use ($instructor, $data, $existing) {
+            if ($existing?->trashed()) {
+                $existing->restore();
+            }
+
             $qrPath = $existing?->qr_code_path;
 
             if (isset($data['qr_code'])) {
@@ -27,26 +31,28 @@ class PayoutAccountService
                 }
             }
 
+            $autoVerify = Setting::get('auto_verify_payout_accounts', false);
+
             return InstructorPayoutAccount::updateOrCreate(
                 ['instructor_id' => $instructor->id],
                 [
-                    'method' => $data['method'],
+                    'method' => 'khqr',
                     'account_name' => $data['account_name'],
-                    'account_number' => $data['account_number'] ?? null,
-                    'phone_number' => $data['phone_number'] ?? null,
                     'qr_code_path' => $qrPath,
-                    'status' => 'pending',
+                    'status' => $autoVerify ? 'verified' : 'pending',
                     'rejection_reason' => null,
                     'reviewed_by' => null,
-                    'reviewed_at' => null,
+                    'reviewed_at' => $autoVerify ? now() : null,
                 ]
             );
         });
 
-        if (Setting::get('payout_notification', true)) {
+        // Nothing for an admin to review when it was auto-verified — skip the "needs approval" notice.
+        if ($account->status === 'pending' && Setting::get('payout_notification', true)) {
             NotifyAdminsJob::dispatch(
                 NewPayoutAccountSubmittedNotification::class,
-                [$account->id, $instructor->name]
+                [$account->id, $instructor->name],
+                'payout_accounts.approve'
             );
         }
 

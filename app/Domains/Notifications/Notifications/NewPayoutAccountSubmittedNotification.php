@@ -4,6 +4,7 @@ namespace App\Domains\Notifications\Notifications;
 
 use App\Domains\Notifications\Concerns\BroadcastsAsNotification;
 use App\Domains\Notifications\Enums\NotificationType;
+use App\Filament\Resources\PayoutAccounts\PayoutAccountResource;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification as BaseNotification;
@@ -25,18 +26,20 @@ class NewPayoutAccountSubmittedNotification extends BaseNotification
 
     public function toBroadcast(object $notifiable): BroadcastMessage
     {
+        $url = PayoutAccountResource::getUrl('view', ['record' => $this->payoutAccountId]);
+
         return new BroadcastMessage([
             'title'       => 'New Payout Account Submitted',
             'message'     => "{$this->userName} submitted a payout account for verification.",
             'type'        => NotificationType::FINANCE->value,
-            'link'        => "/admin/payout-accounts/{$this->payoutAccountId}",
+            'link'        => $url,
             'action_text' => 'Review Account',
         ]);
     }
 
     public function toDatabase(object $notifiable): array
     {
-        $url = "/admin/payout-accounts/{$this->payoutAccountId}";
+        $url = PayoutAccountResource::getUrl('view', ['record' => $this->payoutAccountId]);
 
         return [
             'title'    => 'New Payout Account Submitted',

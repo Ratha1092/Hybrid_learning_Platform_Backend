@@ -28,7 +28,7 @@ class OtpController extends Controller
 
         $data = [];
 
-        if (! app()->environment('production')) {
+        if (in_array(app()->environment(), ['local', 'testing'], true)) {
             $data['code'] = $plain;
         }
 

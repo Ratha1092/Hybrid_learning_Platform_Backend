@@ -173,7 +173,7 @@ table.items td.right, table.items th.right {
 
     <div class="header">
         <div class="header-brand">
-            <div class="brand-name">{{ config('app.name') }}</div>
+            <div class="brand-name">{{ \App\Domains\System\Models\Setting::get('site_name', config('app.name')) }}</div>
             <div class="brand-sub">Payment Receipt</div>
         </div>
         <div class="header-meta">
@@ -236,8 +236,7 @@ table.items td.right, table.items th.right {
     </div>
 
     <div class="footer">
-        Thank you for your purchase on {{ config('app.name') }}.<br>
-        This receipt was generated on {{ now()->format('F j, Y') }}.
+        {{ \App\Domains\System\Models\Setting::get('footer_text', "© " . now()->year . " " . \App\Domains\System\Models\Setting::get('site_name', config('app.name')) . ". All rights reserved.") }}
     </div>
 
 </body>

@@ -27,7 +27,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
 
 <style>
-/* ── Reset ── */
+/* Reset */
 html, body {
     margin:0 !important;
     padding:0 !important;
@@ -52,7 +52,7 @@ html, body {
     border:none !important;
 }
 
-/* ── Root ── */
+/* Root */
 #cl-root *, #cl-root *::before, #cl-root *::after {
     box-sizing:border-box;
 }
@@ -72,7 +72,7 @@ html, body {
     padding:20px;
 }
 
-/* ── Card wrapper ── */
+/* Card wrapper */
 #cl-root .cl-card {
     position:relative;
     z-index:1;
@@ -96,7 +96,7 @@ html, body {
     }
 }
 
-/* ═══════════════ LEFT PANEL (always dark navy) ═══════════════ */
+/*  LEFT PANEL (always dark navy)  */
 .cl-left {
     position:relative;
     background:linear-gradient(160deg, #0d1424 0%, #080e1a 100%);
@@ -107,7 +107,7 @@ html, body {
     overflow:hidden;
 }
 
-/* ── Ambient glows ── */
+/* Ambient glows */
 .cl-glow-1 {
     position:absolute;
     top:-80px;
@@ -149,7 +149,7 @@ html, body {
     }
 }
 
-/* ── Brand lockup ── */
+/* Brand lockup */
 .cl-brand {
     display:flex;
     align-items:center;
@@ -224,7 +224,7 @@ html, body {
     }
 }
 
-/* ── Platform pill ── */
+/* Platform pill */
 .cl-platform-pill {
     display:inline-flex;
     align-items:center;
@@ -255,7 +255,7 @@ html, body {
     stroke-linejoin:round;
 }
 
-/* ── Headline ── */
+/* Headline */
 .cl-headline {
     position:relative;
     z-index:2;
@@ -290,7 +290,7 @@ html, body {
     background-clip:text;
 }
 
-/* ── Description ── */
+/* Description */
 .cl-desc {
     font-family:'DM Sans', sans-serif;
     font-size:13.5px;
@@ -303,7 +303,7 @@ html, body {
     animation:clUp .5s .16s cubic-bezier(.16,1,.3,1) both;
 }
 
-/* ── Feature chips ── */
+/* Feature chips */
 .cl-chips {
     display:flex;
     flex-wrap:wrap;
@@ -341,7 +341,7 @@ html, body {
     flex-shrink:0;
 }
 
-/* ── Stats grid ── */
+/* Stats grid */
 .cl-stats {
     display:grid;
     grid-template-columns:repeat(4, 1fr);
@@ -403,7 +403,7 @@ html, body {
     overflow:visible;
 }
 
-/* ═══════════════ RIGHT PANEL — white by default ═══════════════ */
+/*  RIGHT PANEL — white by default  */
 .cl-right {
     position:relative;
     background:#ffffff;
@@ -423,7 +423,7 @@ html, body {
     mask-image:radial-gradient(ellipse at 70% 40%, black 20%, transparent 68%);
 }
 
-/* ── Form area ── */
+/* Form area */
 .cl-form-area {
     flex:1;
     display:flex;
@@ -439,7 +439,7 @@ html, body {
     animation:clUp .5s .1s cubic-bezier(.16,1,.3,1) both;
 }
 
-/* ── Admin badge ── */
+/* Admin badge */
 .cl-admin-badge {
     display:inline-flex;
     align-items:center;
@@ -466,7 +466,7 @@ html, body {
     stroke-linejoin:round;
 }
 
-/* ── Title ── */
+/* Title */
 .cl-title {
     font-family:'Plus Jakarta Sans', sans-serif;
     font-size:clamp(22px, 2.6vw, 30px);
@@ -630,7 +630,7 @@ html, body {
     opacity:.75 !important;
 }
 
-/* ── Submit button ── */
+/* Submit button */
 #cl-root .fi-btn {
     width:100% !important;
     padding:14px 20px !important;
@@ -688,7 +688,7 @@ html, body {
     margin-bottom:0 !important;
 }
 
-/* ── Divider ── */
+/* Divider */
 .cl-divider {
     display:flex;
     align-items:center;
@@ -710,7 +710,7 @@ html, body {
     text-transform:uppercase;
 }
 
-/* ── Security row ── */
+/* Security row */
 .cl-security {
     display:flex;
     align-items:center;
@@ -743,7 +743,7 @@ html, body {
     background:rgba(15,23,42,.2);
 }
 
-/* ── Version ── */
+/* Version */
 .cl-version {
     text-align:center;
     font-family:'DM Sans', sans-serif;
@@ -753,7 +753,7 @@ html, body {
     letter-spacing:.06em;
 }
 
-/* ── Entry animation ── */
+/* Entry animation */
 @keyframes clUp {
     from {
         opacity:0;
@@ -765,12 +765,12 @@ html, body {
     }
 }
 
-/* ── Theme transition ── */
+/* Theme transition */
 #cl-root, #cl-root .cl-right, #cl-root .cl-card, #cl-root .cl-stat, #cl-root .cl-chip, #cl-root .cl-title, #cl-root .cl-subtitle {
     transition:background .28s ease, color .28s ease, border-color .28s ease, box-shadow .28s ease;
 }
 
-/* ── Theme toggle button ── */
+/* Theme toggle button */
 #cl-theme-toggle {
     position:absolute;
     top:18px;
@@ -804,7 +804,7 @@ html, body {
     transform:scale(.96);
 }
 
-/* ═══════════════ DARK MODE OVERRIDES ═══════════════ */
+/*  DARK MODE OVERRIDES  */
 html.cl-dark, html.cl-dark body {
     background:#080b10 !important;
 }
@@ -901,6 +901,10 @@ html.cl-dark #cl-root .fi-checkbox-input {
     background:rgba(37,99,235,.14) !important;
     border:1.5px solid rgba(96,165,250,.6) !important;
 }
+html.cl-dark #cl-root .fi-checkbox-input:checked {
+    background:#2563eb !important;
+    border-color:#2563eb !important;
+}
 html.cl-dark #cl-root .fi-fo-checkbox label, html.cl-dark #cl-root .fi-fo-checkbox label *, html.cl-dark #cl-root .fi-checkbox label, html.cl-dark #cl-root .fi-checkbox label * {
     color:rgba(148,163,184,.78) !important;
 }
@@ -938,7 +942,7 @@ html.cl-dark #cl-root .cl-version {
     color:rgba(96,165,250,.65);
 }
 
-/* ── Responsive ── */
+/* Responsive */
 @media (max-width: 800px) {
     .cl-center {
         padding:0;

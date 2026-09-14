@@ -6,7 +6,6 @@ use App\Domains\Courses\Models\Course;
 use App\Domains\Orders\Enums\OrderPaymentStatus;
 use App\Domains\Orders\Enums\OrderStatus;
 use App\Domains\Orders\Models\Order;
-use App\Domains\Orders\Models\Refund;
 use App\Domains\Payments\Enums\PaymentStatus;
 use App\Domains\Payments\Models\Payment;
 use App\Domains\Users\Models\InstructorVerification;
@@ -71,7 +70,6 @@ class OperationalIntelligence extends Page
             $pendingVerifications  = InstructorVerification::pending()->count();
             $failedPaymentsToday   = Payment::where('status', PaymentStatus::Failed->value)
                 ->whereDate('created_at', today())->count();
-            $openRefunds = (int) static::applyDateRange(Refund::query(), 'created_at', $from, $to)->count();
             $failedJobs = DB::table('failed_jobs')->count();
             try {
                 $queueJobs = Queue::size();
@@ -120,9 +118,6 @@ class OperationalIntelligence extends Page
             $pendingCourses = Course::where('status', Course::STATUS_PENDING)
                 ->with('instructor:id,name')->orderByDesc('updated_at')->take(10)->get();
 
-            $recentRefunds = Refund::with(['order' => fn ($q) => $q->select('id', 'order_number', 'customer_name')])
-                ->orderByDesc('created_at')->take(10)->get();
-
             $failedPayments = static::applyDateRange(
                 Payment::where('status', PaymentStatus::Failed->value), 'created_at', $from, $to
             )->with('order:id,order_number')->orderByDesc('created_at')->take(15)->get();
@@ -137,7 +132,6 @@ class OperationalIntelligence extends Page
                     'pendingCourseReviews' => $pendingCourseReviews,
                     'pendingVerifications' => $pendingVerifications,
                     'failedPaymentsToday'  => $failedPaymentsToday,
-                    'openRefunds'          => $openRefunds,
                     'failedJobs'           => $failedJobs,
                     'queueJobs'            => $queueJobs,
                     'avgProcessingMins'    => $avgProcessingMins,
@@ -150,7 +144,6 @@ class OperationalIntelligence extends Page
                 'reviewTrendLabels'    => $reviewTrendLabels,
                 'reviewTrendValues'    => $reviewTrendValues,
                 'pendingCourses'       => $pendingCourses,
-                'recentRefunds'        => $recentRefunds,
                 'failedPayments'       => $failedPayments,
                 'verificationQueue'    => $verificationQueue,
                 'failedJobsList'       => $failedJobsList,

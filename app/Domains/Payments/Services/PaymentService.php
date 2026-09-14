@@ -2,6 +2,7 @@
 
 namespace App\Domains\Payments\Services;
 
+use App\Domains\Learning\Services\EnrollmentService;
 use App\Domains\Orders\Enums\OrderPaymentStatus;
 use App\Domains\Orders\Enums\OrderStatus;
 use App\Domains\Payments\Enums\PaymentStatus;
@@ -33,6 +34,8 @@ class PaymentService
                 'payment_status' => OrderPaymentStatus::Paid,
                 'paid_at' => now(),
             ]);
+
+            app(EnrollmentService::class)->enrollFromOrder($order);
 
             PaymentSuccessEvent::dispatch($order);
 

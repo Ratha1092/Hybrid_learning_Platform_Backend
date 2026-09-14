@@ -10,19 +10,17 @@
 <table class="kpi-grid">
     <tr>
         <td class="kpi-cell"><div class="kpi-label">Gross Revenue</div><div class="kpi-value">${{ number_format($kpis['grossRevenue'], 2) }}</div></td>
-        <td class="kpi-cell"><div class="kpi-label">Net Revenue</div><div class="kpi-value">${{ number_format($kpis['netRevenue'], 2) }}</div></td>
         <td class="kpi-cell"><div class="kpi-label">Platform Revenue</div><div class="kpi-value">${{ number_format($kpis['platformRevenue'], 2) }}</div></td>
         <td class="kpi-cell"><div class="kpi-label">Instructor Revenue</div><div class="kpi-value">${{ number_format($kpis['instructorRevenue'], 2) }}</div></td>
     </tr>
     <tr>
         <td class="kpi-cell"><div class="kpi-label">Orders</div><div class="kpi-value">{{ number_format($kpis['orderCount']) }}</div></td>
         <td class="kpi-cell"><div class="kpi-label">Avg Order Value</div><div class="kpi-value">${{ number_format($kpis['aov'], 2) }}</div></td>
-        <td class="kpi-cell"><div class="kpi-label">Refunds</div><div class="kpi-value">${{ number_format($kpis['refundAmount'], 2) }}</div></td>
         <td class="kpi-cell"><div class="kpi-label">Revenue Growth</div><div class="kpi-value">{{ $kpis['revenueGrowth'] }}%</div></td>
     </tr>
 </table>
 
-@php $trendMax = max(1, ...$trendValues); @endphp
+@php $trendMax = empty($trendValues) ? 1 : max(1, ...$trendValues); @endphp
 <table class="charts-row">
     <tr>
         <td class="chart-card full">

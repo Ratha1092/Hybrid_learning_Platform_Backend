@@ -134,7 +134,7 @@ body {
 
     <div class="header">
         <div class="header-brand">
-            <div class="brand-name">{{ config('app.name') }}</div>
+            <div class="brand-name">{{ \App\Domains\System\Models\Setting::get('site_name', config('app.name')) }}</div>
             <div class="brand-sub">Instructor Payout Receipt</div>
         </div>
         <div class="header-meta">
@@ -194,8 +194,7 @@ body {
     </div>
 
     <div class="footer">
-        This receipt confirms payout of your course earnings on {{ config('app.name') }}.<br>
-        Generated on {{ now()->format('F j, Y') }}.
+        {{ \App\Domains\System\Models\Setting::get('footer_text', "© " . now()->year . " " . \App\Domains\System\Models\Setting::get('site_name', config('app.name')) . ". All rights reserved.") }}
     </div>
 
 </body>

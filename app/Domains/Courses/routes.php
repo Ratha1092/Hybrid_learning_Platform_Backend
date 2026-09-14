@@ -11,11 +11,21 @@ use App\Domains\Courses\Controllers\InstructorLessonController;
 use App\Domains\Courses\Controllers\InstructorDashboardController;
 use App\Domains\Courses\Controllers\InstructorLessonResourceController;
 use App\Domains\Courses\Controllers\InstructorStandaloneSectionController;
+use App\Domains\Courses\Controllers\InstructorSectionLessonController;
+use App\Domains\Courses\Controllers\InstructorSectionLessonResourceController;
+use App\Domains\Courses\Controllers\InstructorLessonVideoController;
+use App\Domains\Courses\Controllers\InstructorSectionLessonVideoController;
 use App\Domains\Learning\Controllers\ReviewController;
+use App\Domains\Learning\Controllers\WishlistController;
+use App\Domains\Courses\Controllers\CourseDiscussionController;
 
 // Global search
 Route::middleware('throttle:courses')
     ->get('/search', SearchController::class);
+
+// Featured reviews (platform-wide, across all courses)
+Route::middleware('throttle:courses')
+    ->get('/reviews/featured', [ReviewController::class, 'featured']);
 
 // Public Categories
 Route::middleware('throttle:courses')
@@ -31,13 +41,33 @@ Route::middleware('throttle:courses')
     ->group(function () {
         Route::get('/',[CourseController::class, 'index']);
         Route::get('/{slug}',[CourseController::class, 'show']);
-        Route::get('/{courseId}/reviews', [ReviewController::class, 'index'])->where('courseId', '[0-9]+');
+        Route::get('/{courseId}/reviews', [ReviewController::class, 'index'])
+            ->middleware('optional_auth')
+            ->where('courseId', '[0-9]+');
     });
 
 // Student review submission
 Route::middleware(['auth:sanctum', 'throttle:courses'])
     ->post('/courses/{courseId}/reviews', [ReviewController::class, 'store'])
     ->where('courseId', '[0-9]+');
+
+// Wishlist toggle (add/remove a course from the current user's wishlist)
+Route::middleware(['auth:sanctum', 'throttle:courses'])
+    ->post('/courses/{course}/wishlist/toggle', [WishlistController::class, 'toggle']);
+
+// Course Community (enrolled-only discussion board, one per course)
+Route::middleware(['auth:sanctum', 'throttle:courses'])
+    ->get('/courses/{courseId}/discussions', [CourseDiscussionController::class, 'index'])
+    ->where('courseId', '[0-9]+');
+
+Route::middleware(['auth:sanctum', 'throttle:courses'])
+    ->post('/courses/{courseId}/discussions', [CourseDiscussionController::class, 'store'])
+    ->where('courseId', '[0-9]+');
+
+Route::middleware(['auth:sanctum', 'throttle:courses'])
+    ->post('/discussions/{discussion}/like', [CourseDiscussionController::class, 'like']);
+
+
 // Instructor Dashboard
 Route::middleware(['auth:sanctum','verified_instructor','throttle:courses',])
     ->prefix('instructor')
@@ -52,6 +82,30 @@ Route::middleware(['auth:sanctum', 'verified_instructor', 'throttle:courses'])
     ->group(function () {
         Route::post('/', [InstructorStandaloneSectionController::class, 'store']);
         Route::get('/standalone', [InstructorStandaloneSectionController::class, 'standalone']);
+        Route::get('/{id}', [InstructorStandaloneSectionController::class, 'show'])->where('id', '[0-9]+');
+        Route::put('/{id}', [InstructorStandaloneSectionController::class, 'update']);
+        Route::delete('/{id}', [InstructorStandaloneSectionController::class, 'destroy']);
+
+        // Section-scoped lessons 
+        Route::prefix('{sectionId}/lessons')->where(['sectionId' => '[0-9]+'])->group(function () {
+            Route::get('/', [InstructorSectionLessonController::class, 'index']);
+            Route::post('/', [InstructorSectionLessonController::class, 'store']);
+            Route::put('/{lessonId}', [InstructorSectionLessonController::class, 'update']);
+            Route::delete('/{lessonId}', [InstructorSectionLessonController::class, 'destroy']);
+            Route::post('/{lessonId}/upload-video', [InstructorSectionLessonController::class, 'uploadVideo']);
+
+            Route::prefix('{lessonId}/resources')->group(function () {
+                Route::get('/', [InstructorSectionLessonResourceController::class, 'index']);
+                Route::post('/', [InstructorSectionLessonResourceController::class, 'store']);
+                Route::delete('/{resourceId}', [InstructorSectionLessonResourceController::class, 'destroy']);
+            });
+
+            Route::prefix('{lessonId}/videos')->group(function () {
+                Route::get('/', [InstructorSectionLessonVideoController::class, 'index']);
+                Route::post('/', [InstructorSectionLessonVideoController::class, 'store']);
+                Route::delete('/{videoId}', [InstructorSectionLessonVideoController::class, 'destroy']);
+            });
+        });
     });
 
 // Instructor Course Management
@@ -71,6 +125,9 @@ Route::middleware(['auth:sanctum','verified_instructor','throttle:courses',])
 
         //Attach standalone sections to a course
         Route::post('/{id}/attach-sections', [InstructorCourseController::class, 'attachSections']);
+
+        //Course-level preview video upload
+        Route::post('/{id}/upload-preview-video', [InstructorCourseController::class, 'uploadPreviewVideo']);
         Route::prefix('{courseId}/sections')->group(function () {
                 Route::get('/',[InstructorSectionController::class, 'index']);
                 Route::post('/',[InstructorSectionController::class, 'store']);
@@ -90,6 +147,13 @@ Route::middleware(['auth:sanctum','verified_instructor','throttle:courses',])
                             Route::get('/', [InstructorLessonResourceController::class, 'index']);
                             Route::post('/', [InstructorLessonResourceController::class, 'store']);
                             Route::delete('/{resourceId}', [InstructorLessonResourceController::class, 'destroy']);
+                        });
+
+                        // Upload Videos (a lesson may have multiple)
+                        Route::prefix('{lessonId}/videos')->group(function () {
+                            Route::get('/', [InstructorLessonVideoController::class, 'index']);
+                            Route::post('/', [InstructorLessonVideoController::class, 'store']);
+                            Route::delete('/{videoId}', [InstructorLessonVideoController::class, 'destroy']);
                         });
                     });
             });

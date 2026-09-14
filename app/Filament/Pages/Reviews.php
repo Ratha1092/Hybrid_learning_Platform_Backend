@@ -2,10 +2,12 @@
 
 namespace App\Filament\Pages;
 
+use App\Domains\Courses\Models\Course;
 use App\Domains\Learning\Models\Review;
 use App\Support\NavBadge;
 use App\Support\PanelAccess;
 use BackedEnum;
+use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Support\Number;
 
@@ -25,6 +27,8 @@ class Reviews extends Page
 
     public function mount(): void
     {
+        $this->courseId = request()->integer('course_id') ?: null;
+
         NavBadge::markSeen('reviews');
     }
 
@@ -80,6 +84,51 @@ class Reviews extends Page
         $this->page = max(1, $page);
     }
 
+    public function toggleFeatured(int $reviewId): void
+    {
+        if (!PanelAccess::can('reviews.update')) {
+            Notification::make()->title('You do not have permission to feature reviews.')->danger()->send();
+            return;
+        }
+
+        $review = Review::find($reviewId);
+
+        if (!$review) {
+            return;
+        }
+
+        $review->update(['is_featured' => !$review->is_featured]);
+
+        Notification::make()
+            ->title($review->is_featured ? 'Review featured' : 'Review unfeatured')
+            ->success()
+            ->send();
+    }
+
+    public function toggleApproved(int $reviewId): void
+    {
+        if (!PanelAccess::can('reviews.approve')) {
+            Notification::make()->title('You do not have permission to approve reviews.')->danger()->send();
+            return;
+        }
+
+        $review = Review::find($reviewId);
+
+        if (!$review) {
+            return;
+        }
+
+        $review->update([
+            'is_approved' => !$review->is_approved,
+            'approved_by' => !$review->is_approved ? auth()->id() : $review->approved_by,
+        ]);
+
+        Notification::make()
+            ->title($review->is_approved ? 'Review approved' : 'Review unapproved')
+            ->success()
+            ->send();
+    }
+
     protected function getViewData(): array
     {
         $tab      = $this->tab;
@@ -88,16 +137,25 @@ class Reviews extends Page
         $page     = max(1, $this->page);
         $perPage  = in_array($this->perPage, [10, 25, 50], true) ? $this->perPage : 10;
 
+        // One grouped query instead of six separate COUNT round-trips for the tab badges.
+        $ratingCounts = Review::query()
+            ->toBase()
+            ->selectRaw('rating, count(*) as aggregate')
+            ->groupBy('rating')
+            ->pluck('aggregate', 'rating');
+
         $tabs = [
-            ['key' => 'all', 'label' => 'All',   'count' => Review::count(),                         'color' => '#2563eb'],
-            ['key' => '5',   'label' => '5★',     'count' => Review::where('rating', 5)->count(),    'color' => '#34d399'],
-            ['key' => '4',   'label' => '4★',     'count' => Review::where('rating', 4)->count(),    'color' => '#60a5fa'],
-            ['key' => '3',   'label' => '3★',     'count' => Review::where('rating', 3)->count(),    'color' => '#fbbf24'],
-            ['key' => '2',   'label' => '2★',     'count' => Review::where('rating', 2)->count(),    'color' => '#fb923c'],
-            ['key' => '1',   'label' => '1★',     'count' => Review::where('rating', 1)->count(),    'color' => '#f87171'],
+            ['key' => 'all', 'label' => 'All',   'count' => $ratingCounts->sum(),         'color' => '#2563eb'],
+            ['key' => '5',   'label' => '5★',     'count' => $ratingCounts[5] ?? 0,    'color' => '#34d399'],
+            ['key' => '4',   'label' => '4★',     'count' => $ratingCounts[4] ?? 0,    'color' => '#60a5fa'],
+            ['key' => '3',   'label' => '3★',     'count' => $ratingCounts[3] ?? 0,    'color' => '#fbbf24'],
+            ['key' => '2',   'label' => '2★',     'count' => $ratingCounts[2] ?? 0,    'color' => '#fb923c'],
+            ['key' => '1',   'label' => '1★',     'count' => $ratingCounts[1] ?? 0,    'color' => '#f87171'],
         ];
 
         $query = Review::with(['course:id,title', 'user:id,name']);
+
+        $courseTitle = $courseId ? Course::find($courseId)?->title : null;
 
         if ($courseId) {
             $query->where('course_id', $courseId);
@@ -109,9 +167,9 @@ class Reviews extends Page
 
         if ($search) {
             $query->where(function ($q) use ($search) {
-                $q->where('comment', 'like', "%{$search}%")
-                  ->orWhereHas('course', fn($q2) => $q2->where('title', 'like', "%{$search}%"))
-                  ->orWhereHas('user',   fn($q2) => $q2->where('name',  'like', "%{$search}%"));
+                $q->where('comment', 'ilike', "%{$search}%")
+                  ->orWhereHas('course', fn($q2) => $q2->where('title', 'ilike', "%{$search}%"))
+                  ->orWhereHas('user',   fn($q2) => $q2->where('name',  'ilike', "%{$search}%"));
             });
         }
 
@@ -122,6 +180,6 @@ class Reviews extends Page
         $curPage    = min($page, $totalPages);
         $reviews    = $query->skip(($curPage - 1) * $perPage)->take($perPage)->get();
 
-        return compact('tabs', 'tab', 'search', 'courseId', 'reviews', 'total', 'totalPages', 'curPage', 'perPage');
+        return compact('tabs', 'tab', 'search', 'courseId', 'courseTitle', 'reviews', 'total', 'totalPages', 'curPage', 'perPage');
     }
 }

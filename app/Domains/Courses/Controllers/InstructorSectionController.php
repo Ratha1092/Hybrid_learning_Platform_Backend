@@ -20,6 +20,16 @@ class InstructorSectionController extends Controller
         }
         $sections = Section::where('course_id', $courseId)
             ->orderBy('order')
+            ->with(['lessons' => function ($q) {
+                $q->orderBy('order')->with([
+                    'objectives',
+                    'contentBlocks',
+                    'takeaways',
+                    'assessments.questions',
+                    'assignments',
+                    'completionRule',
+                ])->withCount('videos');
+            }])
             ->get();
         return ApiResponse::success($sections, 'Sections retrieved successfully');
     }
@@ -31,6 +41,10 @@ class InstructorSectionController extends Controller
 
         if (!$course) {
             return ApiResponse::error('Course not found', 404);
+        }
+
+        if ($course->isPendingReview()) {
+            return ApiResponse::error('This course is pending review and cannot be edited until it is approved or rejected.', 422);
         }
 
         $validated = $request->validate([
@@ -60,6 +74,10 @@ class InstructorSectionController extends Controller
             return ApiResponse::error('Unauthorized', 403);
         }
 
+        if ($section->course->isPendingReview()) {
+            return ApiResponse::error('This course is pending review and cannot be edited until it is approved or rejected.', 422);
+        }
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
         ]);
@@ -81,6 +99,14 @@ class InstructorSectionController extends Controller
 
         if ($section->course->instructor_id !== auth()->id()) {
             return ApiResponse::error('Unauthorized', 403);
+        }
+
+        if ($section->course->isPendingReview()) {
+            return ApiResponse::error('This course is pending review and cannot be edited until it is approved or rejected.', 422);
+        }
+
+        if ($section->course->isPublished()) {
+            return ApiResponse::error('This course is public, so its content can\'t be deleted.', 422);
         }
 
         $section->delete();

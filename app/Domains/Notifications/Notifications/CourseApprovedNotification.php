@@ -48,4 +48,9 @@ class CourseApprovedNotification extends Notification
             'action_text' => 'View Course',
         ];
     }
+
+    public function toDatabase(object $notifiable): array
+    {
+        return $this->toArray($notifiable);
+    }
 }

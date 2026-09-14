@@ -1063,7 +1063,6 @@ html:not(.dark) .hl-payout-btn-secondary{
                                         src="{{ $detailQr }}"
                                         alt="Payout QR code"
                                         class="hl-payout-qr"
-                                        onclick="document.getElementById('hl-qr-lightbox-detail').style.display = 'flex'"
                                     >
                                 @else
                                     <div class="hl-payout-no-qr">
@@ -1136,23 +1135,6 @@ html:not(.dark) .hl-payout-btn-secondary{
                         </button>
                     @endif
                 </div>
-            </div>
-        </div>
-    @if($detailQr)
-        <div
-            id="hl-qr-lightbox-detail"
-            class="hl-qr-lightbox"
-            style="display:none;"
-        >
-            <div class="hl-qr-lightbox-backdrop" onclick="document.getElementById('hl-qr-lightbox-detail').style.display = 'none'"></div>
-            <div class="hl-qr-lightbox-content">
-                <button
-                    type="button"
-                    class="hl-qr-lightbox-close"
-                    aria-label="Close QR image"
-                    onclick="document.getElementById('hl-qr-lightbox-detail').style.display = 'none'"
-                >&times;</button>
-                <img src="{{ $detailQr }}" alt="Enlarged payout QR code" class="hl-qr-lightbox-image">
             </div>
         </div>
     @endif
@@ -1317,25 +1299,6 @@ html:not(.dark) .hl-payout-btn-secondary{
             </div>
         </div>
 
-    @endif
-
-    @if($approveQr)
-        <div
-            id="hl-qr-lightbox-approve"
-            class="hl-qr-lightbox"
-            style="display:none;"
-        >
-            <div class="hl-qr-lightbox-backdrop" onclick="document.getElementById('hl-qr-lightbox-approve').style.display = 'none'"></div>
-            <div class="hl-qr-lightbox-content">
-                <button
-                    type="button"
-                    class="hl-qr-lightbox-close"
-                    aria-label="Close QR image"
-                    onclick="document.getElementById('hl-qr-lightbox-approve').style.display = 'none'"
-                >&times;</button>
-                <img src="{{ $approveQr }}" alt="Enlarged payout QR code" class="hl-qr-lightbox-image">
-            </div>
-        </div>
     @endif
 
     {{--REJECT MODAL --}}

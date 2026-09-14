@@ -45,7 +45,7 @@ class CourseController extends Controller
 
     public function show($slug)
     {
-        $course = Cache::remember("courses.slug.{$slug}", 3600, fn() =>
+        $course = Cache::remember("courses.v2.slug.{$slug}", 3600, fn() =>
             Course::with([
                 'instructor:id,name,avatar',
                 'category:id,name,slug',
@@ -115,6 +115,26 @@ class CourseController extends Controller
                 $lessonData = $lesson->toArray();
 
                 $canWatch = $hasAccess || $lesson->is_preview;
+
+                $lessonData['objectives'] = $lesson->objectives->map(fn ($objective) => [
+                    'id' => $objective->id,
+                    'objective' => $objective->objective,
+                    'order' => $objective->order,
+                ])->values()->all();
+
+                $lessonData['takeaways'] = $lesson->takeaways->map(fn ($takeaway) => [
+                    'id' => $takeaway->id,
+                    'takeaway' => $takeaway->takeaway,
+                    'order' => $takeaway->order,
+                ])->values()->all();
+
+                $lessonData['completion_rule'] = $lesson->completionRule?->only([
+                    'id',
+                    'watch_video',
+                    'read_content',
+                    'pass_quiz',
+                    'submit_assignment',
+                ]) ?? [];
 
                 if ($canWatch) {
                     $videos = $lesson->videos->map(fn ($v) => [

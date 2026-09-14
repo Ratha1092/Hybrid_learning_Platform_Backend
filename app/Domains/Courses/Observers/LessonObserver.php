@@ -34,7 +34,7 @@ class LessonObserver
         $slug = $lesson->section?->course?->slug;
 
         if ($slug) {
-            Cache::forget("courses.slug.{$slug}");
+            Cache::forget("courses.v2.slug.{$slug}");
         }
     }
 }

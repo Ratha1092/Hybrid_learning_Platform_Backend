@@ -66,7 +66,7 @@ class CourseService
                     unset($data['thumbnail_file']);
                     $course->update($data);
                     Cache::forget('courses.published');
-                    Cache::forget("courses.slug.{$course->slug}");
+                    Cache::forget("courses.v2.slug.{$course->slug}");
 
                     return $course->fresh();
                 });
@@ -83,7 +83,7 @@ class CourseService
     {
         DB::transaction(function () use ($course) {
             Cache::forget('courses.published');
-            Cache::forget("courses.slug.{$course->slug}");
+            Cache::forget("courses.v2.slug.{$course->slug}");
             $course->delete();
         });
     }

@@ -15,8 +15,6 @@ class Notifications extends Page
     protected static ?int $navigationSort = 3;
     protected static ?string $slug = 'notifications';
 
-    // The nav badge stays personal — "things addressed to me" — even though
-    // the page itself is a platform-wide audit log of everyone's notifications.
     public static function getNavigationBadge(): ?string
     {
         $unread = (int) (auth()->user()?->unreadNotifications()->count() ?? 0);
@@ -68,8 +66,6 @@ class Notifications extends Page
         $page    = max(1, $this->page);
         $perPage = in_array($this->perPage, [10, 25, 50], true) ? $this->perPage : 10;
 
-        // Platform-wide audit log — every notification sent to every user,
-        // not just the currently logged-in admin's own.
         $base = fn () => DatabaseNotification::query();
 
         $tabs = [

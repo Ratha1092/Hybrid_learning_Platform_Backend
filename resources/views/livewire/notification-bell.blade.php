@@ -256,7 +256,7 @@ html:not(.dark) {
 
 <div
     class="nb-wrap"
-    wire:poll.15s="refreshUnreadCount"
+    wire:poll.15s
     x-data="{
         open: false,
         unread: $wire.entangle('unreadCount'),

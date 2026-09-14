@@ -20,7 +20,16 @@ class InstructorSectionController extends Controller
         }
         $sections = Section::where('course_id', $courseId)
             ->orderBy('order')
-            ->with(['lessons' => fn ($q) => $q->orderBy('order')])
+            ->with(['lessons' => function ($q) {
+                $q->orderBy('order')->with([
+                    'objectives',
+                    'contentBlocks',
+                    'takeaways',
+                    'assessments.questions',
+                    'assignments',
+                    'completionRule',
+                ])->withCount('videos');
+            }])
             ->get();
         return ApiResponse::success($sections, 'Sections retrieved successfully');
     }

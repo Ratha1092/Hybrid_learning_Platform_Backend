@@ -88,8 +88,8 @@ class Course extends Model
         static::saving(function ($course) {
             $course->is_published = $course->status === self::STATUS_PUBLISHED;
             if ($course->exists) {
-                Cache::forget("courses.slug.{$course->getOriginal('slug')}");
-                Cache::forget("courses.slug.{$course->slug}");
+                Cache::forget("courses.v2.slug.{$course->getOriginal('slug')}");
+                Cache::forget("courses.v2.slug.{$course->slug}");
             }
 
             if ($course->isDirty(['is_published', 'status'])) {
@@ -124,7 +124,7 @@ class Course extends Model
         ]);
         Cache::tags(['dashboard'])->flush();
         Cache::forget('courses.published');
-        Cache::forget("courses.slug.{$this->slug}");
+        Cache::forget("courses.v2.slug.{$this->slug}");
     }
 
     public function reject(?string $reason = null): void
@@ -146,7 +146,7 @@ class Course extends Model
         ]);
         Cache::tags(['dashboard'])->flush();
         Cache::forget('courses.published');
-        Cache::forget("courses.slug.{$this->slug}");
+        Cache::forget("courses.v2.slug.{$this->slug}");
     }
 
     /**
@@ -164,7 +164,7 @@ class Course extends Model
         ]);
         Cache::tags(['dashboard'])->flush();
         Cache::forget('courses.published');
-        Cache::forget("courses.slug.{$this->slug}");
+        Cache::forget("courses.v2.slug.{$this->slug}");
     }
     public function instructor(): BelongsTo
     {

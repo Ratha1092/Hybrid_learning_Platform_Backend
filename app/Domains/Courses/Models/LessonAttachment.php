@@ -43,7 +43,7 @@ class LessonAttachment extends Model
         $slug = $this->lesson?->section?->course?->slug;
 
         if ($slug) {
-            \Illuminate\Support\Facades\Cache::forget("courses.slug.{$slug}");
+            \Illuminate\Support\Facades\Cache::forget("courses.v2.slug.{$slug}");
         }
     }
 

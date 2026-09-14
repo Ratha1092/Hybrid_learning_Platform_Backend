@@ -83,6 +83,11 @@ class FinancialIntelligence extends Page
         );
     }
 
+    public static function normalizeWalletValue(float $value): float
+    {
+        return max(0.0, $value);
+    }
+
     public static function buildPageData(array $filters): array
     {
         $preset = $filters['preset'] ?? 'this_month';
@@ -100,8 +105,8 @@ class FinancialIntelligence extends Page
             $platformProfit    = (float) OrderItem::whereIn('order_id', $paidOrderIds)->sum('platform_amount');
             $instructorEarnings= (float) OrderItem::whereIn('order_id', $paidOrderIds)->sum('instructor_amount');
             $taxCollected      = (float) static::applyDateRange(Invoice::query(), 'issued_at', $from, $to)->sum('tax_amount');
-            $totalWalletBalance= (float) InstructorWallet::sum('balance');
-            $pendingPayout     = (float) InstructorWallet::sum('pending_balance');
+            $totalWalletBalance= static::normalizeWalletValue((float) InstructorWallet::sum('balance'));
+            $pendingPayout     = static::normalizeWalletValue((float) InstructorWallet::sum('pending_balance'));
             $completedPayout   = (float) static::applyDateRange(
                 PayoutRequest::query()->where('status', 'approved'), 'processed_at', $from, $to
             )->sum('amount');

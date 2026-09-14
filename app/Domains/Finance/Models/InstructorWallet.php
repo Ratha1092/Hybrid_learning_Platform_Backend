@@ -15,6 +15,19 @@ class InstructorWallet extends Model
         'currency',
     ];
 
+    protected static function booted(): void
+    {
+        static::saving(function (self $wallet): void {
+            $wallet->balance = self::normalizeValue((float) $wallet->balance);
+            $wallet->pending_balance = self::normalizeValue((float) $wallet->pending_balance);
+        });
+    }
+
+    public static function normalizeValue(float $value): float
+    {
+        return max(0.0, $value);
+    }
+
     public function instructor(): BelongsTo
     {
         return $this->belongsTo(User::class, 'instructor_id');

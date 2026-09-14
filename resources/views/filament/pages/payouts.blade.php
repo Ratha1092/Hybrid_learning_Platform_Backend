@@ -39,23 +39,14 @@
     @endif
 >
 <style>
-.fi-main:has(.hl-payout-page){
-    padding-inline:0 !important;
-}
-.fi-page-header-main-ctn:has(.hl-payout-page){
-    padding-block:0 !important;
-    row-gap:0 !important;
-}
-.fi-page-content:has(.hl-payout-page){
-    row-gap:0 !important;
-}
 .hl-payout-page,.hl-payout-page *,.hl-payout-page *::before,.hl-payout-page *::after{box-sizing:border-box}
 .hl-payout-page{
     width:100%;
-    padding:0 0 48px;
+    min-height:100vh;
     display:grid;
-    gap:20px;
-    background:transparent;
+    gap:16px;
+    padding:16px 20px 48px;
+    background:var(--hl-payout-bg);
     color:var(--hl-payout-text);
     font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
     font-size:13px;
@@ -141,45 +132,46 @@ html:not(.dark) .hl-payout-page{
     display:flex;
     align-items:center;
     justify-content:space-between;
-    gap:14px;
+    gap:12px;
     padding:14px 16px;
     border-bottom:1px solid var(--hl-payout-border);
     flex-wrap:wrap;
 }
 .hl-payout-tabs{
     display:flex;
-    gap:5px;
+    align-items:center;
+    gap:4px;
     flex-wrap:wrap;
 }
 .hl-payout-tab{
     display:inline-flex;
     align-items:center;
-    gap:7px;
-    border:1px solid transparent;
-    background:transparent;
-    color:var(--hl-payout-muted);
-    padding:6px 13px;
+    gap:6px;
+    padding:6px 12px;
     border-radius:8px;
     font-size:12px;
-    font-weight:700;
+    font-weight:600;
     cursor:pointer;
-    transition:.15s ease;
+    color:var(--hl-payout-muted);
+    background:transparent;
+    border:1px solid transparent;
+    transition:background .15s ease, color .15s ease, border-color .15s ease;
 }
 .hl-payout-tab:hover{
     color:var(--hl-payout-text-strong);
     background:var(--hl-payout-hover);
 }
 .hl-payout-tab.active{
-    background:rgba(37,99,235,.12);
+    background:rgba(37,99,235,.10);
     color:#2563eb;
-    border-color:rgba(37,99,235,.18);
+    border-color:rgba(37,99,235,.16);
 }
 .dark .hl-payout-tab.active{
     color:#60a5fa;
 }
 .hl-payout-count{
-    min-width:19px;
-    height:19px;
+    min-width:18px;
+    height:18px;
     display:inline-flex;
     align-items:center;
     justify-content:center;
@@ -190,37 +182,25 @@ html:not(.dark) .hl-payout-page{
     background:var(--hl-payout-card-2);
 }
 .hl-payout-search{
-    display:flex;
-    align-items:center;
-    gap:6px;
-    width:auto;
+    width:260px;
+    max-width:100%;
+}
+.hl-payout-search input{
+    width:100%;
+    height:36px;
     background:var(--hl-payout-card-2);
     border:1px solid var(--hl-payout-border-strong);
     border-radius:8px;
-    padding:6px 12px;
-}
-.hl-payout-search svg{
-    width:14px;
-    height:14px;
-    color:var(--hl-payout-muted);
-    flex-shrink:0;
-}
-.hl-payout-search input{
-    width:200px;
-    max-width:100%;
-    height:auto;
-    padding:0;
-    border:0;
-    background:transparent;
     color:var(--hl-payout-text-strong);
     outline:none;
     font-size:12px;
+    padding:0 12px;
 }
 .hl-payout-search input::placeholder{
     color:var(--hl-payout-muted);
 }
 .hl-payout-search input:focus{
-    border-color:rgba(37,99,235,.6);
+    border-color:rgba(37,99,235,.55);
     box-shadow:0 0 0 3px rgba(37,99,235,.08);
 }
 .hl-payout-table-wrap{
@@ -548,6 +528,12 @@ html:not(.dark) .hl-payout-modal-backdrop{
     padding:10px;
     background:white;
     border:1px solid var(--hl-payout-border-strong);
+    cursor:zoom-in;
+    transition:transform .15s ease, box-shadow .15s ease;
+}
+.hl-payout-qr:hover{
+    transform:translateY(-1px);
+    box-shadow:0 8px 18px rgba(15,23,42,.14);
 }
 .hl-payout-no-qr{
     display:flex;
@@ -559,6 +545,62 @@ html:not(.dark) .hl-payout-modal-backdrop{
     color:var(--hl-payout-muted);
     font-size:11px;
     text-align:center;
+}
+.hl-qr-lightbox{
+    position:fixed;
+    inset:0;
+    z-index:99999;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+    animation:hl-qr-fade .18s ease;
+}
+.hl-qr-lightbox-backdrop{
+    position:absolute;
+    inset:0;
+    background:rgba(2,6,23,.72);
+    backdrop-filter:blur(2px);
+}
+.hl-qr-lightbox-content{
+    position:relative;
+    z-index:1;
+    width:min(88vw, 560px);
+    border-radius:18px;
+    background:rgba(255,255,255,.96);
+    border:1px solid rgba(15,23,42,.08);
+    box-shadow:0 30px 80px rgba(15,23,42,.35);
+    padding:16px;
+    transform:scale(1);
+    animation:hl-qr-pop .18s ease;
+}
+.hl-qr-lightbox-image{
+    width:100%;
+    display:block;
+    border-radius:12px;
+    background:#fff;
+}
+.hl-qr-lightbox-close{
+    position:absolute;
+    top:12px;
+    right:12px;
+    width:32px;
+    height:32px;
+    border-radius:999px;
+    border:none;
+    background:rgba(15,23,42,.08);
+    color:#0f172a;
+    font-size:22px;
+    line-height:1;
+    cursor:pointer;
+}
+@keyframes hl-qr-fade{
+    from{opacity:0}
+    to{opacity:1}
+}
+@keyframes hl-qr-pop{
+    from{opacity:0; transform:scale(.96)}
+    to{opacity:1; transform:scale(1)}
 }
 .hl-payout-payment-warning{
     margin-top:15px;
@@ -1207,6 +1249,7 @@ html:not(.dark) .hl-payout-btn-secondary{
                                         src="{{ $approveQr }}"
                                         alt="Payout QR code"
                                         class="hl-payout-qr"
+                                        onclick="document.getElementById('hl-qr-lightbox-approve').style.display = 'flex'"
                                     >
                                 @else
                                     <div class="hl-payout-no-qr">
@@ -1264,7 +1307,6 @@ html:not(.dark) .hl-payout-btn-secondary{
         </div>
 
     @endif
-
 
     {{--REJECT MODAL --}}
 
